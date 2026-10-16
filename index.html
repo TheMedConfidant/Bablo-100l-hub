@@ -247,6 +247,31 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
   .grid{grid-template-columns:repeat(5,1fr)}
 }
 
+/* ===== Classic: plain, high-contrast, no glass, no glows (light and dark) ===== */
+:root[data-skin="classic"]{--page:var(--bg)}
+:root[data-skin="classic"] body{background:var(--bg) !important;background-attachment:scroll !important}
+:root[data-skin="classic"] body::before{display:none !important}
+:root[data-skin="classic"] .panel,:root[data-skin="classic"] .tile,:root[data-skin="classic"] .rows,:root[data-skin="classic"] .rev,:root[data-skin="classic"] .qcard,:root[data-skin="classic"] .modal,:root[data-skin="classic"] .slip,:root[data-skin="classic"] .nav,:root[data-skin="classic"] .dock,:root[data-skin="classic"] .hero{background:var(--surface) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;border:1px solid var(--line) !important;box-shadow:0 1px 2px rgba(0,0,0,.06) !important;border-radius:14px}
+:root[data-skin="classic"] .hero{background:var(--surface) !important;color:var(--ink) !important;border-color:var(--line) !important}
+:root[data-skin="classic"] .hero p,:root[data-skin="classic"] .hero h1{color:var(--ink) !important}
+:root[data-skin="classic"] .btn,:root[data-skin="classic"] .opt,:root[data-skin="classic"] input[type=text],:root[data-skin="classic"] input[type=number],:root[data-skin="classic"] input[type=password],:root[data-skin="classic"] select,:root[data-skin="classic"] textarea{background:var(--surface) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;border:1px solid var(--line) !important;box-shadow:none !important;color:var(--ink)}
+:root[data-skin="classic"] .btn.primary,:root[data-skin="classic"] .opt[aria-pressed=true]{background:var(--brand) !important;border-color:var(--brand) !important;color:#fff !important}
+:root[data-skin="classic"] .btn.gold{background:#B45309 !important;border-color:#B45309 !important;color:#fff !important}
+:root[data-skin="classic"] .btn.danger{color:var(--bad) !important;border-color:var(--bad) !important}
+:root[data-skin="classic"] .toast{background:var(--ink) !important;color:var(--bg) !important;border:0 !important;backdrop-filter:none !important}
+:root[data-skin="classic"] .overlay{background:rgba(0,0,0,.4) !important;backdrop-filter:none !important}
+:root[data-skin="classic"] .nav a[aria-current=page]{background:var(--brand-soft) !important}
+:root[data-skin="classic"] .chess-board{border:1px solid var(--line) !important;box-shadow:none !important}
+:root[data-skin="classic"] .sq.light{background:#F1F5F9 !important}
+:root[data-skin="classic"] .sq.dark{background:#94A3B8 !important}
+:root[data-skin="classic"][data-mode="dark"] .sq.light{background:#334155 !important}
+:root[data-skin="classic"][data-mode="dark"] .sq.dark{background:#1E293B !important}
+:root[data-skin="classic"][data-mode="light"]{--bg:#F5F6F8;--surface:#FFFFFF;--ink:#111827;--ink2:#4B5563;--line:#D9DEE7;--brand:#0F766E;--brand-soft:#E6F4F2}
+:root[data-skin="classic"][data-mode="dark"]{--bg:#0B0F17;--surface:#121826;--ink:#E5E7EB;--ink2:#9CA3AF;--line:#263044;--brand:#2DD4BF;--brand-soft:#0F2E2C}
+/* laptop width */
+@media (min-width: 1200px){ .wrap{max-width:1320px} }
+@media (min-width: 1600px){ .wrap{max-width:1480px} .grid{grid-template-columns:repeat(6,1fr)} }
+
 </style>
 </head>
 <body>
@@ -1428,11 +1453,12 @@ function boardView() {
   let scope = 'all', course = '*', data = null; const box = h('div', { class: 'stack' });
   const draw = () => {
     const seg = (items, cur, set) => h('div', { class: 'seg' }, items.map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(cur === v), onclick: () => { set(v); draw(); } }, l)));
-    const kids = [seg([['all', 'All-time'], ['week', 'This week']], scope, v => { scope = v; }),
+    const kids = [seg([['all', 'All-time'], ['week', 'This week'], ['prog', 'My programme']], scope, v => { scope = v; }),
       seg([['*', 'Overall']].concat(coursesFor(DB.profile.programme).filter(isAvail).map(x => [x.code, x.label])), course, v => { course = v; })];
     if (!data) kids.push(h('p', { class: 'muted' }, 'Loading\u2026'));
     else {
-      const rows = Core.rank(data.rows, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 }).slice(0, 50);
+      const pool = scope === 'prog' ? data.rows.filter(r => r.programme === DB.profile.programme) : data.rows;
+      const rows = Core.rank(pool, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 }).slice(0, 50);
       const note = data.mode === 'global' ? 'Live leaderboard \u2022 best score per course counts.' : data.mode === 'offline' ? 'Could not reach the live leaderboard, showing this device only.' : 'Global leaderboard is not switched on yet. This board shows your attempts on this device.';
       kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes (10+ questions) and the Premium exam rank.'));
       if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
@@ -2009,7 +2035,7 @@ function cupView() {
   mount(wrap(back('#/board', 'Leaderboard'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Programme Cup'), h('p', { class: 'muted' }, 'Every programme takes part. Your best ranked score in each course counts. The programme score is the average of its top ' + CUP.topN + ' players, so one person cannot carry a whole programme.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label + ' ' + String(w.from).padStart(2, '0') + ':00 to ' + String(w.to).padStart(2, '0') + ':00').join(' \u2022 ') + '. Repeats every week.'), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
-    standings)));
+    standings, pollCard())));
   lbFetch().then(d => {
     const rows = Core.cupScores(d.rows, { since: seasonStart, until: seasonEnd, windows: EVENT_WINDOWS, weights: COURSE_WEIGHTS, minPlayers: CUP.minPlayers, topN: CUP.topN });
     const note = !inSeason ? 'The season has not started or has finished.' : 'Season ends in ' + Math.max(0, Math.ceil((seasonEnd - now) / 864e5)) + ' days. ' + (d.mode === 'global' ? 'Live.' : 'Showing this device only until the live board is on.');
@@ -2189,6 +2215,37 @@ function maybeInstallPopup() {
     h('button', { class: 'btn ghost block', onclick: () => close() }, 'Later')), true);
 }
 window.addEventListener('bablo-install-ready', maybeInstallPopup);
+
+/* ---------- schedule poll: when should qualifications hold? One vote per person. ---------- */
+const QUAL_POLL = { id: 'qualifications-2026-s1', question: 'When should programme qualifications hold? (Lagos time)', options: [
+  { id: 'today-8pm', label: 'Today, 8pm' }, { id: 'today-9pm', label: 'Today, 9pm' },
+  { id: 'tomorrow-7pm', label: 'Tomorrow, 7pm' }, { id: 'tomorrow-8pm', label: 'Tomorrow, 8pm' }] };
+async function pollCounts(pollId) {
+  const rows = await sbGet('poll_votes?poll_id=eq.' + encodeURIComponent(pollId) + '&select=option_id,voter');
+  if (!Array.isArray(rows)) return null;
+  const counts = {}; let mine = null;
+  rows.forEach(r => { counts[r.option_id] = (counts[r.option_id] || 0) + 1; if (r.voter === DB.dev) mine = r.option_id; });
+  return { counts, mine, total: rows.length };
+}
+function pollCard() {
+  const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
+  const draw = async () => {
+    if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll opens when the live database is connected.')); return; }
+    const data = await pollCounts(QUAL_POLL.id);
+    if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load the poll.')); return; }
+    box.replaceChildren(...QUAL_POLL.options.map(o => {
+      const n = data.counts[o.id] || 0, pct = data.total ? Math.round(n / data.total * 100) : 0;
+      return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id), disabled: !!data.mine, style: { justifyContent: 'space-between', marginTop: '6px' },
+        onclick: async () => {
+          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: QUAL_POLL.id, option_id: o.id, voter: DB.dev }) }).catch(() => null);
+          if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
+        } }, h('span', null, (data.mine === o.id ? '\u2714 ' : '') + o.label), h('span', { class: 'small muted' }, n + ' \u2022 ' + pct + '%'));
+    }));
+    box.append(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. You can vote once.'));
+  };
+  draw();
+  return h('section', { class: 'panel stack' }, h('h2', null, 'Qualifications poll'), h('p', { class: 'muted small' }, QUAL_POLL.question), box);
+}
 
 /* ---------- boot ---------- */
 applyTheme();
