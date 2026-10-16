@@ -410,7 +410,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo 100L Hub', version: '3.3.0' };
+const APP = { name: 'Bablo 100L Hub', version: '3.4.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1363,7 +1363,7 @@ async function finishSession(auto, early) {
     if (!s.n) { SESS = null; go('#/course/' + s.course); return; }
   }
   s.secs = Math.max(1, Math.round((Date.now() - s.t0) / 1000)); s.res = Core.score(s);
-  recordAttempt(s); go('#/result');
+  recordAttempt(s); postItemAnswers(s); go('#/result');
 }
 function recordAttempt(s) {
   const r = s.res, ts = Date.now();
@@ -2117,6 +2117,18 @@ function flagQuestion(q) {
   close = modal(h('div', { class: 'stack' }, h('h2', null, 'Flag this question'), h('p', { class: 'muted small' }, q.text),
     ...reasons.map(([k, l]) => h('button', { class: 'btn block', onclick: () => pick(k, l) }, l)),
     h('button', { class: 'btn ghost block', onclick: () => close() }, 'Cancel')), true);
+}
+
+/* ---------- item analysis: question id and right/wrong only, no names or devices ---------- */
+function postItemAnswers(s) {
+  if (!liveOn()) return;
+  const rows = [];
+  s.qs.forEach((q, i) => {
+    const a = s.answers[i]; if (a == null || a === '') return;
+    rows.push({ question_id: q.id, correct: Core.isCorrect(q, a), mode: s.mode });
+  });
+  if (!rows.length || typeof fetch !== 'function') return;
+  try { fetch(LB.url + '/rest/v1/question_answers', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(rows.slice(0, 300)) }).catch(() => {}); } catch (e) { /* stats are optional */ }
 }
 
 /* ---------- boot ---------- */
