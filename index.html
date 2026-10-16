@@ -119,7 +119,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .gpa-sum{display:flex;gap:26px;flex-wrap:wrap}.gpa-sum b{font:800 2rem var(--head);display:block}
 /* nav, modal, toast */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
-.nav .in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.nav .in{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
 .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:10px;color:var(--ink2);text-decoration:none;font-size:.74rem;font-weight:700}
 .nav a svg{width:22px;height:22px}.nav a[aria-current=page]{color:var(--brand);background:var(--brand-soft)}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(6,14,28,.62);display:grid;place-items:end center;padding:0}
@@ -1074,7 +1074,8 @@ const ICON = {
   board: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/>',
   gpa: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/>',
   me: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-  social: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'
+  social: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
+  calendar: '<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4M17 3v4M3 10h18M8 14h3M8 17h3\"/>'
 };
 function fmt(t, subj) {                 // superscripts for chemistry configs (2p6 -> 2p^6)
   if (subj !== 'CHM') return [t];
@@ -1145,7 +1146,7 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['board', '#/board', 'Board', 'board'], ['social', '#/social', 'Social', 'social'], ['gpa', '#/gpa', 'GPA lab', 'gpa'], ['me', '#/me', 'Me', 'me']];
+  const items = [['home', '#/', 'Home', 'home'], ['board', '#/board', 'Board', 'board'], ['social', '#/social', 'Social', 'social'], ['plan', '#/plan', 'Calendar', 'calendar'], ['gpa', '#/gpa', 'GPA lab', 'gpa'], ['me', '#/me', 'Me', 'me']];
   navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
@@ -1155,7 +1156,7 @@ function route() {
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'home', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
+  const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
     if (v === 'course') courseView(seg[1]);
@@ -1172,7 +1173,7 @@ function route() {
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
     else homeView();
-  } catch (e) { console.error(e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'Something went wrong'), h('p', { class: 'muted' }, 'Go back home and try again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
+  } catch (e) { console.error('Bablo Hub route error:', e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'This page could not open'), h('p', { class: 'muted' }, (e && e.message) ? e.message : 'An unexpected page error occurred.'), h('p', { class: 'tiny muted' }, 'Your saved progress has not been intentionally cleared. Go back home, then try Calendar again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
 }
 
 /* ---------- onboarding ---------- */
@@ -1624,7 +1625,9 @@ function statusText(G) {
   if (G.mode === 'online' && G.online && G.online.status === 'waiting') return 'Waiting for a friend to join. Share code ' + G.online.code + '.';
   if (G.busy) return 'Computer is thinking\u2026';
   const st = Chess.status(G.s);
-  return (G.s.turn === G.color ? 'Your move.' : 'Computer to move.') + (st.check ? ' Check!' : '') + (G.msg ? ' ' + G.msg : '');
+  const opponent = G.mode === 'online' && G.online ? (G.color === 'w' ? (G.online.black || 'your opponent') : (G.online.white || 'your opponent')) : 'the computer';
+  const turnText = G.s.turn === G.color ? 'Your move.' : (opponent + ' to move.');
+  return turnText + (st.check ? ' Check!' : '') + (G.msg ? ' ' + G.msg : '');
 }
 function clockMs(G, side) {
   const c = G.clock; if (!c) return 0;
@@ -1802,6 +1805,8 @@ async function pollOnlineOnce(G) {
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
   G.online.status = g.status;
+  G.online.white = g.white_nick || G.online.white || '';
+  G.online.black = g.black_nick || G.online.black || '';
   const moves = g.moves ? g.moves.split(' ') : [];
   if (moves.length > G.moves.length) {
     const s = Chess.replay(moves);
@@ -2163,10 +2168,10 @@ function programmesView() {
 
 /* ---------- calendar, tests, and Pomodoro timer ---------- */
 const PLAN_KEY = 'plan';
-function planEvents() { if (!DB.events) DB.events = [
+function planEvents() { if (!Array.isArray(DB.events)) { DB.events = [
   { id: 'gst-test', title: 'GST test: all modules', date: '2026-10-19', time: '09:00', note: 'Monday. Date to confirm with the timetable.' },
   { id: 'lib-test', title: 'LIB test: modules 1 and 2', date: '2026-10-20', time: '09:00', note: 'Tuesday. Date to confirm with the timetable.' }
-]; return DB.events; }
+]; save(); } return DB.events.filter(ev => ev && typeof ev === 'object' && typeof ev.title === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ev.date || '')); }
 function icsFor(ev) {
   const d = ev.date.replace(/-/g, ''), t = (ev.time || '09:00').replace(':', '') + '00';
   return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bablo Hub//EN', 'BEGIN:VEVENT', 'UID:' + ev.id + '@bablo-hub', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z',
@@ -2201,7 +2206,7 @@ function planView() {
       h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = 25 * 60; planView(); } }, 'Reset'))),
     h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
     h('section', { class: 'panel stack' }, h('h2', null, 'Add an event'), title, h('div', { class: 'row' }, date, time),
-      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
+      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } if (Number.isNaN(Date.parse(date.value + 'T00:00:00'))) { toast('Choose a valid date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
 }
 
 /* ---------- install popup: shown once, when Chrome says the app can be installed ---------- */
