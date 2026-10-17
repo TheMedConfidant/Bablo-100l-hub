@@ -50,13 +50,6 @@ sup{font-size:.7em;line-height:0}
 .pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:draw 2.2s ease-out .15s forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 .hero-stats{display:flex;gap:22px;margin-top:6px;flex-wrap:wrap}.hero-stats b{font:800 1.3rem var(--head);display:block}.hero-stats span{font-size:.78rem;color:#C4D4EC}
-/* dimensional glass / soft-3D finish */
-.panel,.tile{box-shadow:0 7px 0 rgba(10,25,50,.055),0 14px 28px rgba(10,25,50,.07);transition:transform .18s ease,box-shadow .18s ease}
-.tile{transform:perspective(900px) rotateX(.5deg);border-radius:16px}
-.tile:active,.panel:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(10,25,50,.05),0 7px 16px rgba(10,25,50,.06)}
-.hero{box-shadow:0 12px 0 rgba(14,31,61,.12),0 24px 45px rgba(14,31,61,.16);border:1px solid rgba(255,255,255,.18)}
-.chip,.btn{box-shadow:0 3px 0 rgba(10,25,50,.07)}
-@media(prefers-reduced-motion:reduce){.panel,.tile{transition:none}}
 /* courses */
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 @media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr)}}
@@ -134,7 +127,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .gpa-sum{display:flex;gap:26px;flex-wrap:wrap}.gpa-sum b{font:800 2rem var(--head);display:block}
 /* nav, modal, toast */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
-.nav .in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.nav .in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
 .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:10px;color:var(--ink2);text-decoration:none;font-size:.74rem;font-weight:700}
 .nav a svg{width:22px;height:22px}.nav a[aria-current=page]{color:var(--brand);background:var(--brand-soft)}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(6,14,28,.62);display:grid;place-items:end center;padding:0}
@@ -259,7 +252,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 }
 @media (min-width: 1200px){
   .wrap{max-width:1240px}
-  .grid{grid-template-columns:repeat(5,1fr)}
+  .grid{grid-template-columns:repeat(6,1fr)}
 }
 
 /* ===== Classic: plain, high-contrast, no glass, no glows (light and dark) ===== */
@@ -300,9 +293,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .tile{transition:transform .15s ease,box-shadow .15s ease}
 .tile:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.25)}
 
-</style>
-<style id="bablo-study-coach-style">
-#bablo-study-coach{position:fixed;right:15px;bottom:calc(82px + env(safe-area-inset-bottom,0px));z-index:40;font-family:inherit}#bsc-launch{border:0;border-radius:999px;padding:12px 16px;background:linear-gradient(135deg,#10264b,#244d83);color:#fff;font-weight:800;box-shadow:0 10px 30px #081b3b45;cursor:pointer}#bsc-panel{display:none;position:fixed;z-index:41;right:12px;bottom:calc(140px + env(safe-area-inset-bottom,0px));width:min(390px,calc(100vw - 24px));max-height:min(70vh,620px);overflow:auto;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);box-shadow:0 24px 70px #07152c55;padding:16px}#bsc-panel.open{display:block}.bsc-head{display:flex;align-items:center;gap:10px;justify-content:space-between}.bsc-chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 10px;margin:4px 3px 4px 0;background:var(--surface);color:var(--ink);cursor:pointer}.bsc-result{padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}.bsc-result:last-child{border:0}#bsc-query{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);margin:10px 0}#bsc-answer{font-size:.9rem;line-height:1.5;max-height:40vh;overflow:auto}.bsc-label{font-size:.78rem;color:var(--ink2)}@media(max-width:420px){#bsc-panel{right:8px;width:calc(100vw - 16px)}}
+.field textarea,textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:11px;font:inherit;resize:vertical}.nav .in{grid-template-columns:repeat(6,1fr)}@media(max-width:380px){.nav a{font-size:.66rem}.nav a svg{width:19px;height:19px}}
 </style>
 </head>
 <body>
@@ -400,7 +391,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
     return { correct, wrong, skipped, pct, grade: gradeFor(pct) };
   }
   function eligible(e) {
-    return !!e && (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && e.pct >= 0 && e.pct <= 100 && !!e.nick;
+    return !!e && (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && e.pct >= 50 && e.pct <= 100 && !!e.nick;
   }
   function rank(entries, opt) {
     opt = opt || {};
@@ -1091,7 +1082,7 @@ async function pushProgress() {
 async function syncPastScores() {
   if (!signedIn() || !LB.url) return;
   DB.syncedTs = DB.syncedTs || {};
-  const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && !DB.syncedTs[e.ts])
+  const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && e.pct >= 50 && !DB.syncedTs[e.ts])
     .map(e => ({ dev: DB.dev, nick: DB.profile.nick.slice(0, 30), course: e.course, mode: e.mode, n: e.n, correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts, programme: DB.profile.programme, uid: DB.profile.uid }));
   if (!rows.length) return;
   try {
@@ -1161,6 +1152,37 @@ function applyTheme() {
 }
 function bestPct(code) { const l = DB.history.filter(x => x.course === code && x.mode !== 'practice'); return l.length ? Math.max.apply(null, l.map(x => x.pct)) : null; }
 function toast(msg) { const t = h('div', { class: 'toast', role: 'status' }, msg); document.body.append(t); setTimeout(() => t.remove(), 2600); }
+/* Bablo considerate notifications: in-app popups + OS notifications when permission is granted. */
+function babloNotify(title, body, key, opts) {
+  opts = opts || {}; const now = Date.now(); DB.noticeSeen = DB.noticeSeen || {};
+  if (key && DB.noticeSeen[key]) return;
+  if (key) { DB.noticeSeen[key] = now; const keys = Object.keys(DB.noticeSeen); if (keys.length > 250) keys.slice(0, keys.length - 200).forEach(k => delete DB.noticeSeen[k]); save(); }
+  const card = h('div', { class: 'panel stack', style: 'position:fixed;z-index:80;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(92vw,460px);box-shadow:0 16px 50px rgba(0,0,0,.28);border:1px solid var(--brand);' },
+    h('div', { class: 'row between' }, h('b', null, title), h('button', { class: 'btn sm ghost', 'aria-label':'Dismiss notification', onclick:()=>card.remove() }, '✕')),
+    h('p', { class: 'small' }, body), opts.href ? h('a', { class:'btn primary block', href:opts.href, onclick:()=>card.remove() }, opts.action || 'Open') : null);
+  document.body.append(card); setTimeout(()=>{ if(card.isConnected) card.remove(); }, 9000);
+  try { if ('Notification' in window && Notification.permission === 'granted' && document.hidden) new Notification(title, { body, tag: key || title }); } catch(e) {}
+}
+function enableBabloNotifications() { try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch(e) {} }
+function startBabloReminderChecks() {
+  if (window.__babloReminderTimer) return;
+  // One welcome/update notice per installed device; never blocks app use.
+  if (!DB.updateNoticeShown) { DB.updateNoticeShown = true; save(); setTimeout(()=>babloNotify('Bablo just got an update ✨','Bablo just updated this app so you can keep on enjoying. You are considered. 💛','bablo-update-welcome'), 1800); }
+  const check = () => {
+    if (!DB.profile) return;
+    const now = new Date(), day = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    const events = Array.isArray(DB.events) ? DB.events : [];
+    events.forEach(ev => { if (!ev.date || !ev.time) return; const at = new Date(ev.date+'T'+ev.time+':00'); const delta = at.getTime()-now.getTime();
+      if (delta >= 0 && delta <= 15*60*1000) babloNotify('Coming up: '+ev.title, 'This is scheduled for '+ev.time+'. Take a breath and get ready.', 'event-soon-'+ev.id+'-'+ev.date, {href:'#/plan',action:'View calendar'});
+      if (delta < 0 && delta > -10*60*1000) babloNotify('A little schedule check-in', 'Your event “'+ev.title+'” was scheduled for '+ev.time+'. Hope it went well.', 'event-past-'+ev.id+'-'+ev.date, {href:'#/plan',action:'View calendar'});
+    });
+    if (DB.sessionStartedAt && now.getTime()-DB.sessionStartedAt > 2*60*60*1000 && !DB.longSessionNudged) { DB.longSessionNudged=true; save(); babloNotify('You’ve been here a while 💛','Seems you’ve been on this app for like 2 hours. Take a rest, relax, stretch, or get something to eat. Welcome back whenever you’re ready.','long-session-'+day); }
+  };
+  if (!DB.sessionStartedAt || Date.now()-DB.sessionStartedAt > 12*60*60*1000) { DB.sessionStartedAt = Date.now(); DB.longSessionNudged = false; } save();
+  window.__babloReminderTimer = setInterval(check, 30000); check();
+  document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) { DB.sessionStartedAt=Date.now(); DB.longSessionNudged=false; save(); check(); } });
+}
+
 function modal(node, dismissable) {
   const ov = h('div', { class: 'overlay', role: 'dialog', 'aria-modal': 'true' }, h('div', { class: 'modal' }, node));
   if (dismissable) ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
@@ -1187,7 +1209,7 @@ async function lbSubmit(e) {
 async function lbFetch() {
   if (!LB.url) return { mode: 'local', rows: localEntries() };
   try {
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', { headers: { apikey: LB.key } });
+    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&pct=gte.50&order=ts.desc&limit=2000', { headers: { apikey: LB.key } });
     if (!r.ok) throw new Error('bad');
     return { mode: 'global', rows: await r.json() };
   } catch (x) { return { mode: 'offline', rows: localEntries() }; }
@@ -1203,7 +1225,7 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['board', '#/board', 'Board', 'board'], ['social', '#/social', 'Social', 'social'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['me', '#/me', 'Me', 'me']];
+  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/plan', 'Calendar', 'board'], ['board', '#/board', 'Board', 'board'], ['social', '#/social', 'Social', 'social'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['me', '#/me', 'Me', 'me']];
   navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
@@ -1268,7 +1290,7 @@ function homeView() {
   const weak = Object.keys(DB.missed).length;
   const hero = h('section', { class: 'hero' },
     h('h1', null, greet + ', ' + first),
-    h('p', null, 'Pick a course, practise a topic, then test yourself.'), h('a', { href: '#/chess', class: 'small', style: { color: '#5EEAD4' } }, 'Need a break? Play chess \u203A'),
+    h('p', null, 'Pick a course, practise a topic, then test yourself.'), h('a', { href: '#/chess', class: 'small', style: { color: '#5EEAD4' } }, 'Need a break? Play chess \u203A'), h('a', { href: '#/plan', class: 'small', style: { color: '#5EEAD4', marginLeft: '14px' } }, 'Calendar and timer \u203A'),
     svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
     h('div', { class: 'hero-stats' },
       h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
@@ -1658,12 +1680,60 @@ function chessMenu() {
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
-    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.'),
-      h('button', { class: 'btn gold block', onclick: createOnline }, 'Create a challenge'),
-      h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
-      h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
-      h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list')))));
+    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Online chess is for signed-in players. Add friends by nickname, then create and share a challenge code with them.'),
+      signedIn() ? h('div', { class: 'stack' },
+        h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '20', placeholder: 'Friend’s Bablo nickname', id: 'friendNick' }), h('button', { class: 'btn', onclick: addChessFriend }, 'Add friend')),
+        h('div', { id: 'chessFriends', class: 'stack' }),
+        h('button', { class: 'btn gold block', onclick: () => createOnline((document.getElementById('friendNick') && document.getElementById('friendNick').value.trim()) || '') }, 'Create a challenge'),
+        h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
+        h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading…')),
+        h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list'))
+        : h('div', { class: 'stack' }, h('p', { class: 'small muted' }, 'Sign in from Me to add friends, create online challenges, and join other players.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to account'))))));
   loadOpenList();
+  renderChessFriends();
+}
+function chessFriends() { const R = chessRec(); R.friends = Array.isArray(R.friends) ? R.friends : []; return R.friends; }
+function renderChessFriends() {
+  const box = document.getElementById('chessFriends'); if (!box) return;
+  const friends = chessFriends();
+  const rows = friends.map((f, i) => h('div', { class: 'row between panel' },
+    h('span', null, h('b', null, f), h('div', { class: 'tiny muted' }, 'Share your challenge code with this friend.')),
+    h('button', { class: 'btn sm ghost', onclick: () => createOnline(f) }, 'Challenge'),
+    h('button', { class: 'btn sm ghost', onclick: () => { chessFriends().splice(i, 1); save(); renderChessFriends(); } }, 'Remove')));
+  if (!rows.length) rows.push(h('p', { class: 'tiny muted' }, 'No friends added yet. Add a Bablo nickname above.'));
+  box.replaceChildren(h('h3', null, 'Your friends'), ...rows);
+}
+function addChessFriend() {
+  if (!signedIn()) { toast('Sign in first to use friends.'); return; }
+  const input = document.getElementById('friendNick'); const nick = String(input && input.value || '').trim().replace(/\s+/g, ' ').slice(0, 20);
+  if (nick.length < 2) { toast('Enter your friend’s Bablo nickname.'); return; }
+  if (nick.toLowerCase() === String(DB.profile.nick || '').toLowerCase()) { toast('You cannot add yourself.'); return; }
+  if (chessFriends().some(x => x.toLowerCase() === nick.toLowerCase())) { toast('That friend is already saved.'); return; }
+  chessFriends().push(nick); save(); if (input) input.value = ''; renderChessFriends(); toast(nick + ' added to your chess friends.');
+}
+async function shareChessChallenge(code, friend) {
+  const message = 'Hey ' + (friend || 'friend') + '! Join my Bablo Hub chess game. Challenge code: ' + code + '\nOpen Bablo Hub and go to Chess → Online challenge → Join.';
+  try {
+    if (navigator.share) await navigator.share({ title: 'Bablo Hub chess challenge', text: message });
+    else if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(message); toast('Challenge invite copied. Send it to ' + (friend || 'your friend') + '.'); }
+    else { window.prompt('Copy this challenge invite and send it to your friend:', message); }
+  } catch (e) { /* share sheet dismissed */ }
+}
+let CHESS_CHALLENGE_WATCH = null;
+async function checkIncomingChessChallenges() {
+  if (!signedIn() || !liveOn() || document.hidden || location.hash.startsWith('#/chess')) return;
+  const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=15');
+  if (!Array.isArray(rows)) return;
+  const seen = DB.chessChallengeSeen || (DB.chessChallengeSeen = []);
+  const fresh = rows.filter(r => r.white_dev !== DB.dev && !seen.includes(String(r.id)) && (Date.now() - new Date(r.created_at || 0).getTime()) < 10 * 60 * 1000);
+  fresh.forEach(r => { seen.push(String(r.id)); babloNotify('♟️ Chess challenge available', r.white_nick + ' is waiting for an opponent. Code: ' + r.code, 'chess-invite-' + r.id, { href: '#/chess', action: 'Open chess' }); });
+  DB.chessChallengeSeen = seen.slice(-100); if (fresh.length) save();
+}
+function startChessChallengeWatch() {
+  if (CHESS_CHALLENGE_WATCH) return;
+  CHESS_CHALLENGE_WATCH = setInterval(checkIncomingChessChallenges, 18000);
+  setTimeout(checkIncomingChessChallenges, 5000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkIncomingChessChallenges(); });
 }
 function newChess() {
   const S = chessSet();
@@ -1821,7 +1891,7 @@ function chessView() {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
-      h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
+      h('section', { class: 'panel row wrapr' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game'), G.mode === 'online' && G.online && G.online.status === 'waiting' ? h('button', { class: 'btn gold block', onclick: () => shareChessChallenge(G.online.code, G.online.invitedFriend || '') }, 'Share challenge invite') : null),
       G.mode === 'online' && G.online ? chatPanel(G) : null,
     h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
   chessDraw();
@@ -1838,6 +1908,7 @@ async function sbFetchJson(path, opts) {
 }
 async function loadOpenList() {
   const box = document.getElementById('openList'); if (!box) return;
+  if (!signedIn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in to view online challenges.')); return; }
   if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Online challenges turn on when the live database is connected.')); return; }
   const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=20');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
@@ -1848,14 +1919,18 @@ function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
 function onlineState(color, id, code, status, white, black) {
   return { mode: 'online', online: { id, code, status, recorded: false, white: white || DB.profile.nick, black: black || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
 }
-async function createOnline() {
+async function createOnline(friendName) {
+  if (!signedIn()) { toast('Sign in first to create an online challenge.'); return; }
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
   const code = rnd6();
   const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, status: 'waiting', moves: '' }) });
   if (!Array.isArray(row) || !row[0]) { toast('Could not create the challenge. Try again.'); return; }
-  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, ''));
+  const game = onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, '');
+  game.online.invitedFriend = friendName || ''; startOnline(game);
+  enableBabloNotifications(); toast('Challenge created. Tap “Share challenge invite” to send the code.');
 }
 async function joinOnline(raw) {
+  if (!signedIn()) { toast('Sign in first to join online chess.'); return; }
   const code = String(raw || '').trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
@@ -1865,6 +1940,7 @@ async function joinOnline(raw) {
   const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
   if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
   startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick));
+  enableBabloNotifications();
 }
 let ONLINE_POLL = null;
 function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } stopChatPoll(); }
@@ -1880,7 +1956,12 @@ async function pollOnlineOnce(G) {
   const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick');
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
+  const priorStatus = G.online.status;
   G.online.status = g.status;
+  if (G.color === 'w' && priorStatus === 'waiting' && g.status === 'active' && g.black_nick) {
+    G.online.black = g.black_nick;
+    babloNotify('♟️ Challenge accepted!', g.black_nick + ' joined your chess game. Make your move!', 'chess-accepted-' + G.online.id, { href: '#/chess', action: 'Return to game' });
+  }
   const moves = g.moves ? g.moves.split(' ') : [];
   if (moves.length > G.moves.length) {
     const s = Chess.replay(moves);
@@ -2315,43 +2396,51 @@ function downloadIcs(ev) {
   const blob = new Blob([icsFor(ev)], { type: 'text/calendar' }); const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = ev.id + '.ics'; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
-let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null, focusMinutes: 25, breakMinutes: 5 };
+let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null };
 function pomoTick() {
   POMO.left -= 1;
   if (POMO.left <= 0) {
     clearInterval(POMO.h); POMO.running = false;
-    const done = POMO.mode === 'focus' ? 'Focus session done. Take a ' + POMO.breakMinutes + '-minute break.' : 'Break over. Back to it.';
-    toast(done); try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
-    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? POMO.focusMinutes : POMO.breakMinutes) * 60;
+    const done = POMO.mode === 'focus' ? 'Focus session done. Take a 5-minute break.' : 'Break over. Back to it.';
+    babloNotify(POMO.mode === 'focus' ? 'Take a breather 🌿' : 'Welcome back ✨', POMO.mode === 'focus' ? 'Your focus session is done. Stretch, drink water, or get something to eat before the next round.' : 'Your break is over. Ready when you are — no rush.', 'pomo-'+POMO.mode+'-'+Date.now());
+    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? (Number(localStorage.getItem('babloFocusMin')) || 25) : (Number(localStorage.getItem('babloBreakMin')) || 5)) * 60;
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
 }
 function planView() {
-  const evs = planEvents().slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
-  const title = h('input', { type: 'text', placeholder: 'Event title', maxlength: '60' }), date = h('input', { type: 'date' }), time = h('input', { type: 'time', value: '09:00' });
-  const list = evs.map(ev => h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
-    h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, ev.title), h('div', { class: 'tiny muted' }, ev.date + ' at ' + ev.time + (ev.note ? ' \u2022 ' + ev.note : ''))),
-      h('span', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => downloadIcs(ev) }, 'Add to phone calendar'), h('button', { class: 'btn sm ghost danger', onclick: () => { DB.events = planEvents().filter(x => x.id !== ev.id); save(); planView(); } }, 'Remove')))));
-  const focusInput = h('input', { type: 'number', min: '1', max: '180', value: String(POMO.focusMinutes), 'aria-label': 'Focus minutes' });
-  const breakInput = h('input', { type: 'number', min: '1', max: '60', value: String(POMO.breakMinutes), 'aria-label': 'Break minutes' });
-  const applyTimer = h('button', { class: 'btn sm ghost', onclick: () => {
-    const f = Math.max(1, Math.min(180, parseInt(focusInput.value, 10) || 25));
-    const b = Math.max(1, Math.min(60, parseInt(breakInput.value, 10) || 5));
-    POMO.focusMinutes = f; POMO.breakMinutes = b;
-    clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = f * 60;
-    planView(); toast('Timer settings saved.');
-  } }, 'Apply settings');
-  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } } }, POMO.running ? 'Pause' : 'Start');
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Calendar and timer'), h('p', { class: 'muted' }, 'Your tests, your school dates, and a focus timer. Use "Add to phone calendar" to put an event on your phone with a reminder the day before.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
-      h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? POMO.focusMinutes + ' minutes of focus' : POMO.breakMinutes + ' minute break'),
-      h('div', { class: 'row wrapr' }, h('label', { class: 'field grow' }, h('span', null, 'Focus (minutes)'), focusInput), h('label', { class: 'field grow' }, h('span', null, 'Break (minutes)'), breakInput), applyTimer),
-      h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = 25 * 60; planView(); } }, 'Reset'))),
-    h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Add an event'), title, h('div', { class: 'row' }, date, time),
-      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
+  const evs = planEvents().slice().sort((a, b) => (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')));
+  const now = new Date(); let shown = new Date(now.getFullYear(), now.getMonth(), 1);
+  const title = h('input', { type: 'text', placeholder: 'Study session / test / deadline', maxlength: '80' });
+  const note = h('textarea', { placeholder: 'Details, course, venue, or what to revise…', rows: '2', maxlength: '500' });
+  const date = h('input', { type: 'date', value: now.toISOString().slice(0,10) });
+  const time = h('input', { type: 'time', value: '09:00' });
+  const focusMin = h('input', { type: 'number', min: '1', max: '240', value: String(Number(localStorage.getItem('babloFocusMin')) || 25), 'aria-label': 'Focus minutes' });
+  const breakMin = h('input', { type: 'number', min: '1', max: '90', value: String(Number(localStorage.getItem('babloBreakMin')) || 5), 'aria-label': 'Break minutes' });
+  const cal = h('div', { class: 'panel stack' });
+  const listBox = h('div', { class: 'stack' });
+  const drawCalendar = () => {
+    const y=shown.getFullYear(), m=shown.getMonth(), first=new Date(y,m,1), offset=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+    const head=h('div',{class:'row between'},h('button',{class:'btn sm',onclick:()=>{shown=new Date(y,m-1,1);drawCalendar()}},'‹'),h('h2',null,shown.toLocaleDateString(undefined,{month:'long',year:'numeric'})),h('button',{class:'btn sm',onclick:()=>{shown=new Date(y,m+1,1);drawCalendar()}},'›'));
+    const grid=h('div',{style:'display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px'});
+    ['M','T','W','T','F','S','S'].forEach(d=>grid.append(h('div',{class:'tiny muted',style:'text-align:center;padding:4px'},d)));
+    for(let i=0;i<offset;i++)grid.append(h('div',{}));
+    for(let d=1;d<=days;d++){
+      const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'), has=evs.some(e=>e.date===key), isToday=key===now.toISOString().slice(0,10);
+      grid.append(h('button',{class:'btn sm '+(isToday?'primary':'') ,style:'min-height:42px;position:relative;padding:4px;border:1px solid var(--line)',onclick:()=>{date.value=key;title.focus();listBox.replaceChildren(...evs.filter(e=>e.date===key).map(eventCard));}},String(d)+(has?' •':'')));
+    }
+    cal.replaceChildren(head,grid,h('p',{class:'tiny muted'},'Dots mark days with saved events. Tap a date to see its schedule.'));
+  };
+  const eventCard = ev => h('div',{class:'panel stack',style:'padding:12px 14px'},h('div',{class:'row between wrapr'},h('div',{class:'grow'},h('b',null,ev.title),h('div',{class:'tiny muted'},ev.date+' · '+(ev.time||'09:00')),ev.note?h('p',{class:'small'},ev.note):null),h('button',{class:'btn sm ghost danger',onclick:()=>{DB.events=planEvents().filter(x=>x.id!==ev.id);save();planView();}},'Remove')),h('div',{class:'row wrapr'},h('button',{class:'btn sm',onclick:()=>downloadIcs(ev)},'Export reminder'),h('button',{class:'btn sm',onclick:()=>{date.value=ev.date;title.value=ev.title;note.value=ev.note||'';time.value=ev.time||'09:00';toast('Event loaded into the editor.');}},'Edit')));
+  const drawList = () => {const upcoming=evs.filter(e=>e.date>=now.toISOString().slice(0,10));listBox.replaceChildren(...(upcoming.length?upcoming.map(eventCard):[h('p',{class:'muted'},'Nothing scheduled yet. Add a study session or deadline below.')]));};
+  const setTimerText=()=>{const el=document.getElementById('pomoTime');if(el)el.textContent=fmtTime(POMO.left);};
+  const pomoBtn = h('button',{class:'btn primary grow',onclick:()=>{if(POMO.running){clearInterval(POMO.h);POMO.running=false;pomoBtn.textContent='Resume';}else{POMO.h=setInterval(pomoTick,1000);POMO.running=true;pomoBtn.textContent='Pause';enableBabloNotifications();}},},POMO.running?'Pause':'Start');
+  const applyTimer=()=>{const f=Math.max(1,Math.min(240,Number(focusMin.value)||25)),b=Math.max(1,Math.min(90,Number(breakMin.value)||5));localStorage.setItem('babloFocusMin',f);localStorage.setItem('babloBreakMin',b);if(!POMO.running){POMO.mode='focus';POMO.left=f*60;setTimerText();}toast('Timer settings saved.');};
+  mount(wrap(back('#/','Home'),h('div',{class:'stack-l'},h('div',{class:'stack'},h('h1',null,'Study calendar'),h('p',{class:'muted'},'Plan revision, tests, deadlines and chess challenges. Events are saved on this device; export an event to your phone calendar for system reminders.')),cal,
+    h('section',{class:'panel stack'},h('h2',null,'Configurable focus timer'),h('div',{id:'pomoTime',style:'font-size:3rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums'},fmtTime(POMO.left)),h('div',{class:'row'},h('label',{class:'field grow'},h('span',null,'Focus (minutes)'),focusMin),h('label',{class:'field grow'},h('span',null,'Break (minutes)'),breakMin)),h('div',{class:'row'},pomoBtn,h('button',{class:'btn ghost grow',onclick:()=>{clearInterval(POMO.h);POMO.running=false;POMO.mode='focus';POMO.left=(Number(localStorage.getItem('babloFocusMin'))||25)*60;pomoBtn.textContent='Start';setTimerText();}},'Reset'),h('button',{class:'btn grow',onclick:applyTimer},'Save settings')),h('p',{class:'tiny muted'},'When a session ends, Bablo Hub shows an alert; allow notifications for pop-ups while the app is open.')),
+    h('section',{class:'stack'},h('h2',null,'Upcoming schedule'),listBox),h('section',{class:'panel stack'},h('h2',null,'Add to calendar'),h('label',{class:'field'},h('span',null,'Title'),title),h('label',{class:'field'},h('span',null,'Details / course / venue'),note),h('div',{class:'row'},h('label',{class:'field grow'},h('span',null,'Date'),date),h('label',{class:'field grow'},h('span',null,'Time'),time)),h('button',{class:'btn primary block',onclick:()=>{if(!title.value.trim()||!date.value){toast('Add a title and date first.');return;}DB.events=planEvents().concat([{id:uid(),title:title.value.trim().slice(0,80),date:date.value,time:time.value||'09:00',note:note.value.trim().slice(0,500)}]);save();toast('Added to your calendar.');planView();}},'Save event')))));
+  drawCalendar();drawList();
 }
+
 
 /* ---------- install popup: shown once, when Chrome says the app can be installed ---------- */
 function maybeInstallPopup() {
@@ -2534,30 +2623,13 @@ async function qualifiersCard() {
   return section;
 }
 
-
-
-
-
-/* Bablo Study Coach: a practical, built-in helper; no API key or external service required. */
-(function(){
- const host=document.createElement('div');host.id='bablo-study-coach';
- host.innerHTML='<button id="bsc-launch" aria-expanded="false">✦ Study Coach</button>';document.body.appendChild(host);
- const panel=document.createElement('section');panel.id='bsc-panel';panel.setAttribute('aria-label','Bablo Study Coach');panel.innerHTML='<div class="bsc-head"><div><strong>✦ Bablo Study Coach</strong><div class="bsc-label">Find topics · revise · navigate Hub</div></div><button id="bsc-close" class="bsc-chip" aria-label="Close coach">✕</button></div><div><button class="bsc-chip" data-action="weak">Find a topic to revise</button><button class="bsc-chip" data-action="quiz">Start practice</button><button class="bsc-chip" data-action="timer">Focus timer</button><button class="bsc-chip" data-action="calendar">Calendar</button><button class="bsc-chip" data-action="account">Online competitions</button></div><label class="bsc-label" for="bsc-query">Ask a study question or search the question bank</label><input id="bsc-query" placeholder="e.g. mitosis, vectors, atomic structure…" autocomplete="off"><div id="bsc-answer" aria-live="polite">I can find matching questions and explanations in the Hub’s built-in question bank, suggest revision topics, and take you to useful tools. I’m not a live AI tutor, so I won’t pretend to know an answer that isn’t in the Hub.</div>';document.body.appendChild(panel);
- const launch=host.querySelector('button'), close=panel.querySelector('#bsc-close'), query=panel.querySelector('#bsc-query'), answer=panel.querySelector('#bsc-answer');
- function open(){panel.classList.add('open');launch.setAttribute('aria-expanded','true');query.focus()}function shut(){panel.classList.remove('open');launch.setAttribute('aria-expanded','false')}launch.addEventListener('click',()=>panel.classList.contains('open')?shut():open());close.addEventListener('click',shut);
- function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
- function go(hash){location.hash=hash;shut()}
- panel.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>{const a=b.dataset.action;if(a==='quiz')go('#/qualify');else if(a==='timer'){answer.textContent='Use the Hub’s study/planning area to organise a focus session. The configurable focus timer is available from the timer control when you open a study session.';go('#/plan')}else if(a==='calendar')go('#/plan');else if(a==='account')go('#/me');else {query.value='';answer.textContent='Type a course code or topic above (for example BIO, cell structure, vectors, or atomic structure). I’ll show matching questions and their available explanations.';query.focus()}}));
- function search(){const term=query.value.trim().toLowerCase();if(!term){answer.textContent='Enter a topic, course code, or keyword to search the built-in question bank.';return}const bank=Array.isArray(window.__BANK__)?window.__BANK__: (typeof BANK!=='undefined'?BANK:[]);const words=term.split(/\s+/).filter(Boolean);const hits=bank.map(q=>{const text=[q.c,q.u,q.q,q.e,(q.o||[]).join(' ')].join(' ').toLowerCase();const score=words.reduce((n,w)=>n+(text.includes(w)?1:0),0);return {q,score}}).filter(x=>x.score===words.length).sort((a,b)=>b.score-a.score).slice(0,8);if(!hits.length){answer.innerHTML='<p>No exact matches found. Try a shorter keyword or the course code (BIO, CHM, PHY, COS, etc.).</p><p class="bsc-label">Tip: use the course/topic labels shown in the question bank.</p>';return}answer.innerHTML='<p><strong>'+hits.length+' matching question(s)</strong> from the local question bank. Tap a result to open practice.</p>'+hits.map((x,i)=>'<div class="bsc-result"><strong>'+esc(x.q.c||'Topic')+' · '+esc(x.q.u||'')+'</strong><div>'+esc(x.q.q||'')+'</div>'+(x.q.e?'<div class="bsc-label">Explanation: '+esc(x.q.e)+'</div>':'<div class="bsc-label">No explanation saved for this item.</div>')+'</div>').join('')+'<button class="bsc-chip" id="bsc-practice">Open practice</button>';const p=answer.querySelector('#bsc-practice');if(p)p.addEventListener('click',()=>go('#/qualify'))}
- query.addEventListener('keydown',e=>{if(e.key==='Enter')search()});let debounce;query.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(search,250)});
- // Keep this helper unobtrusive on the home screen; it is available from every page.
-})();
-
 /* ---------- boot ---------- */
 applyTheme();
 loadHidden();
 window.addEventListener('hashchange', route);
 route();
+startBabloReminderChecks();
+startChessChallengeWatch();
 
 </script>
 </body>
