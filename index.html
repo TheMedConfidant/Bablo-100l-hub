@@ -301,6 +301,9 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .tile:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.25)}
 
 </style>
+<style id="bablo-study-coach-style">
+#bablo-study-coach{position:fixed;right:15px;bottom:calc(82px + env(safe-area-inset-bottom,0px));z-index:40;font-family:inherit}#bsc-launch{border:0;border-radius:999px;padding:12px 16px;background:linear-gradient(135deg,#10264b,#244d83);color:#fff;font-weight:800;box-shadow:0 10px 30px #081b3b45;cursor:pointer}#bsc-panel{display:none;position:fixed;z-index:41;right:12px;bottom:calc(140px + env(safe-area-inset-bottom,0px));width:min(390px,calc(100vw - 24px));max-height:min(70vh,620px);overflow:auto;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);box-shadow:0 24px 70px #07152c55;padding:16px}#bsc-panel.open{display:block}.bsc-head{display:flex;align-items:center;gap:10px;justify-content:space-between}.bsc-chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 10px;margin:4px 3px 4px 0;background:var(--surface);color:var(--ink);cursor:pointer}.bsc-result{padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}.bsc-result:last-child{border:0}#bsc-query{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);margin:10px 0}#bsc-answer{font-size:.9rem;line-height:1.5;max-height:40vh;overflow:auto}.bsc-label{font-size:.78rem;color:var(--ink2)}@media(max-width:420px){#bsc-panel{right:8px;width:calc(100vw - 16px)}}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -2532,9 +2535,7 @@ async function qualifiersCard() {
 }
 
 
-<style id="bablo-study-coach-style">
-#bablo-study-coach{position:fixed;right:15px;bottom:calc(82px + env(safe-area-inset-bottom,0px));z-index:40;font-family:inherit}#bsc-launch{border:0;border-radius:999px;padding:12px 16px;background:linear-gradient(135deg,#10264b,#244d83);color:#fff;font-weight:800;box-shadow:0 10px 30px #081b3b45;cursor:pointer}#bsc-panel{display:none;position:fixed;z-index:41;right:12px;bottom:calc(140px + env(safe-area-inset-bottom,0px));width:min(390px,calc(100vw - 24px));max-height:min(70vh,620px);overflow:auto;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);box-shadow:0 24px 70px #07152c55;padding:16px}#bsc-panel.open{display:block}.bsc-head{display:flex;align-items:center;gap:10px;justify-content:space-between}.bsc-chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 10px;margin:4px 3px 4px 0;background:var(--surface);color:var(--ink);cursor:pointer}.bsc-result{padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}.bsc-result:last-child{border:0}#bsc-query{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);margin:10px 0}#bsc-answer{font-size:.9rem;line-height:1.5;max-height:40vh;overflow:auto}.bsc-label{font-size:.78rem;color:var(--ink2)}@media(max-width:420px){#bsc-panel{right:8px;width:calc(100vw - 16px)}}
-</style>
+
 
 
 /* Bablo Study Coach: a practical, built-in helper; no API key or external service required. */
