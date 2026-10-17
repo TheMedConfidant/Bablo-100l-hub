@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bablo-100l-hub.vercel.app/sitemap.xml
