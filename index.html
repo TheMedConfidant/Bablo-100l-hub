@@ -119,7 +119,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .gpa-sum{display:flex;gap:26px;flex-wrap:wrap}.gpa-sum b{font:800 2rem var(--head);display:block}
 /* nav, modal, toast */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
-.nav .in{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.nav .in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:10px;color:var(--ink2);text-decoration:none;font-size:.74rem;font-weight:700}
 .nav a svg{width:22px;height:22px}.nav a[aria-current=page]{color:var(--brand);background:var(--brand-soft)}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(6,14,28,.62);display:grid;place-items:end center;padding:0}
@@ -456,7 +456,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.8.0' };
+const APP = { name: 'Bablo Hub', version: '3.11.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -503,6 +503,15 @@ const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 
 /* Course weights. Equal weights mean no programme is favoured. Tune here if you decide on different weights. */
 const COURSE_WEIGHTS = { BIO: 1, CHM: 1, PHY: 1, COS: 1, AGR: 1, MTH101: 1, GST111: 1, GEL101: 1 };
 const CUP = { minPlayers: 3, topN: 5 };
+const PASS_MARK = 50;
+/* 200 level courses. Each stays Pending until its questions, notes, practicals and labs are loaded. */
+const COURSES_200 = [
+  { code: 'ANA211', label: 'ANA 211', title: 'Embryology', color: '#B45309', units: 2, semester: 'first' },
+  { code: 'ANAT', label: 'ANAT', title: 'Anatomy (code to confirm)', color: '#B45309', units: 2, semester: 'first' },
+  { code: 'PHS', label: 'PHS', title: 'Physiology (code to confirm)', color: '#0E7490', units: 2, semester: 'first' },
+  { code: 'BCH', label: 'BCH', title: 'Biochemistry (code to confirm)', color: '#7C3AED', units: 2, semester: 'first' },
+  { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
+];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Other CoHES programme', GUEST_PROGRAMME];
 
 /* Encouragement: King James Version (public domain). */
@@ -1053,6 +1062,7 @@ BANK.forEach(q => { (BYC[q.c] = BYC[q.c] || []).push(q); });
 const unitsOf = code => { const m = new Map(); (BYC[code] || []).forEach(q => m.set(q.u, (m.get(q.u) || 0) + 1)); return Array.from(m, ([name, count]) => ({ name, count })); };
 const courseBy = code => COURSES.find(c => c.code === code);
 const isAvail = c => !!(BYC[c.code] && BYC[c.code].length);
+const homeCourses = () => (DB.profile && DB.profile.level === '200L') ? COURSES_200.map(c => Object.assign({}, c, { pending200: true })) : coursesFor(DB.profile.programme);
 
 /* ---------- DOM helpers (no innerHTML with user data) ---------- */
 function h(tag, props, ...kids) {
@@ -1074,8 +1084,7 @@ const ICON = {
   board: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/>',
   gpa: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/>',
   me: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-  social: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>',
-  calendar: '<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4M17 3v4M3 10h18M8 14h3M8 17h3\"/>'
+  social: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'
 };
 function fmt(t, subj) {                 // superscripts for chemistry configs (2p6 -> 2p^6)
   if (subj !== 'CHM') return [t];
@@ -1146,7 +1155,7 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['board', '#/board', 'Board', 'board'], ['social', '#/social', 'Social', 'social'], ['plan', '#/plan', 'Calendar', 'calendar'], ['gpa', '#/gpa', 'GPA lab', 'gpa'], ['me', '#/me', 'Me', 'me']];
+  const items = [['home', '#/', 'Home', 'home'], ['board', '#/board', 'Board', 'board'], ['social', '#/social', 'Social', 'social'], ['gpa', '#/gpa', 'GPA lab', 'gpa'], ['me', '#/me', 'Me', 'me']];
   navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
@@ -1156,7 +1165,7 @@ function route() {
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
+  const tab = { plan: 'home', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
     if (v === 'course') courseView(seg[1]);
@@ -1168,12 +1177,15 @@ function route() {
     else if (v === 'cup') cupView();
     else if (v === 'weak') weakView();
     else if (v === 'plan') planView();
+    else if (v === 'admin') adminView();
+    else if (v === 'flashcards' || v === 'notes') pendingPage(v === 'flashcards' ? 'Flashcards' : 'Notes');
+    else if (v === 'quiz200') pendingPage('Quizzes');
     else if (v === 'programmes') programmesView();
     else if (v === 'chess') chessView();
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
     else homeView();
-  } catch (e) { console.error('Bablo Hub route error:', e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'This page could not open'), h('p', { class: 'muted' }, (e && e.message) ? e.message : 'An unexpected page error occurred.'), h('p', { class: 'tiny muted' }, 'Your saved progress has not been intentionally cleared. Go back home, then try Calendar again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
+  } catch (e) { console.error(e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'Something went wrong'), h('p', { class: 'muted' }, 'Go back home and try again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
 }
 
 /* ---------- onboarding ---------- */
@@ -1212,7 +1224,10 @@ function homeView() {
       h('div', null, h('b', null, DB.history.length), h('span', null, 'attempts')),
       h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
   hero.querySelector('svg').setAttribute('class', 'pulse');
-  const tiles = coursesFor(p.programme).map(c => {
+  const L200 = DB.profile && DB.profile.level === '200L';
+  const actions = L200 ? h('section', { class: 'grid', style: { gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' } },
+    [['#/gpa', 'CGPA calc'], ['#/flashcards', 'Flashcards'], ['#/notes', 'Notes'], ['#/quiz200', 'Quizzes']].map(([href, label]) => h('a', { class: 'panel', href, style: { textAlign: 'center', padding: '14px 6px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none' } }, label))) : null;
+  const tiles = homeCourses().map(c => {
     const ok = isAvail(c), n = ok ? BYC[c.code].length : 0, bp = bestPct(c.code);
     const body = [h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title)];
     if (ok) body.push(h('div', { class: 'meta' }, plural(n, 'question') + ' \u2022 ' + plural(unitsOf(c.code).length, 'topic')),
@@ -1222,7 +1237,7 @@ function homeView() {
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
   mount(wrap(h('div', { class: 'top' }, brand(), st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null),
-    h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('h2', null, 'Your courses'), h('div', { class: 'grid' }, tiles)))));
+    h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), h('div', { class: 'grid' }, tiles)))));
 }
 function brand() {
   return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 32 32', '<rect width="32" height="32" rx="9" fill="#0B7A75" stroke="none"/><path d="M4 17h6l3-7 5 14 3-7h7" stroke="#fff" stroke-width="2.4"/>'), 'Bablo Hub');
@@ -1230,6 +1245,8 @@ function brand() {
 
 /* ---------- course page ---------- */
 function courseView(code) {
+  const c200 = COURSES_200.find(x => x.code === code);
+  if (c200) { course200View(c200); return; }
   const c = courseBy(code); if (!c || !isAvail(c) || !coursesFor(DB.profile.programme).includes(c)) { go('#/'); return; }
   const us = unitsOf(code), total = BYC[code].length, weakN = BYC[code].filter(q => DB.missed[q.i]).length;
   const rows = us.map((u, i) => {
@@ -1625,9 +1642,7 @@ function statusText(G) {
   if (G.mode === 'online' && G.online && G.online.status === 'waiting') return 'Waiting for a friend to join. Share code ' + G.online.code + '.';
   if (G.busy) return 'Computer is thinking\u2026';
   const st = Chess.status(G.s);
-  const opponent = G.mode === 'online' && G.online ? (G.color === 'w' ? (G.online.black || 'your opponent') : (G.online.white || 'your opponent')) : 'the computer';
-  const turnText = G.s.turn === G.color ? 'Your move.' : (opponent + ' to move.');
-  return turnText + (st.check ? ' Check!' : '') + (G.msg ? ' ' + G.msg : '');
+  return (G.s.turn === G.color ? 'Your move.' : 'Computer to move.') + (st.check ? ' Check!' : '') + (G.msg ? ' ' + G.msg : '');
 }
 function clockMs(G, side) {
   const c = G.clock; if (!c) return 0;
@@ -1747,7 +1762,8 @@ function chessView() {
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
-      h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
+      G.mode === 'online' && G.online ? chatPanel(G) : null,
+    h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
   chessDraw();
   if (G.clock && !CHESS_TICK) CHESS_TICK = setInterval(() => { if (!location.hash.startsWith('#/chess')) { stopChessTick(); return; } chessClocks(); }, 250);
   if (G.mode !== 'online' && G.s.turn !== G.color && !G.busy && !gameOver(G).over) computerTurn();
@@ -1791,9 +1807,9 @@ async function joinOnline(raw) {
   startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick));
 }
 let ONLINE_POLL = null;
-function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } }
+function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } stopChatPoll(); }
 let POLL_BUSY = false;
-function startOnlinePoll() { stopOnlinePoll(); ONLINE_POLL = setInterval(() => { if (!POLL_BUSY) pollOnline(); }, 1200); if (!POLL_BUSY) pollOnline(); }
+function startOnlinePoll() { stopOnlinePoll(); ONLINE_POLL = setInterval(() => { if (!POLL_BUSY) pollOnline(); }, 1200); if (!POLL_BUSY) pollOnline(); if (CHESS && CHESS.mode === 'online') { startChatPoll(CHESS); loadChat(CHESS); } }
 async function pollOnline() {
   const G = CHESS;
   if (!G || G.mode !== 'online' || !G.online || !location.hash.startsWith('#/chess')) { stopOnlinePoll(); return; }
@@ -1805,8 +1821,6 @@ async function pollOnlineOnce(G) {
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
   G.online.status = g.status;
-  G.online.white = g.white_nick || G.online.white || '';
-  G.online.black = g.black_nick || G.online.black || '';
   const moves = g.moves ? g.moves.split(' ') : [];
   if (moves.length > G.moves.length) {
     const s = Chess.replay(moves);
@@ -1815,7 +1829,7 @@ async function pollOnlineOnce(G) {
   if (g.status === 'finished' && g.result && !G.endResult) {
     G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
     G.endResult = g.result; G.endText = g.result === 'draw' ? 'Draw.' : (g.result === G.color ? 'You win!' : 'You lost this one.');
-    recordOnline(G, g.result); stopOnlinePoll();
+    recordOnline(G, g.result); stopOnlinePoll(); clearChat(G);
   }
   chessDraw();
 }
@@ -1833,11 +1847,70 @@ function onlineAfterMove() {
   if (st.over) {
     const res = st.result === 'draw' ? 'draw' : (st.result === 'white' ? 'w' : 'b');
     G.endResult = res; G.endText = res === 'draw' ? 'Draw.' : (res === G.color ? 'Checkmate. You win!' : 'Checkmate. You lost this one.');
-    recordOnline(G, res); stopOnlinePoll();
+    recordOnline(G, res); stopOnlinePoll(); clearChat(G);
     fields.status = 'finished'; fields.result = res;
   }
   sbFetchJson('chess_games?id=eq.' + G.online.id, { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(fields) });
   chessDraw();
+}
+
+/* ---------- chess chat (friend games only; cleared when the game ends) ---------- */
+let CHAT_POLL = null;
+const CHAT_EMOJI = ['\u{1F44D}', '\u{1F602}', '\u{1F525}', '\u{1F62E}', '\u{1F622}', '\u{1F64F}', '\u{1F3AF}', '\u{1F9E0}'];
+function chatPanel(G) {
+  const list = h('div', { id: 'chatList', class: 'stack', style: { maxHeight: '180px', overflowY: 'auto', fontSize: '.9rem' } }, h('p', { class: 'tiny muted' }, 'Chat clears when the game ends.'));
+  const input = h('input', { type: 'text', maxlength: '200', placeholder: 'Say something', 'aria-label': 'Chat message' });
+  const send = async (text) => {
+    const t = String(text || '').trim(); if (!t || !G.online) return;
+    input.value = '';
+    try { await fetch(LB.url + '/rest/v1/chess_messages', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ game_id: G.online.id, nick: DB.profile.nick.slice(0, 30), body: t.slice(0, 200) }) }); loadChat(G); }
+    catch (e) { toast('Message not sent. Check your connection.'); }
+  };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') send(input.value); });
+  return h('section', { class: 'panel stack' }, h('h2', null, 'Chat'), list,
+    h('div', { class: 'row wrapr' }, CHAT_EMOJI.map(em => h('button', { class: 'btn sm ghost', onclick: () => send(em), 'aria-label': 'Send ' + em }, em))),
+    h('div', { class: 'row' }, input, h('button', { class: 'btn primary', onclick: () => send(input.value) }, 'Send')));
+}
+async function loadChat(G) {
+  if (!G || !G.online || !document.getElementById('chatList')) return;
+  const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=nick,body,created_at&order=created_at.asc&limit=100');
+  const list = document.getElementById('chatList'); if (!list || !Array.isArray(rows)) return;
+  list.replaceChildren(...(rows.length ? rows.map(m => h('div', null, h('b', null, m.nick + ': '), m.body)) : [h('p', { class: 'tiny muted' }, 'No messages yet. Say hello.')]));
+  list.scrollTop = list.scrollHeight;
+}
+function startChatPoll(G) { if (CHAT_POLL) clearInterval(CHAT_POLL); CHAT_POLL = setInterval(() => loadChat(CHAT_G_REF()), 3000); }
+function CHAT_G_REF() { return CHESS; }
+function stopChatPoll() { if (CHAT_POLL) { clearInterval(CHAT_POLL); CHAT_POLL = null; } }
+async function clearChat(G) {
+  if (!G || !G.online) return;
+  try { await fetch(LB.url + '/rest/v1/chess_messages?game_id=eq.' + G.online.id, { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) }); } catch (e) { /* ignore */ }
+}
+
+/* ---------- admin page: passcode only, nothing shown until it is right ---------- */
+function adminView() {
+  const pass = h('input', { type: 'password', placeholder: 'Admin passcode', autocomplete: 'off' });
+  const out = h('div', { class: 'stack' });
+  const sec = (title, rows) => h('section', { class: 'panel stack' }, h('h2', null, title), rows.length ? rows : [h('p', { class: 'muted small' }, 'Nothing yet.')]);
+  const show = d => {
+    out.replaceChildren(
+      sec('Summary', [h('p', null, 'People with accounts: ' + d.accounts), ...(d.programme_counts || []).map(p => h('p', { class: 'small' }, p.programme + ': ' + p.people))]),
+      sec('Qualifications poll', (d.poll || []).map(p => h('p', { class: 'small' }, p.option_id + ': ' + p.votes))),
+      sec('Feedback (newest first)', (d.feedback || []).map(f => h('div', { class: 'rev' }, h('span', { class: 'chip brand' }, f.kind), h('span', { class: 'tiny muted' }, ' ' + (f.nick || '') + ' \u2022 ' + (f.programme || '') + ' \u2022 ' + new Date(f.created_at).toLocaleString()), h('p', { class: 'small', style: { margin: '6px 0 0', whiteSpace: 'pre-wrap' } }, f.body)))),
+      sec('Reported questions', (d.reports || []).map(r => h('p', { class: 'small' }, r.question_id + ': ' + r.reports + ' report(s)'))),
+      sec('Weakest questions (5+ answers)', (d.weakest_questions || []).map(q => h('p', { class: 'small' }, q.question_id + ': ' + q.percent_correct + '% correct over ' + q.attempts))),
+      sec('Corrections', (d.corrections || []).map(c => h('div', { class: 'rev' }, h('span', { class: 'chip' }, c.status), h('p', { class: 'small', style: { margin: '6px 0 0' } }, c.question_id + ' \u2192 ' + c.correct_text), h('p', { class: 'tiny muted' }, 'Source: ' + c.source))))
+    );
+  };
+  const go2 = async () => {
+    out.replaceChildren(h('p', { class: 'muted' }, 'Checking\u2026'));
+    try {
+      const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_summary', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass.value }) });
+      const d = await r.json();
+      if (!d.ok) { out.replaceChildren(h('p', { style: { color: 'var(--bad)' } }, d.error || 'Wrong passcode.')); return; }
+      show(d);
+    } catch (e) { out.replaceChildren(h('p', { class: 'muted' }, 'Could not reach the server.')); }
+  };
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin'), h('section', { class: 'panel stack' }, pass, h('button', { class: 'btn primary block', onclick: go2 }, 'Open'), h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: previewLevel200 }, 'Preview 200L here'), h('button', { class: 'btn ghost grow', onclick: resetPreviewLevel }, 'Back to 100L'))), out)));
 }
 
 ;
@@ -2168,10 +2241,10 @@ function programmesView() {
 
 /* ---------- calendar, tests, and Pomodoro timer ---------- */
 const PLAN_KEY = 'plan';
-function planEvents() { if (!Array.isArray(DB.events)) { DB.events = [
-  { id: 'gst-test', title: 'GST test: all modules', date: '2026-10-19', time: '09:00', note: 'Monday. Date to confirm with the timetable.' },
-  { id: 'lib-test', title: 'LIB test: modules 1 and 2', date: '2026-10-20', time: '09:00', note: 'Tuesday. Date to confirm with the timetable.' }
-]; save(); } return DB.events.filter(ev => ev && typeof ev === 'object' && typeof ev.title === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ev.date || '')); }
+function planEvents() { if (!DB.events || DB.eventsVersion !== 2) { DB.eventsVersion = 2; DB.events = [
+  { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID. MBBS is in group 1 (10:00 to 10:20am).' },
+  { id: 'lib-test', title: 'LIB test: modules 1 and 2', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time and venue not yet confirmed.' }
+]; save(); } return DB.events; }
 function icsFor(ev) {
   const d = ev.date.replace(/-/g, ''), t = (ev.time || '09:00').replace(':', '') + '00';
   return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bablo Hub//EN', 'BEGIN:VEVENT', 'UID:' + ev.id + '@bablo-hub', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z',
@@ -2206,7 +2279,7 @@ function planView() {
       h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = 25 * 60; planView(); } }, 'Reset'))),
     h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
     h('section', { class: 'panel stack' }, h('h2', null, 'Add an event'), title, h('div', { class: 'row' }, date, time),
-      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } if (Number.isNaN(Date.parse(date.value + 'T00:00:00'))) { toast('Choose a valid date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
+      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
 }
 
 /* ---------- install popup: shown once, when Chrome says the app can be installed ---------- */
@@ -2250,6 +2323,28 @@ function pollCard() {
   };
   draw();
   return h('section', { class: 'panel stack' }, h('h2', null, 'Qualifications poll'), h('p', { class: 'muted small' }, QUAL_POLL.question), box);
+}
+
+/* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
+function course200View(c) {
+  const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
+  const cur = (course200View.tab || 'Questions');
+  const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
+    'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
+    h('span', { class: 'chip gold' }, 'Pending'));
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 200 Level \u2022 ' + (c.semester === 'first' ? 'First semester' : 'Second semester'))),
+    h('div', { class: 'seg' }, tabs.map(t => h('button', { class: 'opt', 'aria-pressed': String(cur === t), onclick: () => { course200View.tab = t; course200View(c); } }, t))),
+    body)));
+}
+/* admin-only preview of 200L on this device; students stay on their level until an admin approves a move */
+function previewLevel200() { DB.profile = Object.assign({}, DB.profile, { level: '200L' }); save(); toast('Previewing 200L on this device.'); go('#/'); }
+function resetPreviewLevel() { DB.profile = Object.assign({}, DB.profile, { level: '100L' }); save(); toast('Back to 100L on this device.'); go('#/'); }
+
+/* ---------- simple pages that are coming soon (flashcards, notes, quizzes for 200L) ---------- */
+function pendingPage(title) {
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, title), h('p', { class: 'muted' }, 'This opens once its 200 Level content is loaded.')),
+    h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'Pending'), h('p', { class: 'muted small' }, 'Send the ' + title.toLowerCase() + ' for your 200L courses, and it goes in here.')))));
 }
 
 /* ---------- boot ---------- */
