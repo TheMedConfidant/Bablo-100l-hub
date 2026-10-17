@@ -50,6 +50,13 @@ sup{font-size:.7em;line-height:0}
 .pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:draw 2.2s ease-out .15s forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
 .hero-stats{display:flex;gap:22px;margin-top:6px;flex-wrap:wrap}.hero-stats b{font:800 1.3rem var(--head);display:block}.hero-stats span{font-size:.78rem;color:#C4D4EC}
+/* dimensional glass / soft-3D finish */
+.panel,.tile{box-shadow:0 7px 0 rgba(10,25,50,.055),0 14px 28px rgba(10,25,50,.07);transition:transform .18s ease,box-shadow .18s ease}
+.tile{transform:perspective(900px) rotateX(.5deg);border-radius:16px}
+.tile:active,.panel:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(10,25,50,.05),0 7px 16px rgba(10,25,50,.06)}
+.hero{box-shadow:0 12px 0 rgba(14,31,61,.12),0 24px 45px rgba(14,31,61,.16);border:1px solid rgba(255,255,255,.18)}
+.chip,.btn{box-shadow:0 3px 0 rgba(10,25,50,.07)}
+@media(prefers-reduced-motion:reduce){.panel,.tile{transition:none}}
 /* courses */
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 @media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr)}}
@@ -1258,7 +1265,7 @@ function homeView() {
   const weak = Object.keys(DB.missed).length;
   const hero = h('section', { class: 'hero' },
     h('h1', null, greet + ', ' + first),
-    h('p', null, 'Pick a course, practise a topic, then test yourself.'), h('a', { href: '#/chess', class: 'small', style: { color: '#5EEAD4' } }, 'Need a break? Play chess \u203A'), h('a', { href: '#/plan', class: 'small', style: { color: '#5EEAD4', marginLeft: '14px' } }, 'Calendar and timer \u203A'),
+    h('p', null, 'Pick a course, practise a topic, then test yourself.'), h('a', { href: '#/chess', class: 'small', style: { color: '#5EEAD4' } }, 'Need a break? Play chess \u203A'),
     svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
     h('div', { class: 'hero-stats' },
       h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
@@ -2305,14 +2312,14 @@ function downloadIcs(ev) {
   const blob = new Blob([icsFor(ev)], { type: 'text/calendar' }); const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = ev.id + '.ics'; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
-let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null };
+let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null, focusMinutes: 25, breakMinutes: 5 };
 function pomoTick() {
   POMO.left -= 1;
   if (POMO.left <= 0) {
     clearInterval(POMO.h); POMO.running = false;
-    const done = POMO.mode === 'focus' ? 'Focus session done. Take a 5-minute break.' : 'Break over. Back to it.';
+    const done = POMO.mode === 'focus' ? 'Focus session done. Take a ' + POMO.breakMinutes + '-minute break.' : 'Break over. Back to it.';
     toast(done); try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
-    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? 25 : 5) * 60;
+    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? POMO.focusMinutes : POMO.breakMinutes) * 60;
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
 }
@@ -2322,11 +2329,21 @@ function planView() {
   const list = evs.map(ev => h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
     h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, ev.title), h('div', { class: 'tiny muted' }, ev.date + ' at ' + ev.time + (ev.note ? ' \u2022 ' + ev.note : ''))),
       h('span', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => downloadIcs(ev) }, 'Add to phone calendar'), h('button', { class: 'btn sm ghost danger', onclick: () => { DB.events = planEvents().filter(x => x.id !== ev.id); save(); planView(); } }, 'Remove')))));
+  const focusInput = h('input', { type: 'number', min: '1', max: '180', value: String(POMO.focusMinutes), 'aria-label': 'Focus minutes' });
+  const breakInput = h('input', { type: 'number', min: '1', max: '60', value: String(POMO.breakMinutes), 'aria-label': 'Break minutes' });
+  const applyTimer = h('button', { class: 'btn sm ghost', onclick: () => {
+    const f = Math.max(1, Math.min(180, parseInt(focusInput.value, 10) || 25));
+    const b = Math.max(1, Math.min(60, parseInt(breakInput.value, 10) || 5));
+    POMO.focusMinutes = f; POMO.breakMinutes = b;
+    clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = f * 60;
+    planView(); toast('Timer settings saved.');
+  } }, 'Apply settings');
   const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } } }, POMO.running ? 'Pause' : 'Start');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Calendar and timer'), h('p', { class: 'muted' }, 'Your tests, your school dates, and a focus timer. Use "Add to phone calendar" to put an event on your phone with a reminder the day before.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
-      h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? '25 minutes of focus' : '5 minute break'),
+      h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? POMO.focusMinutes + ' minutes of focus' : POMO.breakMinutes + ' minute break'),
+      h('div', { class: 'row wrapr' }, h('label', { class: 'field grow' }, h('span', null, 'Focus (minutes)'), focusInput), h('label', { class: 'field grow' }, h('span', null, 'Break (minutes)'), breakInput), applyTimer),
       h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = 25 * 60; planView(); } }, 'Reset'))),
     h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
     h('section', { class: 'panel stack' }, h('h2', null, 'Add an event'), title, h('div', { class: 'row' }, date, time),
@@ -2513,6 +2530,27 @@ async function qualifiersCard() {
   box.replaceChildren(...Object.keys(by).sort().map(p => h('div', { class: 'stack' }, h('b', null, p), by[p].slice(0, QUAL.topN).map((r, i) => h('div', { class: 'lrow' }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, r.nickname), h('b', null, r.pct + '%'))))));
   return section;
 }
+
+
+<style id="bablo-study-coach-style">
+#bablo-study-coach{position:fixed;right:15px;bottom:calc(82px + env(safe-area-inset-bottom,0px));z-index:40;font-family:inherit}#bsc-launch{border:0;border-radius:999px;padding:12px 16px;background:linear-gradient(135deg,#10264b,#244d83);color:#fff;font-weight:800;box-shadow:0 10px 30px #081b3b45;cursor:pointer}#bsc-panel{display:none;position:fixed;z-index:41;right:12px;bottom:calc(140px + env(safe-area-inset-bottom,0px));width:min(390px,calc(100vw - 24px));max-height:min(70vh,620px);overflow:auto;border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);box-shadow:0 24px 70px #07152c55;padding:16px}#bsc-panel.open{display:block}.bsc-head{display:flex;align-items:center;gap:10px;justify-content:space-between}.bsc-chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 10px;margin:4px 3px 4px 0;background:var(--surface);color:var(--ink);cursor:pointer}.bsc-result{padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}.bsc-result:last-child{border:0}#bsc-query{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);margin:10px 0}#bsc-answer{font-size:.9rem;line-height:1.5;max-height:40vh;overflow:auto}.bsc-label{font-size:.78rem;color:var(--ink2)}@media(max-width:420px){#bsc-panel{right:8px;width:calc(100vw - 16px)}}
+</style>
+
+
+/* Bablo Study Coach: a practical, built-in helper; no API key or external service required. */
+(function(){
+ const host=document.createElement('div');host.id='bablo-study-coach';
+ host.innerHTML='<button id="bsc-launch" aria-expanded="false">✦ Study Coach</button>';document.body.appendChild(host);
+ const panel=document.createElement('section');panel.id='bsc-panel';panel.setAttribute('aria-label','Bablo Study Coach');panel.innerHTML='<div class="bsc-head"><div><strong>✦ Bablo Study Coach</strong><div class="bsc-label">Find topics · revise · navigate Hub</div></div><button id="bsc-close" class="bsc-chip" aria-label="Close coach">✕</button></div><div><button class="bsc-chip" data-action="weak">Find a topic to revise</button><button class="bsc-chip" data-action="quiz">Start practice</button><button class="bsc-chip" data-action="timer">Focus timer</button><button class="bsc-chip" data-action="calendar">Calendar</button><button class="bsc-chip" data-action="account">Online competitions</button></div><label class="bsc-label" for="bsc-query">Ask a study question or search the question bank</label><input id="bsc-query" placeholder="e.g. mitosis, vectors, atomic structure…" autocomplete="off"><div id="bsc-answer" aria-live="polite">I can find matching questions and explanations in the Hub’s built-in question bank, suggest revision topics, and take you to useful tools. I’m not a live AI tutor, so I won’t pretend to know an answer that isn’t in the Hub.</div>';document.body.appendChild(panel);
+ const launch=host.querySelector('button'), close=panel.querySelector('#bsc-close'), query=panel.querySelector('#bsc-query'), answer=panel.querySelector('#bsc-answer');
+ function open(){panel.classList.add('open');launch.setAttribute('aria-expanded','true');query.focus()}function shut(){panel.classList.remove('open');launch.setAttribute('aria-expanded','false')}launch.addEventListener('click',()=>panel.classList.contains('open')?shut():open());close.addEventListener('click',shut);
+ function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function go(hash){location.hash=hash;shut()}
+ panel.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>{const a=b.dataset.action;if(a==='quiz')go('#/qualify');else if(a==='timer'){answer.textContent='Use the Hub’s study/planning area to organise a focus session. The configurable focus timer is available from the timer control when you open a study session.';go('#/plan')}else if(a==='calendar')go('#/plan');else if(a==='account')go('#/me');else {query.value='';answer.textContent='Type a course code or topic above (for example BIO, cell structure, vectors, or atomic structure). I’ll show matching questions and their available explanations.';query.focus()}}));
+ function search(){const term=query.value.trim().toLowerCase();if(!term){answer.textContent='Enter a topic, course code, or keyword to search the built-in question bank.';return}const bank=Array.isArray(window.__BANK__)?window.__BANK__: (typeof BANK!=='undefined'?BANK:[]);const words=term.split(/\s+/).filter(Boolean);const hits=bank.map(q=>{const text=[q.c,q.u,q.q,q.e,(q.o||[]).join(' ')].join(' ').toLowerCase();const score=words.reduce((n,w)=>n+(text.includes(w)?1:0),0);return {q,score}}).filter(x=>x.score===words.length).sort((a,b)=>b.score-a.score).slice(0,8);if(!hits.length){answer.innerHTML='<p>No exact matches found. Try a shorter keyword or the course code (BIO, CHM, PHY, COS, etc.).</p><p class="bsc-label">Tip: use the course/topic labels shown in the question bank.</p>';return}answer.innerHTML='<p><strong>'+hits.length+' matching question(s)</strong> from the local question bank. Tap a result to open practice.</p>'+hits.map((x,i)=>'<div class="bsc-result"><strong>'+esc(x.q.c||'Topic')+' · '+esc(x.q.u||'')+'</strong><div>'+esc(x.q.q||'')+'</div>'+(x.q.e?'<div class="bsc-label">Explanation: '+esc(x.q.e)+'</div>':'<div class="bsc-label">No explanation saved for this item.</div>')+'</div>').join('')+'<button class="bsc-chip" id="bsc-practice">Open practice</button>';const p=answer.querySelector('#bsc-practice');if(p)p.addEventListener('click',()=>go('#/qualify'))}
+ query.addEventListener('keydown',e=>{if(e.key==='Enter')search()});let debounce;query.addEventListener('input',()=>{clearTimeout(debounce);debounce=setTimeout(search,250)});
+ // Keep this helper unobtrusive on the home screen; it is available from every page.
+})();
 
 /* ---------- boot ---------- */
 applyTheme();
