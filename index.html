@@ -127,7 +127,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .gpa-sum{display:flex;gap:26px;flex-wrap:wrap}.gpa-sum b{font:800 2rem var(--head);display:block}
 /* nav, modal, toast */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
-.nav .in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.nav .in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .nav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:10px;color:var(--ink2);text-decoration:none;font-size:.74rem;font-weight:700}
 .nav a svg{width:22px;height:22px}.nav a[aria-current=page]{color:var(--brand);background:var(--brand-soft)}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(6,14,28,.62);display:grid;place-items:end center;padding:0}
@@ -252,7 +252,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 }
 @media (min-width: 1200px){
   .wrap{max-width:1240px}
-  .grid{grid-template-columns:repeat(6,1fr)}
+  .grid{grid-template-columns:repeat(5,1fr)}
 }
 
 /* ===== Classic: plain, high-contrast, no glass, no glows (light and dark) ===== */
@@ -293,7 +293,18 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .tile{transition:transform .15s ease,box-shadow .15s ease}
 .tile:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.25)}
 
-.field textarea,textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:11px;font:inherit;resize:vertical}.nav .in{grid-template-columns:repeat(6,1fr)}@media(max-width:380px){.nav a{font-size:.66rem}.nav a svg{width:19px;height:19px}}
+/* Bablo helper */
+.bot-fab{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:40;width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:linear-gradient(145deg,var(--brand),#6366F1);color:#fff;font-size:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,.3);cursor:pointer}
+.bot-panel{position:fixed;right:12px;left:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:45;max-width:420px;margin-left:auto;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;max-height:70vh;overflow:hidden}
+.bot-panel[hidden]{display:none}.bot-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.bot-log{padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:160px;max-height:45vh}
+.bot-msg{max-width:85%;padding:10px 12px;border-radius:16px;font-size:.92rem;line-height:1.4}.bot-msg.bot{align-self:flex-start;background:var(--surface2)}.bot-msg.me{align-self:flex-end;background:var(--brand);color:var(--brand-ink)}
+.bot-input{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}.bot-input input{flex:1;min-height:42px;border:1px solid var(--line);border-radius:12px;padding:0 10px;background:var(--bg);color:var(--ink)}
+
+/* floating buttons: Me (left) and Chess (right), above the bottom bar */
+.float-btn{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.4rem;color:#fff;text-decoration:none;background:linear-gradient(145deg,var(--brand),#6366F1);box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--line)}
+.float-me{left:16px}.float-chess{right:16px}
+
 </style>
 </head>
 <body>
@@ -391,7 +402,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
     return { correct, wrong, skipped, pct, grade: gradeFor(pct) };
   }
   function eligible(e) {
-    return !!e && (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && e.pct >= 50 && e.pct <= 100 && !!e.nick;
+    return !!e && (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && e.pct >= 0 && e.pct <= 100 && !!e.nick;
   }
   function rank(entries, opt) {
     opt = opt || {};
@@ -479,7 +490,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.14.1' };
+const APP = { name: 'Bablo Hub', version: '3.15.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -527,6 +538,23 @@ const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 
 const COURSE_WEIGHTS = { BIO: 1, CHM: 1, PHY: 1, COS: 1, AGR: 1, MTH101: 1, GST111: 1, GEL101: 1 };
 const CUP = { minPlayers: 3, topN: 5 };
 const PASS_MARK = 50;
+const CUP_ON_HOLD = true; // the Programme Cup and qualifications stay on hold until the tests are done
+/* 100 level first semester timetable 2026/2027 (from the timetable image). AGR 101 is on Monday, as the note on the timetable says it clashes with BUI-GEL 101 and GST 111. */
+const TIMETABLE_100_1 = [
+  { day: 'Monday', code: 'COS 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Friday', code: 'AGR 101', time: '9:00am-11:00am', venue: 'NAGRLB' },
+  { day: 'Monday', code: 'BUI-GEL 101', time: '2:00pm-3:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Monday', code: 'GST 111', time: '3:00pm-4:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Monday', code: 'BUI-LIB 101', time: '5:00pm-6:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Tuesday', code: 'CHM 101', time: '9:00am-11:00am', venue: '1500 Lecture Hall' },
+  { day: 'Tuesday', code: 'PHY 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Tuesday', code: 'PHY 107', time: '2:00pm-6:00pm', venue: 'PHY Lab 1, MICOM I, MICOM II' },
+  { day: 'Wednesday', code: 'MTH 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
+  { day: 'Wednesday', code: 'CHM 107', time: '1:00pm-4:00pm', venue: 'CHM Building General Lab' },
+  { day: 'Thursday', code: 'BIO 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Thursday', code: 'BIO 107', time: '2:00pm-5:00pm', venue: 'BIO Lab I-III' }
+];
+const TIMETABLE_NOTE = 'Course representatives for AGR 101 should meet the lecturer, as AGR 101 clashes with BUI-GEL 101 and GST 111.';
 /* 200 level courses. Each stays Pending until its questions, notes, practicals and labs are loaded. */
 const COURSES_200 = [
   { code: 'ANA211', label: 'ANA 211', title: 'Embryology', color: '#B45309', units: 2, semester: 'first' },
@@ -1082,7 +1110,7 @@ async function pushProgress() {
 async function syncPastScores() {
   if (!signedIn() || !LB.url) return;
   DB.syncedTs = DB.syncedTs || {};
-  const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && e.pct >= 50 && !DB.syncedTs[e.ts])
+  const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && !DB.syncedTs[e.ts])
     .map(e => ({ dev: DB.dev, nick: DB.profile.nick.slice(0, 30), course: e.course, mode: e.mode, n: e.n, correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts, programme: DB.profile.programme, uid: DB.profile.uid }));
   if (!rows.length) return;
   try {
@@ -1122,6 +1150,7 @@ const ICON = {
   home: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   board: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/>',
   gpa: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/>',
+  time: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
   me: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   social: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'
 };
@@ -1152,37 +1181,6 @@ function applyTheme() {
 }
 function bestPct(code) { const l = DB.history.filter(x => x.course === code && x.mode !== 'practice'); return l.length ? Math.max.apply(null, l.map(x => x.pct)) : null; }
 function toast(msg) { const t = h('div', { class: 'toast', role: 'status' }, msg); document.body.append(t); setTimeout(() => t.remove(), 2600); }
-/* Bablo considerate notifications: in-app popups + OS notifications when permission is granted. */
-function babloNotify(title, body, key, opts) {
-  opts = opts || {}; const now = Date.now(); DB.noticeSeen = DB.noticeSeen || {};
-  if (key && DB.noticeSeen[key]) return;
-  if (key) { DB.noticeSeen[key] = now; const keys = Object.keys(DB.noticeSeen); if (keys.length > 250) keys.slice(0, keys.length - 200).forEach(k => delete DB.noticeSeen[k]); save(); }
-  const card = h('div', { class: 'panel stack', style: 'position:fixed;z-index:80;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(92vw,460px);box-shadow:0 16px 50px rgba(0,0,0,.28);border:1px solid var(--brand);' },
-    h('div', { class: 'row between' }, h('b', null, title), h('button', { class: 'btn sm ghost', 'aria-label':'Dismiss notification', onclick:()=>card.remove() }, '✕')),
-    h('p', { class: 'small' }, body), opts.href ? h('a', { class:'btn primary block', href:opts.href, onclick:()=>card.remove() }, opts.action || 'Open') : null);
-  document.body.append(card); setTimeout(()=>{ if(card.isConnected) card.remove(); }, 9000);
-  try { if ('Notification' in window && Notification.permission === 'granted' && document.hidden) new Notification(title, { body, tag: key || title }); } catch(e) {}
-}
-function enableBabloNotifications() { try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch(e) {} }
-function startBabloReminderChecks() {
-  if (window.__babloReminderTimer) return;
-  // One welcome/update notice per installed device; never blocks app use.
-  if (!DB.updateNoticeShown) { DB.updateNoticeShown = true; save(); setTimeout(()=>babloNotify('Bablo just got an update ✨','Bablo just updated this app so you can keep on enjoying. You are considered. 💛','bablo-update-welcome'), 1800); }
-  const check = () => {
-    if (!DB.profile) return;
-    const now = new Date(), day = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-    const events = Array.isArray(DB.events) ? DB.events : [];
-    events.forEach(ev => { if (!ev.date || !ev.time) return; const at = new Date(ev.date+'T'+ev.time+':00'); const delta = at.getTime()-now.getTime();
-      if (delta >= 0 && delta <= 15*60*1000) babloNotify('Coming up: '+ev.title, 'This is scheduled for '+ev.time+'. Take a breath and get ready.', 'event-soon-'+ev.id+'-'+ev.date, {href:'#/plan',action:'View calendar'});
-      if (delta < 0 && delta > -10*60*1000) babloNotify('A little schedule check-in', 'Your event “'+ev.title+'” was scheduled for '+ev.time+'. Hope it went well.', 'event-past-'+ev.id+'-'+ev.date, {href:'#/plan',action:'View calendar'});
-    });
-    if (DB.sessionStartedAt && now.getTime()-DB.sessionStartedAt > 2*60*60*1000 && !DB.longSessionNudged) { DB.longSessionNudged=true; save(); babloNotify('You’ve been here a while 💛','Seems you’ve been on this app for like 2 hours. Take a rest, relax, stretch, or get something to eat. Welcome back whenever you’re ready.','long-session-'+day); }
-  };
-  if (!DB.sessionStartedAt || Date.now()-DB.sessionStartedAt > 12*60*60*1000) { DB.sessionStartedAt = Date.now(); DB.longSessionNudged = false; } save();
-  window.__babloReminderTimer = setInterval(check, 30000); check();
-  document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) { DB.sessionStartedAt=Date.now(); DB.longSessionNudged=false; save(); check(); } });
-}
-
 function modal(node, dismissable) {
   const ov = h('div', { class: 'overlay', role: 'dialog', 'aria-modal': 'true' }, h('div', { class: 'modal' }, node));
   if (dismissable) ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
@@ -1209,9 +1207,12 @@ async function lbSubmit(e) {
 async function lbFetch() {
   if (!LB.url) return { mode: 'local', rows: localEntries() };
   try {
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&pct=gte.50&order=ts.desc&limit=2000', { headers: { apikey: LB.key } });
+    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', { headers: { apikey: LB.key } });
     if (!r.ok) throw new Error('bad');
-    return { mode: 'global', rows: await r.json() };
+    const remote = await r.json();
+    const synced = DB.syncedTs || {};
+    const deviceOnly = DB.history.filter(e => !synced[e.ts]).map(x => Object.assign({ dev: DB.dev, nick: DB.profile ? DB.profile.nick : 'You', local: true }, x));
+    return { mode: 'global', rows: remote.concat(deviceOnly) };
   } catch (x) { return { mode: 'offline', rows: localEntries() }; }
 }
 
@@ -1225,7 +1226,7 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/plan', 'Calendar', 'board'], ['board', '#/board', 'Board', 'board'], ['social', '#/social', 'Social', 'social'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['me', '#/me', 'Me', 'me']];
+  const items = [['home', '#/', 'Home', 'home'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['plan', '#/plan', 'Time', 'time'], ['social', '#/social', 'Social', 'social'], ['board', '#/board', 'Board', 'board']];
   navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
@@ -1235,7 +1236,7 @@ function route() {
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'home', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
+  const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
     if (v === 'course') courseView(seg[1]);
@@ -1248,6 +1249,8 @@ function route() {
     else if (v === 'weak') weakView();
     else if (v === 'plan') planView();
     else if (v === 'admin') adminView();
+    else if (v === 'timetable') timetableView();
+    else if (v === 'settings') settingsView();
     else if (v === 'qualify') qualifyView();
     else if (v === 'notes' && seg[1]) notesView(seg[1], seg[2] != null ? +seg[2] : null);
     else if (v === 'flash' && seg[1]) flashView(seg[1]);
@@ -1290,7 +1293,7 @@ function homeView() {
   const weak = Object.keys(DB.missed).length;
   const hero = h('section', { class: 'hero' },
     h('h1', null, greet + ', ' + first),
-    h('p', null, 'Pick a course, practise a topic, then test yourself.'), h('a', { href: '#/chess', class: 'small', style: { color: '#5EEAD4' } }, 'Need a break? Play chess \u203A'), h('a', { href: '#/plan', class: 'small', style: { color: '#5EEAD4', marginLeft: '14px' } }, 'Calendar and timer \u203A'),
+    h('p', null, 'Pick a course, practise a topic, then test yourself.'), h('a', { href: '#/chess', class: 'small', style: { color: '#5EEAD4' } }, 'Need a break? Play chess \u203A'), h('a', { href: '#/plan', class: 'small', style: { color: '#5EEAD4', marginLeft: '14px' } }, 'Calendar and timer \u203A'), h('a', { href: '#/settings', class: 'small', style: { color: '#5EEAD4', marginLeft: '14px' } }, 'Settings \u203A'), h('button', { class: 'btn sm ghost', style: { marginLeft: '14px' }, onclick: () => botToggle(true) }, 'Ask Bablo'),
     svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
     h('div', { class: 'hero-stats' },
       h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
@@ -1564,7 +1567,7 @@ function boardView() {
       if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
       else {
         if (rows.length >= 3) { const m = ['\uD83E\uDD48', '\uD83E\uDD47', '\uD83E\uDD49'], o = [1, 0, 2]; kids.push(h('div', { class: 'podium' }, o.map(k => h('div', { class: k === 0 ? 'p1' : '' }, h('div', { style: { fontSize: '1.6rem' } }, m[k === 0 ? 1 : k === 1 ? 0 : 2]), h('b', null, rows[k].nick), h('div', { class: 'small muted' }, rows[k].score + (course === '*' ? ' pts' : '%')))))); }
-        kids.push(h('div', { class: 'rows' }, rows.map((p, i) => h('div', { class: 'lrow' + (p.dev === DB.dev ? ' me' : '') }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, h('b', null, p.nick), p.dev === DB.dev ? h('span', { class: 'chip brand', style: { marginLeft: '8px' } }, 'You') : null, h('div', { class: 'tiny muted' }, Core.fmtTime(p.secs) + (course === '*' ? ' \u2022 ' + plural(p.courses, 'course') : ''))), h('b', null, p.score + (course === '*' ? ' pts' : '%'))))));
+        kids.push(h('div', { class: 'rows' }, rows.map((p, i) => h('div', { class: 'lrow' + (p.dev === DB.dev ? ' me' : '') }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, h('b', null, p.nick), p.local ? h('span', { class: 'chip', style: { marginLeft: '6px' } }, 'not on an account') : null, p.dev === DB.dev ? h('span', { class: 'chip brand', style: { marginLeft: '8px' } }, 'You') : null, h('div', { class: 'tiny muted' }, Core.fmtTime(p.secs) + (course === '*' ? ' \u2022 ' + plural(p.courses, 'course') : ''))), h('b', null, p.score + (course === '*' ? ' pts' : '%'))))));
       }
     }
     box.replaceChildren(...kids);
@@ -1680,60 +1683,12 @@ function chessMenu() {
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
-    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Online chess is for signed-in players. Add friends by nickname, then create and share a challenge code with them.'),
-      signedIn() ? h('div', { class: 'stack' },
-        h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '20', placeholder: 'Friend’s Bablo nickname', id: 'friendNick' }), h('button', { class: 'btn', onclick: addChessFriend }, 'Add friend')),
-        h('div', { id: 'chessFriends', class: 'stack' }),
-        h('button', { class: 'btn gold block', onclick: () => createOnline((document.getElementById('friendNick') && document.getElementById('friendNick').value.trim()) || '') }, 'Create a challenge'),
-        h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
-        h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading…')),
-        h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list'))
-        : h('div', { class: 'stack' }, h('p', { class: 'small muted' }, 'Sign in from Me to add friends, create online challenges, and join other players.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to account'))))));
+    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.'),
+      h('button', { class: 'btn gold block', onclick: createOnline }, 'Create a challenge'),
+      h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
+      h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
+      h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list')))));
   loadOpenList();
-  renderChessFriends();
-}
-function chessFriends() { const R = chessRec(); R.friends = Array.isArray(R.friends) ? R.friends : []; return R.friends; }
-function renderChessFriends() {
-  const box = document.getElementById('chessFriends'); if (!box) return;
-  const friends = chessFriends();
-  const rows = friends.map((f, i) => h('div', { class: 'row between panel' },
-    h('span', null, h('b', null, f), h('div', { class: 'tiny muted' }, 'Share your challenge code with this friend.')),
-    h('button', { class: 'btn sm ghost', onclick: () => createOnline(f) }, 'Challenge'),
-    h('button', { class: 'btn sm ghost', onclick: () => { chessFriends().splice(i, 1); save(); renderChessFriends(); } }, 'Remove')));
-  if (!rows.length) rows.push(h('p', { class: 'tiny muted' }, 'No friends added yet. Add a Bablo nickname above.'));
-  box.replaceChildren(h('h3', null, 'Your friends'), ...rows);
-}
-function addChessFriend() {
-  if (!signedIn()) { toast('Sign in first to use friends.'); return; }
-  const input = document.getElementById('friendNick'); const nick = String(input && input.value || '').trim().replace(/\s+/g, ' ').slice(0, 20);
-  if (nick.length < 2) { toast('Enter your friend’s Bablo nickname.'); return; }
-  if (nick.toLowerCase() === String(DB.profile.nick || '').toLowerCase()) { toast('You cannot add yourself.'); return; }
-  if (chessFriends().some(x => x.toLowerCase() === nick.toLowerCase())) { toast('That friend is already saved.'); return; }
-  chessFriends().push(nick); save(); if (input) input.value = ''; renderChessFriends(); toast(nick + ' added to your chess friends.');
-}
-async function shareChessChallenge(code, friend) {
-  const message = 'Hey ' + (friend || 'friend') + '! Join my Bablo Hub chess game. Challenge code: ' + code + '\nOpen Bablo Hub and go to Chess → Online challenge → Join.';
-  try {
-    if (navigator.share) await navigator.share({ title: 'Bablo Hub chess challenge', text: message });
-    else if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(message); toast('Challenge invite copied. Send it to ' + (friend || 'your friend') + '.'); }
-    else { window.prompt('Copy this challenge invite and send it to your friend:', message); }
-  } catch (e) { /* share sheet dismissed */ }
-}
-let CHESS_CHALLENGE_WATCH = null;
-async function checkIncomingChessChallenges() {
-  if (!signedIn() || !liveOn() || document.hidden || location.hash.startsWith('#/chess')) return;
-  const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=15');
-  if (!Array.isArray(rows)) return;
-  const seen = DB.chessChallengeSeen || (DB.chessChallengeSeen = []);
-  const fresh = rows.filter(r => r.white_dev !== DB.dev && !seen.includes(String(r.id)) && (Date.now() - new Date(r.created_at || 0).getTime()) < 10 * 60 * 1000);
-  fresh.forEach(r => { seen.push(String(r.id)); babloNotify('♟️ Chess challenge available', r.white_nick + ' is waiting for an opponent. Code: ' + r.code, 'chess-invite-' + r.id, { href: '#/chess', action: 'Open chess' }); });
-  DB.chessChallengeSeen = seen.slice(-100); if (fresh.length) save();
-}
-function startChessChallengeWatch() {
-  if (CHESS_CHALLENGE_WATCH) return;
-  CHESS_CHALLENGE_WATCH = setInterval(checkIncomingChessChallenges, 18000);
-  setTimeout(checkIncomingChessChallenges, 5000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkIncomingChessChallenges(); });
 }
 function newChess() {
   const S = chessSet();
@@ -1891,7 +1846,7 @@ function chessView() {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
-      h('section', { class: 'panel row wrapr' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game'), G.mode === 'online' && G.online && G.online.status === 'waiting' ? h('button', { class: 'btn gold block', onclick: () => shareChessChallenge(G.online.code, G.online.invitedFriend || '') }, 'Share challenge invite') : null),
+      h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
       G.mode === 'online' && G.online ? chatPanel(G) : null,
     h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
   chessDraw();
@@ -1908,7 +1863,6 @@ async function sbFetchJson(path, opts) {
 }
 async function loadOpenList() {
   const box = document.getElementById('openList'); if (!box) return;
-  if (!signedIn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in to view online challenges.')); return; }
   if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Online challenges turn on when the live database is connected.')); return; }
   const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=20');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
@@ -1919,18 +1873,14 @@ function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
 function onlineState(color, id, code, status, white, black) {
   return { mode: 'online', online: { id, code, status, recorded: false, white: white || DB.profile.nick, black: black || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
 }
-async function createOnline(friendName) {
-  if (!signedIn()) { toast('Sign in first to create an online challenge.'); return; }
+async function createOnline() {
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
   const code = rnd6();
   const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, status: 'waiting', moves: '' }) });
   if (!Array.isArray(row) || !row[0]) { toast('Could not create the challenge. Try again.'); return; }
-  const game = onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, '');
-  game.online.invitedFriend = friendName || ''; startOnline(game);
-  enableBabloNotifications(); toast('Challenge created. Tap “Share challenge invite” to send the code.');
+  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, ''));
 }
 async function joinOnline(raw) {
-  if (!signedIn()) { toast('Sign in first to join online chess.'); return; }
   const code = String(raw || '').trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
@@ -1940,7 +1890,6 @@ async function joinOnline(raw) {
   const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
   if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
   startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick));
-  enableBabloNotifications();
 }
 let ONLINE_POLL = null;
 function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } stopChatPoll(); }
@@ -1956,12 +1905,7 @@ async function pollOnlineOnce(G) {
   const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick');
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
-  const priorStatus = G.online.status;
   G.online.status = g.status;
-  if (G.color === 'w' && priorStatus === 'waiting' && g.status === 'active' && g.black_nick) {
-    G.online.black = g.black_nick;
-    babloNotify('♟️ Challenge accepted!', g.black_nick + ' joined your chess game. Make your move!', 'chess-accepted-' + G.online.id, { href: '#/chess', action: 'Return to game' });
-  }
   const moves = g.moves ? g.moves.split(' ') : [];
   if (moves.length > G.moves.length) {
     const s = Chess.replay(moves);
@@ -2234,6 +2178,7 @@ function gpaView() {
 
 /* ---------- Programme Cup ---------- */
 function eventBanner() {
+  if (CUP_ON_HOLD) return null;
   const now = Date.now(); const live = Core.eventNow(now, EVENT_WINDOWS);
   if (!live) return null;
   const mins = Math.max(0, Math.round((live.end - now) / 60000));
@@ -2246,6 +2191,7 @@ function nextWindows(now, count) {
   return Core.windowsIn(from, to, EVENT_WINDOWS).filter(w => w.end > now).slice(0, count);
 }
 function cupView() {
+  if (CUP_ON_HOLD) return holdPage('Programme Cup');
   const now = Date.now(), seasonStart = Date.parse(SEASON.start), seasonEnd = seasonStart + SEASON.weeks * 7 * 864e5;
   const inSeason = now >= seasonStart && now < seasonEnd;
   const fmtWhen = ms => new Date(ms + 3600000).toISOString().slice(0, 16).replace('T', ' ') + ' Lagos';
@@ -2402,45 +2348,28 @@ function pomoTick() {
   if (POMO.left <= 0) {
     clearInterval(POMO.h); POMO.running = false;
     const done = POMO.mode === 'focus' ? 'Focus session done. Take a 5-minute break.' : 'Break over. Back to it.';
-    babloNotify(POMO.mode === 'focus' ? 'Take a breather 🌿' : 'Welcome back ✨', POMO.mode === 'focus' ? 'Your focus session is done. Stretch, drink water, or get something to eat before the next round.' : 'Your break is over. Ready when you are — no rush.', 'pomo-'+POMO.mode+'-'+Date.now());
-    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? (Number(localStorage.getItem('babloFocusMin')) || 25) : (Number(localStorage.getItem('babloBreakMin')) || 5)) * 60;
+    toast(done); try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
+    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? 25 : 5) * 60;
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
 }
 function planView() {
-  const evs = planEvents().slice().sort((a, b) => (a.date + (a.time||'')).localeCompare(b.date + (b.time||'')));
-  const now = new Date(); let shown = new Date(now.getFullYear(), now.getMonth(), 1);
-  const title = h('input', { type: 'text', placeholder: 'Study session / test / deadline', maxlength: '80' });
-  const note = h('textarea', { placeholder: 'Details, course, venue, or what to revise…', rows: '2', maxlength: '500' });
-  const date = h('input', { type: 'date', value: now.toISOString().slice(0,10) });
-  const time = h('input', { type: 'time', value: '09:00' });
-  const focusMin = h('input', { type: 'number', min: '1', max: '240', value: String(Number(localStorage.getItem('babloFocusMin')) || 25), 'aria-label': 'Focus minutes' });
-  const breakMin = h('input', { type: 'number', min: '1', max: '90', value: String(Number(localStorage.getItem('babloBreakMin')) || 5), 'aria-label': 'Break minutes' });
-  const cal = h('div', { class: 'panel stack' });
-  const listBox = h('div', { class: 'stack' });
-  const drawCalendar = () => {
-    const y=shown.getFullYear(), m=shown.getMonth(), first=new Date(y,m,1), offset=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
-    const head=h('div',{class:'row between'},h('button',{class:'btn sm',onclick:()=>{shown=new Date(y,m-1,1);drawCalendar()}},'‹'),h('h2',null,shown.toLocaleDateString(undefined,{month:'long',year:'numeric'})),h('button',{class:'btn sm',onclick:()=>{shown=new Date(y,m+1,1);drawCalendar()}},'›'));
-    const grid=h('div',{style:'display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px'});
-    ['M','T','W','T','F','S','S'].forEach(d=>grid.append(h('div',{class:'tiny muted',style:'text-align:center;padding:4px'},d)));
-    for(let i=0;i<offset;i++)grid.append(h('div',{}));
-    for(let d=1;d<=days;d++){
-      const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'), has=evs.some(e=>e.date===key), isToday=key===now.toISOString().slice(0,10);
-      grid.append(h('button',{class:'btn sm '+(isToday?'primary':'') ,style:'min-height:42px;position:relative;padding:4px;border:1px solid var(--line)',onclick:()=>{date.value=key;title.focus();listBox.replaceChildren(...evs.filter(e=>e.date===key).map(eventCard));}},String(d)+(has?' •':'')));
-    }
-    cal.replaceChildren(head,grid,h('p',{class:'tiny muted'},'Dots mark days with saved events. Tap a date to see its schedule.'));
-  };
-  const eventCard = ev => h('div',{class:'panel stack',style:'padding:12px 14px'},h('div',{class:'row between wrapr'},h('div',{class:'grow'},h('b',null,ev.title),h('div',{class:'tiny muted'},ev.date+' · '+(ev.time||'09:00')),ev.note?h('p',{class:'small'},ev.note):null),h('button',{class:'btn sm ghost danger',onclick:()=>{DB.events=planEvents().filter(x=>x.id!==ev.id);save();planView();}},'Remove')),h('div',{class:'row wrapr'},h('button',{class:'btn sm',onclick:()=>downloadIcs(ev)},'Export reminder'),h('button',{class:'btn sm',onclick:()=>{date.value=ev.date;title.value=ev.title;note.value=ev.note||'';time.value=ev.time||'09:00';toast('Event loaded into the editor.');}},'Edit')));
-  const drawList = () => {const upcoming=evs.filter(e=>e.date>=now.toISOString().slice(0,10));listBox.replaceChildren(...(upcoming.length?upcoming.map(eventCard):[h('p',{class:'muted'},'Nothing scheduled yet. Add a study session or deadline below.')]));};
-  const setTimerText=()=>{const el=document.getElementById('pomoTime');if(el)el.textContent=fmtTime(POMO.left);};
-  const pomoBtn = h('button',{class:'btn primary grow',onclick:()=>{if(POMO.running){clearInterval(POMO.h);POMO.running=false;pomoBtn.textContent='Resume';}else{POMO.h=setInterval(pomoTick,1000);POMO.running=true;pomoBtn.textContent='Pause';enableBabloNotifications();}},},POMO.running?'Pause':'Start');
-  const applyTimer=()=>{const f=Math.max(1,Math.min(240,Number(focusMin.value)||25)),b=Math.max(1,Math.min(90,Number(breakMin.value)||5));localStorage.setItem('babloFocusMin',f);localStorage.setItem('babloBreakMin',b);if(!POMO.running){POMO.mode='focus';POMO.left=f*60;setTimerText();}toast('Timer settings saved.');};
-  mount(wrap(back('#/','Home'),h('div',{class:'stack-l'},h('div',{class:'stack'},h('h1',null,'Study calendar'),h('p',{class:'muted'},'Plan revision, tests, deadlines and chess challenges. Events are saved on this device; export an event to your phone calendar for system reminders.')),cal,
-    h('section',{class:'panel stack'},h('h2',null,'Configurable focus timer'),h('div',{id:'pomoTime',style:'font-size:3rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums'},fmtTime(POMO.left)),h('div',{class:'row'},h('label',{class:'field grow'},h('span',null,'Focus (minutes)'),focusMin),h('label',{class:'field grow'},h('span',null,'Break (minutes)'),breakMin)),h('div',{class:'row'},pomoBtn,h('button',{class:'btn ghost grow',onclick:()=>{clearInterval(POMO.h);POMO.running=false;POMO.mode='focus';POMO.left=(Number(localStorage.getItem('babloFocusMin'))||25)*60;pomoBtn.textContent='Start';setTimerText();}},'Reset'),h('button',{class:'btn grow',onclick:applyTimer},'Save settings')),h('p',{class:'tiny muted'},'When a session ends, Bablo Hub shows an alert; allow notifications for pop-ups while the app is open.')),
-    h('section',{class:'stack'},h('h2',null,'Upcoming schedule'),listBox),h('section',{class:'panel stack'},h('h2',null,'Add to calendar'),h('label',{class:'field'},h('span',null,'Title'),title),h('label',{class:'field'},h('span',null,'Details / course / venue'),note),h('div',{class:'row'},h('label',{class:'field grow'},h('span',null,'Date'),date),h('label',{class:'field grow'},h('span',null,'Time'),time)),h('button',{class:'btn primary block',onclick:()=>{if(!title.value.trim()||!date.value){toast('Add a title and date first.');return;}DB.events=planEvents().concat([{id:uid(),title:title.value.trim().slice(0,80),date:date.value,time:time.value||'09:00',note:note.value.trim().slice(0,500)}]);save();toast('Added to your calendar.');planView();}},'Save event')))));
-  drawCalendar();drawList();
+  const evs = planEvents().slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const title = h('input', { type: 'text', placeholder: 'Event title', maxlength: '60' }), date = h('input', { type: 'date' }), time = h('input', { type: 'time', value: '09:00' });
+  const list = evs.map(ev => h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
+    h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, ev.title), h('div', { class: 'tiny muted' }, ev.date + ' at ' + ev.time + (ev.note ? ' \u2022 ' + ev.note : ''))),
+      h('span', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => downloadIcs(ev) }, 'Add to phone calendar'), h('button', { class: 'btn sm ghost danger', onclick: () => { DB.events = planEvents().filter(x => x.id !== ev.id); save(); planView(); } }, 'Remove')))));
+  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } } }, POMO.running ? 'Pause' : 'Start');
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, 'Calendar and timer'), h('p', { class: 'muted' }, 'Your tests, your school dates, and a focus timer. Use "Add to phone calendar" to put an event on your phone with a reminder the day before.')),
+    h('a', { class: 'btn block', href: '#/timetable' }, '100 Level timetable \u203A'),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
+      h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? '25 minutes of focus' : '5 minute break'),
+      h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = 25 * 60; planView(); } }, 'Reset'))),
+    h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Add an event'), title, h('div', { class: 'row' }, date, time),
+      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
 }
-
 
 /* ---------- install popup: shown once, when Chrome says the app can be installed ---------- */
 function maybeInstallPopup() {
@@ -2584,6 +2513,7 @@ async function qualStatus() {
   return 'none';
 }
 function qualifyView() {
+  if (CUP_ON_HOLD) return holdPage('Qualifications');
   const batch = qualBatch();
   const holder = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Checking your status\u2026'));
   mount(wrap(back('#/cup', 'Programme Cup'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, 'Qualifications')), holder)));
@@ -2623,13 +2553,91 @@ async function qualifiersCard() {
   return section;
 }
 
+/* ---------- Bablo helper: a built-in assistant on every screen (no AI service; answers from rules) ---------- */
+const BOT = { awaitingFeedback: false, open: false };
+const BOT_HELP = 'I can take you places, explain how things work, and take feedback. Try: "chess", "calendar", "leaderboard", "qualifications", "account", "premium", "install", or "feedback".';
+function botAnswer(text) {
+  const t = String(text || '').toLowerCase().trim();
+  if (BOT.awaitingFeedback) { BOT.awaitingFeedback = false; sendFeedback('other', text).then(r => { toast(r === 'ok' ? 'Thank you. Sent to the admin.' : 'Could not send. Try again.'); }); return { text: 'Thank you. Your feedback is with the admin.' }; }
+  if (/\bfeedback|bug|broken|suggest|idea|report\b/.test(t)) { BOT.awaitingFeedback = true; return { text: 'Type your feedback in one message. It goes straight to the admin.' }; }
+  if (/chess/.test(t)) return { text: 'Chess is on the chess page. Friend games and the computer are both there.', go: '#/chess', label: 'Open chess' };
+  if (/qualif|qualify/.test(t)) return { text: 'Qualifications run on the day, in two batches. You need an account and only get one attempt.', go: '#/qualify', label: 'Open qualifications' };
+  if (/cup|programme cup/.test(t)) return { text: 'The Programme Cup runs in weekly windows. Only account holders compete.', go: '#/cup', label: 'Open the Cup' };
+  if (/calendar|timer|pomodoro|schedule|test date|exam date/.test(t)) return { text: 'Your tests and dates are on the calendar. The Pomodoro timer is there too.', go: '#/plan', label: 'Open calendar' };
+  if (/leaderboard|rank|board/.test(t)) return { text: 'The leaderboard shows account holders only. You can filter by your programme.', go: '#/board', label: 'Open leaderboard' };
+  if (/cgpa|gpa|grade/.test(t)) return { text: 'The CGPA calculator works out your GPA from your scores and units.', go: '#/gpa', label: 'Open CGPA' };
+  if (/weak|struggl|revise/.test(t)) return { text: 'Weak spots lists the topics you find hardest, with a practice button for each.', go: '#/weak', label: 'Open weak spots' };
+  if (/account|sign ?up|log ?in|login|password|unique id|\bid\b/.test(t)) return { text: 'Create an account with your name and a password. The hub gives you a unique ID, so write it down. Log in with the ID and password.', go: '#/me', label: 'Open my account' };
+  if (/premium|pay|price|cost|subscription/.test(t)) return { text: 'Notes, flashcards and practicals are premium. Payments are not open yet.' };
+  if (/install|download|home screen|app/.test(t)) return { text: 'On Android, use Chrome: tap the three dots, then Install app. On iPhone, use Safari: Share, then Add to Home Screen.', go: '#/me', label: 'Open install help' };
+  if (/timed|quiz|test me|practice|exam/.test(t)) return { text: 'Pick a course on Home. Practice is open to everyone. Timed quizzes, mock tests and the premium exam need an account.', go: '#/', label: 'Go to courses' };
+  if (/hi|hello|hey|good (morning|evening|afternoon)/.test(t)) return { text: 'Hi. ' + BOT_HELP };
+  return { text: BOT_HELP };
+}
+function botMount() {
+  if (document.getElementById('botFab')) return;
+  const fab = h('span', { id: 'botFab', hidden: true });
+  const meFab = h('a', { class: 'float-btn float-me', href: '#/me', 'aria-label': 'My account' }, '\u{1F464}');
+  const chessFab = h('a', { class: 'float-btn float-chess', href: '#/chess', 'aria-label': 'Chess' }, '\u265E');
+  const log = h('div', { id: 'botLog', class: 'bot-log' }, h('div', { class: 'bot-msg bot' }, BOT_HELP));
+  const input = h('input', { id: 'botInput', type: 'text', placeholder: 'Ask Bablo', maxlength: '300', 'aria-label': 'Message to Bablo' });
+  const send = () => {
+    const v = input.value.trim(); if (!v) return;
+    log.append(h('div', { class: 'bot-msg me' }, v)); input.value = '';
+    const a = botAnswer(v);
+    log.append(h('div', { class: 'bot-msg bot' }, a.text, a.go ? h('div', { style: { marginTop: '8px' } }, h('button', { class: 'btn sm primary', onclick: () => { botToggle(false); go(a.go); } }, a.label || 'Open')) : null));
+    log.scrollTop = log.scrollHeight;
+  };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+  const panel = h('div', { id: 'botPanel', class: 'bot-panel', hidden: true },
+    h('div', { class: 'bot-head' }, h('b', null, 'Bablo helper'), h('button', { class: 'btn sm ghost', 'aria-label': 'Close', onclick: () => botToggle(false) }, '\u2715')),
+    log, h('div', { class: 'bot-input' }, input, h('button', { class: 'btn primary', onclick: send }, 'Send')));
+  document.body.append(fab, meFab, chessFab, panel);
+}
+function botToggle(on) { const p = document.getElementById('botPanel'), f = document.getElementById('botFab'); if (!p || !f) return; p.hidden = !on; f.hidden = on; if (on) { const i = document.getElementById('botInput'); if (i) i.focus(); } }
+
+/* ---------- 100 level timetable, first semester ---------- */
+function ttCourse(code) { const base = code.replace(/ 10[17]$/, ''); return ({ 'COS': 'COS', 'AGR': 'AGR', 'BUI-GEL': 'GEL101', 'GST': 'GST111', 'BUI-LIB': 'LIB101', 'CHM': 'CHM', 'PHY': 'PHY', 'MTH': 'MTH101', 'BIO': 'BIO' })[base] || base; }
+function timetableView() {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const mine = coursesFor(DB.profile.programme).map(c => c.code);
+  const rowsAll = TIMETABLE_100_1.filter(x => mine.includes(ttCourse(x.code)));
+  mount(wrap(back('#/plan', 'Calendar'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, '100 Level timetable'), h('p', { class: 'muted' }, 'First semester, 2026/2027. Showing the courses for ' + DB.profile.programme + '.')),
+    days.map(d => {
+      const rows = rowsAll.filter(x => x.day === d);
+      return h('section', { class: 'panel stack' }, h('h2', null, d),
+        rows.length ? rows.map(x => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
+          h('span', null, h('b', null, x.code), h('div', { class: 'tiny muted' }, x.venue)), h('span', { class: 'chip' }, x.time))) : h('p', { class: 'muted' }, 'Nothing scheduled.'));
+    }),
+    h('p', { class: 'tiny muted' }, TIMETABLE_NOTE))));
+}
+
+/* ---------- on-hold page (Cup, qualifications) ---------- */
+function holdPage(title) {
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, title)),
+    h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'On hold'), h('p', { class: 'muted small' }, title + ' is on hold until the tests are done. The admin will announce when it opens.')))));
+}
+/* ---------- settings (from the Home screen) ---------- */
+function settingsView() {
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
+  const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
+  const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, 'Settings')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic')),
+      h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
+      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'muted small' }, APP.name + ' \u2022 version ' + APP.version), h('a', { class: 'btn block', href: '#/me' }, 'My account and details')))));
+}
+
 /* ---------- boot ---------- */
 applyTheme();
 loadHidden();
+botMount();
 window.addEventListener('hashchange', route);
 route();
-startBabloReminderChecks();
-startChessChallengeWatch();
 
 </script>
 </body>
