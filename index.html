@@ -305,6 +305,15 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .float-btn{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.4rem;color:#fff;text-decoration:none;background:linear-gradient(145deg,var(--brand),#6366F1);box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--line)}
 .float-me{left:16px}.float-chess{right:16px}
 
+/* floating buttons: Home only, stacked on the right above the bottom bar */
+.float-btn{display:none}
+body.on-home .float-btn{display:grid}
+.float-me{right:16px;bottom:calc(152px + env(safe-area-inset-bottom,0px));left:auto}
+.float-chess{right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+body.on-home .wrap{padding-bottom:170px}
+.top-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-size:1.05rem;cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -490,7 +499,7 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.15.0' };
+const APP = { name: 'Bablo Hub', version: '3.16.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1235,6 +1244,7 @@ function route() {
   stopTimer();
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
+  document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
@@ -1293,7 +1303,7 @@ function homeView() {
   const weak = Object.keys(DB.missed).length;
   const hero = h('section', { class: 'hero' },
     h('h1', null, greet + ', ' + first),
-    h('p', null, 'Pick a course, practise a topic, then test yourself.'), h('a', { href: '#/chess', class: 'small', style: { color: '#5EEAD4' } }, 'Need a break? Play chess \u203A'), h('a', { href: '#/plan', class: 'small', style: { color: '#5EEAD4', marginLeft: '14px' } }, 'Calendar and timer \u203A'), h('a', { href: '#/settings', class: 'small', style: { color: '#5EEAD4', marginLeft: '14px' } }, 'Settings \u203A'), h('button', { class: 'btn sm ghost', style: { marginLeft: '14px' }, onclick: () => botToggle(true) }, 'Ask Bablo'),
+    h('p', null, 'Pick a course, practise a topic, then test yourself.'),
     svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
     h('div', { class: 'hero-stats' },
       h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
@@ -1313,7 +1323,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', 'aria-label': 'Ask Bablo', onclick: () => botToggle(true) }, '\uD83E\uDD16'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 function brand() {
@@ -2342,6 +2352,7 @@ function downloadIcs(ev) {
   const blob = new Blob([icsFor(ev)], { type: 'text/calendar' }); const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = ev.id + '.ics'; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
+function pomoCfg() { const c = DB.pomo || {}; return { focus: Math.min(120, Math.max(1, +c.focus || 25)), brk: Math.min(60, Math.max(1, +c.brk || 5)) }; }
 let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null };
 function pomoTick() {
   POMO.left -= 1;
@@ -2349,7 +2360,7 @@ function pomoTick() {
     clearInterval(POMO.h); POMO.running = false;
     const done = POMO.mode === 'focus' ? 'Focus session done. Take a 5-minute break.' : 'Break over. Back to it.';
     toast(done); try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
-    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? 25 : 5) * 60;
+    POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? pomoCfg().focus : pomoCfg().brk) * 60;
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
 }
@@ -2364,8 +2375,10 @@ function planView() {
     h('div', { class: 'stack' }, h('h1', null, 'Calendar and timer'), h('p', { class: 'muted' }, 'Your tests, your school dates, and a focus timer. Use "Add to phone calendar" to put an event on your phone with a reminder the day before.')),
     h('a', { class: 'btn block', href: '#/timetable' }, '100 Level timetable \u203A'),
     h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
-      h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? '25 minutes of focus' : '5 minute break'),
-      h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = 25 * 60; planView(); } }, 'Reset'))),
+      h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? pomoCfg().focus + ' minutes of focus' : pomoCfg().brk + ' minute break'),
+      h('div', { class: 'row wrapr' }, h('label', { class: 'field grow' }, h('span', null, 'Focus (minutes)'), h('input', { type: 'number', min: '1', max: '120', value: pomoCfg().focus, id: 'pomoFocus' })), h('label', { class: 'field grow' }, h('span', null, 'Break (minutes)'), h('input', { type: 'number', min: '1', max: '60', value: pomoCfg().brk, id: 'pomoBrk' }))),
+      h('button', { class: 'btn block', onclick: () => { clearInterval(POMO.h); POMO.running = false; DB.pomo = { focus: +document.getElementById('pomoFocus').value || 25, brk: +document.getElementById('pomoBrk').value || 5 }; save(); POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Save timer settings'),
+      h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Reset'))),
     h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
     h('section', { class: 'panel stack' }, h('h2', null, 'Add an event'), title, h('div', { class: 'row' }, date, time),
       h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
