@@ -499,7 +499,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.17.1' };
+const APP = { name: 'Bablo Hub', version: '3.18.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -547,10 +547,30 @@ const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 
 const COURSE_WEIGHTS = { BIO: 1, CHM: 1, PHY: 1, COS: 1, AGR: 1, MTH101: 1, GST111: 1, GEL101: 1 };
 const CUP = { minPlayers: 3, topN: 5 };
 const PASS_MARK = 50;
+/* Bonus for GEL 101: Lean on Me. Summary and details from public synopses and the 2019/2020 exam key. Not from watching the film. */
+const BONUS_GEL101 = {
+  title: 'Bonus: Lean on Me',
+  summary: 'Lean on Me (1989) is a biographical drama about Joe Louis Clark, principal of Eastside High School in Paterson, New Jersey. The school is run down and overrun with gangs, drugs and graffiti. Clark takes hard action to restore order, and the film asks how far discipline can go before it stops being fair.',
+  plot: [
+    'Clark takes over Eastside High and expels suspected drug dealers, padlocks doors and demands results from students, staff and parents.',
+    'His strict methods win results but also make enemies, including a school board member who wants him removed and a mayor who plots against him.',
+    'Students and teachers rally around him in the end, and the film closes on the idea that a school depends on everyone pulling together.'
+  ],
+  cast: [
+    ['Joe Clark', 'Principal (Morgan Freeman)'], ['Ms. Levias', 'Beverly Todd'], ['Dr. Frank Napier', 'Superintendent and Clark\'s boss (Robert Guillaume)'],
+    ['Mr. Rosenberg', 'Ethan Phillips'], ['Leonna Barrett', 'School board member (Lynne Thigpen)'], ['Mrs. Powers', 'Choir and songs teacher (Sandra Reaves-Phillips)'],
+    ['Mayor Don Bottman', 'Plots against the principal (Alan North)'], ['Kaneesha Carter', 'A student (Karen Malina White)']
+  ],
+  themes: ['Leadership and determination (the exam key\'s main theme)', 'Discipline versus fairness', 'Community: teachers, students and parents working together', 'Excellence and godliness, as defined in the GEL course'],
+  keyLines: ['"We sink, we swim, we rise, we fall, we meet our fate together." (The exam key attributes this to the principal.)', 'Proverbs 22:29: "See a man diligent in his business? he shall stand before kings."'],
+  exam: ['Principal: Joe Clark', 'Main theme: leadership and determination', 'Clark keeps drug dealers out with chains on the doors (exam key)', 'Clark is the principal of Eastside High School', 'Lean on Me is a biographical drama'],
+  caveat: 'Built from public synopses, cast lists and the 2019/2020 exam key. Not checked against the film or lecture notes. Check with your lecturer before relying on the details.'
+};
+
 const CUP_ON_HOLD = true; // the Programme Cup and qualifications stay on hold until the tests are done
 /* 100 level first semester timetable 2026/2027 (from the timetable image). AGR 101 is on Monday, as the note on the timetable says it clashes with BUI-GEL 101 and GST 111. */
 const TIMETABLE_100_1 = [
-  { day: 'Monday', code: 'COS 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Monday', code: 'COS 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
   { day: 'Friday', code: 'AGR 101', time: '9:00am-11:00am', venue: 'NAGRLB' },
   { day: 'Monday', code: 'BUI-GEL 101', time: '2:00pm-3:00pm', venue: '1500 Lecture Hall' },
   { day: 'Monday', code: 'GST 111', time: '3:00pm-4:00pm', venue: '1500 Lecture Hall' },
@@ -1261,6 +1281,7 @@ function route() {
     else if (v === 'admin') adminView();
     else if (v === 'timetable') timetableView();
     else if (v === 'settings') settingsView();
+    else if (v === 'bonus' && seg[1]) bonusView(seg[1]);
     else if (v === 'qualify') qualifyView();
     else if (v === 'notes' && seg[1]) notesView(seg[1], seg[2] != null ? +seg[2] : null);
     else if (v === 'flash' && seg[1]) flashView(seg[1]);
@@ -1323,7 +1344,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 function brand() {
@@ -2493,6 +2514,7 @@ function sectionTiles(c, questions, topics) {
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
     { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: false, premium: true }
   ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
+  if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
     const locked = s.premium && !premiumOn();
     const open = () => { if (locked) { const close = modal(h('div', { class: 'stack' }, premiumBlock(s.name)()), true); return; } s.live ? s.go() : pendingPage(s.name + ' \u00B7 ' + c.label); };
@@ -2594,6 +2616,43 @@ async function qualifiersCard() {
   const by = {}; rows.forEach(r => { (by[r.programme] = by[r.programme] || []).push(r); });
   box.replaceChildren(...Object.keys(by).sort().map(p => h('div', { class: 'stack' }, h('b', null, p), by[p].slice(0, QUAL.topN).map((r, i) => h('div', { class: 'lrow' }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, r.nickname), h('b', null, r.pct + '%'))))));
   return section;
+}
+
+/* ---------- bonus pages ---------- */
+function bonusView(code) {
+  const c = courseBy(code) || { label: code, color: '#0B7A75' };
+  const B = code === 'GEL101' ? BONUS_GEL101 : null;
+  if (!B) { go('#/course/' + code); return; }
+  mount(wrap(back('#/course/' + code, c.label), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, B.title), h('span', { class: 'chip gold' }, 'Bonus')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Summary'), h('p', null, B.summary)),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Plot'), B.plot.map(p => h('p', { style: { margin: 0 } }, p))),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Cast'), B.cast.map(([who, role]) => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } }, h('b', null, who), h('span', { class: 'muted small' }, role)))),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Themes'), B.themes.map(t => h('p', { class: 'small', style: { margin: 0 } }, '\u2022 ' + t))),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Key lines'), B.keyLines.map(t => h('p', { class: 'small', style: { margin: 0 } }, t))),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Exam points'), B.exam.map(t => h('p', { class: 'small', style: { margin: 0 } }, '\u2022 ' + t))),
+    h('p', { class: 'tiny muted' }, B.caveat))));
+}
+
+/* ---------- on-hold page (Cup, qualifications) ---------- */
+function holdPage(title) {
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, title)),
+    h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'On hold'), h('p', { class: 'muted small' }, title + ' is on hold until the tests are done. The admin will announce when it opens.')))));
+}
+/* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
+function settingsView() {
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
+  const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
+  const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, 'Settings')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic')),
+      h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
+      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
+      h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'muted small' }, APP.name + ' \u2022 version ' + APP.version)))));
 }
 
 /* ---------- boot ---------- */
