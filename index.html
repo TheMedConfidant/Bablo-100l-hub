@@ -499,7 +499,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.16.0' };
+const APP = { name: 'Bablo Hub', version: '3.17.1' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1323,7 +1323,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', 'aria-label': 'Ask Bablo', onclick: () => botToggle(true) }, '\uD83E\uDD16'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 function brand() {
@@ -2339,19 +2339,23 @@ function programmesView() {
 
 /* ---------- calendar, tests, and Pomodoro timer ---------- */
 const PLAN_KEY = 'plan';
-function planEvents() { if (!DB.events || DB.eventsVersion !== 2) { DB.eventsVersion = 2; DB.events = [
-  { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID. MBBS is in group 1 (10:00 to 10:20am).' },
-  { id: 'lib-test', title: 'LIB test: modules 1 and 2', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time and venue not yet confirmed.' }
-]; save(); } return DB.events; }
-function icsFor(ev) {
-  const d = ev.date.replace(/-/g, ''), t = (ev.time || '09:00').replace(':', '') + '00';
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Bablo Hub//EN', 'BEGIN:VEVENT', 'UID:' + ev.id + '@bablo-hub', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z',
-    'DTSTART:' + d + 'T' + t, 'DURATION:PT2H', 'SUMMARY:' + ev.title, 'DESCRIPTION:' + (ev.note || '').replace(/,/g, '\\,'), 'BEGIN:VALARM', 'TRIGGER:-PT1D', 'ACTION:DISPLAY', 'DESCRIPTION:Tomorrow: ' + ev.title, 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+const PLAN_DEFAULTS = [
+  { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.' },
+  { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.' },
+  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' }
+];
+function planEvents() {
+  if (!DB.events || DB.eventsVersion !== 3) {
+    const own = (DB.events || []).filter(e => !PLAN_DEFAULTS.some(d => d.id === e.id) && e.id !== 'gst-test' && e.id !== 'lib-test' && e.id !== 'gel-ca-mbbs');
+    DB.events = PLAN_DEFAULTS.concat(own); DB.eventsVersion = 3; save();
+  }
+  return DB.events;
 }
 function downloadIcs(ev) {
   const blob = new Blob([icsFor(ev)], { type: 'text/calendar' }); const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = ev.id + '.ics'; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
+function fmtTime(sec) { sec = Math.max(0, sec | 0); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
 function pomoCfg() { const c = DB.pomo || {}; return { focus: Math.min(120, Math.max(1, +c.focus || 25)), brk: Math.min(60, Math.max(1, +c.brk || 5)) }; }
 let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null };
 function pomoTick() {
@@ -2364,24 +2368,50 @@ function pomoTick() {
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
 }
+function ttCourse(code) { const base = code.replace(/ 10[17]$/, ''); return ({ 'COS': 'COS', 'AGR': 'AGR', 'BUI-GEL': 'GEL101', 'GST': 'GST111', 'BUI-LIB': 'LIB101', 'CHM': 'CHM', 'PHY': 'PHY', 'MTH': 'MTH101', 'BIO': 'BIO' })[base] || base; }
+function timetableView() { PLAN_TAB = 'timetable'; planView(); }
+let PLAN_TAB = 'calendar';
 function planView() {
+  const tabs = [['calendar', 'Calendar'], ['timer', 'Timer'], ['timetable', 'Timetable']];
+  const seg = h('div', { class: 'seg' }, tabs.map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(PLAN_TAB === v), onclick: () => { PLAN_TAB = v; planView(); } }, l)));
+  const body = PLAN_TAB === 'timer' ? planTimer() : PLAN_TAB === 'timetable' ? planTimetable() : planCalendar();
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, 'Time'), seg), body)));
+}
+function planCalendar() {
   const evs = planEvents().slice().sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
   const title = h('input', { type: 'text', placeholder: 'Event title', maxlength: '60' }), date = h('input', { type: 'date' }), time = h('input', { type: 'time', value: '09:00' });
   const list = evs.map(ev => h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
     h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, ev.title), h('div', { class: 'tiny muted' }, ev.date + ' at ' + ev.time + (ev.note ? ' \u2022 ' + ev.note : ''))),
       h('span', { class: 'row' }, h('button', { class: 'btn sm', onclick: () => downloadIcs(ev) }, 'Add to phone calendar'), h('button', { class: 'btn sm ghost danger', onclick: () => { DB.events = planEvents().filter(x => x.id !== ev.id); save(); planView(); } }, 'Remove')))));
-  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } } }, POMO.running ? 'Pause' : 'Start');
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Calendar and timer'), h('p', { class: 'muted' }, 'Your tests, your school dates, and a focus timer. Use "Add to phone calendar" to put an event on your phone with a reminder the day before.')),
-    h('a', { class: 'btn block', href: '#/timetable' }, '100 Level timetable \u203A'),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
-      h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? pomoCfg().focus + ' minutes of focus' : pomoCfg().brk + ' minute break'),
-      h('div', { class: 'row wrapr' }, h('label', { class: 'field grow' }, h('span', null, 'Focus (minutes)'), h('input', { type: 'number', min: '1', max: '120', value: pomoCfg().focus, id: 'pomoFocus' })), h('label', { class: 'field grow' }, h('span', null, 'Break (minutes)'), h('input', { type: 'number', min: '1', max: '60', value: pomoCfg().brk, id: 'pomoBrk' }))),
-      h('button', { class: 'btn block', onclick: () => { clearInterval(POMO.h); POMO.running = false; DB.pomo = { focus: +document.getElementById('pomoFocus').value || 25, brk: +document.getElementById('pomoBrk').value || 5 }; save(); POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Save timer settings'),
-      h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Reset'))),
-    h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
+  return h('div', { class: 'stack' }, h('section', { class: 'stack' }, h('h2', null, 'Upcoming'), ...(list.length ? list : [h('p', { class: 'muted' }, 'Nothing scheduled.')])),
     h('section', { class: 'panel stack' }, h('h2', null, 'Add an event'), title, h('div', { class: 'row' }, date, time),
-      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')))));
+      h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')));
+}
+function planTimer() {
+  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } } }, POMO.running ? 'Pause' : 'Start');
+  return h('div', { class: 'stack' }, h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
+    h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? pomoCfg().focus + ' minutes of focus' : pomoCfg().brk + ' minute break'),
+    h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Reset'))),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Timer settings'),
+      h('div', { class: 'row wrapr' }, h('label', { class: 'field grow' }, h('span', null, 'Focus (minutes)'), h('input', { type: 'number', min: '1', max: '120', value: pomoCfg().focus, id: 'pomoFocus' })), h('label', { class: 'field grow' }, h('span', null, 'Break (minutes)'), h('input', { type: 'number', min: '1', max: '60', value: pomoCfg().brk, id: 'pomoBrk' }))),
+      h('button', { class: 'btn block', onclick: () => { clearInterval(POMO.h); POMO.running = false; DB.pomo = { focus: +document.getElementById('pomoFocus').value || 25, brk: +document.getElementById('pomoBrk').value || 5 }; save(); POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Save timer settings')));
+}
+function planTimetable() {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const mine = coursesFor(DB.profile.programme).map(c => c.code);
+  const edits = DB.ttEdits || {};
+  const rows = TIMETABLE_100_1.map((x, i) => Object.assign({ key: x.day + '|' + x.code }, x)).filter(x => mine.includes(ttCourse(x.code)));
+  const row = (x) => {
+    const e = edits[x.key] || {}; const time = e.time || x.time, venue = e.venue || x.venue;
+    const edit = h('button', { class: 'btn sm ghost', onclick: () => { const t = prompt('Time for ' + x.code, time); if (t == null) return; const v = prompt('Venue for ' + x.code, venue); if (v == null) return; DB.ttEdits = Object.assign({}, DB.ttEdits || {}, { [x.key]: { time: t.trim() || time, venue: v.trim() || venue } }); save(); planView(); } }, 'Edit');
+    const reset = e.time || e.venue ? h('button', { class: 'btn sm ghost danger', onclick: () => { const next = Object.assign({}, DB.ttEdits || {}); delete next[x.key]; DB.ttEdits = next; save(); planView(); } }, 'Reset') : null;
+    return h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } }, h('span', null, h('b', null, x.code), h('div', { class: 'tiny muted' }, venue + (reset ? ' \u2022 edited' : ''))), h('span', { class: 'row' }, h('span', { class: 'chip' }, time), edit, reset));
+  };
+  return h('div', { class: 'stack' },
+    h('section', { class: 'panel stack' }, h('h2', null, '100 Level timetable'), h('p', { class: 'muted small' }, 'First semester, 2026/2027. Showing the courses for ' + DB.profile.programme + '. Tap Edit to change a time or venue on this device.')),
+    days.map(d => { const r = rows.filter(x => x.day === d); return r.length ? h('section', { class: 'panel stack' }, h('h2', null, d), r.map(row)) : null; }),
+    h('p', { class: 'tiny muted', style: { textAlign: 'center' } }, 'Inspired by LainTain'),
+    h('p', { class: 'tiny muted' }, TIMETABLE_NOTE));
 }
 
 /* ---------- install popup: shown once, when Chrome says the app can be installed ---------- */
@@ -2566,89 +2596,9 @@ async function qualifiersCard() {
   return section;
 }
 
-/* ---------- Bablo helper: a built-in assistant on every screen (no AI service; answers from rules) ---------- */
-const BOT = { awaitingFeedback: false, open: false };
-const BOT_HELP = 'I can take you places, explain how things work, and take feedback. Try: "chess", "calendar", "leaderboard", "qualifications", "account", "premium", "install", or "feedback".';
-function botAnswer(text) {
-  const t = String(text || '').toLowerCase().trim();
-  if (BOT.awaitingFeedback) { BOT.awaitingFeedback = false; sendFeedback('other', text).then(r => { toast(r === 'ok' ? 'Thank you. Sent to the admin.' : 'Could not send. Try again.'); }); return { text: 'Thank you. Your feedback is with the admin.' }; }
-  if (/\bfeedback|bug|broken|suggest|idea|report\b/.test(t)) { BOT.awaitingFeedback = true; return { text: 'Type your feedback in one message. It goes straight to the admin.' }; }
-  if (/chess/.test(t)) return { text: 'Chess is on the chess page. Friend games and the computer are both there.', go: '#/chess', label: 'Open chess' };
-  if (/qualif|qualify/.test(t)) return { text: 'Qualifications run on the day, in two batches. You need an account and only get one attempt.', go: '#/qualify', label: 'Open qualifications' };
-  if (/cup|programme cup/.test(t)) return { text: 'The Programme Cup runs in weekly windows. Only account holders compete.', go: '#/cup', label: 'Open the Cup' };
-  if (/calendar|timer|pomodoro|schedule|test date|exam date/.test(t)) return { text: 'Your tests and dates are on the calendar. The Pomodoro timer is there too.', go: '#/plan', label: 'Open calendar' };
-  if (/leaderboard|rank|board/.test(t)) return { text: 'The leaderboard shows account holders only. You can filter by your programme.', go: '#/board', label: 'Open leaderboard' };
-  if (/cgpa|gpa|grade/.test(t)) return { text: 'The CGPA calculator works out your GPA from your scores and units.', go: '#/gpa', label: 'Open CGPA' };
-  if (/weak|struggl|revise/.test(t)) return { text: 'Weak spots lists the topics you find hardest, with a practice button for each.', go: '#/weak', label: 'Open weak spots' };
-  if (/account|sign ?up|log ?in|login|password|unique id|\bid\b/.test(t)) return { text: 'Create an account with your name and a password. The hub gives you a unique ID, so write it down. Log in with the ID and password.', go: '#/me', label: 'Open my account' };
-  if (/premium|pay|price|cost|subscription/.test(t)) return { text: 'Notes, flashcards and practicals are premium. Payments are not open yet.' };
-  if (/install|download|home screen|app/.test(t)) return { text: 'On Android, use Chrome: tap the three dots, then Install app. On iPhone, use Safari: Share, then Add to Home Screen.', go: '#/me', label: 'Open install help' };
-  if (/timed|quiz|test me|practice|exam/.test(t)) return { text: 'Pick a course on Home. Practice is open to everyone. Timed quizzes, mock tests and the premium exam need an account.', go: '#/', label: 'Go to courses' };
-  if (/hi|hello|hey|good (morning|evening|afternoon)/.test(t)) return { text: 'Hi. ' + BOT_HELP };
-  return { text: BOT_HELP };
-}
-function botMount() {
-  if (document.getElementById('botFab')) return;
-  const fab = h('span', { id: 'botFab', hidden: true });
-  const meFab = h('a', { class: 'float-btn float-me', href: '#/me', 'aria-label': 'My account' }, '\u{1F464}');
-  const chessFab = h('a', { class: 'float-btn float-chess', href: '#/chess', 'aria-label': 'Chess' }, '\u265E');
-  const log = h('div', { id: 'botLog', class: 'bot-log' }, h('div', { class: 'bot-msg bot' }, BOT_HELP));
-  const input = h('input', { id: 'botInput', type: 'text', placeholder: 'Ask Bablo', maxlength: '300', 'aria-label': 'Message to Bablo' });
-  const send = () => {
-    const v = input.value.trim(); if (!v) return;
-    log.append(h('div', { class: 'bot-msg me' }, v)); input.value = '';
-    const a = botAnswer(v);
-    log.append(h('div', { class: 'bot-msg bot' }, a.text, a.go ? h('div', { style: { marginTop: '8px' } }, h('button', { class: 'btn sm primary', onclick: () => { botToggle(false); go(a.go); } }, a.label || 'Open')) : null));
-    log.scrollTop = log.scrollHeight;
-  };
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-  const panel = h('div', { id: 'botPanel', class: 'bot-panel', hidden: true },
-    h('div', { class: 'bot-head' }, h('b', null, 'Bablo helper'), h('button', { class: 'btn sm ghost', 'aria-label': 'Close', onclick: () => botToggle(false) }, '\u2715')),
-    log, h('div', { class: 'bot-input' }, input, h('button', { class: 'btn primary', onclick: send }, 'Send')));
-  document.body.append(fab, meFab, chessFab, panel);
-}
-function botToggle(on) { const p = document.getElementById('botPanel'), f = document.getElementById('botFab'); if (!p || !f) return; p.hidden = !on; f.hidden = on; if (on) { const i = document.getElementById('botInput'); if (i) i.focus(); } }
-
-/* ---------- 100 level timetable, first semester ---------- */
-function ttCourse(code) { const base = code.replace(/ 10[17]$/, ''); return ({ 'COS': 'COS', 'AGR': 'AGR', 'BUI-GEL': 'GEL101', 'GST': 'GST111', 'BUI-LIB': 'LIB101', 'CHM': 'CHM', 'PHY': 'PHY', 'MTH': 'MTH101', 'BIO': 'BIO' })[base] || base; }
-function timetableView() {
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const mine = coursesFor(DB.profile.programme).map(c => c.code);
-  const rowsAll = TIMETABLE_100_1.filter(x => mine.includes(ttCourse(x.code)));
-  mount(wrap(back('#/plan', 'Calendar'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, '100 Level timetable'), h('p', { class: 'muted' }, 'First semester, 2026/2027. Showing the courses for ' + DB.profile.programme + '.')),
-    days.map(d => {
-      const rows = rowsAll.filter(x => x.day === d);
-      return h('section', { class: 'panel stack' }, h('h2', null, d),
-        rows.length ? rows.map(x => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
-          h('span', null, h('b', null, x.code), h('div', { class: 'tiny muted' }, x.venue)), h('span', { class: 'chip' }, x.time))) : h('p', { class: 'muted' }, 'Nothing scheduled.'));
-    }),
-    h('p', { class: 'tiny muted' }, TIMETABLE_NOTE))));
-}
-
-/* ---------- on-hold page (Cup, qualifications) ---------- */
-function holdPage(title) {
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, title)),
-    h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'On hold'), h('p', { class: 'muted small' }, title + ' is on hold until the tests are done. The admin will announce when it opens.')))));
-}
-/* ---------- settings (from the Home screen) ---------- */
-function settingsView() {
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
-  const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
-  const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Settings')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic')),
-      h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
-      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'muted small' }, APP.name + ' \u2022 version ' + APP.version), h('a', { class: 'btn block', href: '#/me' }, 'My account and details')))));
-}
-
 /* ---------- boot ---------- */
 applyTheme();
 loadHidden();
-botMount();
 window.addEventListener('hashchange', route);
 route();
 
