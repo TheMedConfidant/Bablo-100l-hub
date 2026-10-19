@@ -2012,9 +2012,13 @@ async function clearChat(G) {
   try { await fetch(LB.url + '/rest/v1/chess_messages?game_id=eq.' + G.online.id, { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) }); } catch (e) { /* ignore */ }
 }
 
-/* ---------- admin page: passcode only, nothing shown until it is right ---------- */
+/* ---------- admin page: authorized account plus separate admin password ---------- */
 function adminView() {
-  const pass = h('input', { type: 'password', placeholder: 'Admin passcode', autocomplete: 'off' });
+  if (!signedIn() || DB.account.uid !== 'MBB-4635') {
+    mount(wrap(back('#/', 'Home'), h('section', { class: 'panel stack' }, h('h1', null, 'Admin access restricted'), h('p', { class: 'muted' }, 'Sign in with the authorized account to access admin tools.'))));
+    return;
+  }
+  const pass = h('input', { type: 'password', placeholder: 'Separate admin password', autocomplete: 'off' });
   const out = h('div', { class: 'stack' });
   const sec = (title, rows) => h('section', { class: 'panel stack' }, h('h2', null, title), rows.length ? rows : [h('p', { class: 'muted small' }, 'Nothing yet.')]);
   const show = d => {
@@ -2030,7 +2034,7 @@ function adminView() {
   const go2 = async () => {
     out.replaceChildren(h('p', { class: 'muted' }, 'Checking\u2026'));
     try {
-      const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_summary', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass.value }) });
+      const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_summary', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: DB.account.token, p_pass: pass.value }) });
       const d = await r.json();
       if (!d.ok) { out.replaceChildren(h('p', { style: { color: 'var(--bad)' } }, d.error || 'Wrong passcode.')); return; }
       show(d);
@@ -2045,11 +2049,11 @@ async function loadPendingUploads(pass, container) {
   const box = h('section', { class: 'panel stack' }, h('h2', null, 'Pending uploads'), h('p', { class: 'muted small' }, 'Loading\u2026'));
   container.append(box);
   const review = async (id, status, row) => {
-    const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_review', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass, p_id: id, p_status: status }) }).then(x => x.json()).catch(() => null);
+    const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_review', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: DB.account.token, p_pass: pass, p_id: id, p_status: status }) }).then(x => x.json()).catch(() => null);
     if (r && r.ok) { row.remove(); toast(status === 'approved' ? 'Approved. It is now in the library.' : 'Rejected.'); }
     else toast('Could not update. Check the passcode and try again.');
   };
-  const d = await fetch(LB.url + '/rest/v1/rpc/hub_admin_pending', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass }) }).then(x => x.json()).catch(() => null);
+  const d = await fetch(LB.url + '/rest/v1/rpc/hub_admin_pending', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: DB.account.token, p_pass: pass }) }).then(x => x.json()).catch(() => null);
   if (!d || !d.ok) { box.replaceChildren(h('h2', null, 'Pending uploads'), h('p', { class: 'muted small' }, 'Could not load uploads.')); return; }
   const rows = d.uploads || [];
   box.replaceChildren(h('h2', null, 'Pending uploads (' + rows.length + ')'), rows.length ? null : h('p', { class: 'muted small' }, 'Nothing waiting for review.'),
@@ -2066,7 +2070,7 @@ async function loadPendingUploads(pass, container) {
             const file=new File([blob],u.title+'.'+ext,{type:u.mime});
             const text=await window.BabloStudyPack.extract(file);
             const pack=window.BabloStudyPack.generate(text,u.title,u.course);
-            const saved=await fetch(LB.url+'/rest/v1/rpc/hub_admin_save_study_pack',{method:'POST',headers:{apikey:LB.key,'Content-Type':'application/json'},body:JSON.stringify({p_pass:pass,p_upload_id:u.id,p_content:pack})}).then(x=>x.json());
+            const saved=await fetch(LB.url+'/rest/v1/rpc/hub_admin_save_study_pack',{method:'POST',headers:{apikey:LB.key,'Content-Type':'application/json'},body:JSON.stringify({p_token:DB.account.token,p_pass:pass,p_upload_id:u.id,p_content:pack})}).then(x=>x.json());
             if(!saved||!saved.ok) throw new Error(saved&&saved.error?saved.error:'Could not save draft. Confirm the admin passcode.');
             const preview=h('section',{class:'panel stack',style:{marginTop:'10px'}},h('h3',null,'Generated draft preview'),h('p',{class:'tiny muted'},pack.quality_note),h('p',null,'Notes: '+pack.notes.sections.length+' key points • Flashcards: '+pack.flashcards.length+' • Question drafts: '+pack.questions.length),h('p',{class:'small'},pack.notes.sections.slice(0,3).map(x=>x.body).join('\n\n')),h('button',{class:'btn primary block',onclick:()=>{preview.remove();toast('Draft saved for review. Approve the upload to publish its study pack.');}},'Close preview'));
             row.append(preview); toast('Draft generated and saved for review.');
