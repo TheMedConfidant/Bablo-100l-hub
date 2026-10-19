@@ -2751,8 +2751,14 @@ function filesView() {
     if (f.size > UP.maxBytes) { err.textContent = 'The file is over 10 MB.'; return; }
     if (title.value.trim().length < 2) { err.textContent = 'Add a title.'; return; }
     if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
-    send.disabled = true; send.textContent = 'Uploading\\u2026';
+    send.disabled = true; send.textContent = 'Reading document…';
     try {
+      if (!window.BabloStudyPack) throw new Error('The study-pack engine did not load. Refresh and try again.');
+      const text = await window.BabloStudyPack.extract(f);
+      if (text.trim().length < 80) throw new Error('Not enough readable text was found. Try a text-based document.');
+      const pack = window.BabloStudyPack.generate(text, title.value.trim().slice(0, 120), course.value);
+      if (!pack.notes.sections.length || (!pack.flashcards.length && !pack.questions.length)) throw new Error('This document did not produce a useful draft. Try a document with more explanatory text.');
+      send.textContent = 'Uploading document + drafts…';
       const form = new FormData();
       form.append('file', f, f.name);
       form.append('ext', ext);
@@ -2760,6 +2766,7 @@ function filesView() {
       form.append('title', title.value.trim().slice(0, 120));
       form.append('nickname', DB.profile.nick.slice(0, 30));
       form.append('copyright_ok', 'true');
+      form.append('study_pack', JSON.stringify(pack));
       const response = await fetch(LB.url + '/functions/v1/hub-submit-upload', {
         method: 'POST',
         headers: { apikey: LB.key, 'x-session-token': DB.account.token },
@@ -2767,8 +2774,9 @@ function filesView() {
       });
       const result = await response.json().catch(() => null);
       if (!response.ok || !result || !result.ok) throw new Error((result && result.error) || 'upload');
-      toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
-    } catch (e) { err.textContent = e && e.message && e.message !== 'upload' ? e.message : 'Could not upload. Check your connection and try again.'; }
+      toast('Uploaded! Notes, flashcards and question drafts are waiting for admin review.');
+      title.value = ''; file.value = ''; copy.checked = false;
+    } catch (e) { err.textContent = e && e.message ? e.message : 'Could not process the document. Check your connection and try again.'; }
     send.disabled = false; send.textContent = 'Upload';
   };
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
