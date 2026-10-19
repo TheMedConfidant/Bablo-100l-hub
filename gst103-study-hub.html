@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GST103 Study Hub</title>
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--ink:#1f2933;--mute:#6b7280;--ac:#1b6b5a;--ac2:#e8f3f0;--bad:#b42318;--badbg:#fdecea;--ok:#157347;--okbg:#e6f4ec;--bd:#e3e1da}
+@media(prefers-color-scheme:dark){:root{--bg:#14181a;--card:#1d2224;--ink:#e8ecec;--mute:#9aa5a8;--ac:#5cc4a8;--ac2:#1f3a34;--bad:#f1867c;--badbg:#3a1f1c;--ok:#6fd49b;--okbg:#17321f;--bd:#2d3437}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:18px 16px 8px;max-width:860px;margin:auto}h1{margin:0;font-size:1.35rem}header p{margin:2px 0 0;color:var(--mute);font-size:.9rem}
+.wrap{max-width:860px;margin:auto;padding:0 16px 40px}
+.mods,.tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 0}
+button{font:inherit;cursor:pointer}
+.chip{border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;white-space:nowrap}
+.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tabs{border-bottom:1px solid var(--bd);margin-bottom:14px}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px;color:var(--mute)}.tab.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px}
+.panel h2{margin-top:0}.panel h3{color:var(--ac);margin:18px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:.92rem;display:block;overflow-x:auto}th,td{border:1px solid var(--bd);padding:6px 9px;text-align:left;vertical-align:top}th{background:var(--ac2)}
+.fc{perspective:900px;height:230px;margin:10px 0;cursor:pointer}
+.fci{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}.fc.flip .fci{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--bd);border-radius:14px;background:var(--card);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:1.2rem}
+.back{transform:rotateY(180deg);background:var(--ac2);font-size:1.05rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.btn{border:1px solid var(--ac);background:var(--ac);color:#fff;border-radius:8px;padding:8px 16px}.btn.ghost{background:none;color:var(--ac)}
+.mute{color:var(--mute);font-size:.88rem}
+.bar{height:6px;background:var(--bd);border-radius:6px;overflow:hidden;margin:6px 0 14px}.bar i{display:block;height:100%;background:var(--ac)}
+.q{font-weight:600;margin:6px 0 12px}
+.opt{display:block;width:100%;text-align:left;border:1px solid var(--bd);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 12px;margin:7px 0}
+.opt:hover:not(:disabled){border-color:var(--ac)}.opt.ok{background:var(--okbg);border-color:var(--ok)}.opt.bad{background:var(--badbg);border-color:var(--bad)}
+.score{font-size:2rem;font-weight:700;color:var(--ac)}
+.rev{border-top:1px solid var(--bd);padding:8px 0}.rev b{color:var(--bad)}
+</style></head><body>
+<header><h1>GST103 Study Hub</h1><p>Use of Library, Study Skills (Information Literacy) and ICT · Modules 1–5</p></header>
+<div class="wrap">
+<div class="mods" id="mods"></div>
+<div class="tabs" id="tabs"></div>
+<div id="view"></div>
+</div>
+<script>
+const MODS={};
+MODS[1]={t:"Data & Information",
+notes:`<h2>Module 1: The Concept of Data and Information</h2>
+<h3>Information literacy (IL)</h3>
+<ul><li><b>Gilster (1997):</b> ability to understand and use information in multiple formats from many sources when presented via computer/electronic networks.</li>
+<li><b>Hinchliffe &amp; Woodard (2001):</b> ability to recognize when information is needed, and to locate, evaluate and use it effectively.</li>
+<li><b>Ojedokun (2007):</b> an intellectual framework for identifying, finding, understanding, evaluating and using information; prerequisite for lifelong learning.</li>
+<li>Different from general literacy (reading and writing). It encompasses tools, information-resource, social-structural, research, publishing, emerging-technology and critical-thinking literacy.</li>
+<li><b>ACRL (2000):</b> IL forms the basis of lifelong learning, is common to all disciplines/levels, and makes learners self-directed.</li></ul>
+<h3>Data, information, knowledge, communication</h3>
+<ul><li><b>Data:</b> raw facts, figures, symbols; "recorded symbols" (Hayes, 1992). No meaning until processed.</li>
+<li><b>Information:</b> processed data that aids decision-making (Ojedokun: facts, ideas, creative works logically interrelated and communicated/recorded in any format).</li>
+<li>Example: data 2,2 → process 2×2 → information 4.</li>
+<li><b>Knowledge:</b> a person's range of information.</li>
+<li><b>Communication:</b> interactive process of exchanging information. Communication = process; information = product.</li>
+<li>Chain: <b>Data → Information → Knowledge → Communication</b>.</li></ul>
+<h3>Qualities: CART</h3><p><b>C</b>urrent, <b>A</b>ccurate, <b>R</b>elevant, <b>T</b>imely.</p>
+<h3>Characteristics: FASO</h3>
+<table><tr><th>Type</th><th>Meaning</th><th>Examples</th></tr>
+<tr><td>Factual</td><td>A fact, no explanation needed</td><td>Encyclopedias, dictionaries, atlases, almanacs</td></tr>
+<tr><td>Analytical</td><td>Interpretation, analysis, criticism</td><td>Scholarly journals, theses, statistical digests</td></tr>
+<tr><td>Subjective</td><td>One opinion / viewpoint</td><td>Blogs, social media, editorials, book reviews</td></tr>
+<tr><td>Objective</td><td>Unbiased, balanced, multiple viewpoints</td><td>Journal articles, library databases</td></tr></table>
+<h3>Sources of information</h3>
+<table><tr><th>Level</th><th>Features</th><th>Examples</th></tr>
+<tr><td>Primary</td><td>Original, uninterpreted, first appearance</td><td>Theses, manuscripts, diaries, interviews, photographs, autobiographies</td></tr>
+<tr><td>Secondary</td><td>Repackage, interpret, evaluate primary</td><td>Reviews, encyclopedias, yearbooks, handbooks, manuals, directories</td></tr>
+<tr><td>Tertiary</td><td>Compile/distil; point to primary &amp; secondary</td><td>Abstracts, indexes, bibliographies, catalogues</td></tr></table>
+<h3>Types of information (by presentation)</h3>
+<ul><li><b>Oral</b> – interviews, conversations, eyewitness accounts, radio/TV.</li><li><b>Textual</b> – books, journals, reports, fiction, poetry.</li><li><b>Bibliographic</b> – citations ("pointers": author, date, source).</li><li><b>Numeric</b> – numbers/statistics (e.g. Annual Abstract of Statistics).</li><li><b>Graphical</b> – pictures, maps, charts, diagrams, 3-D models.</li><li><b>Audio</b> and <b>Multimedia</b> (convergence of text, numbers, graphics, audio, video).</li></ul>
+<h3>Formats</h3>
+<ul><li><b>Print:</b> newspapers, magazines, textbooks, pamphlets, dictionaries, indexes.</li><li><b>Electronic:</b> databases, online catalogue, CD-ROM, audio/video tapes.</li><li><b>Micro:</b> microfilm (reel of 16/35mm film) and microfiche (flat sheet of images); used for preservation.</li></ul>
+<h3>Bowen University Library materials</h3>
+<table><tr><th>Material</th><th>Code</th><th>Borrow?</th></tr>
+<tr><td>Textbooks</td><td>BK</td><td>Yes (or use within)</td></tr>
+<tr><td>Periodicals / serials</td><td>P</td><td>No</td></tr>
+<tr><td>Pamphlets (≤ 50 pages)</td><td>PH, call mark PAM</td><td>No</td></tr>
+<tr><td>Special collections (govt, WHO, FAO, CTA)</td><td>GP, call no. BDSC</td><td>No</td></tr>
+<tr><td>Reference materials</td><td>R, call mark Ref</td><td>No</td></tr>
+<tr><td>Students' projects (closed access)</td><td>TH</td><td>No</td></tr>
+<tr><td>Multimedia / non-print</td><td>MM</td><td>Use in multimedia room</td></tr></table>
+<h3>Periodical types</h3>
+<ul><li><b>Scholarly journals:</b> experts, abstract, references, peer-reviewed, little advertising, plain cover.</li><li><b>Trade periodicals:</b> industry news, adverts, illustrations, not peer-reviewed (e.g. Aviation Week).</li><li><b>Popular magazines:</b> glossy, general readers (Ebony, Newsweek).</li><li><b>Newspapers:</b> daily news, adverts, photos (The Punch, The Guardian).</li></ul>
+<h3>Reference sources</h3><p>Authoritative, consulted for specific answers (not read cover to cover), cannot be borrowed. Examples: atlases, dictionaries, encyclopedias, almanacs, handbooks, gazetteers, yearbooks, directories.</p>
+<h3>Databases</h3><p>Bibliographic (records only, e.g. OPAC), full-text (e.g. Springer Link), directory, numeric, multimedia.</p>
+<h3>IL vs IT</h3><p><b>IL:</b> recognize need, locate, evaluate, use information; content and communication. <b>IT:</b> skills to use computers; hardware, software, databases.</p>`,
+cards:[
+["Data","Raw facts, figures, symbols that need processing to become meaningful"],
+["Information","Processed data that aids decision-making"],
+["Knowledge","A person's range of information"],
+["Communication","Interactive process of exchanging information (process; information is the product)"],
+["Relationship chain","Data → Information → Knowledge → Communication"],
+["Information literacy (Hinchliffe & Woodard)","Ability to recognize when information is needed and to locate, evaluate and use it effectively"],
+["Who defined data as 'recorded symbols'?","Hayes (1992)"],
+["CART","Current, Accurate, Relevant, Timely (qualities of information)"],
+["FASO","Factual, Analytical, Subjective, Objective (characteristics of information)"],
+["Factual information","A fact needing no explanation; found in encyclopedias, dictionaries, atlases, almanacs"],
+["Analytical information","Interpretation of facts; scholarly journals, theses, academic books"],
+["Subjective information","One viewpoint/opinion; blogs, editorials, social media, book reviews"],
+["Objective information","Unbiased, balanced, multiple viewpoints"],
+["Primary source","Original, uninterpreted material: theses, diaries, manuscripts, interviews"],
+["Secondary source","Describes/interprets primary sources: reviews, encyclopedias, handbooks"],
+["Tertiary source","Points to primary & secondary: abstracts, indexes, bibliographies, catalogues"],
+["Types of information","Oral, textual, numeric, bibliographic, graphical, audio, multimedia"],
+["Bibliographic information","Citations/'pointers' to other works: author, date, source"],
+["Multimedia information","Convergence of text, numbers, graphics, audio and video"],
+["Three formats","Print, electronic, micro"],
+["Microfilm vs microfiche","Microfilm = reel of 16/35mm film; microfiche = flat sheet of images"],
+["BUL barcode: textbooks","BK (can be borrowed)"],
+["BUL barcode: periodicals","P (serials; use within library only)"],
+["BUL pamphlets","≤ 50 pages; barcode PH; call mark PAM"],
+["BUL special collections","Barcode GP; call number preceded by BDSC (WHO, FAO, CTA etc.)"],
+["BUL reference books","Barcode R; call mark Ref; not borrowed"],
+["BUL students' projects","Barcode TH; closed access, Research section"],
+["BUL multimedia items","Barcode MM; multimedia room / e-library"],
+["Scholarly journal features","Expert authors, abstract, references, peer review, little advertising"],
+["IL vs IT","IL = find, evaluate, use information; IT = computer skills, hardware & software"]
+],
+quiz:[
+["Raw facts, figures and symbols that must be processed to become meaningful are called:","Data","Information","Knowledge","Communication"],
+["Who described data as 'recorded symbols'?","Hayes (1992)","Gilster (1997)","Ojedokun (2007)","Islam (2004)"],
+["Processed data that aids decision-making is:","Information","Raw data","A symbol","A format"],
+["In the data → process → information example, processing 2,2 by multiplication gives:","4","22","2","0"],
+["Which is the correct sequence of related concepts?","Data → Information → Knowledge → Communication","Knowledge → Data → Information → Communication","Information → Data → Communication → Knowledge","Communication → Data → Knowledge → Information"],
+["Knowledge is defined as:","A person's range of information","A collection of raw symbols","Only printed facts","A library holding"],
+["Communication is best described as:","An interactive process involving the exchange of information","A storage format","A type of library","A classification scheme"],
+["In the relationship between communication and information:","Communication is the process, information is the product","Information is the process, communication is the product","They are unrelated","Both are raw data"],
+["'Ability to recognize when information is needed and to locate, evaluate and use it effectively' is the IL definition by:","Hinchliffe and Woodard (2001)","Hayes (1992)","Okwilagwe (2001)","Katz (1997)"],
+["Who defined IL as 'an intellectual framework for identifying, finding, understanding, evaluating and using information'?","Ojedokun (2007)","Gilster (1997)","Hayes (1992)","Reuben (1992)"],
+["Gilster (1997) defined IL as the ability to use information in multiple formats presented via:","Computer/electronic networks","Print only","Oral tradition","Microfilm"],
+["General literacy is the ability to:","Read and write","Evaluate databases","Classify books","Cite sources"],
+["Which is a literacy encompassed by information literacy?","Critical thinking literacy","Culinary literacy","Athletic literacy","Fashion literacy"],
+["According to ACRL (2000), information literacy forms the basis of:","Lifelong learning","Copyright law","Library architecture","Book publishing"],
+["The acronym CART stands for:","Current, Accurate, Relevant, Timely","Complete, Authentic, Reliable, True","Cited, Accessible, Recorded, Tested","Collected, Analysed, Reported, Tracked"],
+["FASO characteristics of information are:","Factual, Analytical, Subjective, Objective","Formal, Academic, Scholarly, Official","Fixed, Authentic, Stored, Open","Fast, Accurate, Simple, Organised"],
+["Information that is a fact and needs no further explanation is:","Factual","Analytical","Subjective","Tertiary"],
+["Factual questions are best answered from:","Encyclopedias, dictionaries, atlases, almanacs","Blogs and social media","Editorial columns","Advocacy websites"],
+["Information that embodies interpretation, analysis and criticism is:","Analytical","Factual","Subjective","Numeric"],
+["Which is an example of analytical information?","Scholarly journals and theses","Dictionaries","Almanacs","Atlases"],
+["Information representing only one opinion or viewpoint is:","Subjective","Objective","Factual","Tertiary"],
+["Blogs, social media and editorial columns are mostly:","Subjective","Objective","Factual","Analytical"],
+["Which information presents all sides of an argument in a balanced, neutral way?","Objective","Subjective","Primary only","Oral"],
+["Information sources are categorized by originality and proximity to origin into:","Primary, secondary and tertiary","Print, electronic and micro","Oral, textual and numeric","Factual, analytical and objective"],
+["Original materials on which other research is based are:","Primary sources","Secondary sources","Tertiary sources","Reference sources"],
+["Which is a primary source?","A diary or autobiography","An encyclopedia","A bibliography","A library catalogue"],
+["Repackaged primary sources that describe, interpret and evaluate them are:","Secondary sources","Primary sources","Tertiary sources","Raw data"],
+["Which is a secondary source?","Encyclopedia","Handwritten manuscript","Interview","Original artwork"],
+["Abstracts, indexes and library catalogues are examples of:","Tertiary sources","Primary sources","Secondary sources","Oral sources"],
+["Tertiary sources mainly:","Point users to primary and secondary information","Present original research","Are eyewitness accounts","Are first reports of experiments"],
+["The first formal appearance of research results is typically a:","Primary source","Tertiary source","Directory","Yearbook"],
+["Information types are characterized on the basis of:","Manner of presentation","Age of the source","Price","Author's nationality"],
+["Which is NOT one of the listed information types?","Tactile information","Oral information","Textual information","Numeric information"],
+["Interviews, conversations and eyewitness accounts are:","Oral information","Textual information","Graphical information","Bibliographic information"],
+["Documents presenting facts, viewpoints, research findings, fiction and poetry are:","Textual information","Numeric information","Audio information","Oral information"],
+["Bibliographic information consists of:","References or citations to other works (pointers)","Only numbers","Only pictures","Audio recordings"],
+["Numeric information is:","Data in the form of numbers, e.g. statistics","Pictures and maps","Interviews","Citations"],
+["Pictures, maps, diagrams, charts and 3-D models are:","Graphical information","Numeric information","Oral information","Bibliographic information"],
+["Multimedia information is:","A convergence of text, numeric, graphics, audio and video","Printed text only","Numbers only","Only oral narration"],
+["'Format' refers to:","The medium used to present or store information","The subject of a book","The author's name","The call number"],
+["The three formats of information are:","Print, electronic and micro","Oral, written and visual","Primary, secondary and tertiary","Factual, objective and analytical"],
+["Which is a print format item?","Textbook","CD-ROM","Microfilm","Video tape"],
+["CD-ROMs, online catalogues and databases are in:","Electronic format","Print format","Micro format","Oral format"],
+["Microfilm and microfiche are:","Micro formats","Print formats","Electronic databases","Periodicals"],
+["Microfilm is:","A reel of 16mm or 35mm film","A flat sheet of images","A CD","A pamphlet"],
+["Microfiche is:","A flat sheet of images","A reel of film","An optical disk","A bound journal"],
+["Libraries keep rare or out-of-print materials on microforms mainly for:","Preservation","Decoration","Borrowing","Advertising"],
+["In Bowen University Library, textbooks carry the barcode:","BK","P","PH","TH"],
+["Periodicals in BUL are identified by barcode:","P","BK","MM","R"],
+["Periodicals are also called:","Serials","Pamphlets","Special collections","Theses"],
+["Which BUL material can be used within or borrowed out of the library?","Textbooks","Periodicals","Reference books","Pamphlets"],
+["A pamphlet is a document with:","50 pages or less","More than 200 pages","Exactly 100 pages","No page limit"],
+["Pamphlets in BUL carry the barcode PH and the call mark prefix:","PAM","REF","BDSC","MM"],
+["Special collections in BUL (WHO, FAO, CTA) have call numbers preceded by:","BDSC","PAM","REF","BK"],
+["Reference materials in BUL are identified by barcode:","R","P","MM","TH"],
+["Final-year students' projects in BUL are identified by:","TH","MM","PH","BK"],
+["Non-print items (videos, CDs, audio cassettes) in BUL carry barcode:","MM","TH","R","P"],
+["Which periodical type is peer-reviewed and written by authorities for scholars?","Scholarly/professional journal","Popular magazine","Newspaper","Trade periodical"],
+["Trade periodicals differ from scholarly journals in that they:","Are not peer reviewed and contain advertising","Are peer reviewed","Have no advertising","Report only original experiments"],
+["A key difference between information literacy and information technology is that:","IL is about locating, evaluating and using information; IT is about computer skills, hardware and software","IL is about hardware; IT is about citing","They are identical","IT deals only with library shelves"]
+]};
+
+MODS[2]={t:"Organization of Information",
+notes:`<h2>Module 2: Organization of Information</h2>
+<h3>Information organization</h3>
+<p>An intellectual process of arranging, grouping or classifying information items (books, journals, pictures) by common characteristic (subject) into a system that enhances speedy access and retrieval.</p>
+<h3>Why organize?</h3>
+<ul><li>"We organize because we need to retrieve."</li><li>Organized information can be used more than once, identified, accessed and retrieved easily, and benefits others.</li>
+<li>Examples of organized sources: telephone books, directories, dictionaries, encyclopedias, bibliographies, indexes, catalogues, databases.</li>
+<li>Information must be published (reviews, catalogues, books in print, periodicals, websites) to be known and organized.</li></ul>
+<h3>Information repositories</h3><p>Libraries, archives, museums and documentation centres keep records for future use.</p>
+<h3>The library</h3>
+<ul><li>An institution responsible for the collection, processing and storage of recorded knowledge for reading, study and reference.</li>
+<li><b>Functions:</b> acquisition, organization, storage, dissemination.</li>
+<li><b>Types:</b> national, public, private, special, school, academic.</li>
+<li><b>Roles:</b> custodial, education, research, information, recreation.</li></ul>
+<h3>Library rules</h3><ul><li>Silence, comportment, decorum; no food or drinks; dress code observed.</li><li>Register before borrowing; no bags in reading rooms; items properly charged out; return items intact and on time.</li></ul>
+<h3>Using the book</h3><p>Do not mutilate, fold along the spine/dog-ear, mark or underline, tear or stain library items.</p>
+<h3>Services in Bowen University Library</h3>
+<ul><li>Binding services</li><li>Reference services: referral, quick reference, directional reference, inter-library loan, document delivery, Current Awareness Service (CAS), Selective Dissemination of Information (SDI), database and literature searches</li><li>Reprographic services</li><li>Research assistance</li><li>User education / library orientation</li></ul>
+<h3>Classification (subject content)</h3>
+<p>A classification scheme is a library tool for arranging materials into subjects. Most common: Library of Congress (LC) and Dewey Decimal Classification (DDC).</p>
+<table><tr><th>Scheme</th><th>Key points</th></tr>
+<tr><td>DDC</td><td>Ten main classes with subdivisions; Arabic numerals and decimal points; not sufficient for large collections, so used by small libraries.</td></tr>
+<tr><td>LC</td><td>Most popular in academic libraries; room for expansion; used by Bowen University Library; mixed (alpha-numeric) notation; single capital letter for broad class, numbers 1–9999 for subdivisions.</td></tr>
+<tr><td>Moys</td><td>Used for LAW materials in BUL; designed by Elizabeth (Betty) Moys, first published 1968; fits into LC libraries because LC's K class (Law) was not fully developed then.</td></tr></table>
+<h3>LC call number example</h3>
+<p>HB172.5 .F72 2001 → <b>H</b> = Social Sciences; <b>HB</b> = Economics; <b>172.5</b> = Principles of Micro Economics; <b>.F72</b> = author cutter number (Frank); <b>2001</b> = year.<br><b>Class mark:</b> HB172.5. <b>Call mark:</b> HB172.5 .F72 2001. Books are shelved by call mark.</p>
+<p>Cutter number = first three letters of author's surname (or title for edited works) converted to letter + numbers, e.g. Soyinka → S69.</p>
+<h3>Physical organization</h3><p>By format and purpose: print (books, pamphlets, maps, periodicals) vs non-print (audio, video, cassettes, CD-ROMs, microfilm/microfiche), which are kept in a separate section.</p>`,
+cards:[
+["Information organization","Intellectual process of arranging/classifying information items by common characteristic (subject) for speedy access and retrieval"],
+["Why do we organize information?","Because we need to retrieve it"],
+["Information repositories","Libraries, archives, museums, documentation centres"],
+["Library (definition)","Institution responsible for collection, processing and storage of recorded knowledge for reading, study and reference"],
+["Four functions of libraries","Acquisition, organization, storage, dissemination"],
+["Types of libraries","National, public, private, special, school, academic"],
+["Roles of libraries","Custodial, education, research, information, recreation"],
+["Library rules","Silence, comportment, decorum, no food/drinks, dress code, register before borrowing, no bags in reading rooms"],
+["Using the book: do NOT","Mutilate, dog-ear, mark/underline, tear or stain"],
+["CAS","Current Awareness Service"],
+["SDI","Selective Dissemination of Information"],
+["Classification scheme","Library tool for arranging materials into subjects"],
+["Two most common schemes","Library of Congress (LC) and Dewey Decimal Classification (DDC)"],
+["DDC","Ten main classes, Arabic numerals and decimals; not sufficient for large collections"],
+["LC scheme","Most popular in academic libraries; used by Bowen; alpha-numeric (mixed) notation"],
+["Mixed notation","Use of both letters and numerals (alpha-numeric)"],
+["Moys scheme","Used for LAW materials at BUL; by Elizabeth (Betty) Moys, 1968; fits LC libraries"],
+["Why Moys was designed","LC had not fully developed class K (Law) at the time"],
+["Call number parts","LC class (letters + number), cutter number, year of publication"],
+["Class mark vs call mark","Class mark = e.g. HB172.5; call mark = HB172.5 .F72 2001"],
+["Cutter number","First 3 letters of author's surname (or title if edited) converted to letter+numbers, e.g. Soyinka = S69"],
+["LC letter H","Social Sciences (HB = Economics)"],
+["How shelves are arranged","By call number (call mark)"],
+["Non-print materials","Audio, video, cassettes, CD-ROMs, microforms; kept in a separate section"],
+["Reprographic services","Photocopying/duplicating services"],
+["Inter-library loan","Borrowing materials from other libraries for users"]
+],
+quiz:[
+["Information organization is best defined as:","Arranging/classifying information items by common characteristic to enhance access and retrieval","Destroying outdated books","Writing new books","Selling library materials"],
+["We organize information mainly because we need to:","Retrieve it","Hide it","Sell it","Duplicate it"],
+["Retrieval of information depends on:","Organization","Luck","Price","Colour of shelves"],
+["Which is NOT a benefit of organized information?","It can only be used once","It can be used more than once","It can be identified easily","It benefits other people"],
+["Which of these is an example of an organized source?","Telephone book","A loose pile of papers","An unpublished diary","A blank notebook"],
+["For information to be organized it must first be:","Known/published","Destroyed","Translated","Photocopied"],
+["Information gets published through:","Reviews, catalogues, books in print, periodicals, websites","Only radio","Only whispers","Only archives"],
+["Libraries, archives and museums are known as:","Information repositories","Search engines","Gateways","Portals"],
+["Institutions charged with keeping records for future use are called:","Information repositories","Publishers","Printing presses","Bookshops"],
+["A library is an institution responsible for:","Collection, processing and storage of recorded knowledge","Only selling books","Only entertainment","Only photocopying"],
+["Which is NOT a function of libraries?","Demolition","Acquisition","Organization","Dissemination"],
+["Which of the following is a function of libraries?","Storage","Advertising","Manufacturing","Transport"],
+["Libraries perform four functions; they include:","Acquisition, organization, storage, dissemination","Buying, selling, renting, repairing","Reading, writing, cooking, singing","Printing, binding, shipping, selling"],
+["A library serving a whole nation is a:","National library","School library","Private library","Special library"],
+["Which is NOT a listed type of library?","Mobile bus library","Public library","Academic library","Special library"],
+["University libraries are examples of:","Academic libraries","School libraries","Public libraries","Private libraries"],
+["Which is a role of the library?","Custodial role","Military role","Judicial role","Culinary role"],
+["Which role includes providing leisure materials?","Recreation role","Custodial role","Research role","Education role"],
+["Which is a library rule?","Silence must be observed","Eat freely in reading rooms","Bags allowed in reading rooms","Write on books"],
+["Before borrowing books you must:","Register in the library","Pay in coins","Mark the book","Fold the pages"],
+["Bags are:","Not allowed in the reading rooms","Allowed on tables","Required in reading rooms","Used as seats"],
+["Borrowed items should be returned:","Intact, as and when due","Whenever convenient","With notes written in them","After tearing the cover"],
+["Library items are NOT to be:","Mutilated, folded, marked, torn or stained","Handled carefully","Returned on time","Charged out"],
+["Which of the following is prohibited in the library?","Food items and drinks","Quiet reading","Registering","Charging out books"],
+["Binding services in the library are used to:","Bind/repair library materials","Print new books","Sell books","Translate texts"],
+["CAS stands for:","Current Awareness Service","Central Academic Service","Catalogue Access System","Classified Archive Section"],
+["SDI stands for:","Selective Dissemination of Information","Special Digital Index","Systematic Data Input","Subject Directory Interface"],
+["Which is a reference service at BUL?","Inter-Library Loan","Cooking class","Sports coaching","Parking"],
+["Reprographic services in a library refer to:","Photocopying/duplication","Cataloguing","Binding","Shelving"],
+["User education/library orientation is meant to:","Teach users how to use the library","Punish users","Sell books","Close the library"],
+["The common system libraries use to organize information is classification according to:","Content (subject) and physical organization","Price","Author's age","Book colour"],
+["A classification scheme is:","A library tool for arranging materials into subjects","A type of book","A shelf","A database"],
+["The two most commonly used classification schemes are:","LC and DDC","MOYS and ISBN","ISSN and OPAC","CAS and SDI"],
+["DDC organizes knowledge into how many main classes?","Ten","Five","Twenty-six","One hundred"],
+["DDC uses:","Arabic numerals and decimal points","Only letters","Roman numerals","Colours"],
+["DDC is mostly used by:","Small libraries with smaller collections","Large academic libraries","National archives only","Museums only"],
+["Why is DDC considered insufficient for large collections?","It is not enough for large collections and new bodies of knowledge","It uses too many letters","It is too new","It has no numbers"],
+["The classification scheme used in Bowen University Library is:","Library of Congress (LC)","Dewey Decimal","Cutter only","Colon classification"],
+["The LC scheme is described as the most popular in:","Academic libraries","Primary schools","Kitchens","Bookshops"],
+["LC notation is called mixed or alpha-numeric because it uses:","Letters and numerals","Only numerals","Only letters","Symbols"],
+["In LC, broad classes are denoted by:","A single capital letter","Three digits","Roman numerals","Colours"],
+["LC subdivision numbers range from:","1 to 9999","1 to 10","100 to 999","0 to 1"],
+["In HB172.5 .F72 2001, the letter H stands for:","Social Sciences","Science","Law","Medicine"],
+["In HB172.5, 'HB' represents:","Economics (main subdivision)","Law","Chemistry","Education"],
+["In HB172.5 .F72 2001, .F72 is the:","Author cutter number","Year of publication","Class letter","ISBN"],
+["In HB172.5 .F72 2001, 2001 is the:","Year of publication","Cutter number","Class mark","Volume"],
+["The class mark of 'Principle of Micro Economics' in the example is:","HB172.5","HB172.5 .F72 2001",".F72 2001","H"],
+["The call mark in the example is:","HB172.5 .F72 2001","HB","172.5","2001 only"],
+["Books on the shelves are arranged by:","Call mark/call number","Size","Colour","Price"],
+["The cutter number is derived from:","The first three letters of the author's surname (or title if edited)","The publisher's name","The year","The ISBN"],
+["Using the cutter system, 'Soyinka' is converted to:","S69","SOY","S12","Y69"],
+["The scheme used for LAW materials in Bowen University Library is:","Moys","DDC","UDC","Colon"],
+["The Moys classification scheme was designed by:","Elizabeth (Betty) Moys","Melvil Dewey","Ranganathan","Charles Cutter"],
+["The Moys scheme was first published in:","1968","1876","1998","2010"],
+["Moys was designed to fit into libraries that use:","Library of Congress Classification","Dewey only","No scheme","Cutter only"],
+["The primary reason for Moys was that LCC had not fully developed:","The K class (Law)","The H class","The Q class","The Z class"],
+["Apart from subject, library materials can be organized by:","Physical format and purpose","Author's height","Date of birth","Weather"],
+["Which is a non-print format?","CD-ROM","Book","Pamphlet","Map"],
+["Print formats include:","Books, pamphlets, maps and periodicals","Microfilm and videos","CD-ROMs and cassettes","Audio only"],
+["Non-print materials in the library are kept:","In a separate section","On the main shelves with books","In the cafeteria","At the entrance"]
+]};
+
+MODS[3]={t:"Information Access Tools & Web Searching",
+notes:`<h2>Module 3: Information Access/Retrieval Tools and Web Searching</h2>
+<h3>Information access tools</h3>
+<p>Finding aids (print or electronic) that help draw out stored information; they contain references to sources. Categories: <b>abstracts, indexes, bibliographies, library catalogues, web search tools</b>.</p>
+<table><tr><th>Tool</th><th>Key points</th></tr>
+<tr><td>Abstract</td><td>Brief synopsis of the main points; helps decide whether to read the full paper; written last but appears first; e.g. Biological Abstracts, Chemical Abstract, Dissertation Abstract.</td></tr>
+<tr><td>Index</td><td>Points to the location of information; does not give the information itself. Back-of-book index, periodical index (e.g. Education Index, Humanities Index).</td></tr>
+<tr><td>Bibliography</td><td>List of books/articles on a topic with author, title, date, publisher, pagination; may be annotated.</td></tr>
+<tr><td>Library catalogue</td><td>Database of all resources in library; card, book or computerized (OPAC); arranged by author, title, subject.</td></tr></table>
+<h3>OPAC (Online Public Access Catalogue)</h3>
+<ul><li>Online bibliographic database of all print and electronic resources; basic and advanced search.</li>
+<li><b>Access points:</b> author, title, keyword, journal, ISSN/ISBN, call number (also subject, date).</li>
+<li><b>Keyword:</b> retrieves largest number of results (searches all indexes).</li>
+<li><b>Author:</b> last name first (e.g. Chinodya Shimmer).</li>
+<li><b>Subject:</b> controlled keyword (subject headings).</li></ul>
+<h3>Web search tools</h3>
+<ul><li><b>Browser:</b> program to locate, display and view websites (Firefox, Chrome, Internet Explorer, Opera). User enters a URL.</li>
+<li><b>Search engine:</b> compares your entry against its database and returns hits. Advantages: broad, current, relevance ranking. Disadvantages: millions of hits, no quality control, outdated/dead links.</li>
+<li><b>Library gateway:</b> single access point to evaluated subject-based internet resources built by experts/humans (e.g. Internet Public Library, Infomine, WorldWideScience.org). Covers relatively few materials.</li>
+<li><b>Portal:</b> main entry point to a field; at least four services: search engine, e-mail, links to related sites, personalized content (e.g. AOL, iGoogle, HINARI).</li>
+<li><b>Web directory:</b> human-edited subject classification of websites (Yahoo, Open Directory). Use broadest terms; smaller than search engines.</li>
+<li><b>Specialized databases:</b> subject-specific (e.g. ERIC).</li></ul>
+<h3>Search strategy &amp; Boolean logic</h3>
+<ul><li><b>AND</b> narrows (all words). <b>OR</b> expands (synonyms, either word). <b>NOT</b> excludes unwanted records.</li>
+<li>Plus (+) ≈ AND, minus (−) ≈ NOT, no space after sign.</li>
+<li>Quotation marks for exact phrases (not around a single word).</li>
+<li>Truncation/wildcard (*): comp* → computer, computing.</li>
+<li>Use lower case; CAPS for Boolean operators; most important keywords first.</li>
+<li>Use 3–6 keywords, nouns, specific terms, synonyms via OR, avoid common words and stop words.</li>
+<li>Example: "eating disorder" AND (bulimia OR anorexia).</li></ul>
+<h3>Pitfalls</h3><p>Misspelling, redundant terms, ignoring alternate spellings (color OR colour), complicated Boolean construction, unbalanced parentheses.</p>
+<h3>Evaluating information sources</h3>
+<p>Criteria: suitability (scope, audience, timeliness), authority/reliability, citations/documentation, objectivity/accuracy, primary vs secondary research, writing style, currency (web: update within six months), uniqueness, content, links, searching. Criteria are complementary.</p>
+<h3>E-learning</h3>
+<ul><li>Learning through the Internet and multimedia. <b>Synchronous</b> (real time) vs <b>asynchronous</b> (self-paced).</li>
+<li>Examples: Khan Academy, Coursera, W3Schools, TedEd, Codecademy, Open Culture.</li>
+<li>Benefits: saves time, cost effective, 24/7 learning, tracking, flexible.</li></ul>
+<h3>AI literacy</h3>
+<ul><li>Ability to understand what AI is, how it works, and its impact. IL = find, evaluate, use information; AI literacy = understand, use and critically evaluate AI systems and outputs.</li>
+<li><b>Tools:</b> Grammarly, ChatGPT, Perplexity AI, Wolfram Alpha, Quizlet, Duolingo, Socratic, Otter.ai, Scite, Scholarcy, Turnitin, etc.</li>
+<li><b>Disadvantages:</b> data bias, lack of transparency, misinformation, over-reliance, privacy concerns.</li>
+<li><b>Ethics:</b> bias, privacy, academic integrity, misuse, over-dependence, accountability, intellectual property.</li></ul>`,
+cards:[
+["Information access tools","Finding aids that help retrieve stored information; contain references to sources"],
+["Five categories of access tools","Abstracts, indexes, bibliographies, library catalogues, web search tools"],
+["Abstract","Brief synopsis of an article's main points; helps decide whether to read the full paper"],
+["Index","Points to where information is located; does not give the information itself"],
+["Bibliography","List of books, articles and works on a topic; may be annotated"],
+["Library catalogue","Database of all resources in the library"],
+["OPAC","Online Public Access Catalogue"],
+["OPAC access points","Author, title, keyword, subject, journal, ISSN/ISBN, call number"],
+["Keyword search","Retrieves the most results; searches all indexes"],
+["Author search format","Last name first, e.g. Chinodya Shimmer"],
+["Subject heading","Controlled keyword from standardized list used by librarians"],
+["Web browser","Program used to locate, display and view websites (Chrome, Firefox, Opera)"],
+["Search engine","Program that compares your entry with its database and returns hits"],
+["Search engine disadvantages","Millions of hits, no quality control, outdated/dead links"],
+["Library gateway","Single access point to evaluated, subject-based internet resources; built by humans"],
+["Portal","Entry point with search engine, e-mail, related links, personalized content"],
+["Web directory","Human-edited subject classification of websites; e.g. Yahoo, Open Directory"],
+["Boolean AND","Narrows results; all words must appear"],
+["Boolean OR","Expands results; synonyms, either word"],
+["Boolean NOT","Excludes unwanted records"],
+["Truncation (*)","comp* retrieves computer, computing, computation"],
+["Quotation marks","Search exact phrase; not for a single word"],
+["Ideal number of keywords","At least three, but not more than six"],
+["Pitfalls of searching","Misspelling, redundant terms, alternate spellings, complicated Boolean, unbalanced parentheses"],
+["Evaluation criteria","Suitability, authority, citations, objectivity, primary vs secondary, style, currency, uniqueness, content, links, searching"],
+["Currency on the web","Maximum acceptable update interval: six months"],
+["E-learning","Learning through the Internet and multimedia"],
+["Synchronous vs asynchronous","Synchronous = real time; asynchronous = self-paced"],
+["AI literacy","Ability to understand what AI is, how it works and its impact"],
+["Disadvantages of AI tools","Data bias, lack of transparency, misinformation, over-reliance, privacy concerns"]
+],
+quiz:[
+["Information access tools are:","Finding aids that help retrieve stored information","Types of furniture","Only print books","Only search engines"],
+["Which is NOT a category of access tools?","Furniture catalogues","Abstracts","Indexes","Bibliographies"],
+["A brief synopsis of the main points of a paper is a(n):","Abstract","Index","Directory","Portal"],
+["An abstract helps users to:","Decide whether to read the full document","Replace the full paper","Print it","Translate it"],
+["An abstract is generally written:","Last, though it appears first","First","Never","By the publisher"],
+["Which is an example of an abstract source?","Chemical Abstract","Yahoo","Chrome","Google"],
+["An index:","Points to where information can be found but does not provide it","Provides the full information","Is a type of search engine","Is a book cover"],
+["A back-of-the-book index shows:","Page(s) where information can be found","Author's biography","Publisher","Price"],
+["Periodical indexes list:","Articles published in selected magazines, journals or newspapers","Only books","Only CDs","Only maps"],
+["Education Index and Humanities Index are examples of:","Indexes","Abstracts","Portals","Directories"],
+["A publication listing books, articles and works on a topic is a:","Bibliography","Abstract","Portal","Gateway"],
+["An annotated bibliography includes:","Brief abstracts summarizing each work","No details","Only prices","Only images"],
+["Bibliographies provide author, title, date, publisher and:","Pagination","Weather","Colour","Cost of paper"],
+["A library catalogue is:","A database of all information resources in the library","A list of staff","A type of book","A search engine"],
+["The computerized library catalogue is called:","OPAC","CAS","SDI","IFLA"],
+["OPAC stands for:","Online Public Access Catalogue","Open Public Archive Collection","Online Print Article Catalogue","Official Public Access Copy"],
+["The most basic function of OPAC is to:","Browse the entire library collection","Sell books","Print money","Edit articles"],
+["OPAC default search mode is:","Basic search","Advanced search","Boolean only","Card search"],
+["Advanced OPAC search allows:","Multiple term searching","Only one box","No searching","Borrowing only"],
+["Which is an OPAC access point?","Call number","Shoe size","Colour","Weight"],
+["A keyword search in OPAC:","Retrieves the largest number of results","Retrieves the fewest","Retrieves nothing","Searches only titles"],
+["For an Author search, you should enter:","Last name followed by first name","First name only","Initials only","Year only"],
+["To find works by Shimmer Chinodya in OPAC, type:","Chinodya Shimmer","Shimmer Chinodya Chinodya","Shimmer","Author Shimmer only"],
+["If no matching author name is found, the system:","Lists authors nearest the spelling entered","Closes","Shows an error and stops","Lists all titles"],
+["A subject search uses:","Standardized subject headings (controlled keywords)","Random words","Author initials","ISBN only"],
+["A web browser is:","A program used to locate, display and view websites","A library shelf","A search engine database","A type of directory"],
+["Which is a web browser?","Google Chrome","Yahoo directory","ERIC","HINARI"],
+["Search engines:","Compare your entry against their database and return hits","Are only print","Are built by librarians for each book","Never return many results"],
+["An advantage of search engines is that they:","Provide access to a major part of web publications","Guarantee quality","Are always up to date","Contain only scholarly sources"],
+["A disadvantage of search engines is:","They may return millions of hits with no quality measure","They are slow at everything","They only index books","They cost a lot"],
+["Library gateways are:","Single access points to evaluated subject-based internet resources","Printed catalogues","Browsers","Social media"],
+["A key advantage of gateways is that:","Resources are evaluated by experts","They cover all web pages","They are fully automatic","They have no subject focus"],
+["A disadvantage of gateways is that they:","Cover a relatively small number of materials","Are unreliable","Include everything","Are not subject based"],
+["Which is a library gateway?","Internet Public Library","Opera","Chrome","Firefox"],
+["A portal provides at least which services?","Search engine, e-mail, links to related sites, personalized content","Only e-mail","Only print books","Only maps"],
+["Which is an example of a portal?","HINARI","Microfilm","Abstract","Index"],
+["A web directory is:","A human-edited subject classification of websites","An automatic crawler","A browser","A paper index"],
+["Which is a web directory?","Yahoo","Google Chrome","Opera","ERIC"],
+["Searching a directory requires:","The broadest possible terms","Very narrow terms","Only numbers","Only phrases"],
+["ERIC is an example of a:","Specialized subject database","Browser","Portal","Gateway only"],
+["The Boolean operator that narrows search results is:","AND","OR","NOT","LIKE"],
+["The Boolean operator that expands search results with synonyms is:","OR","AND","NOT","IF"],
+["The Boolean operator that excludes unwanted records is:","NOT","AND","OR","PLUS"],
+["In some searches the plus sign (+) works like:","AND","OR","NOT","LIKE"],
+["In some searches the minus sign (−) works like:","NOT","AND","OR","IF"],
+["Double quotation marks around words:","Search the exact phrase in order","Make the search broader","Exclude terms","Search only one word"],
+["Quotation marks should NOT be placed around:","A single word","A phrase","Two words","A name"],
+["Using comp* will retrieve:","Computer, computing, computation","Only 'comp'","Nothing","Only 'compare'"],
+["The * symbol is used for:","Truncation/wildcards","Excluding terms","Phrases","Capitals"],
+["You should type Boolean operators in:","CAPS","Lower case only","Italics only","Quotation marks"],
+["The recommended number of keywords is:","3 to 6","1","10 to 12","0"],
+["Which is a pitfall to avoid?","Misspelling","Using synonyms","Using phrases","Planning the search"],
+["Treating alternate spellings (color/colour) means:","Listing both with OR","Ignoring them","Using NOT","Using only one"],
+["Unbalanced parentheses means:","Forgetting an open or close bracket","Using too many words","Using lower case","Quoting phrases"],
+["Which is an evaluation criterion for information sources?","Authority/reliability","Font colour","Number of pages only","Price of paper"],
+["Authority checks:","Credentials of the author and publisher","Only length","Only cost","Only pictures"],
+["For web resources, the maximum acceptable update interval is:","Six months","Ten years","Two weeks","Never"],
+["E-learning is learning through:","The Internet and multimedia","Physical classrooms only","Printed notes only","Radio only"],
+["Self-paced e-learning is:","Asynchronous","Synchronous","Oral","Print"],
+["Real-time interaction between facilitator and learners is:","Synchronous","Asynchronous","Static","Offline"]
+
+]};
+
+MODS[4]={t:"Legal Issues of Information Use",
+notes:`<h2>Module 4: Legal Issues of Information Use</h2>
+<h3>Intellectual property (IP)</h3>
+<ul><li>Legal rights resulting from intellectual activity in industrial, scientific, literary and artistic fields; creations of the mind (WIPO).</li>
+<li><b>IPR</b> give creators exclusive rights over their creations for a specified period.</li>
+<li>Two branches: <b>industrial property</b> and <b>copyright</b>.</li>
+<li>Laws exist to protect moral and economic rights of creators, promote creativity and dissemination, and encourage fair trading.</li></ul>
+<h3>Copyright</h3>
+<ul><li>Right giving authors exclusivity to reproduce, distribute, perform, display or license their work (Gregory, 2000).</li>
+<li>Two purposes (Okwilagwe): encourage creative people to produce works and provide incentives for effective dissemination.</li>
+<li>Protects published and unpublished works fixed in a tangible form.</li></ul>
+<h3>Copyright law in Nigeria</h3>
+<ul><li>Copyright Act, Chapter 68, Laws of the Federation of Nigeria 1990; amended by Copyright Decree No. 47 of 1998.</li>
+<li><b>Five categories (section 1):</b> literary, musical, artistic works, cinematograph films, sound recordings.</li>
+<li><b>Eligibility:</b> must be original and fixed in a definite medium. <b>No registration required</b>; copyright is automatic.</li>
+<li>Exclusive rights include reproduction, publication, public performance, translation, film/record, distribution (rental, lease, hire, loan), broadcast, adaptation.</li>
+<li><b>Owner:</b> the creator, but an employer owns it if the work was created in employment; <b>moral rights</b> always belong to the author.</li></ul>
+<h3>International coverage</h3>
+<ul><li>No single international copyright law. Treaties: <b>Berne Convention</b> and <b>Universal Copyright Convention (UCC)</b>; over 120 countries including Nigeria.</li>
+<li>Berne minimum term: life of author + 70 years (literary, musical, dramatic); cinematographic 50 years; photographic 25 years.</li>
+<li>Copyright statement: "© 2008" – year of creation.</li></ul>
+<h3>Fair use</h3>
+<ul><li>Limits the exclusive rights: reviews, criticism, comment, news reporting, teaching, scholarship, research.</li>
+<li><b>Factors:</b> (a) purpose/character (commercial vs non-profit educational), (b) nature of the work, (c) amount used, (d) effect on market value.</li>
+<li>Up to about 300 words may be cited with acknowledgment (varies by country).</li>
+<li>Copying an entire work for classroom distribution requires a licence.</li></ul>
+<h3>Violations</h3>
+<table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>Reprography</td><td>Photocopying; major way of infringing copyright</td></tr>
+<tr><td>Piracy</td><td>Unauthorized copying for commercial purposes and dealing in copies</td></tr>
+<tr><td>Counterfeiting</td><td>Reproducing fake copies of an author's work for commercial purposes</td></tr>
+<tr><td>Plagiarism</td><td>Using someone's ideas/words and passing them off as your own; credit not given where due</td></tr></table>
+<p><b>Plagiarism examples:</b> copying verbatim without reference; block text without quotation marks; paraphrasing without reference; a lecturer publishing someone's work under his own name.</p>
+<p><b>Exceptions (Nigeria):</b> research or private study; criticism/review/reporting current events with acknowledgment; judicial proceedings; reasonable extract with acknowledgment. Section 20 sets penalties.</p>
+<h3>Citation</h3>
+<ul><li>An <b>acknowledgement</b> and a <b>signpost</b> (Ojedokun, 2007).</li>
+<li>Reasons: credit originators, track sources, trace idea development, improve credibility, guide further reading, honesty, avoid plagiarism.</li>
+<li>Cite: quotes, paraphrases, summaries, data, charts, pictures, websites, films; published and unpublished works.</li>
+<li><b>Elements:</b> author(s), title, publication information (place, date, publisher, pages).</li>
+<li><b>In-text:</b> (Jude, 2003); two authors: (Aduke and Tiamiyu, 2005); 3–5 authors: first citation list all, later first author + et al.</li>
+<li><b>Reference list:</b> only sources actually cited. <b>Footnote:</b> numbered note at page bottom; endnote at end.</li></ul>
+<h3>Styles</h3>
+<table><tr><th>Style</th><th>Used in</th><th>Features</th></tr>
+<tr><td>APA</td><td>Social sciences</td><td>Author-date in text; Reference page; e.g. Ojedokun, A.A. (2007). Title. Place: Publisher.</td></tr>
+<tr><td>MLA</td><td>Arts and humanities</td><td>Author-page (Smith 395); Works Cited page; year at end of entry.</td></tr>
+<tr><td>Harvard</td><td>Physical/natural sciences; now social sciences too</td><td>Author-date; flexible, simple, clear; year after author without brackets: Ojedokun, A.A. 2007, Title, Publisher, Place.</td></tr></table>
+<p>Others: AMA, CBE, ACS, Turabian (Chicago). <b>Reference management tools:</b> Mendeley, Zotero, EndNote Web.</p>`,
+cards:[
+["Intellectual property","Legal rights from intellectual activity in industrial, scientific, literary and artistic fields"],
+["IPR","Rights given to persons over their creations, giving exclusive use for a specified period"],
+["Two branches of IP","Industrial property and copyright"],
+["Copyright","Right giving authors exclusivity to reproduce, distribute, perform, display or license their work"],
+["Nigerian Copyright Act","Chapter 68, Laws of the Federation 1990; amended by Decree No. 47 of 1998"],
+["Five categories of protected works","Literary, musical, artistic, cinematograph films, sound recordings"],
+["Eligibility for copyright","Originality and fixation in a definite medium"],
+["Registration of copyright in Nigeria","Not required; automatic"],
+["Copyright owner","The creator; employer if created in the course of employment; moral rights stay with author"],
+["Berne Convention minimum term","Life of the author + 70 years (literary, musical, dramatic)"],
+["Cinematographic / photographic minimum","50 years / 25 years"],
+["Copyright treaties","Berne Convention and Universal Copyright Convention (UCC)"],
+["Copyright statement","© and year, e.g. © 2008 (year of creation)"],
+["Fair use","Legal principle limiting copyright holders' rights: review, criticism, news, teaching, research"],
+["Factors for fair use","Purpose, nature of work, amount used, effect on market"],
+["Fair use word limit","Around 300 words with acknowledgment (varies by country)"],
+["Reprography","Photocopying; the major means of copyright violation"],
+["Piracy","Unauthorized copying of copyrighted material for commercial purposes"],
+["Counterfeiting","Reproducing fake copies of an author's work for commercial purposes"],
+["Plagiarism","Using someone's ideas/work without credit and passing it off as your own"],
+["Citation","Both an acknowledgement and a signpost (Ojedokun, 2007)"],
+["Elements of citation","Author(s), title, publication information"],
+["In-text citation","(Author, year[, page]) e.g. (Jude, 2003)"],
+["et al.","'And others'; used for 3–5 authors after first citation"],
+["Reference list","Only sources actually cited in the work"],
+["Footnote","Numbered note at the bottom of page"],
+["APA","American Psychological Association; social sciences; author-date"],
+["MLA","Modern Language Association; arts and humanities; Works Cited"],
+["Harvard","Author-date system; flexible, simple, clear"],
+["Reference management tools","Mendeley, Zotero, EndNote Web"]
+],
+quiz:[
+["Intellectual property refers to:","Legal rights from intellectual activity in industrial, scientific, literary and artistic fields","Physical land ownership","Library buildings","Printing machines"],
+["IPR usually gives creators:","Exclusive rights over their creations for a specified period","Unlimited rights forever","No rights","Rights only for companies"],
+["Intellectual property is traditionally divided into:","Industrial property and copyright","Print and electronic","Primary and secondary","Public and private"],
+["Countries enact IP laws to:","Protect creators' moral and economic rights","Stop all publishing","Ban libraries","Abolish authors"],
+["Copyright grants authors the right to:","Reproduce, distribute, perform, display or license their work","Own libraries","Choose book colours","Tax readers"],
+["Who defined copyright as the right to reproduce, distribute, perform, display or license a work?","Gregory (2000)","Hayes (1992)","Islam (2004)","Katz (1997)"],
+["Copyright law exists for two main purposes according to Okwilagwe. One is to:","Encourage creative people to produce works of culture","Punish readers","Close libraries","Raise prices"],
+["The other purpose of copyright law is to:","Provide incentives for effective dissemination of works","Prevent distribution","Ban translation","Eliminate publishers"],
+["Copyright covers works that are:","Fixed in a tangible or material form","Only in the mind","Only oral and unrecorded","Only published"],
+["Nigeria's Copyright Act is Chapter:","68","12","100","7"],
+["The Nigerian Copyright Act was amended by Decree No.:","47 of 1998","1 of 1900","10 of 2000","99 of 1999"],
+["Which is NOT among the five categories protected by Nigeria's Copyright Act?","Industrial designs","Literary works","Musical works","Sound recordings"],
+["Which of these is protected under section 1 of the Act?","Cinematograph films","Machines","Buildings only","Foods"],
+["For a work to be eligible for copyright it must be:","Original and fixed in a definite medium","Registered with the president","Published abroad","Expensive"],
+["Copyright registration in Nigeria is:","Not required; it is automatic","Compulsory","Done at the bank","Done yearly"],
+["Which is an exclusive right of a copyright owner?","Making an adaptation of the work","Selling the author's house","Closing a library","Restricting reading"],
+["Distribution by rental, lease, hire or loan is:","An exclusive right of the owner","Always free","Illegal for authors","A fair use only"],
+["The copyright owner is normally:","The creator of the work","The reader","The librarian","The printer"],
+["When an author creates a work in the course of employment, the copyright owner is usually the:","Employer","Reader","Librarian","State"],
+["Moral rights always belong to:","The author","The employer","The publisher","The government"],
+["Is there one international copyright law protecting works worldwide?","No, each country has its own laws","Yes, one law for all","Only in Africa","Only in Europe"],
+["The two main international copyright treaties are:","Berne Convention and Universal Copyright Convention","Paris and Geneva","Kyoto and Rome","WIPO and ISBN"],
+["Over how many countries signed the copyright treaties mentioned?","Over 120","Fewer than 10","Exactly 2","About 500"],
+["The Berne Convention minimum term for literary works is:","Life of author plus 70 years","10 years","Life only","1 year"],
+["Minimum protection period for cinematographic works under Berne is:","50 years","5 years","100 years","1 year"],
+["Minimum protection period for photographic works is:","25 years","70 years","1 year","10 years"],
+["A copyright statement is written as:","© and the year","# and the year","@ and the year","$ and the year"],
+["The date in a copyright statement shows:","When the material was created","When it will expire","When it was sold","Author's birth"],
+["Fair use is:","A legal principle limiting copyright holders' exclusive rights","A type of piracy","A kind of loan","A library fee"],
+["Which use is generally covered by fair use?","Criticism, review, teaching and research","Selling copies for profit","Counterfeiting","Piracy"],
+["Which is a factor determining fair use?","Effect on the potential market for the work","Colour of the cover","Number of authors only","Place of printing"],
+["Fair use allows citation of up to about:","300 words (varies by country)","3,000 words","Whole book","No words"],
+["When quoting under fair use, you must:","Mention the origin and the name of the copyright holder","Hide the source","Change the author's name","Sell the text"],
+["Copying an entire work for one-time classroom distribution requires:","A licence from the copyright licensing agent","Nothing","Only a verbal request","A bribe"],
+["The major way in which copyright violation is committed is through:","Reprography (photocopying)","Handwriting","Singing","Walking"],
+["Piracy is:","Unauthorized copying of copyright material for commercial purposes","Citing sources properly","Borrowing a book","Reading in the library"],
+["Pirated copies are usually sold:","At lower prices","At higher prices than originals","Free forever","Never"],
+["Counterfeiting involves:","Reproducing fake copies of an author's work for commercial purposes","Properly citing","Teaching","Quoting"],
+["Plagiarism is:","Using someone's ideas or work and pretending they are yours","Giving credit to authors","Buying books","Reading journals"],
+["Which is an example of plagiarism?","Copying verbatim without referencing","Citing the source in text","Using quotation marks and reference","Writing original ideas"],
+["Plagiarism is a violation of:","Copyright law and academic conduct","Nothing","Only traffic law","Only library rules"],
+["Which is an exception to copyright infringement in Nigeria?","Research or private study","Selling pirated copies","Counterfeiting","Plagiarism"],
+["Penalties for copyright offences are spelled out in section:","20","1","99","5"],
+["Citation is described as both:","An acknowledgement and a signpost","A rule and a fine","A shelf and a book","A search and a result"],
+["As a signpost, citation:","Shows the location of the source","Hides the source","Deletes the source","Prices the source"],
+["Which is a reason for citation?","To protect from charges of plagiarism","To reduce book prices","To avoid reading","To hide ideas"],
+["Which must be cited?","Quotes and paraphrases of others' ideas","Common personal opinions only","Your own name","Nothing"],
+["Which is a universal element of citation?","Author(s), title, publication information","Weather, mood, colour","Phone number","Food"],
+["A reference list contains:","Only sources actually cited in the work","All books in the library","Sources consulted but not used","The author's friends"],
+["A footnote is:","A numbered note placed at the bottom of the page","A list at the cover","A table of contents","An abstract"],
+["In-text citation with two authors is written like:","(Aduke and Tiamiyu, 2005)","(Aduke 2005 et al)","(Tiamiyu)","(2005)"],
+["For 3 to 5 authors, subsequent citations use:","First author's name followed by et al.","All names again","Only the year","The title"],
+["'et al' means:","And others","And so forth","In the text","Evidence added"],
+["APA style is most often used in:","The social sciences","Law only","Mathematics only","Music only"],
+["MLA style is most often used in:","Arts and humanities","Physics","Accounting","Agriculture only"],
+["MLA in-text citation uses:","Author and page, e.g. (Smith 395)","Author, year only","Footnote numbers only","Title only"],
+["MLA's end list is called:","Works Cited","Reference page","Bibliography of authors","Appendix"],
+["Harvard style is also called the:","Author-Date system","Footnote system","Page-number system","Cutter system"],
+["Which are reference management tools?","Mendeley, Zotero and EndNote Web","Word, Excel, Paint","Chrome, Opera, Firefox","Yahoo, Google, Bing"],
+["Reference management tools help researchers to:","Insert references and create bibliographies","Print books","Bind journals","Browse microfilm"]
+]};
+
+MODS[5]={t:"Information Problem-Solving (Big Six)",
+notes:`<h2>Module 5: Information Problem-Solving</h2>
+<p>Information problem solving means thinking about and finding answers to a problem, using six steps known as the <b>Big Six</b>.</p>
+<table><tr><th>#</th><th>Step</th><th>What you do</th></tr>
+<tr><td>1</td><td>Definition of the problem (task definition)</td><td>Understand the task, identify keywords, find their meanings, ask what information, how much, what type is needed.</td></tr>
+<tr><td>2</td><td>Information seeking strategies</td><td>Brainstorm and identify all possible sources, then select the best.</td></tr>
+<tr><td>3</td><td>Location and access</td><td>Find the sources and the information within them (bibliographies, indexes, abstracts, catalogues, keyword searches).</td></tr>
+<tr><td>4</td><td>Use of information</td><td>Read, extract relevant information, summarize in own words, paraphrase/quote, record citations.</td></tr>
+<tr><td>5</td><td>Synthesis</td><td>Organize, outline and bring all information together into a finished product; include references; choose communication means.</td></tr>
+<tr><td>6</td><td>Evaluation</td><td>Judge the outcome (effectiveness) and the process (efficiency) against aims and objectives.</td></tr></table>
+<h3>1. Defining the problem</h3>
+<ul><li>Example topic: "prevalent heart attack among middle-age men in Nigeria". Keywords: <i>heart attack, middle-age men, Nigeria</i>.</li>
+<li>Use dictionaries, encyclopedias, web, textbooks to understand keywords.</li>
+<li>Ask: What information do I need? How much? What type (facts, opinion, graphics, charts, maps)?</li>
+<li>Questions: What causes heart attack? Why prevalent among middle-age men in Nigeria?</li></ul>
+<h3>2. Information seeking strategies</h3>
+<ul><li><b>Reference librarian:</b> expert help.</li><li><b>Encyclopedia:</b> overview and factual background; measure credibility of other sources.</li>
+<li><b>Magazines/newspapers:</b> current information, more credible than some websites.</li>
+<li><b>Journals:</b> latest research.</li><li><b>World Wide Web:</b> frequently updated; start with a subject directory; use identified keywords.</li></ul>
+<h3>3. Location and access</h3><p>Ask "Where can I find the sources?" Use bibliographies, indexes, abstracts and library catalogues; use keywords for online resources.</p>
+<h3>4. Use of information</h3><p>Not all information found is relevant. Understand, extract relevant facts, summarize in own words, determine usefulness, and keep accurate records of citation for future users.</p>
+<h3>5. Synthesis</h3><ul><li>Organize information so it fits together.</li><li>Sort logically; prepare an outline so all necessary parts are covered.</li><li>Include correct references.</li><li>Choose how to communicate: speech, research paper, video tape, drama.</li></ul>
+<h3>6. Evaluation</h3><p>Judge the outcome of the research effort against aims and objectives. It takes place throughout the work: review every step from defining the problem to synthesis to ensure content is appropriate for the original task and properly organized.</p>
+<h3>Why it matters</h3><p>The Big Six applies to assignments as well as everyday information problems and builds confidence in solving information-related problems.</p>`,
+cards:[
+["Big Six","Six-step information problem-solving approach"],
+["Step 1 of Big Six","Task definition (defining the problem)"],
+["Step 2 of Big Six","Information seeking strategies"],
+["Step 3 of Big Six","Location and access"],
+["Step 4 of Big Six","Use of information"],
+["Step 5 of Big Six","Synthesis"],
+["Step 6 of Big Six","Evaluation"],
+["Task definition","Fully understanding the problem by identifying keywords and what information is needed"],
+["Questions in task definition","What information? How much? What type (facts, opinion, graphics, charts, maps)?"],
+["Keywords in 'heart attack among middle-age men in Nigeria'","Heart attack, middle-age men, Nigeria"],
+["Information seeking strategies","Brainstorm sources and select the best ones"],
+["Reference librarian","A source of expert help during information seeking"],
+["Encyclopedia in seeking","Gives overview and factual background; helps judge other sources' credibility"],
+["Magazines/newspapers","Provide current information; more credible than some websites"],
+["Journals","Provide access to the latest research"],
+["Web searching tip","Start with a subject directory; use identified keywords"],
+["Location and access tools","Bibliographies, indexes, abstracts, library catalogues; keywords online"],
+["Use of information","Read, extract relevant info, summarize in own words, record citations"],
+["Synthesis","Bringing all gathered information together into a finished product"],
+["Synthesis activities","Organize, sort logically, outline, include references, choose communication means"],
+["Outline","Helps ensure all necessary parts of the work are covered"],
+["Evaluation","Judging the outcome of the research against aims and objectives"],
+["Evaluation covers","Whole process from defining the problem to synthesis"],
+["Ways to communicate findings","Speech, research paper, video tape, drama"]
+],
+quiz:[
+["The Big Six is:","An information problem-solving approach with six steps","A list of six libraries","Six types of books","Six search engines"],
+["How many steps are in the Big Six?","Six","Four","Eight","Ten"],
+["Which is the first step of the Big Six?","Defining the problem (task definition)","Synthesis","Evaluation","Location and access"],
+["Which is the second step?","Information seeking strategies","Task definition","Synthesis","Use of information"],
+["Which is the third step?","Location and access","Evaluation","Synthesis","Task definition"],
+["Which is the fourth step?","Use of information","Synthesis","Evaluation","Information seeking"],
+["Which is the fifth step?","Synthesis","Evaluation","Location and access","Task definition"],
+["Which is the sixth and last step?","Evaluation","Synthesis","Use of information","Task definition"],
+["Task definition involves:","Fully understanding the problem and identifying keywords","Writing the conclusion","Printing the paper","Binding the work"],
+["Before beginning work you must have:","A clear understanding of what to do","A printed report","A bibliography","An abstract"],
+["In task definition, which question is relevant?","What information do I need to solve this problem?","What is the library's budget?","Who is the dean?","How big is the building?"],
+["Another task-definition question is:","How much information do I need?","How many students attended?","Where is the cafeteria?","What is today's weather?"],
+["Another question asks about:","The type of information needed (facts, opinion, graphics, charts, maps)","The age of the librarian","The price of paper","Shelf colour"],
+["Keywords in 'prevalent heart attack among middle-age men in Nigeria' include:","Heart attack, middle-age men, Nigeria","Prevalent, among, in","Only 'heart'","Only 'Nigeria'"],
+["To find the meaning of keywords you can use:","Dictionary, encyclopedia, web or textbooks","A guess","Only social media","Nothing"],
+["Which question helps define the heart-attack problem?","What are the causes of heart attack?","Who wrote the dictionary?","How many pages are in the library?","Where is the exit?"],
+["Information seeking strategies is described as:","Very important; brainstorming and identifying sources","Unnecessary","The last step","Optional editing"],
+["In seeking information you should:","Evaluate different sources and select the best","Use only one source","Avoid librarians","Copy the first result"],
+["The Reference Librarian is:","A useful source of help","An enemy of researchers","Not to be consulted","A type of database"],
+["An encyclopedia is useful for:","An overview and factual background","Latest research only","Gossip","Advertising"],
+["Magazines and newspapers provide:","More current information than books","Only old information","No information","Only research data"],
+["Journals provide access to:","The latest research in a field","Only comics","Only advertisements","Only maps"],
+["The World Wide Web is useful because it is:","Frequently updated and often current","Never updated","Always peer reviewed","Always accurate"],
+["When using the web, it is good to start with:","A subject directory","A random guess","A blank page","Only social media"],
+["Location and access asks:","Where can I find the information sources?","What is the final grade?","Who wrote the exam?","When does the library close?"],
+["Which are used in location and access?","Bibliographies, indexes, abstracts and library catalogues","Only novels","Only toys","Only cassettes"],
+["For online resources, location is done by:","Using keywords to search","Walking around","Binding","Photocopying"],
+["Use of information involves:","Interacting with information as you read","Ignoring the sources","Closing the book","Throwing notes away"],
+["During use of information, you should:","Extract relevant information","Copy everything","Skip reading","Rely on luck"],
+["Is all information found during location and access relevant?","No, not all of it","Yes, all of it","Only the first result","None of it"],
+["You should summarize relevant information:","In your own words","By copying word for word without citing","By deleting sources","By guessing"],
+["Paraphrase or quote important facts when necessary for:","Accuracy and clarity","Decoration","Length only","Hiding sources"],
+["Why keep an accurate record of citations?","For future users","To confuse readers","To increase page count only","No reason"],
+["Synthesis is the point at which:","All information gathered is brought together into a finished product","Searching begins","The problem is defined","The library opens"],
+["Part of synthesis is to:","Organize information so it all fits together","Start brainstorming sources","Define keywords","Delete the notes"],
+["An outline helps to:","Ensure all necessary parts of the work are covered","Hide sources","Reduce the work to one sentence","Replace evaluation"],
+["Synthesis includes:","Including correct references","Omitting references","Plagiarising","Ignoring structure"],
+["Ways of communicating the final product include:","Speech, research paper, video tape, drama","Only printing","Only radio","Nothing"],
+["Evaluation is:","Judging the outcome of the research effort against aims and objectives","Choosing keywords","Locating books","Binding the report"],
+["Evaluation takes place:","Throughout the entire work","Only at the beginning","Only after printing","Never"],
+["In evaluating your work you should:","Review all the steps from defining the problem to synthesis","Skip the earlier steps","Destroy the notes","Only read the title"],
+["The aim of evaluation is to ensure the content is:","Appropriate for the original task and properly organized","As long as possible","Copied","Hidden"],
+["The Big Six helps with:","Assignments and everyday information problems","Only cooking","Only sports","Only banking"],
+["Having followed all strategies, a person can have confidence in:","Solving information-related problems","Avoiding libraries","Ignoring sources","Skipping classes"],
+["Which step comes immediately after task definition?","Information seeking strategies","Evaluation","Synthesis","Use of information"],
+["Which step comes immediately before evaluation?","Synthesis","Task definition","Location and access","Information seeking"],
+["Which step comes between location & access and synthesis?","Use of information","Task definition","Evaluation","Information seeking"],
+["Brainstorming sources belongs to the step of:","Information seeking strategies","Synthesis","Evaluation","Use of information"],
+["Identifying keywords belongs to the step of:","Task definition","Synthesis","Location and access","Evaluation"],
+["Writing the finished paper with references belongs to:","Synthesis","Task definition","Information seeking","Evaluation"],
+["Searching a catalogue for the book belongs to:","Location and access","Task definition","Synthesis","Evaluation"],
+["Taking notes and summarizing in own words belongs to:","Use of information","Task definition","Synthesis","Location and access"],
+["Judging whether the finished product meets the original aims belongs to:","Evaluation","Task definition","Use of information","Location and access"],
+["Deciding between a journal and an encyclopedia as the source belongs to:","Information seeking strategies","Evaluation","Synthesis","Use of information"],
+["Information problem solving means:","Thinking about and finding answers or solutions to a problem","Avoiding problems","Buying books","Memorising lists"],
+["Frequently-updated sources like the web often give:","More current information than print","Older information than print","No information","Only fiction"],
+["Newspapers are described as more credible than:","Some websites","All journals","Encyclopedias","Textbooks"],
+["The first step requires you to know what to do:","Before you begin your work","After finishing","During printing","After evaluation"],
+["Keeping accurate citation records belongs mainly to the step of:","Use of information","Evaluation only","Task definition","Information seeking"],
+["Which step asks 'Did I follow the process accurately?'","Evaluation","Task definition","Location and access","Information seeking"]
+]};
+
+
+const $=s=>document.querySelector(s);
+let m=1,tab='notes';
+const tabs=[['notes','Notes'],['cards','Flashcards'],['quiz','Quiz (60)']];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function nav(){
+ $('#mods').innerHTML=Object.keys(MODS).map(k=>`<button class="chip ${k==m?'on':''}" onclick="m=${k};render()">Module ${k}: ${MODS[k].t}</button>`).join('');
+ $('#tabs').innerHTML=tabs.map(t=>`<button class="tab ${t[0]==tab?'on':''}" onclick="tab='${t[0]}';render()">${t[1]}</button>`).join('');
+}
+let fc={i:0,deck:[],flip:false,known:{}};
+let qz=null;
+function render(){nav();window.scrollTo(0,0);
+ if(tab==='notes')$('#view').innerHTML='<div class="panel">'+MODS[m].notes+'</div>';
+ else if(tab==='cards'){fc.deck=MODS[m].cards.map((c,i)=>i);fc.i=0;fc.flip=false;fc.known={};cards()}
+ else{qz={q:shuffle(MODS[m].quiz).map(r=>({q:r[0],a:r[1],o:shuffle(r.slice(1))})),i:0,s:0,w:[],done:false};quiz()}
+}
+function cards(){
+ const d=fc.deck;
+ if(!d.length){$('#view').innerHTML='<div class="panel"><p class="score">All cards known 🎉</p><button class="btn" onclick="render()">Restart deck</button></div>';return}
+ const c=MODS[m].cards[d[fc.i]];
+ $('#view').innerHTML=`<div class="mute">Card ${fc.i+1} of ${d.length} · tap card to flip</div>
+ <div class="fc ${fc.flip?'flip':''}" onclick="fc.flip=!fc.flip;cards()"><div class="fci"><div class="face">${esc(c[0])}</div><div class="face back">${esc(c[1])}</div></div></div>
+ <div class="row"><button class="btn ghost" onclick="fcMove(-1)">← Prev</button><button class="btn ghost" onclick="fcMove(1)">Next →</button>
+ <button class="btn ghost" onclick="fcKnow()">✓ Got it (remove)</button><button class="btn ghost" onclick="fc.deck=shuffle(fc.deck);fc.i=0;fc.flip=false;cards()">Shuffle</button></div>`;
+}
+function fcMove(n){fc.i=(fc.i+n+fc.deck.length)%fc.deck.length;fc.flip=false;cards()}
+function fcKnow(){fc.deck.splice(fc.i,1);if(fc.i>=fc.deck.length)fc.i=0;fc.flip=false;cards()}
+function quiz(){
+ const x=qz,n=x.q.length;
+ if(x.i>=n){
+  $('#view').innerHTML=`<div class="panel"><div class="score">${x.s} / ${n}</div><p>${Math.round(x.s/n*100)}% correct</p>
+  <div class="row"><button class="btn" onclick="render()">New attempt</button></div>
+  ${x.w.length?'<h3>Review your mistakes</h3>'+x.w.map(w=>`<div class="rev">${esc(w.q)}<br><b>Your answer:</b> ${esc(w.y)}<br><span style="color:var(--ok)"><b>Correct:</b> ${esc(w.a)}</span></div>`).join(''):'<p>Perfect score!</p>'}</div>`;return}
+ const q=x.q[x.i];
+ $('#view').innerHTML=`<div class="panel"><div class="mute">Question ${x.i+1} of ${n} · Score ${x.s}</div><div class="bar"><i style="width:${x.i/n*100}%"></i></div>
+ <div class="q">${esc(q.q)}</div>${q.o.map((o,k)=>`<button class="opt" onclick="pick(${k})">${esc(o)}</button>`).join('')}<div id="nx"></div></div>`;
+}
+function pick(k){
+ const x=qz,q=x.q[x.i],opts=[...document.querySelectorAll('.opt')];
+ opts.forEach((b,j)=>{b.disabled=true;if(q.o[j]===q.a)b.classList.add('ok')});
+ if(q.o[k]===q.a)x.s++;else{opts[k].classList.add('bad');x.w.push({q:q.q,y:q.o[k],a:q.a})}
+ $('#nx').innerHTML=`<div class="row"><button class="btn" onclick="qz.i++;quiz()">${x.i+1>=x.q.length?'See results':'Next →'}</button></div>`;
+}
+render();
+</script></body></html>
