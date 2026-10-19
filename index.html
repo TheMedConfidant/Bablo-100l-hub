@@ -2708,15 +2708,22 @@ const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pp
 function uploadPublicUrl(path) { return LB.url + '/storage/v1/object/public/hub-uploads/' + path; }
 async function filesLibrary() {
   const rows = await sbGet('uploads?select=id,title,course,file_path,mime,size_bytes,nickname,created_at&status=eq.approved&order=created_at.desc&limit=300');
-  if (!Array.isArray(rows)) return h('p', { class: 'muted small' }, 'Could not load files right now.');
-  if (!rows.length) return h('p', { class: 'muted small' }, 'No approved files yet. Be the first to upload.');
-  const by = {}; rows.forEach(r => { (by[r.course] = by[r.course] || []).push(r); });
-  return h('div', { class: 'stack' }, Object.keys(by).sort().map(code => {
-    const c = courseBy(code);
-    return h('section', { class: 'panel stack' }, h('h2', null, c ? c.label : code),
-      by[code].map(f => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
-        h('span', null, h('b', null, f.title), h('div', { class: 'tiny muted' }, (f.mime.split('/').pop() || 'file') + ' \u2022 ' + Math.round(f.size_bytes / 1024) + ' KB \u2022 by ' + f.nickname)),
-        h('a', { class: 'btn sm', href: uploadPublicUrl(f.file_path), target: '_blank', rel: 'noopener' }, 'Download'))));
+  const packs = await sbGet('upload_study_packs?select=upload_id,course,title,content,generated_at&status=eq.approved&order=generated_at.desc&limit=200');
+  if (!Array.isArray(rows) && !Array.isArray(packs)) return h('p', { class: 'muted small' }, 'Could not load files right now.');
+  const by = {};
+  (Array.isArray(rows)?rows:[]).forEach(r => { (by[r.course] = by[r.course] || {files:[],packs:[]}).files.push(r); });
+  (Array.isArray(packs)?packs:[]).forEach(p => { (by[p.course] = by[p.course] || {files:[],packs:[]}).packs.push(p); });
+  if (!Object.keys(by).length) return h('p', { class: 'muted small' }, 'No approved files or study packs yet. Be the first to upload.');
+  return h('div', { class: 'stack' }, ...Object.keys(by).sort().map(code => {
+    const c = courseBy(code), group = by[code];
+    const packEls = group.packs.map(p => {
+      const content=p.content||{}, notes=content.notes&&content.notes.sections||[], cards=content.flashcards||[], qs=content.questions||[];
+      const detail=h('div',{class:'stack',style:{marginTop:'10px'}},h('p',{class:'tiny muted'},(content.quality_note||'Generated draft')+' • '+notes.length+' note points • '+cards.length+' flashcards • '+qs.length+' question drafts'),...notes.slice(0,80).map((n,i)=>h('p',{class:'small'},h('b',null,(n.heading||('Key point '+(i+1))+': ')+' '),n.body||'')),h('h3',null,'Flashcards'),...cards.slice(0,80).map(card=>h('div',{class:'rev'},h('b',{class:'small'},card.front),h('p',{class:'small'},card.back))),h('h3',null,'Practice question drafts'),...qs.slice(0,40).map(q=>h('div',{class:'rev'},h('b',{class:'small'},q.question),h('p',{class:'small'},q.options&&q.options[q.answer]||q.source_statement),h('p',{class:'tiny muted'},q.explanation||''))));
+      detail.hidden=true;
+      return h('div',{class:'stack',style:{padding:'8px 0',borderBottom:'1px solid var(--line)'}},h('b',null,p.title),h('button',{class:'btn sm',onclick:()=>{detail.hidden=!detail.hidden;}},'Open study pack'),detail);
+    });
+    const fileEls=group.files.map(f=>h('div',{class:'row between wrapr',style:{padding:'8px 0',borderBottom:'1px solid var(--line)'}},h('span',null,h('b',null,f.title),h('div',{class:'tiny muted'},(f.mime.split('/').pop()||'file')+' • '+Math.round(f.size_bytes/1024)+' KB • by '+f.nickname)),h('a',{class:'btn sm',href:uploadPublicUrl(f.file_path),target:'_blank',rel:'noopener'},'Download')));
+    return h('section',{class:'panel stack'},h('h2',null,c?c.label:code),...packEls,...fileEls);
   }));
 }
 function filesView() {
