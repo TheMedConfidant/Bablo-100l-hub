@@ -2704,7 +2704,7 @@ function settingsView() {
 }
 
 /* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
-const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'] };
+const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'html', 'htm'] };
 function uploadPublicUrl(path) { return LB.url + '/storage/v1/object/public/hub-uploads/' + path; }
 async function filesLibrary() {
   const rows = await sbGet('uploads?select=id,title,course,file_path,mime,size_bytes,nickname,created_at&status=eq.approved&order=created_at.desc&limit=300');
@@ -2731,7 +2731,7 @@ function filesView() {
   filesLibrary().then(el => library.replaceChildren(el));
   const course = h('select', null, COURSES.filter(c => !c.pending).map(c => h('option', { value: c.code }, c.label)));
   const title = h('input', { type: 'text', maxlength: '120', placeholder: 'Title, e.g. BIO 101 past questions 2022' });
-  const file = h('input', { type: 'file', accept: '.pdf,.doc,.docx,.ppt,.pptx,.txt' });
+  const file = h('input', { type: 'file', accept: '.pdf,.doc,.docx,.ppt,.pptx,.txt,.html,.htm' });
   const copy = h('input', { type: 'checkbox', id: 'copyOk' });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const send = async () => {
@@ -2740,7 +2740,7 @@ function filesView() {
     const f = file.files && file.files[0];
     if (!f) { err.textContent = 'Choose a file.'; return; }
     const ext = (f.name.split('.').pop() || '').toLowerCase();
-    if (!UP.exts.includes(ext)) { err.textContent = 'Use PDF, Word, PowerPoint or text.'; return; }
+    if (!UP.exts.includes(ext)) { err.textContent = 'Use PDF, Word, PowerPoint, TXT or HTML.'; return; }
     if (f.size > UP.maxBytes) { err.textContent = 'The file is over 10 MB.'; return; }
     if (title.value.trim().length < 2) { err.textContent = 'Add a title.'; return; }
     if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
@@ -2758,7 +2758,7 @@ function filesView() {
   mount(wrap(back('#/social', 'Social'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Files'), h('p', { class: 'muted' }, 'Past questions, notes and papers shared by students. Downloads are free. Every upload is checked before it goes live.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
-      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB; automatic extraction works best with PDF, DOCX, PPTX, TXT or HTML)'), file),
+      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint, TXT or HTML, up to 10 MB; automatic extraction works with PDF, DOCX, PPTX, TXT and HTML. Legacy DOC/PPT files need conversion first.)'), file),
       h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
       h('button', { class: 'btn primary block', onclick: send, disabled: !signedIn() }, 'Upload')),
     h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
