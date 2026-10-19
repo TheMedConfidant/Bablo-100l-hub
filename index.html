@@ -2751,15 +2751,24 @@ function filesView() {
     if (f.size > UP.maxBytes) { err.textContent = 'The file is over 10 MB.'; return; }
     if (title.value.trim().length < 2) { err.textContent = 'Add a title.'; return; }
     if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
-    const path = DB.profile.uid + '/' + uid() + '.' + ext;
-    send.disabled = true; send.textContent = 'Uploading\u2026';
+    send.disabled = true; send.textContent = 'Uploading\\u2026';
     try {
-      const up = await fetch(LB.url + '/storage/v1/object/hub-uploads/' + path, { method: 'POST', headers: { apikey: LB.key, 'Content-Type': f.type || 'application/octet-stream', 'x-upsert': 'false' }, body: f });
-      if (!up.ok) throw new Error('upload');
-      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending' }) });
-      if (!row.ok) throw new Error('row');
+      const form = new FormData();
+      form.append('file', f, f.name);
+      form.append('ext', ext);
+      form.append('course', course.value);
+      form.append('title', title.value.trim().slice(0, 120));
+      form.append('nickname', DB.profile.nick.slice(0, 30));
+      form.append('copyright_ok', 'true');
+      const response = await fetch(LB.url + '/functions/v1/hub-submit-upload', {
+        method: 'POST',
+        headers: { apikey: LB.key, 'x-session-token': DB.account.token },
+        body: form
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result || !result.ok) throw new Error((result && result.error) || 'upload');
       toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
-    } catch (e) { err.textContent = 'Could not upload. Check your connection and try again.'; }
+    } catch (e) { err.textContent = e && e.message && e.message !== 'upload' ? e.message : 'Could not upload. Check your connection and try again.'; }
     send.disabled = false; send.textContent = 'Upload';
   };
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
