@@ -2758,7 +2758,7 @@ function filesView() {
   mount(wrap(back('#/social', 'Social'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Files'), h('p', { class: 'muted' }, 'Past questions, notes and papers shared by students. Downloads are free. Every upload is checked before it goes live.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
-      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB)'), file),
+      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB; automatic extraction works best with PDF, DOCX, PPTX, TXT or HTML)'), file),
       h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
       h('button', { class: 'btn primary block', onclick: send, disabled: !signedIn() }, 'Upload')),
     h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
