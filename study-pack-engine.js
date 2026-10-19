@@ -30,11 +30,11 @@
     throw new Error('Supported for automatic extraction: PDF, DOCX, PPTX, TXT and HTML. Legacy DOC/PPT files need conversion first.');
   }
   function generate(text,title,course){
-    const paragraphs=clean(text).split(/\\n+|(?<=[.!?])\\s+(?=[A-Z])/).map(x=>x.trim()).filter(x=>x.length>=30);
+    const paragraphs=clean(text).split(/\n+|(?<=[.!?])\s+(?=[A-Z])/).map(x=>x.trim()).filter(x=>x.length>=30);
     const unique=[...new Set(paragraphs)].slice(0,250);
     const defs=[];
     unique.forEach(p=>{
-      const m=p.match(/^([A-Z][A-Za-z0-9() ,/\\-]{2,65}?)\\s+(is defined as|are defined as|refers to|means|consists of|is|are)\\s+(.{12,240})$/i);
+      const m=p.match(/^([A-Z][A-Za-z0-9() ,/\-]{2,65}?)\s+(is defined as|are defined as|refers to|means|consists of|is|are)\s+(.{12,240})$/i);
       if(m) defs.push({term:m[1].trim().replace(/[,:;.]$/,''), relation:m[2].toLowerCase(), definition:m[3].trim().replace(/[.]$/,''), source:p});
     });
     const flashcards=[];
