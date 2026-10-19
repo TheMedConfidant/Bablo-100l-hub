@@ -521,7 +521,7 @@ const COURSES = [
   { code: 'AGR', label: 'AGR 101', title: 'Agriculture', color: '#B7791F', units: 2 },
   { code: 'GST111', label: 'GST 111', title: 'Communication in English', color: '#8896A8', units: 2 },
   { code: 'GEL101', label: 'BUI-GEL 101', title: 'General Education (GEL)', color: '#8896A8', units: 2 },
-  { code: 'LIB101', label: 'BUI-LIB 101', title: 'Library', color: '#64748B', units: 2 },
+  { code: 'LIB101', label: 'BH-LIB 101', title: 'Library', color: '#64748B', units: 2 },
   { code: 'MTH101', label: 'MTH 101', title: 'Mathematics', color: '#C2410C', units: 3 }
 ];
 
@@ -583,7 +583,7 @@ const TIMETABLE_100_1 = [
   { day: 'Friday', code: 'AGR 101', time: '9:00am-11:00am', venue: 'NAGRLB' },
   { day: 'Monday', code: 'BUI-GEL 101', time: '2:00pm-3:00pm', venue: '1500 Lecture Hall' },
   { day: 'Monday', code: 'GST 111', time: '3:00pm-4:00pm', venue: '1500 Lecture Hall' },
-  { day: 'Monday', code: 'BUI-LIB 101', time: '5:00pm-6:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Monday', code: 'BH-LIB 101', time: '5:00pm-6:00pm', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'CHM 101', time: '9:00am-11:00am', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 107', time: '2:00pm-6:00pm', venue: 'PHY Lab 1, MICOM I, MICOM II' },
@@ -2415,7 +2415,7 @@ function programmesView() {
 const PLAN_KEY = 'plan';
 const PLAN_DEFAULTS = [
   { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.' },
-  { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.' },
+  { id: 'lib-test', title: 'BH-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.' },
   { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' }
 ];
 function planEvents() {
@@ -2442,7 +2442,7 @@ function pomoTick() {
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
 }
-function ttCourse(code) { const base = code.replace(/ 10[17]$/, ''); return ({ 'COS': 'COS', 'AGR': 'AGR', 'BUI-GEL': 'GEL101', 'GST': 'GST111', 'BUI-LIB': 'LIB101', 'CHM': 'CHM', 'PHY': 'PHY', 'MTH': 'MTH101', 'BIO': 'BIO' })[base] || base; }
+function ttCourse(code) { const base = code.replace(/ 10[17]$/, ''); return ({ 'COS': 'COS', 'AGR': 'AGR', 'BUI-GEL': 'GEL101', 'GST': 'GST111', 'BH-LIB': 'LIB101', 'CHM': 'CHM', 'PHY': 'PHY', 'MTH': 'MTH101', 'BIO': 'BIO' })[base] || base; }
 function timetableView() { PLAN_TAB = 'timetable'; planView(); }
 let PLAN_TAB = 'calendar';
 function planView() {
