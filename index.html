@@ -2425,6 +2425,99 @@ function planEvents() {
   }
   return DB.events;
 }
+/* ---------- in-app reminders: lectures + calendar events ---------- */
+const REMINDER_LEAD_MINUTES = 15;
+let REMINDER_TICK = null;
+let REMINDER_ACTIVE_SINCE = Date.now();
+let REMINDER_LAST_BREAK = Date.now();
+function reminderSeenMap() {
+  if (!DB.reminderSeen || typeof DB.reminderSeen !== 'object') DB.reminderSeen = {};
+  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  Object.keys(DB.reminderSeen).forEach(k => { if (+DB.reminderSeen[k] < cutoff) delete DB.reminderSeen[k]; });
+  return DB.reminderSeen;
+}
+function reminderTime(date, time) {
+  if (!date || !time) return null;
+  const m = String(time).match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/i);
+  if (!m) return null;
+  let hh = +m[1], mm = +m[2];
+  if (m[3]) { const ap = m[3].toLowerCase(); if (ap === 'pm' && hh < 12) hh += 12; if (ap === 'am' && hh === 12) hh = 0; }
+  const d = new Date(date + 'T00:00:00');
+  d.setHours(hh, mm, 0, 0);
+  return d;
+}
+function showReminderPopup(title, body, key) {
+  const seen = reminderSeenMap();
+  if (seen[key]) return false;
+  if (document.querySelector('.overlay')) return false;
+  seen[key] = Date.now();
+  save();
+  const close = () => { const ov = document.querySelector('.overlay'); if (ov) ov.remove(); };
+  modal(h('div', { class: 'stack' },
+    h('div', { class: 'chip gold' }, 'Bablo Hub reminder'),
+    h('h2', null, title),
+    h('p', { class: 'muted' }, body),
+    h('button', { class: 'btn primary block', onclick: close }, 'Got it')), true);
+  try {
+    if ('Notification' in window && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
+      new Notification(title, { body: body, tag: key });
+    }
+  } catch (e) { /* in-app reminder remains available */ }
+  return true;
+}
+function checkBabloReminders() {
+  if (!DB.profile || !DB.notify || document.visibilityState === 'hidden') return;
+  const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  const day = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][now.getDay()];
+  const nowMs = now.getTime(), leadMs = REMINDER_LEAD_MINUTES * 60000;
+  // User-added and built-in calendar events.
+  let evs = [];
+  try { evs = planEvents().slice(); } catch (e) { evs = []; }
+  for (const ev of evs) {
+    if (ev.date !== today) continue;
+    const at = reminderTime(ev.date, ev.time);
+    if (!at) continue;
+    const delta = at.getTime() - nowMs;
+    if (delta > 0 && delta <= leadMs) {
+      const key = 'event:' + ev.id + ':' + ev.date;
+      if (showReminderPopup('Coming up in 15 minutes', (ev.title || 'Calendar event') + ' starts at ' + ev.time + (ev.note ? '. ' + ev.note : ''), key)) return;
+    }
+  }
+  // Timetable reminders use the user's programme and respect saved time/venue edits.
+  try {
+    const mine = coursesFor(DB.profile.programme).map(c => c.code);
+    const edits = DB.ttEdits || {};
+    for (const x of TIMETABLE_100_1) {
+      if (x.day !== day || !mine.includes(ttCourse(x.code))) continue;
+      const e = edits[x.day + '|' + x.code] || {};
+      const time = e.time || x.time, venue = e.venue || x.venue;
+      const start = String(time).split('-')[0].trim();
+      const at = reminderTime(today, start);
+      if (!at) continue;
+      const delta = at.getTime() - nowMs;
+      if (delta > 0 && delta <= leadMs) {
+        const key = 'class:' + today + ':' + x.code;
+        if (showReminderPopup('Lecture in 15 minutes', x.code + ' starts at ' + start + (venue ? ' • ' + venue : ''), key)) return;
+      }
+    }
+  } catch (e) { /* keep the rest of the app running if timetable data is unavailable */ }
+  // Gentle two-hour study-session breather, only while the app is in the foreground.
+  if (nowMs - REMINDER_LAST_BREAK >= 2 * 60 * 60 * 1000) {
+    if (showReminderPopup('Take a breather', 'You have had Bablo Hub open for a while. Stretch, drink some water, and rest your eyes for a few minutes.', 'break:' + Math.floor(nowMs / (2 * 60 * 60 * 1000)))) REMINDER_LAST_BREAK = nowMs;
+  }
+}
+function startBabloReminders() {
+  if (REMINDER_TICK) clearInterval(REMINDER_TICK);
+  REMINDER_ACTIVE_SINCE = Date.now();
+  REMINDER_LAST_BREAK = Date.now();
+  if (typeof DB.notify !== 'boolean') { DB.notify = true; save(); }
+  REMINDER_TICK = setInterval(checkBabloReminders, 30000);
+  window.addEventListener('focus', checkBabloReminders);
+  document.addEventListener('visibilitychange', checkBabloReminders);
+}
+/* ---------- end in-app reminders ---------- */
+
 function downloadIcs(ev) {
   const blob = new Blob([icsFor(ev)], { type: 'text/calendar' }); const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = ev.id + '.ics'; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -2704,7 +2797,7 @@ function settingsView() {
     h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
-      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
+      h('p', { class: 'tiny muted' }, 'In-app pop-ups appear 15 minutes before scheduled lectures and calendar events while Bablo Hub is open. A gentle breather reminder appears after two hours. Phone notifications depend on browser permission and may not run when the app is closed.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
       h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
     h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' \u2022 version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '\u00A9 Bababola Moses Bolawaife, The MedConfidant Channel')))));
@@ -2793,6 +2886,7 @@ applyTheme();
 loadHidden();
 window.addEventListener('hashchange', route);
 route();
+startBabloReminders();
 
 </script>
 </body>
