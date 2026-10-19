@@ -501,7 +501,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.21.0' };
+const APP = { name: 'Bablo Hub', version: '3.22.1' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1285,6 +1285,7 @@ function route() {
     else if (v === 'plan') planView();
     else if (v === 'admin') adminView();
     else if (v === 'timetable') timetableView();
+    else if (v === 'files') filesView();
     else if (v === 'settings') settingsView();
     else if (v === 'bonus' && seg[1]) bonusView(seg[1]);
     else if (v === 'qualify') qualifyView();
@@ -2029,9 +2030,32 @@ function adminView() {
       const d = await r.json();
       if (!d.ok) { out.replaceChildren(h('p', { style: { color: 'var(--bad)' } }, d.error || 'Wrong passcode.')); return; }
       show(d);
+      loadPendingUploads(pass.value, out);
     } catch (e) { out.replaceChildren(h('p', { class: 'muted' }, 'Could not reach the server.')); }
   };
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin'), h('section', { class: 'panel stack' }, pass, h('button', { class: 'btn primary block', onclick: go2 }, 'Open'), h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: previewLevel200 }, 'Preview 200L here'), h('button', { class: 'btn ghost grow', onclick: resetPreviewLevel }, 'Back to 100L'), h('button', { class: 'btn ghost block', onclick: () => { DB.premium = !DB.premium; save(); toast('Premium here: ' + (DB.premium ? 'on' : 'off')); } }, 'Toggle premium on this device'))), out)));
+}
+
+/* ---------- admin: approve or reject uploads (passcode checked on the server for every action) ---------- */
+async function loadPendingUploads(pass, container) {
+  const box = h('section', { class: 'panel stack' }, h('h2', null, 'Pending uploads'), h('p', { class: 'muted small' }, 'Loading\u2026'));
+  container.append(box);
+  const review = async (id, status, row) => {
+    const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_review', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass, p_id: id, p_status: status }) }).then(x => x.json()).catch(() => null);
+    if (r && r.ok) { row.remove(); toast(status === 'approved' ? 'Approved. It is now in the library.' : 'Rejected.'); }
+    else toast('Could not update. Check the passcode and try again.');
+  };
+  const d = await fetch(LB.url + '/rest/v1/rpc/hub_admin_pending', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass }) }).then(x => x.json()).catch(() => null);
+  if (!d || !d.ok) { box.replaceChildren(h('h2', null, 'Pending uploads'), h('p', { class: 'muted small' }, 'Could not load uploads.')); return; }
+  const rows = d.uploads || [];
+  box.replaceChildren(h('h2', null, 'Pending uploads (' + rows.length + ')'), rows.length ? null : h('p', { class: 'muted small' }, 'Nothing waiting for review.'),
+    rows.map(u => {
+      const row = h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
+        h('b', null, u.title), h('div', { class: 'tiny muted' }, (courseBy(u.course) ? courseBy(u.course).label : u.course) + ' \u2022 by ' + u.nickname + ' (' + u.uid + ') \u2022 ' + Math.round(u.size_bytes / 1024) + ' KB'),
+        h('a', { class: 'btn sm ghost', href: LB.url + '/storage/v1/object/public/hub-uploads/' + u.file_path, target: '_blank', rel: 'noopener' }, 'Open file to check'),
+        h('div', { class: 'row' }, h('button', { class: 'btn primary grow', onclick: () => review(u.id, 'approved', row) }, 'Approve'), h('button', { class: 'btn danger grow', onclick: () => review(u.id, 'rejected', row) }, 'Reject')));
+      return row;
+    }));
 }
 
 ;
@@ -2139,7 +2163,7 @@ function socialView() {
   }
   drawFilters();
   mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Social Corner'), h('p', { class: 'muted' }, 'Share wins, study hacks and encouragement. Be kind. Posts are public, so keep personal details out.')),
+    h('div', { class: 'stack' }, h('h1', null, 'Social Corner'), h('a', { class: 'btn block', href: '#/files' }, 'Files: upload and download \u203A'), h('p', { class: 'muted' }, 'Share wins, study hacks and encouragement. Be kind. Posts are public, so keep personal details out.')),
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Post as ' + DB.profile.nick + ' \u2022 ' + DB.profile.programme), body), h('div', { class: 'row between' }, count, postBtn),
       !liveOn() ? h('p', { class: 'tiny muted' }, 'Posting turns on when the live database is connected.') : null),
     h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, 'Latest'), filters), feed))));
@@ -2660,6 +2684,60 @@ function settingsView() {
     h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
       h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
     h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' \u2022 version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '\u00A9 Bababola Moses Bolawaife, The MedConfidant Channel')))));
+}
+
+/* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
+const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'] };
+function uploadPublicUrl(path) { return LB.url + '/storage/v1/object/public/hub-uploads/' + path; }
+async function filesLibrary() {
+  const rows = await sbGet('uploads?select=id,title,course,file_path,mime,size_bytes,nickname,created_at&status=eq.approved&order=created_at.desc&limit=300');
+  if (!Array.isArray(rows)) return h('p', { class: 'muted small' }, 'Could not load files right now.');
+  if (!rows.length) return h('p', { class: 'muted small' }, 'No approved files yet. Be the first to upload.');
+  const by = {}; rows.forEach(r => { (by[r.course] = by[r.course] || []).push(r); });
+  return h('div', { class: 'stack' }, Object.keys(by).sort().map(code => {
+    const c = courseBy(code);
+    return h('section', { class: 'panel stack' }, h('h2', null, c ? c.label : code),
+      by[code].map(f => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
+        h('span', null, h('b', null, f.title), h('div', { class: 'tiny muted' }, (f.mime.split('/').pop() || 'file') + ' \u2022 ' + Math.round(f.size_bytes / 1024) + ' KB \u2022 by ' + f.nickname)),
+        h('a', { class: 'btn sm', href: uploadPublicUrl(f.file_path), target: '_blank', rel: 'noopener' }, 'Download'))));
+  }));
+}
+function filesView() {
+  const library = h('div', null, h('p', { class: 'muted small' }, 'Loading\u2026'));
+  filesLibrary().then(el => library.replaceChildren(el));
+  const course = h('select', null, COURSES.filter(c => !c.pending).map(c => h('option', { value: c.code }, c.label)));
+  const title = h('input', { type: 'text', maxlength: '120', placeholder: 'Title, e.g. BIO 101 past questions 2022' });
+  const file = h('input', { type: 'file', accept: '.pdf,.doc,.docx,.ppt,.pptx,.txt' });
+  const copy = h('input', { type: 'checkbox', id: 'copyOk' });
+  const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
+  const send = async () => {
+    err.textContent = '';
+    if (!signedIn()) { err.textContent = 'Create an account to upload.'; return; }
+    const f = file.files && file.files[0];
+    if (!f) { err.textContent = 'Choose a file.'; return; }
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (!UP.exts.includes(ext)) { err.textContent = 'Use PDF, Word, PowerPoint or text.'; return; }
+    if (f.size > UP.maxBytes) { err.textContent = 'The file is over 10 MB.'; return; }
+    if (title.value.trim().length < 2) { err.textContent = 'Add a title.'; return; }
+    if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
+    const path = DB.profile.uid + '/' + uid() + '.' + ext;
+    send.disabled = true; send.textContent = 'Uploading\u2026';
+    try {
+      const up = await fetch(LB.url + '/storage/v1/object/hub-uploads/' + path, { method: 'POST', headers: { apikey: LB.key, 'Content-Type': f.type || 'application/octet-stream', 'x-upsert': 'false' }, body: f });
+      if (!up.ok) throw new Error('upload');
+      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending' }) });
+      if (!row.ok) throw new Error('row');
+      toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
+    } catch (e) { err.textContent = 'Could not upload. Check your connection and try again.'; }
+    send.disabled = false; send.textContent = 'Upload';
+  };
+  mount(wrap(back('#/social', 'Social'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, 'Files'), h('p', { class: 'muted' }, 'Past questions, notes and papers shared by students. Downloads are free. Every upload is checked before it goes live.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
+      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB)'), file),
+      h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
+      h('button', { class: 'btn primary block', onclick: send, disabled: !signedIn() }, 'Upload')),
+    h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
 }
 
 /* ---------- boot ---------- */
