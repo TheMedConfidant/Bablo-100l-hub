@@ -313,6 +313,9 @@ body.on-home .float-btn{display:grid}
 .float-me{right:16px;bottom:calc(152px + env(safe-area-inset-bottom,0px));left:auto}
 .float-chess{right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}
 body.on-home .wrap{padding-bottom:170px}
+.home-files-fab{position:fixed;right:18px;bottom:calc(82px + env(safe-area-inset-bottom,0px));z-index:7;display:flex;align-items:center;gap:8px;padding:13px 17px;border-radius:999px;background:var(--brand);color:var(--brand-ink);border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.3);font-weight:800;text-decoration:none}
+.home-files-fab:active{transform:scale(.97)}
+.home-files-fab .fab-icon{font-size:1.15rem;line-height:1}
 .top-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-size:1.05rem;cursor:pointer}
 
@@ -1352,7 +1355,7 @@ function homeView() {
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
   mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
-    h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
+    h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))), h('a', { class: 'home-files-fab', href: '#/files', 'aria-label': 'Open uploads and study packs' }, h('span', { class: 'fab-icon', 'aria-hidden': 'true' }, '⬆'), h('span', null, 'Uploads')))
 }
 function brand() {
   return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 32 32', '<rect width="32" height="32" rx="9" fill="#0B7A75" stroke="none"/><path d="M4 17h6l3-7 5 14 3-7h7" stroke="#fff" stroke-width="2.4"/>'), 'Bablo Hub');
@@ -2180,7 +2183,7 @@ function socialView() {
   }
   drawFilters();
   mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Social Corner'), h('a', { class: 'btn block', href: '#/files' }, 'Files: upload and download \u203A'), h('p', { class: 'muted' }, 'Share wins, study hacks and encouragement. Be kind. Posts are public, so keep personal details out.')),
+    h('div', { class: 'stack' }, h('h1', null, 'Social Corner'), h('p', { class: 'muted' }, 'Share wins, study hacks and encouragement. Be kind. Posts are public, so keep personal details out.')),
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Post as ' + DB.profile.nick + ' \u2022 ' + DB.profile.programme), body), h('div', { class: 'row between' }, count, postBtn),
       !liveOn() ? h('p', { class: 'tiny muted' }, 'Posting turns on when the live database is connected.') : null),
     h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, 'Latest'), filters), feed))));
@@ -2755,7 +2758,7 @@ function filesView() {
     } catch (e) { err.textContent = 'Could not upload. Check your connection and try again.'; }
     send.disabled = false; send.textContent = 'Upload';
   };
-  mount(wrap(back('#/social', 'Social'), h('div', { class: 'stack-l' },
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Files'), h('p', { class: 'muted' }, 'Past questions, notes and papers shared by students. Downloads are free. Every upload is checked before it goes live.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
       h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint, TXT or HTML, up to 10 MB; automatic extraction works with PDF, DOCX, PPTX, TXT and HTML. Legacy DOC/PPT files need conversion first.)'), file),
