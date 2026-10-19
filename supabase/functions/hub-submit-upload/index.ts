@@ -49,18 +49,20 @@ Deno.serve(async (req: Request) => {
   if (!course || title.length < 2 || !nickname) return json({ ok: false, error: 'Add the course, title and display name.' }, 400);
   if (!copyrightOk) return json({ ok: false, error: 'Confirm you have permission to share this document.' }, 400);
   if (file.size < 1 || file.size > MAX_FILE) return json({ ok: false, error: 'The file must be between 1 byte and 10 MB.' }, 413);
-  if (typeof rawPack !== 'string' || rawPack.length < 2 || rawPack.length > MAX_PACK) {
-    return json({ ok: false, error: 'The generated study pack is missing or too large. Try a shorter document.' }, 400);
-  }
-
-  let pack: Record<string, unknown>;
-  try { pack = JSON.parse(rawPack); } catch { return json({ ok: false, error: 'The generated study pack is invalid. Try again.' }, 400); }
-  const notes = pack.notes as { sections?: unknown[] } | undefined;
-  if (!pack || typeof pack !== 'object' || !notes || !Array.isArray(notes.sections) ||
-      !Array.isArray(pack.flashcards) || !Array.isArray(pack.questions) ||
-      notes.sections.length > 120 || (pack.flashcards as unknown[]).length > 80 ||
-      (pack.questions as unknown[]).length > 60) {
-    return json({ ok: false, error: 'The generated study pack did not pass validation. Try again.' }, 400);
+  // Accept older live clients during rollout; new clients include the generated pack.
+  let pack: Record<string, unknown> | null = null;
+  if (rawPack !== null && rawPack !== '') {
+    if (typeof rawPack !== 'string' || rawPack.length < 2 || rawPack.length > MAX_PACK) {
+      return json({ ok: false, error: 'The generated study pack is missing or too large. Try a shorter document.' }, 400);
+    }
+    try { pack = JSON.parse(rawPack); } catch { return json({ ok: false, error: 'The generated study pack is invalid. Try again.' }, 400); }
+    const notes = pack?.notes as { sections?: unknown[] } | undefined;
+    if (!pack || typeof pack !== 'object' || !notes || !Array.isArray(notes.sections) ||
+        !Array.isArray(pack.flashcards) || !Array.isArray(pack.questions) ||
+        notes.sections.length > 120 || (pack.flashcards as unknown[]).length > 80 ||
+        (pack.questions as unknown[]).length > 60) {
+      return json({ ok: false, error: 'The generated study pack did not pass validation. Try again.' }, 400);
+    }
   }
 
   const uid = String(sess[0].unique_id);
@@ -85,15 +87,17 @@ Deno.serve(async (req: Request) => {
     return json({ ok: false, error: 'The file could not be queued for review. Please try again.' }, 502);
   }
 
-  const packRes = await fetch(url + '/rest/v1/upload_study_packs', {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-    body: JSON.stringify({ upload_id: uploadId, course, title, content: pack, status: 'pending' })
-  });
-  if (!packRes.ok) {
-    await fetch(url + '/rest/v1/uploads?id=eq.' + encodeURIComponent(uploadId), { method: 'DELETE', headers });
-    await fetch(storageUrl, { method: 'DELETE', headers });
-    return json({ ok: false, error: 'The document was stored but its study pack could not be queued. Nothing was published; please try again.' }, 502);
+  if (pack) {
+    const packRes = await fetch(url + '/rest/v1/upload_study_packs', {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ upload_id: uploadId, course, title, content: pack, status: 'pending' })
+    });
+    if (!packRes.ok) {
+      await fetch(url + '/rest/v1/uploads?id=eq.' + encodeURIComponent(uploadId), { method: 'DELETE', headers });
+      await fetch(storageUrl, { method: 'DELETE', headers });
+      return json({ ok: false, error: 'The document was stored but its study pack could not be queued. Nothing was published; please try again.' }, 502);
+    }
   }
-  return json({ ok: true, status: 'pending', generated: true });
+  return json({ ok: true, status: 'pending', generated: Boolean(pack) });
 });
