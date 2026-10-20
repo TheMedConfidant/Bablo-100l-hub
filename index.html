@@ -2789,8 +2789,12 @@ function filesView() {
     if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
     send.disabled = true; send.textContent = 'Uploading\u2026';
     try {
-      // the server checks your logged-in session, then stores the file
-      const up = await fetch(LB.url + '/functions/v1/hub-upload', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': f.type || 'application/octet-stream', 'x-session-token': DB.account.token, 'x-file-ext': ext }, body: f });
+      // Plain multipart form avoids custom headers and keeps the session token out of the URL.
+      const fd = new FormData();
+      fd.append('file', f, f.name);
+      fd.append('token', DB.account.token);
+      fd.append('ext', ext);
+      const up = await fetch(LB.url + '/functions/v1/hub-upload', { method: 'POST', body: fd });
       const got = await up.json().catch(() => ({}));
       if (!up.ok || !got.ok) throw new Error(got.error || 'upload');
       const path = got.path;
@@ -2805,7 +2809,7 @@ function filesView() {
     h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
       h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB)'), file),
       h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
-      h('button', { class: 'btn primary block', onclick: send, disabled: !signedIn() }, 'Upload')),
+      h('button', { class: 'btn primary block', style: { minHeight: '54px', fontSize: '1rem', fontWeight: '800', letterSpacing: '.01em', boxShadow: '0 8px 22px rgba(45, 105, 230, .24)' }, onclick: send, disabled: !signedIn() }, '⬆️ Submit to BH Library')),
     h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
 }
 
