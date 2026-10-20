@@ -1279,7 +1279,7 @@ function applyTheme() {
   const mode = DB.theme === 'system' ? (sysDark ? 'dark' : 'light') : DB.theme;
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
-  const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
+  const skin = DB.skin === 'green' ? 'classic' : (!DB.skin ? 'glass' : DB.skin);
   if (skin === 'pink' || skin === 'purple' || skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', skin); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
@@ -1692,7 +1692,7 @@ function boardView() {
 function meView() {
   const p = DB.profile, name = h('input', { type: 'text', value: p.name, maxlength: '40' }), nick = h('input', { type: 'text', value: p.nick, maxlength: '20' }), prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); meView(); } }, l);
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); meView(); } }, l);
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(((DB.skin === 'green') ? 'classic' : (DB.skin || 'glass')) === v), onclick: () => { DB.skin = v; save(); applyTheme(); meView(); } }, l);
   const flagged = BANK.filter(q => q.f).length;
   mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
     h('h1', null, 'Me'), installCard(), accountSection(),
@@ -2852,7 +2852,7 @@ function holdPage(title) {
 }
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function settingsView() {
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(((DB.skin === 'green') ? 'classic' : (DB.skin || 'glass')) === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
