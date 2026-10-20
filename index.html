@@ -47,7 +47,7 @@ sup{font-size:.7em;line-height:0}
 .chip.gold{background:var(--gold-soft);color:var(--gold)}.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.bad{background:var(--bad-soft);color:var(--bad)}.chip.brand{background:var(--brand-soft);color:var(--brand)}
 /* hero (the one bold moment: pulse trace) */
 .hero{position:relative;padding:20px 18px 14px;border-radius:20px;background:linear-gradient(135deg,#0E1F3D,#12365F 60%,#0B6B6A);color:#F2F7FF;overflow:hidden}
-.hero h1{font-size:1.6rem}.hero p{color:#C4D4EC;margin-top:4px}
+.hero h1{font-size:1.6rem}.hero h1.hero-greeting{font-weight:850;letter-spacing:-.035em;color:#F6D98A;background:linear-gradient(100deg,#FFF1B8 0%,#E6B84F 34%,#B77A16 68%,#FFE6A0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 22px rgba(230,184,79,.14)}.hero p{color:#C4D4EC;margin-top:4px}
 .pulse{display:block;width:100%;height:56px;margin-top:10px}
 .pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;filter:drop-shadow(0 0 3px rgba(94,234,212,.42));animation:draw 1.4s ease-out .15s forwards,ecgDrift 8s linear 1.6s infinite,ecgGlow 3.8s ease-in-out 1.6s infinite}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -1400,7 +1400,7 @@ function homeView() {
   const st = Core.streak(DB.history.map(x => x.ts), Date.now());
   const weak = Object.keys(DB.missed).length;
   const hero = h('section', { class: 'hero' },
-    h('h1', null, greet + ', ' + first),
+    h('h1', { class: 'hero-greeting' }, greet + ', ' + first),
     h('p', null, 'Pick a course, practise a topic, then test yourself.'),
     svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
     h('div', { class: 'hero-stats' },
@@ -2361,7 +2361,7 @@ function nextWindows(now, count) {
   return Core.windowsIn(from, to, EVENT_WINDOWS).filter(w => w.end > now).slice(0, count);
 }
 function cupView() {
-  if (CUP_ON_HOLD) return holdPage('Programme Cup');
+  if (CUP_ON_HOLD) { mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Programme Cup'), h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'Competition on hold'), h('p', { class: 'muted small' }, 'The competition remains paused while its checks are completed. Students can still vote on the qualification schedule below.')), pollCard()))); return; }
   const now = Date.now(), seasonStart = Date.parse(SEASON.start), seasonEnd = seasonStart + SEASON.weeks * 7 * 864e5;
   const inSeason = now >= seasonStart && now < seasonEnd;
   const fmtWhen = ms => new Date(ms + 3600000).toISOString().slice(0, 16).replace('T', ' ') + ' Lagos';
@@ -2601,30 +2601,37 @@ async function pollCounts(pollId) {
   return { counts, mine, total: rows.length };
 }
 function pollCard() {
-  const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
+  const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading…'));
   const draw = async () => {
-    if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll opens when the live database is connected.')); return; }
-    if (!signedIn() || !DB.profile || !DB.profile.uid) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in to vote. Your account can submit one vote across devices.')); return; }
-    const data = await pollCounts(QUAL_POLL.id);
-    if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load the poll.')); return; }
+    const connected = liveOn();
+    const signed = signedIn() && DB.profile && DB.profile.uid;
+    const data = connected ? await pollCounts(QUAL_POLL.id) : { counts: {}, mine: null, total: 0 };
+    if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll could not load from the live database. Check your connection and try again.')); return; }
     const closed = Date.now() >= Date.parse(QUAL_POLL.closesAt);
     const topVotes = Math.max(0, ...QUAL_POLL.options.map(o => data.counts[o.id] || 0));
     const leaders = QUAL_POLL.options.filter(o => (data.counts[o.id] || 0) === topVotes && topVotes > 0);
-    const summary = closed ? (leaders.length === 1 ? 'Voting is closed. Most votes: ' + leaders[0].label + '.' : leaders.length > 1 ? 'Voting is closed with a tie. A runoff is needed before the session is confirmed.' : 'Voting is closed with no votes; the schedule is not yet confirmed.') : 'Voting closes ' + new Date(QUAL_POLL.closesAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) + ' (Lagos time).';
-    box.replaceChildren(h('p', { class: 'small muted' }, summary), ...QUAL_POLL.options.map(o => {
+    const summary = !connected ? 'Poll options are visible, but voting needs the live database connection.' :
+      closed ? (leaders.length === 1 ? 'Voting is closed. Most votes: ' + leaders[0].label + '.' : leaders.length > 1 ? 'Voting is closed with a tie. A runoff is needed before the session is confirmed.' : 'Voting is closed with no votes; the session is not confirmed.') :
+      'Voting closes ' + new Date(QUAL_POLL.closesAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) + ' (Lagos time).';
+    const children = [h('p', { class: 'small muted' }, summary)];
+    if (connected && !signed) children.push(h('p', { class: 'small muted' }, 'Sign in to vote. You can view the options and results without an account.'));
+    for (const o of QUAL_POLL.options) {
       const n = data.counts[o.id] || 0, pct = data.total ? Math.round(n / data.total * 100) : 0;
-      return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id), disabled: !!data.mine || closed, style: { justifyContent: 'space-between', marginTop: '6px' },
+      children.push(h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id),
+        disabled: !connected || !signed || !!data.mine || closed,
+        style: { justifyContent: 'space-between', marginTop: '6px' },
         onclick: async () => {
+          if (!signedIn() || !DB.profile || !DB.profile.uid) { toast('Sign in before voting.'); return; }
           const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: QUAL_POLL.id, option_id: o.id, voter: DB.profile.uid }) }).catch(() => null);
           if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
-        } }, h('span', null, (data.mine === o.id ? '\u2714 ' : '') + o.label), h('span', { class: 'small muted' }, n + ' \u2022 ' + pct + '%'));
-    }));
-    box.append(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. You can vote once.'));
+        } }, h('span', null, (data.mine === o.id ? '✓ ' : '') + o.label), h('span', { class: 'small muted' }, n + ' • ' + pct + '%')));
+    }
+    if (connected) children.push(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. One vote per account.'));
+    box.replaceChildren(...children);
   };
   draw();
   return h('section', { class: 'panel stack' }, h('h2', null, 'Qualifications poll'), h('p', { class: 'muted small' }, QUAL_POLL.question), box);
 }
-
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
 function course200View(c) {
   const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
@@ -2752,10 +2759,10 @@ async function qualStatus() {
   return 'none';
 }
 async function qualifyView() {
+  if (CUP_ON_HOLD) { mount(wrap(back('#/cup', 'Programme Cup'), h('div', { class: 'stack-l' }, h('h1', null, 'Qualifications'), h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'Not open yet'), h('p', { class: 'muted small' }, 'Qualifications remain paused while checks are completed. Vote below to help choose the schedule.')), pollCard()))); return; }
   await refreshQualSchedule();
-  if (CUP_ON_HOLD) return holdPage('Qualifications');
   const batch = qualBatch();
-  const holder = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Checking your status\u2026'));
+  const holder = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Checking your status…'));
   mount(wrap(back('#/cup', 'Programme Cup'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, 'Qualifications')), holder)));
   qualStatus().then(st => { holder.replaceChildren(qualCard(batch, st)); });
 }
