@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#151006">
+<meta name="theme-color" content="#0E1F3D">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="bablo-gold-icon.svg">
+<link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bablo Hub">
@@ -326,40 +326,23 @@ body.on-home .wrap{padding-bottom:170px}
 .choice{min-height:54px;display:flex;align-items:center;gap:10px;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:1rem;line-height:1.4;box-sizing:border-box}
 .fb{font-size:1rem;line-height:1.5;overflow-wrap:anywhere}
 
+/* phones: static background, no animated blur layer, so panels stop showing horizontal bands */
+@media (max-width: 640px){
+  :root[data-skin] body::before{animation:none !important;filter:none !important;will-change:auto}
+  :root[data-skin] body{background-attachment:scroll !important}
+  :root[data-skin="glass"] .panel,:root[data-skin="glass"] .tile{-webkit-backdrop-filter:blur(14px) !important;backdrop-filter:blur(14px) !important}
+}
 
+/* quiz answers: always dark text on a tinted background, in every look and mode */
+.choice.right,.choice.wrong{color:var(--ink) !important}
+.choice.right{background:color-mix(in srgb,var(--ok) 22%,var(--surface)) !important}
+.choice.wrong{background:color-mix(in srgb,var(--bad) 22%,var(--surface)) !important}
+.choice.right .k{background:var(--ok) !important;color:#fff !important}
+.choice.wrong .k{background:var(--bad) !important;color:#fff !important}
+.fb,.fb.ok,.fb.bad{color:var(--ink) !important}
+.fb.ok{background:color-mix(in srgb,var(--ok) 20%,var(--surface)) !important}
+.fb.bad{background:color-mix(in srgb,var(--bad) 20%,var(--surface)) !important}
 
-/* ---------- Complete Bablo Hub gold finish ---------- */
-:root[data-skin="gold"]{--page:radial-gradient(900px 520px at 8% -8%,rgba(226,174,64,.22),transparent 55%),radial-gradient(780px 500px at 110% 0%,rgba(130,82,12,.18),transparent 55%),linear-gradient(160deg,#080705,#151006 58%,#090806);--brand:#e8b84e;--brand-ink:#1a1102;--brand-soft:rgba(232,184,78,.18);--focus:#f4ce72}
-:root[data-skin="gold"] .hero{background:linear-gradient(135deg,rgba(255,227,153,.13),rgba(214,154,37,.055) 48%,rgba(255,255,255,.025)),rgba(24,18,8,.72);border:1px solid rgba(242,194,91,.42);box-shadow:inset 0 1px rgba(255,244,205,.13),0 14px 36px rgba(0,0,0,.24),0 0 26px rgba(214,154,37,.08);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-:root[data-skin="gold"] .hero h1{background:linear-gradient(110deg,#fff7d6,#f3cd72 48%,#c58a20);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 28px rgba(232,184,78,.10)}
-:root[data-skin="gold"] .hero p,:root[data-skin="gold"] .hero-stats span{color:#d6c49b}
-:root[data-skin="gold"] .hero-stats b{color:#ffe3a0}
-:root[data-skin="gold"] .tile,:root[data-skin="gold"] .rows,:root[data-skin="gold"] .dock,:root[data-skin="gold"] .rev,:root[data-skin="gold"] .qcard,:root[data-skin="gold"] .hero-stats>div,:root[data-skin="gold"] .hero-stats>a{background:linear-gradient(145deg,rgba(255,240,190,.075),rgba(255,255,255,.018)),rgba(28,22,12,.82);border-color:rgba(242,194,91,.25);box-shadow:inset 0 1px rgba(255,255,255,.045)}
-:root[data-skin="gold"] .btn:not(.primary){border-color:rgba(232,184,78,.38);color:#ffe8ad}
-:root[data-skin="gold"] .nav a,:root[data-skin="gold"] .dock a{color:#e9d7ad}
-:root[data-skin="gold"] .nav a.active,:root[data-skin="gold"] .dock a.active{color:#ffe4a0;background:rgba(226,174,64,.15)}
-:root[data-skin="gold"] .field input,:root[data-skin="gold"] .field textarea,:root[data-skin="gold"] .field select,:root[data-skin="gold"] input,:root[data-skin="gold"] textarea,:root[data-skin="gold"] select{accent-color:#dca638}
-:root[data-skin="gold"] .badge,:root[data-skin="gold"] .chip,:root[data-skin="gold"] .pill{background:rgba(226,174,64,.10);color:#ffe5a3;border-color:rgba(242,194,91,.34)}
-:root[data-skin="gold"] .pulse{color:#edbd51;filter:drop-shadow(0 0 5px rgba(232,184,78,.28))}
-
-/* ---------- Bablo Hub gold glass identity ---------- */
-:root[data-skin="gold"]{--bg:#090806;--surface:rgba(28,22,12,.86);--surface2:rgba(51,39,18,.72);--ink:#fff5d9;--ink2:#c8b98f;--line:rgba(242,194,91,.28);--brand:#dca638;--brand-ink:#160f03;--brand-soft:rgba(226,174,64,.16);--gold:#e8b84e;--gold-soft:rgba(232,184,78,.18);--shadow:0 8px 28px rgba(0,0,0,.25);color-scheme:dark}
-:root[data-skin="gold"] body{background:radial-gradient(ellipse at 15% 0%,rgba(184,126,25,.13),transparent 42%),var(--bg)}
-:root[data-skin="gold"] .panel,:root[data-skin="gold"] .card,:root[data-skin="gold"] .modal,:root[data-skin="gold"] .nav{background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018)),var(--surface);border-color:var(--line);box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 28px rgba(0,0,0,.18);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-:root[data-skin="gold"] .btn.primary{background:linear-gradient(135deg,#ffe8a0,#d69a25 58%,#a66c12);color:#1b1202;border:1px solid rgba(255,231,163,.7);box-shadow:0 5px 18px rgba(216,158,43,.22)}
-:root[data-skin="gold"] .badge,:root[data-skin="gold"] .chip{border-color:var(--line)}
-.bh-splash{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 42%,#35260c 0%,#100d07 38%,#050505 78%);color:#fff0c2;overflow:hidden;transition:opacity .45s ease,visibility .45s ease}
-.bh-splash.bh-out{opacity:0;visibility:hidden;pointer-events:none}
-.bh-splash:before,.bh-splash:after{content:"";position:absolute;width:70vw;height:70vw;max-width:520px;max-height:520px;border:1px solid rgba(244,190,68,.18);border-radius:50%;animation:bh-orbit 4.2s linear infinite}
-.bh-splash:after{width:52vw;height:52vw;max-width:390px;max-height:390px;animation-direction:reverse;border-color:rgba(255,222,139,.13)}
-.bh-splash-inner{position:relative;z-index:1;display:flex;align-items:center;flex-direction:column;gap:16px;animation:bh-rise .8s cubic-bezier(.2,.8,.2,1) both}
-.bh-mark{width:116px;height:116px;filter:drop-shadow(0 0 24px rgba(242,179,47,.28));animation:bh-mark-in 1.05s cubic-bezier(.2,.8,.2,1) both}
-.bh-brand{font:800 30px/1.05 system-ui,sans-serif;letter-spacing:-1.2px;background:linear-gradient(180deg,#fff8dc,#e6b94d 55%,#a66b16);color:transparent;background-clip:text;-webkit-background-clip:text}
-.bh-tagline{font:600 10px/1.4 system-ui,sans-serif;letter-spacing:4px;color:#d8c28b}
-.bh-progress{width:112px;height:2px;border-radius:4px;background:rgba(255,220,139,.14);overflow:hidden;margin-top:9px}
-.bh-progress:after{content:"";display:block;height:100%;width:42%;background:linear-gradient(90deg,#9b6716,#fff0b5,#d49a25);animation:bh-progress .95s ease-in-out infinite alternate}
-@keyframes bh-orbit{to{transform:rotate(360deg) scale(1.03)}}@keyframes bh-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes bh-mark-in{0%{opacity:0;transform:scale(.62) rotate(-12deg)}70%{opacity:1;transform:scale(1.06) rotate(2deg)}100%{transform:scale(1) rotate(0)}}@keyframes bh-progress{from{transform:translateX(-25%)}to{transform:translateX(165%)}}
-@media(prefers-reduced-motion:reduce){.bh-splash:before,.bh-splash:after,.bh-mark,.bh-splash-inner,.bh-progress:after{animation:none!important}.bh-splash{transition:none}}
 </style>
 </head>
 <body>
@@ -546,7 +529,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.26.1' };
+const APP = { name: 'Bablo Hub', version: '3.27.1' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -578,6 +561,7 @@ const PROGRAMME_COURSES = {
   'Anatomy': [...CORE_COURSES, 'MTH101'],
   'Biochemistry': [...CORE_COURSES, 'MTH101'],
   'Medical Laboratory Science': [...CORE_COURSES, 'MTH101'],
+  'Public Health': [...CORE_COURSES],
   'Other CoHES programme': [...CORE_COURSES, 'MTH101'],
   [GUEST_PROGRAMME]: [...CORE_COURSES, 'MTH101']
 };
@@ -642,7 +626,7 @@ const COURSES_200 = [
   { code: 'BCH', label: 'BCH', title: 'Biochemistry (code to confirm)', color: '#7C3AED', units: 2, semester: 'first' },
   { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
 ];
-const PROGRAMMES = ['MBBS', 'Nursing', 'Public Health', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Other CoHES programme', GUEST_PROGRAMME];
+const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME];
 
 /* Encouragement: King James Version (public domain). */
 const VERSES = {
@@ -1262,7 +1246,7 @@ function applyTheme() {
   document.documentElement.setAttribute('data-mode', mode);
   const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
   if (skin === 'pink' || skin === 'purple') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', skin); }
-  else { document.documentElement.setAttribute('data-skin', skin === 'glass' ? 'gold' : skin); document.documentElement.removeAttribute('data-tint'); }
+  else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
 function bestPct(code) { const l = DB.history.filter(x => x.course === code && x.mode !== 'practice'); return l.length ? Math.max.apply(null, l.map(x => x.pct)) : null; }
 function toast(msg) { const t = h('div', { class: 'toast', role: 'status' }, msg); document.body.append(t); setTimeout(() => t.remove(), 2600); }
@@ -1676,7 +1660,6 @@ function meView() {
   const flagged = BANK.filter(q => q.f).length;
   mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
     h('h1', null, 'Me'), installCard(), accountSection(),
-    (DB.profile && DB.profile.uid === 'MBB-4635' ? h('a', { class: 'btn gold block', href: '#/admin' }, 'Admin panel ↗') : null),
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Name'), name), h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick), h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: '100L' }; save(); toast('Saved.'); } }, 'Save changes')),
     h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic'))),
@@ -2126,12 +2109,12 @@ async function loadUploadsPage(pass, container) {
       h('div', { class: 'tiny muted' }, (courseBy(u.course) ? courseBy(u.course).label : u.course) + ' \u2022 by ' + u.nickname + ' (' + u.uid + ') \u2022 ' + Math.round(u.size_bytes / 1024) + ' KB'),
       h('a', { class: 'btn sm ghost', href: LB.url + '/storage/v1/object/public/hub-uploads/' + u.file_path, target: '_blank', rel: 'noopener' }, 'Open file to check'));
     if (u.status === 'pending') {
-      const review = async (status) => { const r = await adminPost('hub_admin_review', { p_pass: pass, p_id: u.id, p_status: status }); if (r && r.ok) { toast(status === 'approved' ? 'Approved. It is in the library.' : 'Rejected.'); box.remove(); await loadUploadsPage(pass, container); } else toast((r && r.error) || 'Could not update.'); };
+      const review = async (status) => { const r = await adminPost('hub_admin_review', { p_pass: pass, p_id: u.id, p_status: status }); if (r && r.ok) { toast(status === 'approved' ? 'Approved. It is in the library.' : 'Rejected.'); const d2 = document.getElementById('uploadsSlot'); if (d2) { box.remove(); loadUploadsPage(pass, container); } } else toast((r && r.error) || 'Could not update.'); };
       holder.append(h('div', { class: 'row' }, h('button', { class: 'btn primary grow', onclick: () => review('approved') }, 'Approve'), h('button', { class: 'btn danger grow', onclick: () => review('rejected') }, 'Reject')));
     }
     return holder;
   };
-  box.replaceChildren(...[h('h2', null, 'Uploads (' + pending + ' waiting)'), rows.length ? null : h('p', { class: 'muted small' }, 'No uploads yet.'), ...rows.map(row)].filter(Boolean));
+  box.replaceChildren(h('h2', null, 'Uploads (' + pending + ' waiting)'), rows.length ? null : h('p', { class: 'muted small' }, 'No uploads yet.'), rows.map(row));
 }
 
 /* ---------- admin: analytics (server-side key, admin session and passcode checked on every call) ---------- */
@@ -2824,18 +2807,15 @@ function filesView() {
     if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
     send.disabled = true; send.textContent = 'Uploading\u2026';
     try {
-      // Plain multipart form avoids custom headers and keeps the session token out of the URL.
-      const fd = new FormData();
-      fd.append('file', f, f.name);
-      fd.append('token', DB.account.token);
-      fd.append('ext', ext);
-      fd.append('course', course.value);
-      fd.append('title', title.value.trim().slice(0, 120));
-      fd.append('nickname', (DB.profile.nick || 'Student').slice(0, 30));
-      fd.append('copyright_ok', String(copy.checked));
-      const up = await fetch(LB.url + '/functions/v1/hub-upload', { method: 'POST', body: fd });
+      // the server checks your logged-in session, then stores the file
+      // plain form upload: no custom headers, so the browser needs no extra safety check
+      const fd = new FormData(); fd.append('file', f, f.name);
+      const up = await fetch(LB.url + '/functions/v1/hub-upload?token=' + encodeURIComponent(DB.account.token) + '&ext=' + encodeURIComponent(ext), { method: 'POST', body: fd });
       const got = await up.json().catch(() => ({}));
-      if (!up.ok || !got.ok) throw new Error(got.error || 'Upload failed. Please try again.');
+      if (!up.ok || !got.ok) throw new Error(got.error || 'upload');
+      const path = got.path;
+      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending' }) });
+      if (!row.ok) throw new Error('row');
       toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
     } catch (e) { err.textContent = (e && e.message && e.message !== 'upload' && e.message !== 'row') ? e.message : 'Could not upload. Check your connection and try again.'; }
     send.disabled = false; send.textContent = 'Upload';
@@ -2845,25 +2825,30 @@ function filesView() {
     h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
       h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB)'), file),
       h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
-      h('button', { class: 'btn primary block', style: { minHeight: '54px', fontSize: '1rem', fontWeight: '800', letterSpacing: '.01em', boxShadow: '0 8px 22px rgba(45, 105, 230, .24)' }, onclick: send, disabled: !signedIn() }, '⬆️ Submit to BH Library')),
+      h('button', { class: 'btn primary block', onclick: send, disabled: !signedIn() }, 'Upload')),
     h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
 }
 
-
-function showBabloSplash(){
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  try { if (sessionStorage.getItem('bh-gold-splash-seen') === '1') return; sessionStorage.setItem('bh-gold-splash-seen','1'); } catch(e) {}
-  const splash=document.createElement('div'); splash.className='bh-splash'; splash.setAttribute('role','status'); splash.setAttribute('aria-label','Bablo Hub loading');
-  splash.innerHTML='<div class="bh-splash-inner"><svg class="bh-mark" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff4bf"/><stop offset=".48" stop-color="#e7b13b"/><stop offset="1" stop-color="#9d6414"/></linearGradient><linearGradient id="bhGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#f0b634" stop-opacity=".04"/></linearGradient></defs><rect x="7" y="7" width="106" height="106" rx="27" fill="url(#bhGlass)" stroke="url(#bhGold)" stroke-width="2"/><path d="M38 27h31c19 0 29 10 29 25 0 10-5 17-14 21 11 3 17 11 17 22 0 13-11 20-29 20H38V27zm18 15v25h12c8 0 12-5 12-13s-4-12-12-12H56zm0 40v18h15c8 0 12-3 12-9s-4-9-12-9H56z" fill="url(#bhGold)" transform="translate(-5 -7) scale(.96)"/><path d="M27 73c-7-15 3-29 19-29 9 0 15 4 22 12l-9 7c-4-5-8-8-13-8-8 0-12 7-8 14l-11 4z" fill="#fff0b5"/><path d="M25 80c21 23 51 22 70-4" fill="none" stroke="url(#bhGold)" stroke-width="3.5" stroke-linecap="round"/><path d="M35 22l20-7 18 7-18 8z" fill="url(#bhGold)"/><path d="M55 30v5" stroke="#fff0b5" stroke-width="2"/><path d="M87 34l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fff0b5"/></svg><div class="bh-brand">Bablo Hub</div><div class="bh-tagline">LEARN · COMPETE · GROW</div><div class="bh-progress"></div></div>';
-  document.body.appendChild(splash); window.setTimeout(()=>{splash.classList.add('bh-out');window.setTimeout(()=>splash.remove(),500)},1550);
+/* ---------- one-time notice: Bablo Hub is live for CoHES students ---------- */
+const LIVE_NOTICE_ID = 'live-2026-10';
+function liveNotice() {
+  if (DB.noticeSeen === LIVE_NOTICE_ID) return;
+  DB.noticeSeen = LIVE_NOTICE_ID; save();
+  let close;
+  close = modal(h('div', { class: 'stack' },
+    h('h2', null, 'Bablo Hub is live'),
+    h('p', { class: 'muted small' }, 'Bablo Hub is now open for all CoHES students: past questions, timed quizzes, notes, flashcards, the timetable and the calendar.'),
+    h('p', { class: 'small' }, 'Create an account so your progress is saved and follows you to any phone. Practice works without one.'),
+    h('a', { class: 'btn primary block', href: '#/me', onclick: () => close() }, 'Create my account'),
+    h('button', { class: 'btn ghost block', onclick: () => close() }, 'Not now')), true);
 }
 
 /* ---------- boot ---------- */
-showBabloSplash();
 applyTheme();
 loadHidden();
 window.addEventListener('hashchange', route);
 route();
+setTimeout(liveNotice, 1200);
 
 </script>
 </body>
