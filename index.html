@@ -642,7 +642,7 @@ const COURSES_200 = [
   { code: 'BCH', label: 'BCH', title: 'Biochemistry (code to confirm)', color: '#7C3AED', units: 2, semester: 'first' },
   { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
 ];
-const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Other CoHES programme', GUEST_PROGRAMME];
+const PROGRAMMES = ['MBBS', 'Nursing', 'Public Health', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Other CoHES programme', GUEST_PROGRAMME];
 
 /* Encouragement: King James Version (public domain). */
 const VERSES = {
@@ -2131,7 +2131,7 @@ async function loadUploadsPage(pass, container) {
     }
     return holder;
   };
-  box.replaceChildren(h('h2', null, 'Uploads (' + pending + ' waiting)'), rows.length ? null : h('p', { class: 'muted small' }, 'No uploads yet.'), rows.map(row));
+  box.replaceChildren(...[h('h2', null, 'Uploads (' + pending + ' waiting)'), rows.length ? null : h('p', { class: 'muted small' }, 'No uploads yet.'), ...rows.map(row)].filter(Boolean));
 }
 
 /* ---------- admin: analytics (server-side key, admin session and passcode checked on every call) ---------- */
