@@ -361,10 +361,23 @@ body.on-home .wrap{padding-bottom:170px}
 .brand svg{filter:drop-shadow(0 0 10px rgba(94,234,212,.35))}
 @media (prefers-reduced-motion: reduce){#splash{animation-duration:.2s;animation-delay:.2s}.sp-logo,.sp-line,.sp-name,.sp-sub{animation:none;opacity:1;stroke-dashoffset:0;transform:none}}
 
+/* opening screen colours follow the look chosen in Settings */
+#splash{--sp-a:#5EEAD4;--sp-b:#0B7A75;--sp-glow:rgba(94,234,212,.55);--sp-line:#ffffff;--sp-ink:#EEF4FF;--sp-sub:#9FB3D9;--sp-bg1:#14304a;--sp-bg2:#0a1020;--sp-bg3:#060a14}
+#splash[data-look="pink"]{--sp-a:#FBCFE8;--sp-b:#BE185D;--sp-glow:rgba(244,114,182,.6);--sp-line:#FFF1F7;--sp-ink:#FFF1F7;--sp-sub:#F9A8D4;--sp-bg1:#3b0d2a;--sp-bg2:#1a0716;--sp-bg3:#0c030a}
+#splash[data-look="purple"]{--sp-a:#DDD6FE;--sp-b:#6D28D9;--sp-glow:rgba(139,92,246,.65);--sp-line:#F5F3FF;--sp-ink:#F5F3FF;--sp-sub:#C4B5FD;--sp-bg1:#2a1459;--sp-bg2:#130a2e;--sp-bg3:#07041a}
+#splash[data-look="gold"]{--sp-a:#FDE68A;--sp-b:#92400E;--sp-glow:rgba(245,196,81,.7);--sp-line:#FFF7D6;--sp-ink:#FFF4CC;--sp-sub:#E9C46A;--sp-bg1:#2b1d05;--sp-bg2:#140c02;--sp-bg3:#070401}
+#splash[data-look="classic"]{--sp-a:#F8FAFC;--sp-b:#64748B;--sp-glow:rgba(203,213,225,.45);--sp-line:#0F172A;--sp-ink:#0F172A;--sp-sub:#475569;--sp-bg1:#FFFFFF;--sp-bg2:#F1F5F9;--sp-bg3:#E2E8F0}
+#splash{background:radial-gradient(120% 90% at 50% 0%,var(--sp-bg1) 0%,var(--sp-bg2) 60%,var(--sp-bg3) 100%) !important}
+#splash .sp-logo{filter:drop-shadow(0 0 22px var(--sp-glow)) !important}
+#splash .sp-line{stroke:var(--sp-line) !important}
+#splash .sp-name{color:var(--sp-ink) !important}
+#splash .sp-sub{color:var(--sp-sub) !important}
+
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><div class="sp-wrap"><svg class="sp-logo" viewBox="0 0 64 64" width="120" height="120"><defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5EEAD4"/><stop offset="1" stop-color="#0B7A75"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="sp-line"/></svg><div class="sp-name">Bablo Hub</div><div class="sp-sub">for CoHES students</div></div></div>
+<div id="splash" aria-hidden="true"><div class="sp-wrap"><svg class="sp-logo" viewBox="0 0 64 64" width="120" height="120"><defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="sp-line"/></svg><div class="sp-name">Bablo Hub</div><div class="sp-sub">for CoHES students</div></div></div>
+<script>(function(){try{var d=JSON.parse(localStorage.getItem("bablo100l:v1")||"{}");var l=d.skin||"glass";if(l==="green")l="glass";var sp=document.getElementById("splash");if(sp)sp.setAttribute("data-look",l);}catch(e){}})();</script>
 <div id="app"></div>
 <nav id="nav" class="nav" aria-label="Main"></nav>
 <noscript><h1>Bablo Hub: study app for Bowen University CoHES students</h1><p>Bablo Hub is a study app for Bowen University CoHES students, built by Bababola Moses Bolawaife, founder of The MedConfidant Channel. It helps students practise past questions, take timed quizzes and mock tests, read notes and flashcards, and check the timetable and CGPA. Enable JavaScript to use the app.</p></noscript>
@@ -548,7 +561,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.29.0' };
+const APP = { name: 'Bablo Hub', version: '3.29.1' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1409,7 +1422,7 @@ function homeView() {
     h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 function brand() {
-  return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5EEAD4"/><stop offset="1" stop-color="#0B7A75"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
+  return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
 }
 
 /* ---------- course page ---------- */
