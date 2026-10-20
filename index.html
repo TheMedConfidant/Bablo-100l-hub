@@ -343,9 +343,28 @@ body.on-home .wrap{padding-bottom:170px}
 .fb.ok{background:color-mix(in srgb,var(--ok) 20%,var(--surface)) !important}
 .fb.bad{background:color-mix(in srgb,var(--bad) 20%,var(--surface)) !important}
 
+/* Gold look: warm gold glow on the glass, dark ink in light mode */
+:root[data-tint="gold"]{--glow-a:rgba(250,204,21,.6);--glow-b:rgba(245,158,11,.45);--glow-c:rgba(253,230,138,.34);--brand:#F5B82E;--glass-edge:rgba(254,243,199,.36);--ink:#FFF8E1;--ink2:#F6DFA0}
+:root[data-tint="gold"][data-mode="light"]{--brand:#B7791F;--ink:#3A2A05;--ink2:#7A5A14;--glow-a:rgba(250,204,21,.7);--glow-b:rgba(245,158,11,.42);--glow-c:rgba(253,230,138,.42)}
+
+/* opening screen: logo draws itself, pulse line traces, name fades in, then the screen fades away */
+#splash{position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 0%,#14304a 0%,#0a1020 60%,#060a14 100%);animation:spOut .6s ease 1.9s forwards}
+.sp-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.sp-logo{filter:drop-shadow(0 0 22px rgba(94,234,212,.55));animation:spIn .9s cubic-bezier(.2,.8,.2,1) both}
+.sp-line{fill:none;stroke-dasharray:90;stroke-dashoffset:90;animation:spDraw 1.1s ease .5s forwards}
+.sp-name{font:800 1.6rem system-ui,-apple-system,Segoe UI,sans-serif;color:#EEF4FF;letter-spacing:.02em;opacity:0;animation:spFade .7s ease 1s forwards}
+.sp-sub{font:600 .8rem system-ui,-apple-system,Segoe UI,sans-serif;color:#9FB3D9;letter-spacing:.14em;text-transform:uppercase;opacity:0;animation:spFade .7s ease 1.25s forwards}
+@keyframes spIn{from{opacity:0;transform:scale(.6) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes spDraw{to{stroke-dashoffset:0}}
+@keyframes spFade{to{opacity:1}}
+@keyframes spOut{to{opacity:0;visibility:hidden}}
+.brand svg{filter:drop-shadow(0 0 10px rgba(94,234,212,.35))}
+@media (prefers-reduced-motion: reduce){#splash{animation-duration:.2s;animation-delay:.2s}.sp-logo,.sp-line,.sp-name,.sp-sub{animation:none;opacity:1;stroke-dashoffset:0;transform:none}}
+
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div class="sp-wrap"><svg class="sp-logo" viewBox="0 0 64 64" width="120" height="120"><defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5EEAD4"/><stop offset="1" stop-color="#0B7A75"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="sp-line"/></svg><div class="sp-name">Bablo Hub</div><div class="sp-sub">for CoHES students</div></div></div>
 <div id="app"></div>
 <nav id="nav" class="nav" aria-label="Main"></nav>
 <noscript><h1>Bablo Hub: study app for Bowen University CoHES students</h1><p>Bablo Hub is a study app for Bowen University CoHES students, built by Bababola Moses Bolawaife, founder of The MedConfidant Channel. It helps students practise past questions, take timed quizzes and mock tests, read notes and flashcards, and check the timetable and CGPA. Enable JavaScript to use the app.</p></noscript>
@@ -529,7 +548,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.27.1' };
+const APP = { name: 'Bablo Hub', version: '3.29.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1245,7 +1264,7 @@ function applyTheme() {
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
   const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
-  if (skin === 'pink' || skin === 'purple') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', skin); }
+  if (skin === 'pink' || skin === 'purple' || skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', skin); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
 function bestPct(code) { const l = DB.history.filter(x => x.course === code && x.mode !== 'practice'); return l.length ? Math.max.apply(null, l.map(x => x.pct)) : null; }
@@ -1390,7 +1409,7 @@ function homeView() {
     h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 function brand() {
-  return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 32 32', '<rect width="32" height="32" rx="9" fill="#0B7A75" stroke="none"/><path d="M4 17h6l3-7 5 14 3-7h7" stroke="#fff" stroke-width="2.4"/>'), 'Bablo Hub');
+  return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5EEAD4"/><stop offset="1" stop-color="#0B7A75"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
 }
 
 /* ---------- course page ---------- */
@@ -1662,7 +1681,7 @@ function meView() {
     h('h1', null, 'Me'), installCard(), accountSection(),
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Name'), name), h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick), h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: '100L' }; save(); toast('Saved.'); } }, 'Save changes')),
-    h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic'))),
+    h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic'))),
     h('section', { class: 'stack' }, h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     feedbackSection(), h('section', { class: 'stack' }, h('h2', null, 'About'), h('p', { class: 'muted small' }, 'Bablo Hub v' + APP.version + ' \u2022 ' + plural(BANK.length, 'question') + '. Answer keys come from the original lecture quizzes and are not independently verified' + (flagged ? '; ' + flagged + ' flagged questions are kept out of timed quizzes and exams' : '') + '. Spot a mistake? Tell Bablo so it can be fixed.')),
     h('section', { class: 'stack' }, h('button', { class: 'btn danger', onclick: async () => { if (await confirmBox({ title: 'Erase my data?', msg: 'This clears your profile, scores and weak spots on this device.', ok: 'Erase', danger: true })) { try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } location.hash = '#/'; location.reload(); } } }, 'Erase my data on this device')))));
@@ -2762,7 +2781,7 @@ function settingsView() {
   const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Settings')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
       h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
