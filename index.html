@@ -2587,7 +2587,7 @@ function maybeInstallPopup() {
 window.addEventListener('bablo-install-ready', maybeInstallPopup);
 
 /* ---------- schedule poll: when should qualifications hold? One vote per person. ---------- */
-const QUAL_POLL = { id: 'qualifications-schedule-v2-2026-10', closesAt: '2026-10-22T17:00:00+01:00', question: 'Choose the qualification session. Voting closes Thu 22 Oct at 5:00 pm (Lagos time); the option with the most votes wins.', options: [
+const QUAL_POLL = { id: 'qualifications-schedule-v2-2026-10', closesAt: '2026-10-22T17:00:00+01:00', question: 'Choose the start time for qualification day. Batch A starts at the selected time; Batch B starts one hour later. Voting closes Thu 22 Oct at 5:00 pm (Lagos time); the option with the most votes wins.', options: [
   { id: '2026-10-23-18', label: 'Fri 23 Oct · 6:00 pm' },
   { id: '2026-10-23-19', label: 'Fri 23 Oct · 7:00 pm' },
   { id: '2026-10-24-10', label: 'Sat 24 Oct · 10:00 am' },
@@ -2723,9 +2723,25 @@ function flashView(code) {
 }
 
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
-const QUAL = { date: '2026-10-17', A: [14 * 60, 18 * 60], B: [22 * 60, 23 * 60], questions: 60, minutes: 40, topN: 5 };
+let QUAL = { date: '', A: [0, 0], B: [0, 0], questions: 60, minutes: 40, topN: 5 };
+async function refreshQualSchedule() {
+  QUAL.date = ''; QUAL.A = [0, 0]; QUAL.B = [0, 0];
+  if (Date.now() < Date.parse(QUAL_POLL.closesAt)) return null;
+  const data = await pollCounts(QUAL_POLL.id);
+  if (!data || !data.total) return null;
+  const top = Math.max(...QUAL_POLL.options.map(o => data.counts[o.id] || 0));
+  const leaders = QUAL_POLL.options.filter(o => (data.counts[o.id] || 0) === top && top > 0);
+  if (leaders.length !== 1) return null;
+  const winner = leaders[0];
+  const start = Number(winner.id.slice(11)) * 60;
+  if (!Number.isFinite(start) || start < 0 || start > 23 * 60) return null;
+  QUAL.date = winner.id.slice(0, 10);
+  QUAL.A = [start, start + QUAL.minutes];
+  QUAL.B = [start + 60, start + 60 + QUAL.minutes];
+  return winner;
+}
 function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d.toISOString().slice(0, 10), mins: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
-function qualBatch() { const t = lagosNow(); if (t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
+function qualBatch() { const t = lagosNow(); if (!QUAL.date || t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
   if (!signedIn() || !DB.profile || !DB.profile.uid) return 'none';
@@ -2735,7 +2751,8 @@ async function qualStatus() {
   if (Array.isArray(started) && started.length) return 'started';
   return 'none';
 }
-function qualifyView() {
+async function qualifyView() {
+  await refreshQualSchedule();
   if (CUP_ON_HOLD) return holdPage('Qualifications');
   const batch = qualBatch();
   const holder = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Checking your status\u2026'));
@@ -2743,12 +2760,12 @@ function qualifyView() {
   qualStatus().then(st => { holder.replaceChildren(qualCard(batch, st)); });
 }
 function qualCard(batch, st) {
-  const info = h('p', { class: 'muted' }, 'The qualification session is being scheduled by student vote. Check the Qualifications poll on the Programme Cup page; the winning date and time will be confirmed after voting closes.');
+  const info = h('p', { class: 'muted' }, QUAL.date ? ('Student vote winner: ' + QUAL.date + ' (Lagos time). Batch A: ' + fmtMin(QUAL.A[0]) + '–' + fmtMin(QUAL.A[1]) + '; Batch B: ' + fmtMin(QUAL.B[0]) + '–' + fmtMin(QUAL.B[1]) + '.') : 'The date and time will be set by the student vote. The winning option is applied after voting closes; a tie requires a runoff.');
   let body;
   if (!signedIn()) body = h('div', { class: 'panel stack' }, h('h2', null, 'Create an account first'), h('p', { class: 'muted small' }, 'Only account holders can qualify for their programme.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to my account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
   else if (st === 'started') body = h('div', { class: 'panel stack' }, h('h2', null, 'Your attempt was already started'), h('p', { class: 'muted small' }, 'Each account gets one attempt, and it cannot be restarted. Contact the admin if your attempt was lost.'));
-  else if (!batch) body = h('div', { class: 'panel stack' }, h('h2', null, 'Not open right now'), h('p', { class: 'muted small' }, 'Come back during one of the batch windows above.'));
+  else if (!batch) body = h('div', { class: 'panel stack' }, h('h2', null, 'Not open right now'), h('p', { class: 'muted small' }, (!QUAL.date ? 'The student vote has not produced a confirmed schedule yet. Check the Programme Cup poll after it closes.' : 'Come back during one of the batch windows above.')));
   else body = h('div', { class: 'panel stack' }, h('h2', null, 'Batch ' + batch + ' is open'), h('p', { class: 'muted small' }, QUAL.questions + ' questions from across the courses. ' + QUAL.minutes + ' minutes. One attempt only, and it cannot be restarted once you begin.'),
     h('button', { class: 'btn gold block', onclick: () => startQualifier(batch) }, 'Start qualifications'));
   return h('div', { class: 'stack' }, h('div', { class: 'stack' }, info), body);
@@ -2824,7 +2841,7 @@ async function filesLibrary() {
   if (!rows.length) return h('p', { class: 'muted small' }, 'No approved files yet. Be the first to upload.');
   const by = {}; rows.forEach(r => { (by[r.course] = by[r.course] || []).push(r); });
   return h('div', { class: 'stack' }, Object.keys(by).sort().map(code => {
-    const c = courseBy(code);
+    const c = code === 'PUBLIC_HEALTH' ? { label: 'Public Health — programme resources' } : courseBy(code);
     return h('section', { class: 'panel stack' }, h('h2', null, c ? c.label : code),
       by[code].map(f => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
         h('span', null, h('b', null, f.title), h('div', { class: 'tiny muted' }, (f.mime.split('/').pop() || 'file') + ' \u2022 ' + Math.round(f.size_bytes / 1024) + ' KB \u2022 by ' + f.nickname)),
