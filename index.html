@@ -2142,7 +2142,7 @@ async function loadUploadsPage(pass, container) {
   const row = (u) => {
     const holder = h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
       h('b', null, u.title), h('span', { class: 'chip ' + (u.status === 'approved' ? 'ok' : u.status === 'rejected' ? 'bad' : 'gold') }, u.status),
-      h('div', { class: 'tiny muted' }, (courseBy(u.course) ? courseBy(u.course).label : u.course) + ' \u2022 by ' + u.nickname + ' (' + u.uid + ') \u2022 ' + Math.round(u.size_bytes / 1024) + ' KB'),
+      h('div', { class: 'tiny muted' }, (u.course === 'PUBLIC_HEALTH' ? 'Public Health — programme resources' : (courseBy(u.course) ? courseBy(u.course).label : u.course)) + ' \u2022 by ' + u.nickname + ' (' + u.uid + ') \u2022 ' + Math.round(u.size_bytes / 1024) + ' KB'),
       h('a', { class: 'btn sm ghost', href: LB.url + '/storage/v1/object/public/hub-uploads/' + u.file_path, target: '_blank', rel: 'noopener' }, 'Open file to check'));
     if (u.status === 'pending') {
       const review = async (status) => { const r = await adminPost('hub_admin_review', { p_pass: pass, p_id: u.id, p_status: status }); if (r && r.ok) { toast(status === 'approved' ? 'Approved. It is in the library.' : 'Rejected.'); const d2 = document.getElementById('uploadsSlot'); if (d2) { box.remove(); loadUploadsPage(pass, container); } } else toast((r && r.error) || 'Could not update.'); };
