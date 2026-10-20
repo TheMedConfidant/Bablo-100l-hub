@@ -1346,6 +1346,7 @@ function route() {
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
     if (v === 'course') courseView(seg[1]);
+    else if (v === 'course-files' && seg[1]) courseFilesView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
     else if (v === 'result') resultView();
@@ -2663,9 +2664,11 @@ function sectionTiles(c, questions, topics) {
     h('p', { class: 'muted small' }, 'Notes and flashcards are part of Bablo Hub premium. Payments are not open yet, so this unlocks once premium is switched on for your account.'),
     h('button', { class: 'btn block', onclick: () => { toast('Premium is not open yet.'); } }, 'Got it'));
   const secs = [
-    { name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
+    { name: 'Questions', sub: questions + ' questions \\u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
+    { name: 'Past Questions', sub: 'Course question bank and exam practice', live: true, go: () => go('#/setup/' + c.code + '/exam') },
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
-    { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
+    { name: 'Flashcards', sub: (window.__CARDS__ || {})[c.code] ? (window.__CARDS__[c.code].length + ' study cards') : 'Revision cards from course material', live: true, premium: true, go: () => go('#/flash/' + c.code) },
+    { name: 'Uploaded Materials', sub: 'Approved files for this course', live: true, go: () => go('#/course-files/' + c.code) },
     { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: false, premium: true }
   ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
@@ -2676,6 +2679,30 @@ function sectionTiles(c, questions, topics) {
       h('span', { class: 'sec-name' }, s.name), h('span', { class: 'sec-sub' }, s.sub),
       h('span', { class: 'sec-state' }, locked ? 'Premium' : (s.live ? 'Open' : 'Pending')));
   }));
+}
+
+/* ---------- approved course materials ---------- */
+async function courseFilesView(code) {
+  const c = courseBy(code) || COURSES_200.find(x => x.code === code);
+  if (!c) { go('#/'); return; }
+  const list = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading approved materials…'));
+  mount(wrap(back('#/course/' + code, c.label), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, c.label + ' · Materials'), h('p', { class: 'muted' }, 'Approved uploads for this course. Materials are reviewed before students can access them.')),
+    h('section', { class: 'panel stack' }, list))));
+  const rows = await sbGet('uploads?select=id,title,course,file_path,mime,size_bytes,nickname,created_at&status=eq.approved&course=eq.' + encodeURIComponent(code) + '&order=created_at.desc&limit=100');
+  if (!Array.isArray(rows)) {
+    list.replaceChildren(h('p', { class: 'muted small' }, 'Materials could not be loaded. Check your connection and try again.'));
+    return;
+  }
+  if (!rows.length) {
+    list.replaceChildren(h('p', { class: 'muted' }, 'No approved uploads for ' + c.label + ' yet. Uploads for this course will appear here after review.'));
+    return;
+  }
+  list.replaceChildren(...rows.map(f => h('div', { class: 'row between wrapr', style: { padding: '10px 0', borderBottom: '1px solid var(--line)' } },
+    h('div', { class: 'stack', style: { gap: '3px' } },
+      h('b', null, f.title),
+      h('span', { class: 'tiny muted' }, (f.mime || 'file').split('/').pop() + ' · ' + Math.round((f.size_bytes || 0) / 1024) + ' KB · ' + (f.nickname || 'Student'))),
+    h('a', { class: 'btn sm', href: uploadPublicUrl(f.file_path), target: '_blank', rel: 'noopener' }, 'Open'))));
 }
 
 /* ---------- notes and flashcards (100L) ---------- */
