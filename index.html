@@ -2794,12 +2794,13 @@ function filesView() {
       fd.append('file', f, f.name);
       fd.append('token', DB.account.token);
       fd.append('ext', ext);
+      fd.append('course', course.value);
+      fd.append('title', title.value.trim().slice(0, 120));
+      fd.append('nickname', (DB.profile.nick || 'Student').slice(0, 30));
+      fd.append('copyright_ok', String(copy.checked));
       const up = await fetch(LB.url + '/functions/v1/hub-upload', { method: 'POST', body: fd });
       const got = await up.json().catch(() => ({}));
-      if (!up.ok || !got.ok) throw new Error(got.error || 'upload');
-      const path = got.path;
-      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending' }) });
-      if (!row.ok) throw new Error('row');
+      if (!up.ok || !got.ok) throw new Error(got.error || 'Upload failed. Please try again.');
       toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
     } catch (e) { err.textContent = (e && e.message && e.message !== 'upload' && e.message !== 'row') ? e.message : 'Could not upload. Check your connection and try again.'; }
     send.disabled = false; send.textContent = 'Upload';
