@@ -47,10 +47,13 @@ sup{font-size:.7em;line-height:0}
 .chip.gold{background:var(--gold-soft);color:var(--gold)}.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.bad{background:var(--bad-soft);color:var(--bad)}.chip.brand{background:var(--brand-soft);color:var(--brand)}
 /* hero (the one bold moment: pulse trace) */
 .hero{position:relative;padding:20px 18px 14px;border-radius:20px;background:linear-gradient(135deg,#0E1F3D,#12365F 60%,#0B6B6A);color:#F2F7FF;overflow:hidden}
-.hero h1{font-size:1.6rem}.hero p{color:#C4D4EC;margin-top:4px}
+.hero h1{font-size:1.6rem}.hero h1.hero-greeting{font-weight:850;letter-spacing:-.035em;color:#F6D98A;background:linear-gradient(100deg,#FFF1B8 0%,#E6B84F 34%,#B77A16 68%,#FFE6A0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 22px rgba(230,184,79,.14)}.hero p{color:#C4D4EC;margin-top:4px}
 .pulse{display:block;width:100%;height:56px;margin-top:10px}
-.pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:draw 2.2s ease-out .15s forwards}
+.pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;filter:drop-shadow(0 0 3px rgba(94,234,212,.42));animation:draw 1.4s ease-out .15s forwards,ecgDrift 8s linear 1.6s infinite,ecgGlow 3.8s ease-in-out 1.6s infinite}
 @keyframes draw{to{stroke-dashoffset:0}}
+@keyframes ecgDrift{from{stroke-dashoffset:0}to{stroke-dashoffset:-72}}
+@keyframes ecgGlow{0%,100%{opacity:.78;filter:drop-shadow(0 0 2px rgba(94,234,212,.22))}50%{opacity:1;filter:drop-shadow(0 0 5px rgba(94,234,212,.58))}}
+@media(prefers-reduced-motion:reduce){.pulse path{animation:none;stroke-dashoffset:0}}
 .hero-stats{display:flex;gap:22px;margin-top:6px;flex-wrap:wrap}.hero-stats b{font:800 1.3rem var(--head);display:block}.hero-stats span{font-size:.78rem;color:#C4D4EC}
 /* courses */
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -1397,7 +1400,7 @@ function homeView() {
   const st = Core.streak(DB.history.map(x => x.ts), Date.now());
   const weak = Object.keys(DB.missed).length;
   const hero = h('section', { class: 'hero' },
-    h('h1', null, greet + ', ' + first),
+    h('h1', { class: 'hero-greeting' }, greet + ', ' + first),
     h('p', null, 'Pick a course, practise a topic, then test yourself.'),
     svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
     h('div', { class: 'hero-stats' },
@@ -1692,8 +1695,9 @@ function meView() {
   const flagged = BANK.filter(q => q.f).length;
   mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
     h('h1', null, 'Me'), installCard(), accountSection(),
+    signedIn() && DB.profile && DB.profile.uid === 'MBB-4635' ? h('section', { class: 'panel stack' }, h('h2', null, 'Owner tools'), h('p', { class: 'muted small' }, 'Restricted to the authorised Bablo Hub owner account.'), h('a', { class: 'btn primary block', href: '#/admin' }, 'Open admin panel')) : null,
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Name'), name), h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick), h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
-      h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: '100L' }; save(); toast('Saved.'); } }, 'Save changes')),
+      h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: DB.profile.level || '100L', uid: DB.profile.uid }; save(); toast('Saved.'); } }, 'Save changes')),
     h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic'))),
     h('section', { class: 'stack' }, h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     feedbackSection(), h('section', { class: 'stack' }, h('h2', null, 'About'), h('p', { class: 'muted small' }, 'Bablo Hub v' + APP.version + ' \u2022 ' + plural(BANK.length, 'question') + '. Answer keys come from the original lecture quizzes and are not independently verified' + (flagged ? '; ' + flagged + ' flagged questions are kept out of timed quizzes and exams' : '') + '. Spot a mistake? Tell Bablo so it can be fixed.')),
@@ -2138,7 +2142,7 @@ async function loadUploadsPage(pass, container) {
   const row = (u) => {
     const holder = h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
       h('b', null, u.title), h('span', { class: 'chip ' + (u.status === 'approved' ? 'ok' : u.status === 'rejected' ? 'bad' : 'gold') }, u.status),
-      h('div', { class: 'tiny muted' }, (courseBy(u.course) ? courseBy(u.course).label : u.course) + ' \u2022 by ' + u.nickname + ' (' + u.uid + ') \u2022 ' + Math.round(u.size_bytes / 1024) + ' KB'),
+      h('div', { class: 'tiny muted' }, (u.course === 'PUBLIC_HEALTH' ? 'Public Health — programme resources' : (courseBy(u.course) ? courseBy(u.course).label : u.course)) + ' \u2022 by ' + u.nickname + ' (' + u.uid + ') \u2022 ' + Math.round(u.size_bytes / 1024) + ' KB'),
       h('a', { class: 'btn sm ghost', href: LB.url + '/storage/v1/object/public/hub-uploads/' + u.file_path, target: '_blank', rel: 'noopener' }, 'Open file to check'));
     if (u.status === 'pending') {
       const review = async (status) => { const r = await adminPost('hub_admin_review', { p_pass: pass, p_id: u.id, p_status: status }); if (r && r.ok) { toast(status === 'approved' ? 'Approved. It is in the library.' : 'Rejected.'); const d2 = document.getElementById('uploadsSlot'); if (d2) { box.remove(); loadUploadsPage(pass, container); } } else toast((r && r.error) || 'Could not update.'); };
@@ -2357,7 +2361,7 @@ function nextWindows(now, count) {
   return Core.windowsIn(from, to, EVENT_WINDOWS).filter(w => w.end > now).slice(0, count);
 }
 function cupView() {
-  if (CUP_ON_HOLD) return holdPage('Programme Cup');
+  if (CUP_ON_HOLD) { mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Programme Cup'), h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'Competition on hold'), h('p', { class: 'muted small' }, 'The competition remains paused while its checks are completed. Students can still vote on the qualification schedule below.')), pollCard()))); return; }
   const now = Date.now(), seasonStart = Date.parse(SEASON.start), seasonEnd = seasonStart + SEASON.weeks * 7 * 864e5;
   const inSeason = now >= seasonStart && now < seasonEnd;
   const fmtWhen = ms => new Date(ms + 3600000).toISOString().slice(0, 16).replace('T', ' ') + ' Lagos';
@@ -2583,36 +2587,51 @@ function maybeInstallPopup() {
 window.addEventListener('bablo-install-ready', maybeInstallPopup);
 
 /* ---------- schedule poll: when should qualifications hold? One vote per person. ---------- */
-const QUAL_POLL = { id: 'qualifications-2026-s1', question: 'When should programme qualifications hold? (Lagos time)', options: [
-  { id: 'today-8pm', label: 'Today, 8pm' }, { id: 'today-9pm', label: 'Today, 9pm' },
-  { id: 'tomorrow-7pm', label: 'Tomorrow, 7pm' }, { id: 'tomorrow-8pm', label: 'Tomorrow, 8pm' }] };
+const QUAL_POLL = { id: 'qualifications-schedule-v2-2026-10', closesAt: '2026-10-22T17:00:00+01:00', question: 'Choose the start time for qualification day. Batch A starts at the selected time; Batch B starts one hour later. Voting closes Thu 22 Oct at 5:00 pm (Lagos time); the option with the most votes wins.', options: [
+  { id: '2026-10-23-18', label: 'Fri 23 Oct · 6:00 pm' },
+  { id: '2026-10-23-19', label: 'Fri 23 Oct · 7:00 pm' },
+  { id: '2026-10-24-10', label: 'Sat 24 Oct · 10:00 am' },
+  { id: '2026-10-24-12', label: 'Sat 24 Oct · 12:00 noon' }] };
 async function pollCounts(pollId) {
   const rows = await sbGet('poll_votes?poll_id=eq.' + encodeURIComponent(pollId) + '&select=option_id,voter');
   if (!Array.isArray(rows)) return null;
   const counts = {}; let mine = null;
-  rows.forEach(r => { counts[r.option_id] = (counts[r.option_id] || 0) + 1; if (r.voter === DB.dev) mine = r.option_id; });
+  const voterId = signedIn() && DB.profile && DB.profile.uid ? DB.profile.uid : DB.dev;
+  rows.forEach(r => { counts[r.option_id] = (counts[r.option_id] || 0) + 1; if (r.voter === voterId) mine = r.option_id; });
   return { counts, mine, total: rows.length };
 }
 function pollCard() {
-  const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
+  const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading…'));
   const draw = async () => {
-    if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll opens when the live database is connected.')); return; }
-    const data = await pollCounts(QUAL_POLL.id);
-    if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load the poll.')); return; }
-    box.replaceChildren(...QUAL_POLL.options.map(o => {
+    const connected = liveOn();
+    const signed = signedIn() && DB.profile && DB.profile.uid;
+    const data = connected ? await pollCounts(QUAL_POLL.id) : { counts: {}, mine: null, total: 0 };
+    if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll could not load from the live database. Check your connection and try again.')); return; }
+    const closed = Date.now() >= Date.parse(QUAL_POLL.closesAt);
+    const topVotes = Math.max(0, ...QUAL_POLL.options.map(o => data.counts[o.id] || 0));
+    const leaders = QUAL_POLL.options.filter(o => (data.counts[o.id] || 0) === topVotes && topVotes > 0);
+    const summary = !connected ? 'Poll options are visible, but voting needs the live database connection.' :
+      closed ? (leaders.length === 1 ? 'Voting is closed. Most votes: ' + leaders[0].label + '.' : leaders.length > 1 ? 'Voting is closed with a tie. A runoff is needed before the session is confirmed.' : 'Voting is closed with no votes; the session is not confirmed.') :
+      'Voting closes ' + new Date(QUAL_POLL.closesAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) + ' (Lagos time).';
+    const children = [h('p', { class: 'small muted' }, summary)];
+    if (connected && !signed) children.push(h('p', { class: 'small muted' }, 'Sign in to vote. You can view the options and results without an account.'));
+    for (const o of QUAL_POLL.options) {
       const n = data.counts[o.id] || 0, pct = data.total ? Math.round(n / data.total * 100) : 0;
-      return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id), disabled: !!data.mine, style: { justifyContent: 'space-between', marginTop: '6px' },
+      children.push(h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id),
+        disabled: !connected || !signed || !!data.mine || closed,
+        style: { justifyContent: 'space-between', marginTop: '6px' },
         onclick: async () => {
-          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: QUAL_POLL.id, option_id: o.id, voter: DB.dev }) }).catch(() => null);
+          if (!signedIn() || !DB.profile || !DB.profile.uid) { toast('Sign in before voting.'); return; }
+          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: QUAL_POLL.id, option_id: o.id, voter: DB.profile.uid }) }).catch(() => null);
           if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
-        } }, h('span', null, (data.mine === o.id ? '\u2714 ' : '') + o.label), h('span', { class: 'small muted' }, n + ' \u2022 ' + pct + '%'));
-    }));
-    box.append(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. You can vote once.'));
+        } }, h('span', null, (data.mine === o.id ? '✓ ' : '') + o.label), h('span', { class: 'small muted' }, n + ' • ' + pct + '%')));
+    }
+    if (connected) children.push(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. One vote per account.'));
+    box.replaceChildren(...children);
   };
   draw();
   return h('section', { class: 'panel stack' }, h('h2', null, 'Qualifications poll'), h('p', { class: 'muted small' }, QUAL_POLL.question), box);
 }
-
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
 function course200View(c) {
   const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
@@ -2711,9 +2730,25 @@ function flashView(code) {
 }
 
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
-const QUAL = { date: '2026-10-17', A: [14 * 60, 18 * 60], B: [22 * 60, 23 * 60], questions: 60, minutes: 40, topN: 5 };
+let QUAL = { date: '', A: [0, 0], B: [0, 0], questions: 60, minutes: 40, topN: 5 };
+async function refreshQualSchedule() {
+  QUAL.date = ''; QUAL.A = [0, 0]; QUAL.B = [0, 0];
+  if (Date.now() < Date.parse(QUAL_POLL.closesAt)) return null;
+  const data = await pollCounts(QUAL_POLL.id);
+  if (!data || !data.total) return null;
+  const top = Math.max(...QUAL_POLL.options.map(o => data.counts[o.id] || 0));
+  const leaders = QUAL_POLL.options.filter(o => (data.counts[o.id] || 0) === top && top > 0);
+  if (leaders.length !== 1) return null;
+  const winner = leaders[0];
+  const start = Number(winner.id.slice(11)) * 60;
+  if (!Number.isFinite(start) || start < 0 || start > 23 * 60) return null;
+  QUAL.date = winner.id.slice(0, 10);
+  QUAL.A = [start, start + QUAL.minutes];
+  QUAL.B = [start + 60, start + 60 + QUAL.minutes];
+  return winner;
+}
 function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d.toISOString().slice(0, 10), mins: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
-function qualBatch() { const t = lagosNow(); if (t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
+function qualBatch() { const t = lagosNow(); if (!QUAL.date || t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
   if (!signedIn() || !DB.profile || !DB.profile.uid) return 'none';
@@ -2723,20 +2758,21 @@ async function qualStatus() {
   if (Array.isArray(started) && started.length) return 'started';
   return 'none';
 }
-function qualifyView() {
-  if (CUP_ON_HOLD) return holdPage('Qualifications');
+async function qualifyView() {
+  if (CUP_ON_HOLD) { mount(wrap(back('#/cup', 'Programme Cup'), h('div', { class: 'stack-l' }, h('h1', null, 'Qualifications'), h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'Not open yet'), h('p', { class: 'muted small' }, 'Qualifications remain paused while checks are completed. Vote below to help choose the schedule.')), pollCard()))); return; }
+  await refreshQualSchedule();
   const batch = qualBatch();
-  const holder = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Checking your status\u2026'));
+  const holder = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Checking your status…'));
   mount(wrap(back('#/cup', 'Programme Cup'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, 'Qualifications')), holder)));
   qualStatus().then(st => { holder.replaceChildren(qualCard(batch, st)); });
 }
 function qualCard(batch, st) {
-  const info = h('p', { class: 'muted' }, 'Qualifications run on 17 October 2026, Lagos time. Batch A: ' + fmtMin(QUAL.A[0]) + ' to ' + fmtMin(QUAL.A[1]) + '. Batch B: ' + fmtMin(QUAL.B[0]) + ' to ' + fmtMin(QUAL.B[1]) + '.');
+  const info = h('p', { class: 'muted' }, QUAL.date ? ('Student vote winner: ' + QUAL.date + ' (Lagos time). Batch A: ' + fmtMin(QUAL.A[0]) + '–' + fmtMin(QUAL.A[1]) + '; Batch B: ' + fmtMin(QUAL.B[0]) + '–' + fmtMin(QUAL.B[1]) + '.') : 'The date and time will be set by the student vote. The winning option is applied after voting closes; a tie requires a runoff.');
   let body;
   if (!signedIn()) body = h('div', { class: 'panel stack' }, h('h2', null, 'Create an account first'), h('p', { class: 'muted small' }, 'Only account holders can qualify for their programme.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to my account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
   else if (st === 'started') body = h('div', { class: 'panel stack' }, h('h2', null, 'Your attempt was already started'), h('p', { class: 'muted small' }, 'Each account gets one attempt, and it cannot be restarted. Contact the admin if your attempt was lost.'));
-  else if (!batch) body = h('div', { class: 'panel stack' }, h('h2', null, 'Not open right now'), h('p', { class: 'muted small' }, 'Come back during one of the batch windows above.'));
+  else if (!batch) body = h('div', { class: 'panel stack' }, h('h2', null, 'Not open right now'), h('p', { class: 'muted small' }, (!QUAL.date ? 'The student vote has not produced a confirmed schedule yet. Check the Programme Cup poll after it closes.' : 'Come back during one of the batch windows above.')));
   else body = h('div', { class: 'panel stack' }, h('h2', null, 'Batch ' + batch + ' is open'), h('p', { class: 'muted small' }, QUAL.questions + ' questions from across the courses. ' + QUAL.minutes + ' minutes. One attempt only, and it cannot be restarted once you begin.'),
     h('button', { class: 'btn gold block', onclick: () => startQualifier(batch) }, 'Start qualifications'));
   return h('div', { class: 'stack' }, h('div', { class: 'stack' }, info), body);
@@ -2804,7 +2840,7 @@ function settingsView() {
 }
 
 /* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
-const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'] };
+const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt', 'html', 'htm'] };
 function uploadPublicUrl(path) { return LB.url + '/storage/v1/object/public/hub-uploads/' + path; }
 async function filesLibrary() {
   const rows = await sbGet('uploads?select=id,title,course,file_path,mime,size_bytes,nickname,created_at&status=eq.approved&order=created_at.desc&limit=300');
@@ -2812,7 +2848,7 @@ async function filesLibrary() {
   if (!rows.length) return h('p', { class: 'muted small' }, 'No approved files yet. Be the first to upload.');
   const by = {}; rows.forEach(r => { (by[r.course] = by[r.course] || []).push(r); });
   return h('div', { class: 'stack' }, Object.keys(by).sort().map(code => {
-    const c = courseBy(code);
+    const c = code === 'PUBLIC_HEALTH' ? { label: 'Public Health — programme resources' } : courseBy(code);
     return h('section', { class: 'panel stack' }, h('h2', null, c ? c.label : code),
       by[code].map(f => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
         h('span', null, h('b', null, f.title), h('div', { class: 'tiny muted' }, (f.mime.split('/').pop() || 'file') + ' \u2022 ' + Math.round(f.size_bytes / 1024) + ' KB \u2022 by ' + f.nickname)),
@@ -2822,9 +2858,9 @@ async function filesLibrary() {
 function filesView() {
   const library = h('div', null, h('p', { class: 'muted small' }, 'Loading\u2026'));
   filesLibrary().then(el => library.replaceChildren(el));
-  const course = h('select', null, COURSES.filter(c => !c.pending).map(c => h('option', { value: c.code }, c.label)));
+  const course = h('select', null, ...COURSES.filter(c => !c.pending).map(c => h('option', { value: c.code }, c.label)), h('option', { value: 'PUBLIC_HEALTH' }, 'Public Health — programme resources'));
   const title = h('input', { type: 'text', maxlength: '120', placeholder: 'Title, e.g. BIO 101 past questions 2022' });
-  const file = h('input', { type: 'file', accept: '.pdf,.doc,.docx,.ppt,.pptx,.txt' });
+  const file = h('input', { type: 'file', accept: '.pdf,.doc,.docx,.ppt,.pptx,.txt,.html,.htm' });
   const copy = h('input', { type: 'checkbox', id: 'copyOk' });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const send = async () => {
@@ -2839,23 +2875,34 @@ function filesView() {
     if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
     send.disabled = true; send.textContent = 'Uploading\u2026';
     try {
-      // the server checks your logged-in session, then stores the file
-      // plain form upload: no custom headers, so the browser needs no extra safety check
-      const fd = new FormData(); fd.append('file', f, f.name);
-      const up = await fetch(LB.url + '/functions/v1/hub-upload?token=' + encodeURIComponent(DB.account.token) + '&ext=' + encodeURIComponent(ext), { method: 'POST', body: fd });
+      // The current server endpoint validates the account session and creates the pending
+      // upload row itself, so the client must not try a second insert into uploads.
+      const fd = new FormData();
+      fd.append('file', f, f.name);
+      fd.append('ext', ext);
+      fd.append('course', course.value);
+      fd.append('title', title.value.trim().slice(0, 120));
+      fd.append('nickname', String(DB.profile.nick || 'Student').slice(0, 30));
+      fd.append('copyright_ok', 'true');
+      const up = await fetch(LB.url + '/functions/v1/hub-submit-upload', {
+        method: 'POST',
+        headers: { 'x-session-token': String(DB.account.token || '') },
+        body: fd
+      });
       const got = await up.json().catch(() => ({}));
-      if (!up.ok || !got.ok) throw new Error(got.error || 'upload');
-      const path = got.path;
-      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending' }) });
-      if (!row.ok) throw new Error('row');
-      toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
-    } catch (e) { err.textContent = (e && e.message && e.message !== 'upload' && e.message !== 'row') ? e.message : 'Could not upload. Check your connection and try again.'; }
+      if (!up.ok || !got.ok) throw new Error(got.error || 'Could not upload. Check your connection and try again.');
+      toast('Upload received. It is waiting for review before publication.');
+      title.value = ''; file.value = ''; copy.checked = false;
+      filesLibrary().then(el => library.replaceChildren(el));
+    } catch (e) {
+      err.textContent = (e && e.message) ? e.message : 'Could not upload. Check your connection and try again.';
+    }
     send.disabled = false; send.textContent = 'Upload';
   };
   mount(wrap(back('#/social', 'Social'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Files'), h('p', { class: 'muted' }, 'Past questions, notes and papers shared by students. Downloads are free. Every upload is checked before it goes live.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
-      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB)'), file),
+      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint, TXT or HTML, up to 10 MB)'), file),
       h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
       h('button', { class: 'btn primary block', onclick: send, disabled: !signedIn() }, 'Upload')),
     h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
