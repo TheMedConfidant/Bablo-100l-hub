@@ -326,6 +326,25 @@ body.on-home .wrap{padding-bottom:170px}
 .choice{min-height:54px;display:flex;align-items:center;gap:10px;text-align:left;white-space:normal;overflow-wrap:anywhere;font-size:1rem;line-height:1.4;box-sizing:border-box}
 .fb{font-size:1rem;line-height:1.5;overflow-wrap:anywhere}
 
+
+/* ---------- Bablo Hub gold glass identity ---------- */
+:root[data-skin="gold"]{--bg:#090806;--surface:rgba(28,22,12,.86);--surface2:rgba(51,39,18,.72);--ink:#fff5d9;--ink2:#c8b98f;--line:rgba(242,194,91,.28);--brand:#dca638;--brand-ink:#160f03;--brand-soft:rgba(226,174,64,.16);--gold:#e8b84e;--gold-soft:rgba(232,184,78,.18);--shadow:0 8px 28px rgba(0,0,0,.25);color-scheme:dark}
+:root[data-skin="gold"] body{background:radial-gradient(ellipse at 15% 0%,rgba(184,126,25,.13),transparent 42%),var(--bg)}
+:root[data-skin="gold"] .panel,:root[data-skin="gold"] .card,:root[data-skin="gold"] .modal,:root[data-skin="gold"] .nav{background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018)),var(--surface);border-color:var(--line);box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 28px rgba(0,0,0,.18);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+:root[data-skin="gold"] .btn.primary{background:linear-gradient(135deg,#ffe8a0,#d69a25 58%,#a66c12);color:#1b1202;border:1px solid rgba(255,231,163,.7);box-shadow:0 5px 18px rgba(216,158,43,.22)}
+:root[data-skin="gold"] .badge,:root[data-skin="gold"] .chip{border-color:var(--line)}
+.bh-splash{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 42%,#35260c 0%,#100d07 38%,#050505 78%);color:#fff0c2;overflow:hidden;transition:opacity .45s ease,visibility .45s ease}
+.bh-splash.bh-out{opacity:0;visibility:hidden;pointer-events:none}
+.bh-splash:before,.bh-splash:after{content:"";position:absolute;width:70vw;height:70vw;max-width:520px;max-height:520px;border:1px solid rgba(244,190,68,.18);border-radius:50%;animation:bh-orbit 4.2s linear infinite}
+.bh-splash:after{width:52vw;height:52vw;max-width:390px;max-height:390px;animation-direction:reverse;border-color:rgba(255,222,139,.13)}
+.bh-splash-inner{position:relative;z-index:1;display:flex;align-items:center;flex-direction:column;gap:16px;animation:bh-rise .8s cubic-bezier(.2,.8,.2,1) both}
+.bh-mark{width:116px;height:116px;filter:drop-shadow(0 0 24px rgba(242,179,47,.28));animation:bh-mark-in 1.05s cubic-bezier(.2,.8,.2,1) both}
+.bh-brand{font:800 30px/1.05 system-ui,sans-serif;letter-spacing:-1.2px;background:linear-gradient(180deg,#fff8dc,#e6b94d 55%,#a66b16);color:transparent;background-clip:text;-webkit-background-clip:text}
+.bh-tagline{font:600 10px/1.4 system-ui,sans-serif;letter-spacing:4px;color:#d8c28b}
+.bh-progress{width:112px;height:2px;border-radius:4px;background:rgba(255,220,139,.14);overflow:hidden;margin-top:9px}
+.bh-progress:after{content:"";display:block;height:100%;width:42%;background:linear-gradient(90deg,#9b6716,#fff0b5,#d49a25);animation:bh-progress .95s ease-in-out infinite alternate}
+@keyframes bh-orbit{to{transform:rotate(360deg) scale(1.03)}}@keyframes bh-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}@keyframes bh-mark-in{0%{opacity:0;transform:scale(.62) rotate(-12deg)}70%{opacity:1;transform:scale(1.06) rotate(2deg)}100%{transform:scale(1) rotate(0)}}@keyframes bh-progress{from{transform:translateX(-25%)}to{transform:translateX(165%)}}
+@media(prefers-reduced-motion:reduce){.bh-splash:before,.bh-splash:after,.bh-mark,.bh-splash-inner,.bh-progress:after{animation:none!important}.bh-splash{transition:none}}
 </style>
 </head>
 <body>
@@ -2812,6 +2831,15 @@ function filesView() {
       h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
       h('button', { class: 'btn primary block', style: { minHeight: '54px', fontSize: '1rem', fontWeight: '800', letterSpacing: '.01em', boxShadow: '0 8px 22px rgba(45, 105, 230, .24)' }, onclick: send, disabled: !signedIn() }, '⬆️ Submit to BH Library')),
     h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
+}
+
+
+function showBabloSplash(){
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  try { if (sessionStorage.getItem('bh-gold-splash-seen') === '1') return; sessionStorage.setItem('bh-gold-splash-seen','1'); } catch(e) {}
+  const splash=document.createElement('div'); splash.className='bh-splash'; splash.setAttribute('role','status'); splash.setAttribute('aria-label','Bablo Hub loading');
+  splash.innerHTML='<div class="bh-splash-inner"><svg class="bh-mark" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff4bf"/><stop offset=".48" stop-color="#e7b13b"/><stop offset="1" stop-color="#9d6414"/></linearGradient><linearGradient id="bhGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#f0b634" stop-opacity=".04"/></linearGradient></defs><rect x="7" y="7" width="106" height="106" rx="27" fill="url(#bhGlass)" stroke="url(#bhGold)" stroke-width="2"/><path d="M38 27h31c19 0 29 10 29 25 0 10-5 17-14 21 11 3 17 11 17 22 0 13-11 20-29 20H38V27zm18 15v25h12c8 0 12-5 12-13s-4-12-12-12H56zm0 40v18h15c8 0 12-3 12-9s-4-9-12-9H56z" fill="url(#bhGold)" transform="translate(-5 -7) scale(.96)"/><path d="M27 73c-7-15 3-29 19-29 9 0 15 4 22 12l-9 7c-4-5-8-8-13-8-8 0-12 7-8 14l-11 4z" fill="#fff0b5"/><path d="M25 80c21 23 51 22 70-4" fill="none" stroke="url(#bhGold)" stroke-width="3.5" stroke-linecap="round"/><path d="M35 22l20-7 18 7-18 8z" fill="url(#bhGold)"/><path d="M55 30v5" stroke="#fff0b5" stroke-width="2"/><path d="M87 34l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fff0b5"/></svg><div class="bh-brand">Bablo Hub</div><div class="bh-tagline">LEARN · COMPETE · GROW</div><div class="bh-progress"></div></div>';
+  document.body.appendChild(splash); window.setTimeout(()=>{splash.classList.add('bh-out');window.setTimeout(()=>splash.remove(),500)},1550);
 }
 
 /* ---------- boot ---------- */
