@@ -319,6 +319,37 @@ body.on-home .wrap{padding-bottom:170px}
 .top-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-size:1.05rem;cursor:pointer}
 
+
+/* High-contrast form fields: consistent across Glass, Pink, Purple and Classic */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+textarea,
+select,
+[contenteditable="true"] {
+  background-color:#000 !important;
+  color:#fff !important;
+  border-color:#555 !important;
+  caret-color:#fff !important;
+  color-scheme:dark;
+}
+input::placeholder,
+textarea::placeholder {
+  color:#c7c7c7 !important;
+  opacity:1 !important;
+}
+select option,
+select optgroup {
+  background:#000 !important;
+  color:#fff !important;
+}
+input:focus,
+textarea:focus,
+select:focus,
+[contenteditable="true"]:focus {
+  border-color:#fff !important;
+  outline:2px solid #fff !important;
+  outline-offset:1px;
+}
+
 </style>
 </head>
 <body>
