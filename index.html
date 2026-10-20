@@ -49,8 +49,11 @@ sup{font-size:.7em;line-height:0}
 .hero{position:relative;padding:20px 18px 14px;border-radius:20px;background:linear-gradient(135deg,#0E1F3D,#12365F 60%,#0B6B6A);color:#F2F7FF;overflow:hidden}
 .hero h1{font-size:1.6rem}.hero p{color:#C4D4EC;margin-top:4px}
 .pulse{display:block;width:100%;height:56px;margin-top:10px}
-.pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:draw 2.2s ease-out .15s forwards}
+.pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;filter:drop-shadow(0 0 3px rgba(94,234,212,.42));animation:draw 1.4s ease-out .15s forwards,ecgDrift 8s linear 1.6s infinite,ecgGlow 3.8s ease-in-out 1.6s infinite}
 @keyframes draw{to{stroke-dashoffset:0}}
+@keyframes ecgDrift{from{stroke-dashoffset:0}to{stroke-dashoffset:-72}}
+@keyframes ecgGlow{0%,100%{opacity:.78;filter:drop-shadow(0 0 2px rgba(94,234,212,.22))}50%{opacity:1;filter:drop-shadow(0 0 5px rgba(94,234,212,.58))}}
+@media(prefers-reduced-motion:reduce){.pulse path{animation:none;stroke-dashoffset:0}}
 .hero-stats{display:flex;gap:22px;margin-top:6px;flex-wrap:wrap}.hero-stats b{font:800 1.3rem var(--head);display:block}.hero-stats span{font-size:.78rem;color:#C4D4EC}
 /* courses */
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -2583,27 +2586,35 @@ function maybeInstallPopup() {
 window.addEventListener('bablo-install-ready', maybeInstallPopup);
 
 /* ---------- schedule poll: when should qualifications hold? One vote per person. ---------- */
-const QUAL_POLL = { id: 'qualifications-2026-s1', question: 'When should programme qualifications hold? (Lagos time)', options: [
-  { id: 'today-8pm', label: 'Today, 8pm' }, { id: 'today-9pm', label: 'Today, 9pm' },
-  { id: 'tomorrow-7pm', label: 'Tomorrow, 7pm' }, { id: 'tomorrow-8pm', label: 'Tomorrow, 8pm' }] };
+const QUAL_POLL = { id: 'qualifications-schedule-v2-2026-10', closesAt: '2026-10-22T17:00:00+01:00', question: 'Choose the qualification session. Voting closes Thu 22 Oct at 5:00 pm (Lagos time); the option with the most votes wins.', options: [
+  { id: '2026-10-23-18', label: 'Fri 23 Oct · 6:00 pm' },
+  { id: '2026-10-23-19', label: 'Fri 23 Oct · 7:00 pm' },
+  { id: '2026-10-24-10', label: 'Sat 24 Oct · 10:00 am' },
+  { id: '2026-10-24-12', label: 'Sat 24 Oct · 12:00 noon' }] };
 async function pollCounts(pollId) {
   const rows = await sbGet('poll_votes?poll_id=eq.' + encodeURIComponent(pollId) + '&select=option_id,voter');
   if (!Array.isArray(rows)) return null;
   const counts = {}; let mine = null;
-  rows.forEach(r => { counts[r.option_id] = (counts[r.option_id] || 0) + 1; if (r.voter === DB.dev) mine = r.option_id; });
+  const voterId = signedIn() && DB.profile && DB.profile.uid ? DB.profile.uid : DB.dev;
+  rows.forEach(r => { counts[r.option_id] = (counts[r.option_id] || 0) + 1; if (r.voter === voterId) mine = r.option_id; });
   return { counts, mine, total: rows.length };
 }
 function pollCard() {
   const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
   const draw = async () => {
     if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll opens when the live database is connected.')); return; }
+    if (!signedIn() || !DB.profile || !DB.profile.uid) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in to vote. Your account can submit one vote across devices.')); return; }
     const data = await pollCounts(QUAL_POLL.id);
     if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load the poll.')); return; }
-    box.replaceChildren(...QUAL_POLL.options.map(o => {
+    const closed = Date.now() >= Date.parse(QUAL_POLL.closesAt);
+    const topVotes = Math.max(0, ...QUAL_POLL.options.map(o => data.counts[o.id] || 0));
+    const leaders = QUAL_POLL.options.filter(o => (data.counts[o.id] || 0) === topVotes && topVotes > 0);
+    const summary = closed ? (leaders.length === 1 ? 'Voting is closed. Most votes: ' + leaders[0].label + '.' : leaders.length > 1 ? 'Voting is closed with a tie. A runoff is needed before the session is confirmed.' : 'Voting is closed with no votes; the schedule is not yet confirmed.') : 'Voting closes ' + new Date(QUAL_POLL.closesAt).toLocaleString('en-NG', { dateStyle: 'medium', timeStyle: 'short' }) + ' (Lagos time).';
+    box.replaceChildren(h('p', { class: 'small muted' }, summary), ...QUAL_POLL.options.map(o => {
       const n = data.counts[o.id] || 0, pct = data.total ? Math.round(n / data.total * 100) : 0;
-      return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id), disabled: !!data.mine, style: { justifyContent: 'space-between', marginTop: '6px' },
+      return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id), disabled: !!data.mine || closed, style: { justifyContent: 'space-between', marginTop: '6px' },
         onclick: async () => {
-          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: QUAL_POLL.id, option_id: o.id, voter: DB.dev }) }).catch(() => null);
+          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: QUAL_POLL.id, option_id: o.id, voter: DB.profile.uid }) }).catch(() => null);
           if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
         } }, h('span', null, (data.mine === o.id ? '\u2714 ' : '') + o.label), h('span', { class: 'small muted' }, n + ' \u2022 ' + pct + '%'));
     }));
@@ -2731,7 +2742,7 @@ function qualifyView() {
   qualStatus().then(st => { holder.replaceChildren(qualCard(batch, st)); });
 }
 function qualCard(batch, st) {
-  const info = h('p', { class: 'muted' }, 'Qualifications run on 17 October 2026, Lagos time. Batch A: ' + fmtMin(QUAL.A[0]) + ' to ' + fmtMin(QUAL.A[1]) + '. Batch B: ' + fmtMin(QUAL.B[0]) + ' to ' + fmtMin(QUAL.B[1]) + '.');
+  const info = h('p', { class: 'muted' }, 'The qualification session is being scheduled by student vote. Check the Qualifications poll on the Programme Cup page; the winning date and time will be confirmed after voting closes.');
   let body;
   if (!signedIn()) body = h('div', { class: 'panel stack' }, h('h2', null, 'Create an account first'), h('p', { class: 'muted small' }, 'Only account holders can qualify for their programme.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to my account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
@@ -2822,9 +2833,9 @@ async function filesLibrary() {
 function filesView() {
   const library = h('div', null, h('p', { class: 'muted small' }, 'Loading\u2026'));
   filesLibrary().then(el => library.replaceChildren(el));
-  const course = h('select', null, COURSES.filter(c => !c.pending).map(c => h('option', { value: c.code }, c.label)));
+  const course = h('select', null, ...COURSES.filter(c => !c.pending).map(c => h('option', { value: c.code }, c.label)), h('option', { value: 'PUBLIC_HEALTH' }, 'Public Health — programme resources'));
   const title = h('input', { type: 'text', maxlength: '120', placeholder: 'Title, e.g. BIO 101 past questions 2022' });
-  const file = h('input', { type: 'file', accept: '.pdf,.doc,.docx,.ppt,.pptx,.txt' });
+  const file = h('input', { type: 'file', accept: '.pdf,.doc,.docx,.ppt,.pptx,.txt,.html,.htm' });
   const copy = h('input', { type: 'checkbox', id: 'copyOk' });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const send = async () => {
@@ -2839,23 +2850,34 @@ function filesView() {
     if (!copy.checked) { err.textContent = 'Tick the copyright declaration to continue.'; return; }
     send.disabled = true; send.textContent = 'Uploading\u2026';
     try {
-      // the server checks your logged-in session, then stores the file
-      // plain form upload: no custom headers, so the browser needs no extra safety check
-      const fd = new FormData(); fd.append('file', f, f.name);
-      const up = await fetch(LB.url + '/functions/v1/hub-upload?token=' + encodeURIComponent(DB.account.token) + '&ext=' + encodeURIComponent(ext), { method: 'POST', body: fd });
+      // The current server endpoint validates the account session and creates the pending
+      // upload row itself, so the client must not try a second insert into uploads.
+      const fd = new FormData();
+      fd.append('file', f, f.name);
+      fd.append('ext', ext);
+      fd.append('course', course.value);
+      fd.append('title', title.value.trim().slice(0, 120));
+      fd.append('nickname', String(DB.profile.nick || 'Student').slice(0, 30));
+      fd.append('copyright_ok', 'true');
+      const up = await fetch(LB.url + '/functions/v1/hub-submit-upload', {
+        method: 'POST',
+        headers: { 'x-session-token': String(DB.account.token || '') },
+        body: fd
+      });
       const got = await up.json().catch(() => ({}));
-      if (!up.ok || !got.ok) throw new Error(got.error || 'upload');
-      const path = got.path;
-      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending' }) });
-      if (!row.ok) throw new Error('row');
-      toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
-    } catch (e) { err.textContent = (e && e.message && e.message !== 'upload' && e.message !== 'row') ? e.message : 'Could not upload. Check your connection and try again.'; }
+      if (!up.ok || !got.ok) throw new Error(got.error || 'Could not upload. Check your connection and try again.');
+      toast('Upload received. It is waiting for review before publication.');
+      title.value = ''; file.value = ''; copy.checked = false;
+      filesLibrary().then(el => library.replaceChildren(el));
+    } catch (e) {
+      err.textContent = (e && e.message) ? e.message : 'Could not upload. Check your connection and try again.';
+    }
     send.disabled = false; send.textContent = 'Upload';
   };
   mount(wrap(back('#/social', 'Social'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Files'), h('p', { class: 'muted' }, 'Past questions, notes and papers shared by students. Downloads are free. Every upload is checked before it goes live.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Upload a file'), !signedIn() ? h('p', { class: 'muted small' }, 'Create an account to upload.') : null,
-      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint or text, up to 10 MB)'), file),
+      h('label', { class: 'field' }, h('span', null, 'Course'), course), h('label', { class: 'field' }, h('span', null, 'Title'), title), h('label', { class: 'field' }, h('span', null, 'File (PDF, Word, PowerPoint, TXT or HTML, up to 10 MB)'), file),
       h('label', { class: 'row' }, copy, h('span', { class: 'small' }, 'I have the right to share this file, and it is not copyrighted material I am not allowed to share.')), err,
       h('button', { class: 'btn primary block', onclick: send, disabled: !signedIn() }, 'Upload')),
     h('section', { class: 'stack' }, h('h2', null, 'Library'), library))));
