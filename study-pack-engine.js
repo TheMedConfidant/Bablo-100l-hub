@@ -30,34 +30,59 @@
     throw new Error('Supported for automatic extraction: PDF, DOCX, PPTX, TXT and HTML. Legacy DOC/PPT files need conversion first.');
   }
   function generate(text,title,course){
-    const paragraphs=clean(text).split(/\n+|(?<=[.!?])\s+(?=[A-Z])/).map(x=>x.trim()).filter(x=>x.length>=30);
-    const unique=[...new Set(paragraphs)].slice(0,250);
+    const raw=String(text||'').replace(/\\r/g,'');
+    const lines=raw.split('\\n').map(x=>x.trim()).filter(Boolean);
+    const isHeading=s=>s.length<=90&&!/[.!?]$/.test(s)&&(/^[A-Z0-9][A-Z0-9 \\-/&,():]{2,}$/.test(s)||/^(chapter|unit|topic|lecture|module|objectives?|introduction|summary|conclusion|definition|classification|functions?|types|importance|mechanism|causes|effects|structure|properties|examples?)\\b/i.test(s));
+    const headingLines=lines.filter(isHeading);
+    const sentences=raw.split(/\\n+|(?<=[.!?])\\s+(?=[A-Z0-9])/).map(x=>x.replace(/^[-•*\\d.) ]+/,'').trim()).filter(x=>x.length>=35&&x.length<=900);
+    const unique=[...new Set(sentences)].slice(0,300);
     const defs=[];
     unique.forEach(p=>{
-      const m=p.match(/^([A-Z][A-Za-z0-9() ,/\-]{2,65}?)\s+(is defined as|are defined as|refers to|means|consists of|is|are)\s+(.{12,240})$/i);
-      if(m) defs.push({term:m[1].trim().replace(/[,:;.]$/,''), relation:m[2].toLowerCase(), definition:m[3].trim().replace(/[.]$/,''), source:p});
+      const m=p.match(/^([A-Z][A-Za-z0-9() ,/\\-]{2,55}?)\\s+(is defined as|are defined as|refers to|means|consists of|is|are)\\s+(.{15,260})$/i);
+      if(m){const term=m[1].trim().replace(/[,:;.]$/,'');const definition=m[3].trim().replace(/[.]$/,'');if(term.split(/\\s+/).length<=7&&!defs.some(d=>d.term.toLowerCase()===term.toLowerCase()))defs.push({term,definition,source:p});}
     });
+    const notes=[];
+    let current=headingLines[0]||'Overview';
+    let body=[];
+    const flush=()=>{const joined=body.join(' ').trim();if(joined.length>=40)notes.push({heading:current,body:joined.slice(0,1100)});body=[];};
+    lines.forEach(line=>{
+      if(isHeading(line)){flush();current=line.replace(/[:：]$/,'');}
+      else if(line.length>=30)body.push(line.replace(/^[-•*]+\\s*/,'')); 
+    });
+    flush();
+    if(!notes.length){for(let i=0;i<unique.length;i+=3){const chunk=unique.slice(i,i+3);if(chunk.length)notes.push({heading:'Key concepts '+(notes.length+1),body:chunk.join(' ').slice(0,1100)});}}
     const flashcards=[];
-    defs.forEach(d=>{if(flashcards.length<80)flashcards.push({front:'What is '+d.term+'?',back:d.definition});});
-    unique.forEach(p=>{if(flashcards.length>=80)return;if(p.length<280&&!flashcards.some(f=>f.back===p))flashcards.push({front:'Explain this key point from '+course+':',back:p});});
+    defs.slice(0,60).forEach(d=>flashcards.push({front:'Define '+d.term+'.',back:d.definition,source_statement:d.source}));
+    unique.forEach(p=>{if(flashcards.length>=80)return;if(p.length>=45&&p.length<=240&&!flashcards.some(f=>f.back.toLowerCase()===p.toLowerCase()))flashcards.push({front:'Explain this concept in '+(course||'this course')+'.',back:p,source_statement:p});});
     const questions=[];
-    defs.forEach((d,i)=>{
-      if(questions.length>=60)return;
-      const distractors=defs.filter((other,j)=>j!==i&&other.definition!==d.definition).map(other=>other.definition);
-      const options=[d.definition,...distractors].slice(0,4);
-      if(options.length>=2){
-        const shuffled=options.map((value,index)=>({value,correct:index===0,sort:(index*7+3)%11})).sort((a,b)=>a.sort-b.sort);
-        questions.push({type:'multiple_choice_draft',question:'What is '+d.term+'?',options:shuffled.map(x=>x.value),answer:shuffled.findIndex(x=>x.correct),explanation:'Drafted from a definition in the uploaded source. Verify wording and distractors before publishing.',source_statement:d.source});
+    const definitionTerms=defs.filter(d=>d.term.length<=65&&d.definition.length<=220);
+    definitionTerms.forEach((d,i)=>{
+      if(questions.length>=50)return;
+      const distractors=definitionTerms.filter((x,j)=>j!==i).map(x=>x.term).filter((x,j,a)=>a.findIndex(y=>y.toLowerCase()===x.toLowerCase())===j).slice(0,3);
+      const options=[d.term,...distractors];
+      if(options.length>=3){
+        const shift=(i*3+1)%options.length;const shuffled=options.slice(shift).concat(options.slice(0,shift));const answer=shuffled.findIndex(x=>x===d.term);
+        questions.push({type:'multiple_choice_draft',question:'Which term best matches this definition: '+d.definition+'?',options:shuffled,answer,expected_answer:d.term,explanation:'Matched to a definition in the uploaded source. Confirm that the distractors are appropriate for this course.',source_statement:d.source});
       }else{
-        questions.push({type:'short_answer_draft',question:'Define or explain '+d.term+'.',options:[],answer:null,expected_answer:d.definition,explanation:'Drafted from the uploaded source. Verify before publishing.',source_statement:d.source});
+        questions.push({type:'short_answer_draft',question:'Define '+d.term+'.',options:[],answer:null,expected_answer:d.definition,explanation:'Definition extracted from the uploaded source. Review before publishing.',source_statement:d.source});
       }
     });
-    const prompts=unique.filter(p=>!defs.some(d=>d.source===p)&&p.length<260);
-    prompts.forEach(p=>{
+    unique.forEach(p=>{
       if(questions.length>=60)return;
-      questions.push({type:'short_answer_draft',question:'Explain the following key point in your own words.',options:[],answer:null,expected_answer:p,explanation:'Short-answer review prompt generated from the source statement. Admin should rewrite it into a precise exam question where appropriate.',source_statement:p});
+      if(defs.some(d=>d.source===p))return;
+      const lead=p.split(/[;:,]/)[0].trim();
+      if(lead.length>=12&&lead.length<=90&&p.length>65){
+        questions.push({type:'short_answer_draft',question:'Explain the significance or function of: '+lead+'.',options:[],answer:null,expected_answer:p,explanation:'Source-based review prompt. Check the question wording and expected answer before publishing.',source_statement:p});
+      }
     });
-    return {title:title||'Untitled study pack',course,generated_by:'Bablo Hub free rule-based generator',quality_note:'Rule-based draft, not AI. Admin review is required. Definition-based multiple-choice items are only generated when the source contains usable definitions; other items are short-answer review prompts, not exam-ready MCQs.',notes:{title:title||'Study notes',sections:unique.slice(0,120).map((p,i)=>({heading:'Key point '+(i+1),body:p}))},flashcards,questions:questions.slice(0,60),source_chars:text.length};
+    const uniqueNotes=notes.slice(0,100);
+    return {
+      title:title||'Untitled study pack',course,generated_by:'BH lib source-based draft generator',
+      quality_note:'Drafts are built from the uploaded text, not a general-purpose AI. Definitions can become term-matching questions; other material becomes review prompts. Check every answer, distractor and note before publishing.',
+      notes:{title:title||'Study notes',sections:uniqueNotes},
+      flashcards:flashcards.slice(0,80),questions:questions.slice(0,60),
+      source_chars:raw.length,source_headings:headingLines.length,definition_count:defs.length
+    };
   }
   window.BabloStudyPack={extract,generate};
 })();
