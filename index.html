@@ -374,9 +374,26 @@ body.on-home .wrap{padding-bottom:170px}
 #splash .sp-sub{color:var(--sp-sub) !important}
 
 /* hero heartbeat: the line beats at the rate set by the streak (see --beat-s) */
-.hero .pulse{animation:heartbeat var(--beat-s,1.2s) ease-in-out infinite;transform-origin:center}
-@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.035)}28%{transform:scale(.99)}42%{transform:scale(1.02)}}
+
+
 @media (prefers-reduced-motion: reduce){.hero .pulse{animation:none}}
+
+/* hospital monitor: the trace sweeps; one sweep covers four beats; the speed follows the beat rate (--beat-s) */
+.monitor{position:relative;height:74px;margin:14px 0 6px;border-radius:14px;overflow:hidden;background:rgba(3,20,22,.55);border:1px solid rgba(94,234,212,.22);box-shadow:inset 0 0 26px rgba(94,234,212,.08)}
+.monitor svg{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+.monitor-track{position:absolute;left:0;top:0;height:100%;width:200%;animation:sweep calc(var(--beat-s,1s) * 4) linear infinite}
+.monitor-track svg{width:100%}
+.monitor-line path{fill:none;stroke:#5EEAD4;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(94,234,212,.85))}
+.monitor-dot{position:absolute;right:14%;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#CFFFF6;box-shadow:0 0 10px #5EEAD4,0 0 18px rgba(94,234,212,.7);animation:blip var(--beat-s,1s) ease-in-out infinite}
+@keyframes sweep{to{transform:translateX(-50%)}}
+@keyframes blip{0%,100%{opacity:.35;transform:scale(.8)}12%{opacity:1;transform:scale(1.25)}30%{opacity:.5;transform:scale(.9)}}
+@media (prefers-reduced-motion: reduce){.monitor-track,.monitor-dot{animation:none}}
+
+
+/* Gold look: gold-tinted glass (same glass as Glass), gold glow and gold edges */
+:root[data-tint="gold"]{--glow-a:rgba(250,204,21,.62);--glow-b:rgba(217,119,6,.42);--glow-c:rgba(253,230,138,.36);--brand:#E0A526;--glass-edge:rgba(253,230,138,.5);--ink:#FFF8E1;--ink2:#F6DFA0}
+:root[data-tint="gold"][data-mode="light"]{--brand:#A8730F;--ink:#3A2A05;--ink2:#7A5A14;--glow-a:rgba(250,204,21,.7);--glow-b:rgba(245,158,11,.42);--glow-c:rgba(253,230,138,.42);--glass-edge:rgba(180,120,20,.45)}
+:root[data-tint="gold"] .panel,:root[data-tint="gold"] .tile,:root[data-tint="gold"] .hero{border-color:rgba(253,230,138,.42)}
 
 </style>
 </head>
@@ -566,7 +583,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.30.0' };
+const APP = { name: 'Bablo Hub', version: '3.32.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1404,12 +1421,11 @@ function homeView() {
   const hero = h('section', { class: 'hero' },
     h('h1', null, greet + ', ' + first),
     h('p', null, 'Pick a course, practise a topic, then test yourself.'),
-    svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
+    ecgMonitor(),
     h('div', { class: 'hero-stats' },
       h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
       h('div', null, h('b', null, DB.history.length), h('span', null, 'attempts')),
       h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
-  hero.querySelector('svg').setAttribute('class', 'pulse');
   // heartbeat: resting around 72 bpm, quickening with your study streak (capped), slowing a little when you've not studied today
   { const bpm = Math.min(110, 72 + (st.days || 0) * 4); hero.style.setProperty('--beat-s', (60 / bpm).toFixed(2) + 's'); }
   const L200 = DB.profile && DB.profile.level === '200L';
@@ -1427,6 +1443,21 @@ function homeView() {
   });
   mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
+}
+/* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
+function ecgBeatPath(x0) {
+  const x = x0;
+  return 'M' + x + ' 40 L' + (x + 14) + ' 40 Q' + (x + 19) + ' 30 ' + (x + 24) + ' 40 L' + (x + 34) + ' 40 L' + (x + 38) + ' 6 L' + (x + 43) + ' 74 L' + (x + 48) + ' 40 L' + (x + 62) + ' 40 Q' + (x + 70) + ' 26 ' + (x + 80) + ' 40 L' + (x + 96) + ' 40 ';
+}
+function ecgMonitor() {
+  let d = '';
+  for (let i = 0; i < 8; i++) d += ecgBeatPath(i * 96);
+  const track = '<path d="' + d + '"/>';
+  const grid = '<defs><pattern id="ecgGrid" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="rgba(94,234,212,.12)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#ecgGrid)"/>';
+  return h('div', { class: 'monitor', 'aria-hidden': 'true' },
+    svgEl('0 0 768 80', grid, 'monitor-grid'),
+    h('div', { class: 'monitor-track' }, svgEl('0 0 768 80', track, 'monitor-line')),
+    h('span', { class: 'monitor-dot' }));
 }
 function brand() {
   return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
@@ -1675,7 +1706,9 @@ function boardView() {
       seg([['*', 'Overall']].concat(coursesFor(DB.profile.programme).filter(isAvail).map(x => [x.code, x.label])), course, v => { course = v; })];
     if (!data) kids.push(h('p', { class: 'muted' }, 'Loading\u2026'));
     else {
-      const pool = scope === 'prog' ? data.rows.filter(r => r.programme === DB.profile.programme) : data.rows;
+      // only scores above 50% are shown on the board; lower scores stay saved, just not ranked
+      const above = data.rows.filter(r => Number(r.pct) > 50);
+      const pool = scope === 'prog' ? above.filter(r => r.programme === DB.profile.programme) : above;
       const rows = Core.rank(pool, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 }).slice(0, 50);
       const note = data.mode === 'global' ? 'Live leaderboard \u2022 best score per course counts.' : data.mode === 'offline' ? 'Could not reach the live leaderboard, showing this device only.' : 'Global leaderboard is not switched on yet. This board shows your attempts on this device.';
       kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes (10+ questions) and the Premium exam rank.' + (signedIn() ? '' : ' Create an account to appear on the boards.')));
@@ -2111,6 +2144,7 @@ function adminView() {
       loadPrioritisedFeedback(pass.value, out);
       loadUploadsPage(pass.value, out);
       loadAnalytics(pass.value, out);
+      loadAlertForm(pass.value, out);
     } catch (e) { out.replaceChildren(h('p', { class: 'muted' }, 'Could not reach the server.')); }
   };
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin'), h('section', { class: 'panel stack' }, pass, h('button', { class: 'btn primary block', onclick: go2 }, 'Open'), h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: previewLevel200 }, 'Preview 200L here'), h('button', { class: 'btn ghost grow', onclick: resetPreviewLevel }, 'Back to 100L'))), out)));
@@ -2606,20 +2640,29 @@ async function pollCounts(pollId) {
 function pollCard(P) {
   const poll = P || QUAL_POLL;
   const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
+  const write = h('input', { type: 'text', maxlength: '30', placeholder: 'Type your own date or time, e.g. Sat 3pm' });
   const draw = async () => {
     if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll opens when the live database is connected.')); return; }
     const data = await pollCounts(poll.id);
     if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load the poll.')); return; }
-    box.replaceChildren(...poll.options.map(o => {
-      const n = data.counts[o.id] || 0, pct = data.total ? Math.round(n / data.total * 100) : 0;
-      return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id), disabled: !!data.mine, style: { justifyContent: 'space-between', marginTop: '6px' },
-        onclick: async () => {
-          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: poll.id, option_id: o.id, voter: DB.dev }) }).catch(() => null);
-          if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
-        } }, h('span', null, (data.mine === o.id ? '\u2714 ' : '') + o.label), h('span', { class: 'small muted' }, n + ' \u2022 ' + pct + '%'));
-    }));
-    box.append(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. You can vote once.'));
+    const castOrder = poll.options.map(o => o.id);
+    const suggestions = Object.keys(data.counts).filter(k => k.indexOf('write:') === 0).sort((x, y) => data.counts[y] - data.counts[x]);
+    const row = (id, label) => {
+      const n = data.counts[id] || 0, pct = data.total ? Math.round(n / data.total * 100) : 0;
+      return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === id), disabled: !!data.mine, style: { justifyContent: 'space-between', marginTop: '6px' },
+        onclick: () => castVote(id) },
+        h('span', null, (data.mine === id ? '\u2714 ' : '') + label), h('span', { class: 'small muted' }, n + ' \u2022 ' + pct + '%'));
+    };
+    const children = poll.options.map(o => row(o.id, o.label));
+    if (suggestions.length) children.push(h('p', { class: 'tiny muted', style: { marginTop: '10px' } }, 'Other suggestions'), ...suggestions.map(id => row(id, id.slice(6))));
+    if (!data.mine) children.push(h('div', { class: 'row', style: { marginTop: '10px' } }, write, h('button', { class: 'btn primary', onclick: () => { const t = write.value.trim().slice(0, 30); if (t.length < 2) { toast('Type a date or time first.'); return; } castVote('write:' + t); } }, 'Vote')));
+    children.push(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. You can vote once.'));
+    box.replaceChildren(...children);
   };
+  async function castVote(optionId) {
+    const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: poll.id, option_id: optionId, voter: DB.dev }) }).catch(() => null);
+    if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
+  }
   draw();
   return h('section', { class: 'panel stack' }, h('h2', null, poll.title || 'Qualifications poll'), h('p', { class: 'muted small' }, poll.question), box);
 }
@@ -2808,7 +2851,8 @@ function settingsView() {
     h('div', { class: 'stack' }, h('h1', null, 'Settings')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
+      h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
       h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
       h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
@@ -2890,6 +2934,41 @@ function liveNotice() {
     h('p', { class: 'small' }, 'Create an account so your progress is saved and follows you to any phone. Practice works without one.'),
     h('a', { class: 'btn primary block', href: '#/me', onclick: () => close() }, 'Create my account'),
     h('button', { class: 'btn ghost block', onclick: () => close() }, 'Not now')), true);
+}
+
+/* ---------- push alerts: students opt in; the admin sends from the Admin page ---------- */
+const PUSH_FN = () => LB.url + '/functions/v1/hub-push';
+function b64uToBytes(str) { const s = str.replace(/-/g, '+').replace(/_/g, '/'); const pad = s.length % 4 ? '='.repeat(4 - (s.length % 4)) : ''; const bin = atob(s + pad); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+function bytesToB64u(buf) { const b = new Uint8Array(buf); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+async function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+async function enablePushAlerts() {
+  if (!(await pushSupported())) { toast('Your browser does not support alerts. On iPhone, add the app to the home screen first.'); return; }
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') { toast('Alerts stay off until you allow notifications.'); return; }
+  try {
+    const got = await fetch(PUSH_FN(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'public' }) }).then(r => r.json());
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(got.public) }));
+    const j = sub.toJSON();
+    await fetch(LB.url + '/rest/v1/push_subscriptions', { method: 'POST', headers: sbHeaders({ Prefer: 'resolution=ignore-duplicates,return=minimal' }), body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }) });
+    DB.alerts = true; save();
+    toast('Alerts are on. You will hear about polls and the Cup.');
+    settingsView();
+  } catch (e) { toast('Could not turn on alerts. Check your connection and try again.'); }
+}
+/* admin: send an alert to everyone who turned them on */
+function loadAlertForm(pass, container) {
+  const title = h('input', { type: 'text', maxlength: '60', placeholder: 'Title, e.g. Poll is open' });
+  const body = h('input', { type: 'text', maxlength: '200', placeholder: 'Message, e.g. Vote for the Cup time' });
+  const out = h('p', { class: 'small muted' });
+  const send = async () => {
+    if (title.value.trim().length < 2) { toast('Add a title.'); return; }
+    out.textContent = 'Sending\u2026';
+    const r = await fetch(PUSH_FN(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'send', token: adminToken(), pass, title: title.value.trim(), body: body.value.trim(), url: './' }) }).then(x => x.json()).catch(() => null);
+    out.textContent = r && r.ok ? 'Sent to ' + r.sent + ' of ' + r.subscribers + ' subscribers.' + (r.removed ? ' Removed ' + r.removed + ' dead subscriptions.' : '') : ((r && r.error) || 'Could not send.');
+  };
+  const box = h('section', { class: 'panel stack' }, h('h2', null, 'Send an alert'), title, body, h('button', { class: 'btn primary block', onclick: send }, 'Send to everyone who turned alerts on'), out);
+  container.append(box);
 }
 
 /* ---------- boot ---------- */
