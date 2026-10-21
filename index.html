@@ -459,6 +459,33 @@ body.on-home .wrap{padding-bottom:170px}
 .ecg path{stroke-dasharray:18 8!important;stroke-dashoffset:0;animation:bhEcgSweep 1.35s linear infinite,bhEcgGlow 1.8s ease-in-out infinite!important}
 @media(prefers-reduced-motion:reduce){.ecg path,.pulse path{animation:none!important;stroke-dashoffset:0!important}}
 
+/* Mobile usability pass: stable touch targets, safe-area spacing, and no sideways page drift. */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+button,input,select,textarea{font-size:16px;max-width:100%}
+button,a,[role=button]{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.wrap>*{min-width:0;max-width:100%}
+.row>*{min-width:0}
+.panel,.tile,.qcard,.rev,.slip,.modal{overflow-wrap:anywhere}
+.nav a{min-height:44px;justify-content:center;padding:7px 2px;font-size:clamp(.68rem,2.7vw,.76rem)}
+.nav a svg{flex:none}
+.nav .in{gap:3px}
+.chess-board{width:min(94vw,420px);max-width:100%;touch-action:manipulation}
+.sq{min-height:0;min-width:0;touch-action:manipulation}
+.online-row{flex-wrap:wrap}
+.gpa-row{grid-template-columns:minmax(0,1fr) 58px 64px 40px;gap:6px}
+.gpa-row>*{min-width:0}
+@media(max-width:380px){
+ .wrap{padding-left:12px;padding-right:12px}
+ .grid{gap:8px}
+ .tile{padding:12px 10px 10px 14px;min-height:122px}
+ .panel,.qcard{padding:13px}
+ .podium{gap:6px}
+ .podium>div{padding:10px 3px;overflow-wrap:anywhere}
+ .gpa-row{grid-template-columns:minmax(0,1fr) 48px 56px 36px;padding:8px 7px}
+ .nav{padding-left:5px;padding-right:5px}
+ :root[data-skin="glass"] .nav,:root[data-skin="green"] .nav{left:6px;right:6px}
+}
+@media(prefers-reduced-motion:reduce){:root[data-skin] body::before,:root[data-skin] .tile,:root[data-skin] .btn{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -566,12 +593,12 @@ body.on-home .wrap{padding-bottom:170px}
     opt = opt || {};
     const best = {};
     entries.filter(eligible).filter(e => !opt.since || e.ts >= opt.since).filter(e => !opt.course || e.course === opt.course).forEach(e => {
-      const k = e.dev + '|' + e.course, b = best[k];
+      const k = (e.uid ? 'uid:' + e.uid : 'dev:' + e.dev) + '|' + e.course, b = best[k];
       if (!b || e.pct > b.pct || (e.pct === b.pct && e.secs < b.secs)) best[k] = e;
     });
     const by = {};
     Object.keys(best).forEach(k => {
-      const e = best[k]; const p = by[e.dev] || (by[e.dev] = { dev: e.dev, nick: e.nick, score: 0, secs: 0, courses: 0, ts: 0 });
+      const e = best[k], identity = e.uid ? 'uid:' + e.uid : 'dev:' + e.dev; const p = by[identity] || (by[identity] = { dev: e.dev, uid: e.uid || null, nick: e.nick, score: 0, secs: 0, courses: 0, ts: 0 });
       p.score += e.pct; p.secs += e.secs; p.courses++; if (e.ts >= p.ts) { p.nick = e.nick; p.ts = e.ts; }
     });
     return Object.values(by).map(p => Object.assign(p, { score: Math.round(p.score * 10) / 10 }))
@@ -1384,7 +1411,7 @@ function confirmBox(o) {
 }
 
 /* ---------- leaderboard backend (device-only unless LB.url is set) ---------- */
-const localEntries = () => DB.history.map(x => Object.assign({ dev: DB.dev, nick: DB.profile ? DB.profile.nick : 'You' }, x));
+const localEntries = () => DB.history.map(x => Object.assign({ dev: DB.dev, uid: DB.profile ? DB.profile.uid : null, nick: DB.profile ? DB.profile.nick : 'You' }, x));
 async function lbSubmit(e) {
   if (!LB.url) return 'local';
   try {
@@ -1395,11 +1422,11 @@ async function lbSubmit(e) {
 async function lbFetch() {
   if (!LB.url) return { mode: 'local', rows: localEntries() };
   try {
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', { headers: { apikey: LB.key } });
+    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=uid,dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', { headers: { apikey: LB.key } });
     if (!r.ok) throw new Error('bad');
     const remote = await r.json();
     const synced = DB.syncedTs || {};
-    const deviceOnly = DB.history.filter(e => !synced[e.ts]).map(x => Object.assign({ dev: DB.dev, nick: DB.profile ? DB.profile.nick : 'You', local: true }, x));
+    const deviceOnly = DB.history.filter(e => !synced[e.ts]).map(x => Object.assign({ dev: DB.dev, uid: DB.profile ? DB.profile.uid : null, nick: DB.profile ? DB.profile.nick : 'You', local: true }, x));
     return { mode: 'global', rows: remote.concat(deviceOnly) };
   } catch (x) { return { mode: 'offline', rows: localEntries() }; }
 }
@@ -1799,7 +1826,7 @@ function boardView() {
       if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
       else {
         if (rows.length >= 3) { const m = ['\uD83E\uDD48', '\uD83E\uDD47', '\uD83E\uDD49'], o = [1, 0, 2]; kids.push(h('div', { class: 'podium' }, o.map(k => h('div', { class: k === 0 ? 'p1' : '' }, h('div', { style: { fontSize: '1.6rem' } }, m[k === 0 ? 1 : k === 1 ? 0 : 2]), h('b', null, rows[k].nick), h('div', { class: 'small muted' }, rows[k].score + (course === '*' ? ' pts' : '%')))))); }
-        kids.push(h('div', { class: 'rows' }, rows.map((p, i) => h('div', { class: 'lrow' + (p.dev === DB.dev ? ' me' : '') }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, h('b', null, p.nick), p.local ? h('span', { class: 'chip', style: { marginLeft: '6px' } }, 'not on an account') : null, p.dev === DB.dev ? h('span', { class: 'chip brand', style: { marginLeft: '8px' } }, 'You') : null, h('div', { class: 'tiny muted' }, Core.fmtTime(p.secs) + (course === '*' ? ' \u2022 ' + plural(p.courses, 'course') : ''))), h('b', null, p.score + (course === '*' ? ' pts' : '%'))))));
+        kids.push(h('div', { class: 'rows' }, rows.map((p, i) => h('div', { class: 'lrow' + ((p.uid && DB.profile && p.uid === DB.profile.uid) || p.dev === DB.dev ? ' me' : '') }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, h('b', null, p.nick), p.local ? h('span', { class: 'chip', style: { marginLeft: '6px' } }, 'not on an account') : null, ((p.uid && DB.profile && p.uid === DB.profile.uid) || p.dev === DB.dev) ? h('span', { class: 'chip brand', style: { marginLeft: '8px' } }, 'You') : null, h('div', { class: 'tiny muted' }, Core.fmtTime(p.secs) + (course === '*' ? ' \u2022 ' + plural(p.courses, 'course') : ''))), h('b', null, p.score + (course === '*' ? ' pts' : '%'))))));
       }
     }
     box.replaceChildren(...kids);
