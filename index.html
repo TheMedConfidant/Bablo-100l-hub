@@ -2613,9 +2613,7 @@ function accountSection() {
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
   const tabs = h('div', { class: 'seg' }, h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'), h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
-  const fields = mode === 'signup'
-    ? [name, h('p', { class: 'tiny muted' }, 'Name examples: Omotoyosi (Yoruba), Chidera (Igbo), Amina (Hausa). Use your own name.'), nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
-    : [loginId, loginPass];
+  const fields = mode === 'signup' ? [name, nick, prog, pass] : [loginId, loginPass];
   return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'),
     !authConfigured() ? h('p', { class: 'muted small', role: 'status' }, 'Log in and account creation are shown here, but the account service is not connected in this preview yet.') : null,
     tabs, ...fields, err,
