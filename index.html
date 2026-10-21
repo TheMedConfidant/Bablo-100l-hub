@@ -139,6 +139,10 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 @media(min-width:640px){.overlay{place-items:center;padding:20px}}
 .modal{width:100%;max-width:460px;max-height:92vh;overflow:auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px))}
 @media(min-width:640px){.modal{border-radius:20px}}
+.calc-display{width:100%;min-height:62px!important;text-align:right;font:700 1.6rem/1.2 var(--head)!important;font-variant-numeric:tabular-nums;padding:12px!important;background:var(--surface2)!important;margin:4px 0 10px}
+.calc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.calc-key{min-height:46px;padding:8px 4px;border:1px solid var(--line);border-radius:11px;background:var(--surface2);font-weight:700;font-size:1rem}
+.calc-key.fn{color:var(--brand)}.calc-key.eq{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}.calc-key.clear{color:var(--bad)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;max-width:90vw;box-shadow:var(--shadow)}
 .scroll-x{overflow-x:auto}
 @media(prefers-reduced-motion:reduce){.pulse path,.ecg path{animation:none;stroke-dashoffset:0}.prog>i{transition:none}}
@@ -1663,6 +1667,66 @@ const band = pct => pct >= 70 ? 'high' : pct >= 50 ? 'mid' : 'low';
 const verseBand = pct => pct >= 70 ? 'high' : pct >= 60 ? 'good' : pct >= 50 ? 'mid' : 'low';
 
 /* ---------- run (practice / quiz / exam) ---------- */
+function openScientificCalculator() {
+  let expression = '', angle = 'DEG';
+  const display = h('input', { class: 'calc-display', type: 'text', value: '', readonly: true, 'aria-label': 'Calculator display' });
+  const status = h('p', { class: 'muted tiny' }, 'Scientific calculator · Degrees');
+  const keys = [
+    ['C','clear'], ['DEL','clear'], ['(', 'fn'], [')','fn'],
+    ['sin(','fn'], ['cos(','fn'], ['tan(','fn'], ['√(','fn'],
+    ['log(','fn'], ['ln(','fn'], ['x²','fn'], ['π','fn'],
+    ['7',''], ['8',''], ['9',''], ['/','fn'],
+    ['4',''], ['5',''], ['6',''], ['*','fn'],
+    ['1',''], ['2',''], ['3',''], ['-','fn'],
+    ['0',''], ['.',''], ['%','fn'], ['+','fn'],
+    ['±','fn'], ['ANS','fn'], ['DEG/RAD','fn'], ['=','eq']
+  ];
+  let answer = '';
+  const renderDisplay = () => { display.value = expression || '0'; };
+  const calculate = () => {
+    try {
+      let exp = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/π/g, 'PI').replace(/√\(/g, 'sqrt(').replace(/\^/g, '**');
+      if (!exp.trim() || !/^[0-9A-Za-z_+\-*/().,%\s]*$/.test(exp)) throw new Error('Invalid');
+      const tokens = exp.match(/[A-Za-z_]+/g) || [];
+      if (tokens.some(t => !['sin','cos','tan','sqrt','log','ln','abs','PI','ANS'].includes(t))) throw new Error('Invalid');
+      exp = exp.replace(/%/g, '/100').replace(/ANS/g, '(' + (answer || '0') + ')');
+      const toRad = x => angle === 'DEG' ? x * Math.PI / 180 : x;
+      const fromRad = x => angle === 'DEG' ? x * 180 / Math.PI : x;
+      const result = Function('sin','cos','tan','sqrt','log','ln','abs','PI',
+        '"use strict"; return (' + exp + ');')(
+          x => Math.sin(toRad(x)), x => Math.cos(toRad(x)), x => Math.tan(toRad(x)),
+          Math.sqrt, Math.log10, Math.log, Math.abs, Math.PI
+        );
+      if (!Number.isFinite(result)) throw new Error('Invalid');
+      answer = String(Number(result.toPrecision(12)));
+      expression = answer; renderDisplay();
+    } catch (_) { display.value = 'Check expression'; }
+  };
+  const press = key => {
+    if (key === 'C') expression = '';
+    else if (key === 'DEL') expression = expression.slice(0, -1);
+    else if (key === '=') { calculate(); return; }
+    else if (key === 'DEG/RAD') { angle = angle === 'DEG' ? 'RAD' : 'DEG'; status.textContent = 'Scientific calculator · ' + (angle === 'DEG' ? 'Degrees' : 'Radians'); }
+    else if (key === 'ANS') expression += 'ANS';
+    else if (key === '±') { expression = expression ? '-(' + expression + ')' : '-'; }
+    else if (key === 'x²') expression += '**2';
+    else expression += key;
+    renderDisplay();
+  };
+  const close = modal(h('div', { class: 'stack' },
+    h('div', { class: 'row between' }, h('div', { class: 'stack' }, h('h2', null, 'Calculator'), status),
+      h('button', { class: 'btn sm ghost', onclick: () => close() }, 'Close')),
+    display,
+    h('div', { class: 'calc-grid' }, keys.map(([label, cls]) => h('button', {
+      class: 'calc-key' + (cls ? ' ' + cls : ''),
+      'aria-label': label === 'DEG/RAD' ? 'Toggle degrees or radians' : label,
+      onclick: () => press(label)
+    }, label))),
+    h('p', { class: 'muted tiny' }, 'Use × or ÷ via the keypad. Trigonometry follows the selected angle mode.')
+  ), true);
+  renderDisplay();
+}
+
 function runView() {
   const s = SESS; if (!s || s.res) { go('#/'); return; }
   const practice = s.mode === 'practice', exam = s.mode === 'exam', c = s.mode === 'qualifier' ? { label: 'Qualifications', color: '#0B7A75' } : (courseBy(s.course) || { label: s.course, color: '#0B7A75' });
@@ -1729,7 +1793,9 @@ function runView() {
   const head = exam
     ? h('div', { class: 'exam-head' }, h('div', { class: 'row between' }, h('div', null, h('b', null, 'Mock examination \u2022 ' + c.label), h('div', { class: 'muted tiny' }, 'Candidate: ' + DB.profile.name)), timerEl))
     : h('div', { class: 'row between' }, h('b', null, c.label + (practice ? ' practice' : s.mode === 'mock' ? ' mock test' : ' quiz')), timerEl);
-  const tools = h('div', { class: 'row between', style: { marginTop: '8px' } }, h('button', { class: 'btn sm ghost', onclick: exit }, '\u2715 Exit'), counter,
+  const calculatorCourse = ['MTH101', 'PHY', 'CHM', 'COS', 'AGR'].includes(s.course);
+  const tools = h('div', { class: 'row between wrapr', style: { marginTop: '8px' } }, h('button', { class: 'btn sm ghost', onclick: exit }, '\u2715 Exit'), counter,
+    calculatorCourse ? h('button', { class: 'btn sm', onclick: openScientificCalculator }, 'Calculator') : null,
     h('button', { class: 'btn sm', onclick: openMap }, 'Question map'));
   mount(h('main', { class: 'wrap' }, h('div', { class: 'runbar' }, head, tools, h('div', { class: 'prog' }, bar)),
     s.cur === 0 && s.startVerse && !s.vshown ? h('p', { class: 'muted small', style: { margin: '2px 0 12px' } }, '\u201C' + s.startVerse[0] + '\u201D \u2014 ' + s.startVerse[1]) : null, card), dock);
