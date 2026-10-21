@@ -2573,7 +2573,6 @@ function showNewId(id) {
 }
 /* ---------- account section (Me page): unique ID and password, no email ---------- */
 function accountSection() {
-  if (!authConfigured()) return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', { class: 'muted small' }, 'Accounts turn on when the live database is connected.'));
   if (signedIn() && DB.profile && DB.profile.uid) {
     return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'),
       h('p', null, h('b', null, 'Your ID: '), DB.profile.uid), h('p', { class: 'small muted' }, 'Keep your ID and password safe. You log in with them on any phone.'),
@@ -2599,7 +2598,9 @@ function accountSection() {
   const fields = mode === 'signup'
     ? [name, h('p', { class: 'tiny muted' }, 'Name examples: Omotoyosi (Yoruba), Chidera (Igbo), Amina (Hausa). Use your own name.'), nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
     : [loginId, loginPass];
-  return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), tabs, ...fields, err,
+  return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'),
+    !authConfigured() ? h('p', { class: 'muted small', role: 'status' }, 'Log in and account creation are shown here, but the account service is not connected in this preview yet.') : null,
+    tabs, ...fields, err,
     h('button', { class: 'btn primary block', onclick: () => go2(mode === 'signup') }, mode === 'signup' ? 'Create account' : 'Log in'),
     h('p', { class: 'tiny muted' }, 'Practice works without an account. An account keeps your progress and lets you join the Cup, Social Corner and friend challenges.'));
 }
