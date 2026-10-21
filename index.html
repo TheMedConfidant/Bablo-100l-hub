@@ -1680,12 +1680,12 @@ function runView() {
   const openMap = () => {
     let close; const grid = h('div', { class: 'map' }, s.qs.map((_, i) => h('button', { class: (s.answers[i] != null && s.answers[i] !== '' ? 'ans ' : '') + (s.flags[i] ? 'flag ' : '') + (i === s.cur ? 'cur' : ''), onclick: () => { s.cur = i; close(); render(); } }, i + 1)));
     close = modal(h('div', { class: 'stack' }, h('h2', null, 'Question map'), h('p', { class: 'muted small' }, answered() + ' of ' + s.n + ' answered \u2022 gold outline = flagged'), grid,
-      h('button', { class: 'btn primary block', onclick: () => { close(); finishSession(false); } }, exam ? 'Submit examination' : 'Submit quiz'),
+      h('button', { class: 'btn primary block', onclick: () => { close(); finishSession(false); } }, practice ? 'Finish practice' : exam ? 'Submit examination' : 'Submit quiz'),
       h('button', { class: 'btn ghost block', onclick: () => close() }, 'Keep going')), true);
   };
   const pickOpt = k => {
     const i = s.cur;
-    if (practice) { if (s.answers[i] != null) return; s.answers[i] = k; } else s.answers[i] = s.answers[i] === k ? null : k;
+    if (practice) { s.answers[i] = k; } else s.answers[i] = s.answers[i] === k ? null : k;
     render();
   };
   const next = () => { if (s.cur < s.n - 1) { s.cur++; render(); } else finishSession(false); };
@@ -1698,31 +1698,31 @@ function runView() {
     kids.push(h('p', { class: 'qtext' }, fmt(q.text, q.subj)));
     if (q.flag) kids.push(h('div', { class: 'warnbox' }, 'This question\'s answer key is under review. Treat the answer with care.'));
     if (q.type === 'fill') {
-      const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', disabled: done, 'aria-label': 'Your answer' });
+      const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', 'aria-label': 'Your answer' });
       const check = () => { const v = inp.value.trim(); if (!v) { toast('Type an answer first.'); return; } s.answers[i] = v; render(); };
       if (!practice) inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
       else inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !done) check(); });
-      kids.push(h('div', { class: 'row' }, inp, practice && !done ? h('button', { class: 'btn primary', onclick: check }, 'Check') : null));
+      kids.push(h('div', { class: 'row' }, inp, practice ? h('button', { class: 'btn primary', onclick: check }, done ? 'Update answer' : 'Check') : null));
       if (done) { /* feedback below */ }
     } else {
       q.opts.forEach((o, k) => {
         let cls = 'choice'; if (done) { if (k === q.ans) cls += ' right'; else if (k === a) cls += ' wrong'; }
-        kids.push(h('button', { class: cls, 'aria-pressed': String(!practice && a === k), disabled: done, onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
+        kids.push(h('button', { class: cls, 'aria-pressed': String(a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
       });
     }
     if (done) { const ok = Core.isCorrect(q, a); kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' }, h('b', null, ok ? 'Correct. ' : 'Not quite. Answer: '), ok ? '' : fmt(correctText(q), q.subj), q.exp ? h('div', { class: 'small', style: { marginTop: '6px' } }, q.exp) : null)); }
     card.replaceChildren(h('div', { class: 'qcard' }, kids));
     const last = i === s.n - 1;
     dock.replaceChildren(h('div', { class: 'in' }, practice
-      ? [h('button', { class: 'btn ghost', onclick: next }, last ? 'Finish' : 'Skip'), h('button', { class: 'btn primary', disabled: !done, onclick: next }, last ? 'Finish' : 'Next')]
-      : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Back'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
+      ? [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, '\\u2039 Previous'), h('button', { class: 'btn ghost', onclick: next }, last ? 'Finish' : 'Skip'), h('button', { class: 'btn primary', disabled: !done, onclick: next }, last ? 'Finish' : 'Next')]
+      : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, '\\u2039 Previous'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
   }
   const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your progress in this attempt will be lost.', ok: 'Leave', danger: true })) { stopTimer(); SESS = null; go('#/course/' + s.course); } };
   const head = exam
     ? h('div', { class: 'exam-head' }, h('div', { class: 'row between' }, h('div', null, h('b', null, 'Mock examination \u2022 ' + c.label), h('div', { class: 'muted tiny' }, 'Candidate: ' + DB.profile.name)), timerEl))
     : h('div', { class: 'row between' }, h('b', null, c.label + (practice ? ' practice' : s.mode === 'mock' ? ' mock test' : ' quiz')), timerEl);
   const tools = h('div', { class: 'row between', style: { marginTop: '8px' } }, h('button', { class: 'btn sm ghost', onclick: exit }, '\u2715 Exit'), counter,
-    practice ? h('button', { class: 'btn sm ghost', onclick: () => finishSession(false, true) }, 'Finish') : h('button', { class: 'btn sm', onclick: openMap }, 'Question map'));
+    h('button', { class: 'btn sm', onclick: openMap }, 'Question map'));
   mount(h('main', { class: 'wrap' }, h('div', { class: 'runbar' }, head, tools, h('div', { class: 'prog' }, bar)),
     s.cur === 0 && s.startVerse && !s.vshown ? h('p', { class: 'muted small', style: { margin: '2px 0 12px' } }, '\u201C' + s.startVerse[0] + '\u201D \u2014 ' + s.startVerse[1]) : null, card), dock);
   s.vshown = true; render();
