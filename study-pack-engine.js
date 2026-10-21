@@ -30,16 +30,16 @@
     throw new Error('Supported for automatic extraction: PDF, DOCX, PPTX, TXT and HTML. Legacy DOC/PPT files need conversion first.');
   }
   function generate(text,title,course){
-    const raw=String(text||'').replace(/\\r/g,'');
-    const lines=raw.split('\\n').map(x=>x.trim()).filter(Boolean);
-    const isHeading=s=>s.length<=90&&!/[.!?]$/.test(s)&&(/^[A-Z0-9][A-Z0-9 /&,():-]{2,}$/.test(s)||/^(chapter|unit|topic|lecture|module|objectives?|introduction|summary|conclusion|definition|classification|functions?|types|importance|mechanism|causes|effects|structure|properties|examples?)\\b/i.test(s));
+    const raw=String(text||'').replace(/\r/g,'');
+    const lines=raw.split('\n').map(x=>x.trim()).filter(Boolean);
+    const isHeading=s=>s.length<=90&&!/[.!?]$/.test(s)&&(/^[A-Z0-9][A-Z0-9 /&,():-]{2,}$/.test(s)||/^(chapter|unit|topic|lecture|module|objectives?|introduction|summary|conclusion|definition|classification|functions?|types|importance|mechanism|causes|effects|structure|properties|examples?)\b/i.test(s));
     const headingLines=lines.filter(isHeading);
-    const sentences=raw.split(/\\n+|(?<=[.!?])\\s+(?=[A-Z0-9])/).map(x=>x.replace(/^[-•*\\d.) ]+/,'').trim()).filter(x=>x.length>=35&&x.length<=900);
+    const sentences=raw.split(/\n+|(?<=[.!?])\s+(?=[A-Z0-9])/).map(x=>x.replace(/^[-•*\d.) ]+/,'').trim()).filter(x=>x.length>=35&&x.length<=900);
     const unique=[...new Set(sentences)].slice(0,300);
     const defs=[];
     unique.forEach(p=>{
-      const m=p.match(/^([A-Z][A-Za-z0-9() ,/\\-]{2,55}?)\\s+(is defined as|are defined as|refers to|means|consists of|is|are)\\s+(.{15,260})$/i);
-      if(m){const term=m[1].trim().replace(/[,:;.]$/,'');const definition=m[3].trim().replace(/[.]$/,'');if(term.split(/\\s+/).length<=7&&!defs.some(d=>d.term.toLowerCase()===term.toLowerCase()))defs.push({term,definition,source:p});}
+      const m=p.match(/^([A-Z][A-Za-z0-9() ,/\-]{2,55}?)\s+(is defined as|are defined as|refers to|means|consists of|is|are)\s+(.{15,260})$/i);
+      if(m){const term=m[1].trim().replace(/[,:;.]$/,'');const definition=m[3].trim().replace(/[.]$/,'');if(term.split(/\s+/).length<=7&&!defs.some(d=>d.term.toLowerCase()===term.toLowerCase()))defs.push({term,definition,source:p});}
     });
     const notes=[];
     let current=headingLines[0]||'Overview';
@@ -47,7 +47,7 @@
     const flush=()=>{const joined=body.join(' ').trim();if(joined.length>=40)notes.push({heading:current,body:joined.slice(0,1100)});body=[];};
     lines.forEach(line=>{
       if(isHeading(line)){flush();current=line.replace(/[:：]$/,'');}
-      else if(line.length>=30)body.push(line.replace(/^[-•*]+\\s*/,'')); 
+      else if(line.length>=30)body.push(line.replace(/^[-•*]+\s*/,'')); 
     });
     flush();
     if(!notes.length){for(let i=0;i<unique.length;i+=3){const chunk=unique.slice(i,i+3);if(chunk.length)notes.push({heading:'Key concepts '+(notes.length+1),body:chunk.join(' ').slice(0,1100)});}}
