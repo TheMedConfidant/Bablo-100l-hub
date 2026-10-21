@@ -1944,8 +1944,8 @@ function chessMenu() {
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
     h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.'),
-      h('button', { class: 'btn gold block', onclick: createOnline }, 'Create a challenge'),
-      h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
+      h('button', { class: 'btn gold block', onclick: () => runOnlineAction(createOnline) }, 'Create a challenge'),
+      h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => runOnlineAction(() => joinOnline(document.getElementById('joinCode').value)) }, 'Join')),
       h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
       h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list')))));
   loadOpenList();
@@ -2127,11 +2127,25 @@ async function loadOpenList() {
   const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=20');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
   const open = rows.filter(r => r.white_dev !== DB.dev);
-  box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => joinOnline(r.code) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
+  box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => runOnlineAction(() => joinOnline(r.code)) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
 }
 function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
 function onlineState(color, id, code, status, white, black) {
   return { mode: 'online', online: { id, code, status, recorded: false, white: white || DB.profile.nick, black: black || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
+}
+let ONLINE_ACTION_BUSY = false;
+async function runOnlineAction(action) {
+  if (ONLINE_ACTION_BUSY) return;
+  ONLINE_ACTION_BUSY = true;
+  const panel = document.getElementById('onlinePanel');
+  if (panel) panel.querySelectorAll('button').forEach(b => { b.disabled = true; });
+  try { await action(); }
+  catch (e) { toast('Online challenge failed. Check your connection and try again.'); }
+  finally {
+    ONLINE_ACTION_BUSY = false;
+    const current = document.getElementById('onlinePanel');
+    if (current) current.querySelectorAll('button').forEach(b => { b.disabled = false; });
+  }
 }
 async function createOnline() {
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
