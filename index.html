@@ -365,13 +365,18 @@ body.on-home .wrap{padding-bottom:170px}
 #splash{--sp-a:#5EEAD4;--sp-b:#0B7A75;--sp-glow:rgba(94,234,212,.55);--sp-line:#ffffff;--sp-ink:#EEF4FF;--sp-sub:#9FB3D9;--sp-bg1:#14304a;--sp-bg2:#0a1020;--sp-bg3:#060a14}
 #splash[data-look="pink"]{--sp-a:#FBCFE8;--sp-b:#BE185D;--sp-glow:rgba(244,114,182,.6);--sp-line:#FFF1F7;--sp-ink:#FFF1F7;--sp-sub:#F9A8D4;--sp-bg1:#3b0d2a;--sp-bg2:#1a0716;--sp-bg3:#0c030a}
 #splash[data-look="purple"]{--sp-a:#DDD6FE;--sp-b:#6D28D9;--sp-glow:rgba(139,92,246,.65);--sp-line:#F5F3FF;--sp-ink:#F5F3FF;--sp-sub:#C4B5FD;--sp-bg1:#2a1459;--sp-bg2:#130a2e;--sp-bg3:#07041a}
-#splash[data-look="gold"]{--sp-a:#FDE68A;--sp-b:#92400E;--sp-glow:rgba(245,196,81,.7);--sp-line:#FFF7D6;--sp-ink:#FFF4CC;--sp-sub:#E9C46A;--sp-bg1:#2b1d05;--sp-bg2:#140c02;--sp-bg3:#070401}
+#splash[data-look="gold"]{--sp-a:#E8B93C;--sp-b:#5C3305;--sp-glow:rgba(200,146,30,.62);--sp-line:#F6E7B0;--sp-ink:#F3DE9C;--sp-sub:#B8892E;--sp-bg1:#1c1302;--sp-bg2:#0c0801;--sp-bg3:#040200}
 #splash[data-look="classic"]{--sp-a:#F8FAFC;--sp-b:#64748B;--sp-glow:rgba(203,213,225,.45);--sp-line:#0F172A;--sp-ink:#0F172A;--sp-sub:#475569;--sp-bg1:#FFFFFF;--sp-bg2:#F1F5F9;--sp-bg3:#E2E8F0}
 #splash{background:radial-gradient(120% 90% at 50% 0%,var(--sp-bg1) 0%,var(--sp-bg2) 60%,var(--sp-bg3) 100%) !important}
 #splash .sp-logo{filter:drop-shadow(0 0 22px var(--sp-glow)) !important}
 #splash .sp-line{stroke:var(--sp-line) !important}
 #splash .sp-name{color:var(--sp-ink) !important}
 #splash .sp-sub{color:var(--sp-sub) !important}
+
+/* hero heartbeat: the line beats at the rate set by the streak (see --beat-s) */
+.hero .pulse{animation:heartbeat var(--beat-s,1.2s) ease-in-out infinite;transform-origin:center}
+@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.035)}28%{transform:scale(.99)}42%{transform:scale(1.02)}}
+@media (prefers-reduced-motion: reduce){.hero .pulse{animation:none}}
 
 </style>
 </head>
@@ -561,7 +566,7 @@ body.on-home .wrap{padding-bottom:170px}
 ;
 /* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
-const APP = { name: 'Bablo Hub', version: '3.29.1' };
+const APP = { name: 'Bablo Hub', version: '3.30.0' };
 
 /* Leaderboard backend. Leave url empty for device-only mode.
    To go global: create a Supabase project, run supabase_setup.sql, paste the project URL and anon (publishable) key. */
@@ -1405,6 +1410,8 @@ function homeView() {
       h('div', null, h('b', null, DB.history.length), h('span', null, 'attempts')),
       h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
   hero.querySelector('svg').setAttribute('class', 'pulse');
+  // heartbeat: resting around 72 bpm, quickening with your study streak (capped), slowing a little when you've not studied today
+  { const bpm = Math.min(110, 72 + (st.days || 0) * 4); hero.style.setProperty('--beat-s', (60 / bpm).toFixed(2) + 's'); }
   const L200 = DB.profile && DB.profile.level === '200L';
   const actions = L200 ? h('section', { class: 'grid', style: { gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' } },
     [['#/flashcards', 'Flashcards'], ['#/notes', 'Notes'], ['#/quiz200', 'Quizzes'], ['#/practicals', 'Practicals']].map(([href, label]) => h('a', { class: 'panel', href, style: { textAlign: 'center', padding: '14px 6px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none' } }, label))) : null;
@@ -2357,7 +2364,7 @@ function nextWindows(now, count) {
   return Core.windowsIn(from, to, EVENT_WINDOWS).filter(w => w.end > now).slice(0, count);
 }
 function cupView() {
-  if (CUP_ON_HOLD) return holdPage('Programme Cup');
+  if (CUP_ON_HOLD) return holdPage('Programme Cup', true);
   const now = Date.now(), seasonStart = Date.parse(SEASON.start), seasonEnd = seasonStart + SEASON.weeks * 7 * 864e5;
   const inSeason = now >= seasonStart && now < seasonEnd;
   const fmtWhen = ms => new Date(ms + 3600000).toISOString().slice(0, 16).replace('T', ' ') + ' Lagos';
@@ -2583,6 +2590,9 @@ function maybeInstallPopup() {
 window.addEventListener('bablo-install-ready', maybeInstallPopup);
 
 /* ---------- schedule poll: when should qualifications hold? One vote per person. ---------- */
+const CUP_POLL = { id: 'cup-timing-s1', title: 'When should the Programme Cup run?', question: 'Vote for the time you want. The most votes wins.', options: [
+  { id: 'wed-7pm', label: 'Wednesday, 7pm' }, { id: 'wed-9pm', label: 'Wednesday, 9pm' },
+  { id: 'sat-1pm', label: 'Saturday, 1pm' }, { id: 'sat-5pm', label: 'Saturday, 5pm' }] };
 const QUAL_POLL = { id: 'qualifications-2026-s1', question: 'When should programme qualifications hold? (Lagos time)', options: [
   { id: 'today-8pm', label: 'Today, 8pm' }, { id: 'today-9pm', label: 'Today, 9pm' },
   { id: 'tomorrow-7pm', label: 'Tomorrow, 7pm' }, { id: 'tomorrow-8pm', label: 'Tomorrow, 8pm' }] };
@@ -2593,24 +2603,25 @@ async function pollCounts(pollId) {
   rows.forEach(r => { counts[r.option_id] = (counts[r.option_id] || 0) + 1; if (r.voter === DB.dev) mine = r.option_id; });
   return { counts, mine, total: rows.length };
 }
-function pollCard() {
+function pollCard(P) {
+  const poll = P || QUAL_POLL;
   const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
   const draw = async () => {
     if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'The poll opens when the live database is connected.')); return; }
-    const data = await pollCounts(QUAL_POLL.id);
+    const data = await pollCounts(poll.id);
     if (!data) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load the poll.')); return; }
-    box.replaceChildren(...QUAL_POLL.options.map(o => {
+    box.replaceChildren(...poll.options.map(o => {
       const n = data.counts[o.id] || 0, pct = data.total ? Math.round(n / data.total * 100) : 0;
       return h('button', { class: 'btn block', 'aria-pressed': String(data.mine === o.id), disabled: !!data.mine, style: { justifyContent: 'space-between', marginTop: '6px' },
         onclick: async () => {
-          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: QUAL_POLL.id, option_id: o.id, voter: DB.dev }) }).catch(() => null);
+          const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: poll.id, option_id: o.id, voter: DB.dev }) }).catch(() => null);
           if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
         } }, h('span', null, (data.mine === o.id ? '\u2714 ' : '') + o.label), h('span', { class: 'small muted' }, n + ' \u2022 ' + pct + '%'));
     }));
     box.append(h('p', { class: 'tiny muted' }, data.total + ' vote' + (data.total === 1 ? '' : 's') + '. You can vote once.'));
   };
   draw();
-  return h('section', { class: 'panel stack' }, h('h2', null, 'Qualifications poll'), h('p', { class: 'muted small' }, QUAL_POLL.question), box);
+  return h('section', { class: 'panel stack' }, h('h2', null, poll.title || 'Qualifications poll'), h('p', { class: 'muted small' }, poll.question), box);
 }
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
@@ -2783,9 +2794,10 @@ function bonusView(code) {
 }
 
 /* ---------- on-hold page (Cup, qualifications) ---------- */
-function holdPage(title) {
+function holdPage(title, withPoll) {
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', null, title)),
-    h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'On hold'), h('p', { class: 'muted small' }, title + ' is on hold until the tests are done. The admin will announce when it opens.')))));
+    h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'On hold'), h('p', { class: 'muted small' }, title + ' is on hold until the tests are done. The admin will announce when it opens.')),
+    withPoll ? pollCard(CUP_POLL) : null)));
 }
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function settingsView() {
@@ -2840,13 +2852,18 @@ function filesView() {
     send.disabled = true; send.textContent = 'Uploading\u2026';
     try {
       // the server checks your logged-in session, then stores the file
+      // refuse a file that has already been sent (same fingerprint)
+      const buf = await f.arrayBuffer();
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', buf))).map(b => b.toString(16).padStart(2, '0')).join('');
+      const seen = await sbGet('uploads?select=id&file_hash=eq.' + hash);
+      if (Array.isArray(seen) && seen.length) throw new Error('This file has already been uploaded. Thank you.');
       // plain form upload: no custom headers, so the browser needs no extra safety check
       const fd = new FormData(); fd.append('file', f, f.name);
       const up = await fetch(LB.url + '/functions/v1/hub-upload?token=' + encodeURIComponent(DB.account.token) + '&ext=' + encodeURIComponent(ext), { method: 'POST', body: fd });
       const got = await up.json().catch(() => ({}));
       if (!up.ok || !got.ok) throw new Error(got.error || 'upload');
       const path = got.path;
-      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending' }) });
+      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending', file_hash: hash }) });
       if (!row.ok) throw new Error('row');
       toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
     } catch (e) { err.textContent = (e && e.message && e.message !== 'upload' && e.message !== 'row') ? e.message : 'Could not upload. Check your connection and try again.'; }
