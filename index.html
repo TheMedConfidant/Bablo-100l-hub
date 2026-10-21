@@ -3003,17 +3003,21 @@ function notesView(code, topicIdx) {
   const prev = N.topics[topicIdx - 1], next = N.topics[topicIdx + 1];
   mount(wrap(back('#/notes/' + code, N.title + ' notes'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, t.title), h('p', { class: 'muted small' }, 'Topic ' + (topicIdx + 1) + ' of ' + N.topics.length)),
-    h('article', { class: 'panel stack' }, t.sections.map(p => h('p', { style: { margin: 0 } }, p))),
+    h('article', { class: 'panel stack notes-copy', style: { gap: '18px', padding: '20px', lineHeight: '1.8' } }, t.sections.map(p => h('p', { style: { margin: 0, lineHeight: '1.8', whiteSpace: 'pre-line' } }, p))),
     h('div', { class: 'row' }, prev ? h('button', { class: 'btn grow', onclick: () => go('#/notes/' + code + '/' + (topicIdx - 1)) }, '\u2039 Previous') : h('span', { class: 'grow' }),
       next ? h('button', { class: 'btn primary grow', onclick: () => go('#/notes/' + code + '/' + (topicIdx + 1)) }, 'Next \u203A') : h('span', { class: 'grow' })))));
 }
 function flashView(code) {
   const c = courseBy(code);
   const hubCards = (window.__CARDS__ || {})[code];
-  // flashcards show the question and the answer only, no explanations
+  // Active-recall flashcards: never show multiple-choice options on a card.
   const deck = hubCards
-    ? Core.shuffle(hubCards.map(x => ({ q: x.front, b: x.back, u: x.u, opts: null })))
-    : Core.shuffle((BYC[code] || []).slice()).map(q => ({ q: q.q, b: q.s === 'fill' ? (q.acc || []).join(' / ') : q.o[q.a], u: q.u, opts: q.s === 'fill' ? null : q.o }));
+    ? Core.shuffle(hubCards.map(x => ({ q: x.front, b: x.back, u: x.u || 'Study card' })))
+    : Core.shuffle((BYC[code] || []).slice()).map(q => ({
+        q: q.q,
+        b: q.s === 'fill' ? (q.acc || []).join(' / ') : (q.o && q.o[q.a] != null ? q.o[q.a] : (q.e || 'Review this concept in the notes.')),
+        u: q.u || 'Recall'
+      }));
   if (!deck.length) { go('#/course/' + code); return; }
   let i = 0, showBack = false;
   const counter = h('span', { class: 'muted small' });
@@ -3026,7 +3030,6 @@ function flashView(code) {
     const body = [];
     body.push(h('span', { class: 'chip brand' }, showBack ? 'Answer' : 'Question'));
     body.push(h('p', { class: 'fc-text' }, showBack ? x.b : x.q));
-    if (!showBack && x.opts) body.push(h('div', { class: 'fc-opts' }, x.opts.map(o => h('div', { class: 'fc-opt' }, o))));
     body.push(h('span', { class: 'tiny muted' }, showBack ? 'Tap the card to see the question again' : 'Tap the card or Show answer'));
     cardEl.replaceChildren(...body.filter(Boolean));
     flipBtn.textContent = showBack ? 'Hide answer' : 'Show answer';
