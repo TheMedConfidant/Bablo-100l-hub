@@ -294,6 +294,26 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .tile:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(0,0,0,.25)}
 
 .field textarea,textarea{width:100%;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);padding:11px;font:inherit;resize:vertical}.nav .in{grid-template-columns:repeat(6,1fr)}@media(max-width:380px){.nav a{font-size:.66rem}.nav a svg{width:19px;height:19px}}
+
+/* ===== Contrast repair: light-mode text must remain readable ===== */
+:root[data-mode="light"]{color-scheme:light}
+:root[data-mode="light"] input,
+:root[data-mode="light"] textarea,
+:root[data-mode="light"] select,
+:root[data-mode="light"] option{color:var(--ink)!important}
+:root[data-mode="light"] select option{background:#fff;color:#172033}
+:root[data-mode="light"] :is(.panel,.tile,.rows,.modal,.qcard,.rev,.slip,.podium,.gpa-row,.lrow,.fb,.roast,.verse,.rows .urow,.map button,.map .btn,.field,.stack,.stack-l) :is(h1,h2,h3,p,span,div,label,small,strong,b,li,dt,dd,code,summary){
+  color:var(--ink);
+}
+:root[data-mode="light"] :is(.muted,.tile .meta,.back,.slip dt,.nav a,.pending,.pending .status){color:var(--ink2)}
+:root[data-mode="light"] :is(.btn,.opt,.choice,.map button,.nav a,.dock .btn){color:var(--ink)}
+:root[data-mode="light"] :is(.btn.primary,.opt[aria-pressed="true"],.choice .k,.clock.on){color:var(--brand-ink)}
+:root[data-mode="light"] :is(.chip.gold,.chip.ok,.chip.bad,.chip.brand,.status,.timer.low,.clock.low,.warnbox){color:inherit}
+:root[data-mode="light"] :is(.hero,.exam-head,.hero *, .exam-head *){color:inherit}
+:root[data-mode="light"] :is(.hero p,.hero-stats span,.exam-head .muted){color:#DCE7F7}
+:root[data-mode="light"] :is(input,textarea)::placeholder{color:#596579;opacity:1}
+:root[data-mode="light"] :is(.panel,.tile,.rows,.modal,.qcard,.rev,.slip,.podium,.gpa-row,.fb,.roast,.verse){-webkit-text-fill-color:initial}
+
 </style>
 </head>
 <body>
