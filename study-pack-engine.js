@@ -32,7 +32,7 @@
   function generate(text,title,course){
     const raw=String(text||'').replace(/\\r/g,'');
     const lines=raw.split('\\n').map(x=>x.trim()).filter(Boolean);
-    const isHeading=s=>s.length<=90&&!/[.!?]$/.test(s)&&(/^[A-Z0-9][A-Z0-9 \\-/&,():]{2,}$/.test(s)||/^(chapter|unit|topic|lecture|module|objectives?|introduction|summary|conclusion|definition|classification|functions?|types|importance|mechanism|causes|effects|structure|properties|examples?)\\b/i.test(s));
+    const isHeading=s=>s.length<=90&&!/[.!?]$/.test(s)&&(/^[A-Z0-9][A-Z0-9 /&,():-]{2,}$/.test(s)||/^(chapter|unit|topic|lecture|module|objectives?|introduction|summary|conclusion|definition|classification|functions?|types|importance|mechanism|causes|effects|structure|properties|examples?)\\b/i.test(s));
     const headingLines=lines.filter(isHeading);
     const sentences=raw.split(/\\n+|(?<=[.!?])\\s+(?=[A-Z0-9])/).map(x=>x.replace(/^[-•*\\d.) ]+/,'').trim()).filter(x=>x.length>=35&&x.length<=900);
     const unique=[...new Set(sentences)].slice(0,300);
