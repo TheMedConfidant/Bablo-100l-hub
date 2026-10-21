@@ -1462,7 +1462,7 @@ function landingView() {
   mount(wrap(
     h('div', { class: 'top' }, brand()),
     h('section', { class: 'hero stack' },
-      h('p', { class: 'chip brand' }, 'BH lib • Learn together'),
+      h('p', { class: 'chip brand' }, 'Bowen Hub'),
       h('h1', { class: 'hero-greeting' }, 'Your courses. Your community. Your progress.'),
       h('p', { class: 'muted' }, 'Study resources, practise questions, revise with flashcards and join your programme community.'),
       h('p', { class: 'tiny muted' }, 'Made for every student — Yoruba, Igbo, Hausa and all backgrounds.')
@@ -2620,7 +2620,7 @@ function accountSection() {
     !authConfigured() ? h('p', { class: 'muted small', role: 'status' }, 'Log in and account creation are shown here, but the account service is not connected in this preview yet.') : null,
     tabs, ...fields, err,
     h('button', { class: 'btn primary block', onclick: () => go2(mode === 'signup') }, mode === 'signup' ? 'Create account' : 'Log in'),
-    h('p', { class: 'tiny muted' }, 'Practice works without an account. An account keeps your progress and lets you join the Cup, Social Corner and friend challenges.'));
+    h('p', { class: 'tiny muted' }, 'Account required for saved progress and competitions.'));
 }
 
 /* ---------- item analysis: question id and right/wrong only, no names or devices ---------- */
