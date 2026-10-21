@@ -2226,7 +2226,7 @@ async function loadPrioritisedFeedback(pass, container) {
   const label = { wrong_answer: 'Wrong answer', bug: 'Bug', other: 'Other' };
   const rows = d.feedback || [];
   box.replaceChildren(h('h2', null, 'Feedback (' + rows.length + ', priority first)'), rows.length ? null : h('p', { class: 'muted small' }, 'No feedback yet.'),
-    rows.map(f => h('div', { class: 'rev' },
+    ...rows.map(f => h('div', { class: 'rev' },
       h('span', { class: 'chip ' + (f.priority === 1 ? 'bad' : f.priority === 2 ? 'gold' : '') }, label[f.kind] || f.kind),
       f.same_ref_count > 1 ? h('span', { class: 'chip', style: { marginLeft: '6px' } }, f.same_ref_count + ' reports on this item') : null,
       h('span', { class: 'tiny muted' }, ' ' + (f.nick || '') + ' \u2022 ' + (f.programme || '') + ' \u2022 ' + new Date(f.created_at).toLocaleString()),
@@ -2272,7 +2272,7 @@ async function loadUploadsPage(pass, container) {
     }
     return holder;
   };
-  box.replaceChildren(h('h2', null, 'Uploads (' + pending + ' waiting)'), rows.length ? null : h('p', { class: 'muted small' }, 'No uploads yet.'), rows.map(row));
+  box.replaceChildren(h('h2', null, 'Uploads (' + pending + ' waiting)'), rows.length ? null : h('p', { class: 'muted small' }, 'No uploads yet.'), ...rows.map(row));
 }
 
 /* ---------- admin: analytics (server-side key, admin session and passcode checked on every call) ---------- */
@@ -2287,7 +2287,7 @@ async function loadAnalytics(pass, container) {
     const shown = v === null || v === undefined ? 'no data yet' : (typeof v === 'object' ? JSON.stringify(v) : String(v));
     return h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } }, h('span', { class: 'small' }, k.replace(/_/g, ' ')), h('b', null, shown));
   });
-  box.replaceChildren(h('h2', null, 'Analytics (last ' + (data.days || 30) + ' days)'), rows.length ? rows : h('p', { class: 'muted small' }, 'No events yet.'));
+  box.replaceChildren(h('h2', null, 'Analytics (last ' + (data.days || 30) + ' days)'), ...(rows.length ? rows : [h('p', { class: 'muted small' }, 'No events yet.')]));
 }
 
 ;
