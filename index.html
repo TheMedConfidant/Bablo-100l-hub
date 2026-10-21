@@ -1984,7 +1984,7 @@ h('div',{id:'chessBotPicker',class:'panel stack',style:{alignItems:'center',text
       h('button', { class: 'btn gold block', onclick: () => runOnlineAction(createOnline) }, 'Create a challenge'),
       h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => runOnlineAction(() => joinOnline(document.getElementById('joinCode').value)) }, 'Join')),
       h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
-      h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list')))));
+      h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list'))));
   loadOpenList();
 }
 function newChess() {
