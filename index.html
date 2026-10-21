@@ -1685,22 +1685,100 @@ function openScientificCalculator() {
   const renderDisplay = () => { display.value = expression || '0'; };
   const calculate = () => {
     try {
-      let exp = expression.replace(/×/g, '*').replace(/÷/g, '/').replace(/π/g, 'PI').replace(/√\(/g, 'sqrt(').replace(/\^/g, '**');
-      if (!exp.trim() || !/^[0-9A-Za-z_+\-*/().,%\s]*$/.test(exp)) throw new Error('Invalid');
-      const tokens = exp.match(/[A-Za-z_]+/g) || [];
-      if (tokens.some(t => !['sin','cos','tan','sqrt','log','ln','abs','PI','ANS'].includes(t))) throw new Error('Invalid');
-      exp = exp.replace(/%/g, '/100').replace(/ANS/g, '(' + (answer || '0') + ')');
+      // Parse a deliberately small mathematical language instead of evaluating
+      // user input as JavaScript. This supports implicit multiplication and
+      // postfix percentages (e.g. 5ln(326)%).
+      const source = expression
+        .replace(/×/g, '*').replace(/÷/g, '/')
+        .replace(/π/g, 'PI').replace(/√/g, 'sqrt')
+        .replace(/\^/g, '**');
+      if (!source.trim()) throw new Error('Empty expression');
+      const tokenPattern = /(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+\-]?\d+)?|[A-Za-z_][A-Za-z_0-9]*|\*\*|[()+\-*/%]/g;
+      const tokens = [];
+      let cursor = 0, match;
+      while (cursor < source.length) {
+        if (/\s/.test(source[cursor])) { cursor++; continue; }
+        tokenPattern.lastIndex = cursor;
+        match = tokenPattern.exec(source);
+        if (!match || match.index !== cursor) throw new Error('Invalid token');
+        tokens.push(match[0]);
+        cursor = tokenPattern.lastIndex;
+      }
+      let pos = 0;
+      const peek = () => tokens[pos];
+      const take = () => tokens[pos++];
+      const isNumber = t => typeof t === 'string' && /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+\-]?\d+)?$/.test(t);
+      const canStartValue = t => isNumber(t) || t === '(' || /^[A-Za-z_]/.test(t || '');
       const toRad = x => angle === 'DEG' ? x * Math.PI / 180 : x;
-      const fromRad = x => angle === 'DEG' ? x * 180 / Math.PI : x;
-      const result = Function('sin','cos','tan','sqrt','log','ln','abs','PI',
-        '"use strict"; return (' + exp + ');')(
-          x => Math.sin(toRad(x)), x => Math.cos(toRad(x)), x => Math.tan(toRad(x)),
-          Math.sqrt, Math.log10, Math.log, Math.abs, Math.PI
-        );
-      if (!Number.isFinite(result)) throw new Error('Invalid');
+      const funcs = {
+        sin: x => Math.sin(toRad(x)),
+        cos: x => Math.cos(toRad(x)),
+        tan: x => Math.tan(toRad(x)),
+        sqrt: x => Math.sqrt(x),
+        log: x => Math.log10(x),
+        ln: x => Math.log(x),
+        abs: x => Math.abs(x)
+      };
+      function primary() {
+        const t = take();
+        let value;
+        if (isNumber(t)) value = Number(t);
+        else if (t === '(') {
+          value = add();
+          if (take() !== ')') throw new Error('Missing closing bracket');
+        } else if (/^[A-Za-z_]/.test(t || '')) {
+          const name = t;
+          if (peek() === '(' && Object.prototype.hasOwnProperty.call(funcs, name)) {
+            take();
+            value = add();
+            if (take() !== ')') throw new Error('Missing function bracket');
+            value = funcs[name](value);
+          } else if (name === 'PI') value = Math.PI;
+          else if (name === 'ANS') value = Number(answer || 0);
+          else throw new Error('Unknown function or constant');
+        } else throw new Error('Expected a number');
+        while (peek() === '%') { take(); value /= 100; }
+        return value;
+      }
+      function power() {
+        const left = primary();
+        if (peek() === '**') {
+          take();
+          return left ** unary();
+        }
+        return left;
+      }
+      function unary() {
+        if (peek() === '+') { take(); return unary(); }
+        if (peek() === '-') { take(); return -unary(); }
+        return power();
+      }
+      function multiply() {
+        let value = unary();
+        while (true) {
+          if (peek() === '*') { take(); value *= unary(); }
+          else if (peek() === '/') { take(); value /= unary(); }
+          else if (canStartValue(peek())) value *= unary(); // implicit multiplication
+          else break;
+        }
+        return value;
+      }
+      function add() {
+        let value = multiply();
+        while (peek() === '+' || peek() === '-') {
+          const op = take(), right = multiply();
+          value = op === '+' ? value + right : value - right;
+        }
+        return value;
+      }
+      const result = add();
+      if (pos !== tokens.length || !Number.isFinite(result)) throw new Error('Invalid result');
       answer = String(Number(result.toPrecision(12)));
-      expression = answer; renderDisplay();
-    } catch (_) { display.value = 'Check expression'; }
+      expression = answer;
+      renderDisplay();
+    } catch (_) {
+      display.value = 'Check expression';
+    }
   };
   const press = key => {
     if (key === 'C') expression = '';
