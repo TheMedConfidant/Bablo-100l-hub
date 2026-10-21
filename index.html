@@ -1943,7 +1943,7 @@ function chessMenu() {
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
-    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.'),
+    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, signedIn() ? 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.' : 'Sign in from Me to create or join online chess challenges. Computer chess stays available without an account.'), !signedIn() ? h('a', { class: 'btn block', href: '#/me' }, 'Sign in / create account') : null,
       h('button', { class: 'btn gold block', onclick: () => runOnlineAction(createOnline) }, 'Create a challenge'),
       h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => runOnlineAction(() => joinOnline(document.getElementById('joinCode').value)) }, 'Join')),
       h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
@@ -2121,8 +2121,14 @@ async function sbFetchJson(path, opts) {
   try { const r = await fetch(LB.url + '/rest/v1/' + path, Object.assign({ headers: sbHeaders() }, opts || {})); if (!r.ok) return null; return r.status === 204 ? [] : await r.json(); }
   catch (e) { return null; }
 }
+function requireCompetitionAccount(feature) {
+  if (signedIn() && DB.profile && DB.profile.uid) return true;
+  toast('Sign in from Me before joining ' + feature + '.');
+  return false;
+}
 async function loadOpenList() {
   const box = document.getElementById('openList'); if (!box) return;
+  if (!signedIn() || !DB.profile || !DB.profile.uid) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in from Me to browse and join online challenges.'), h('a', { class: 'btn sm', href: '#/me' }, 'Go to Me')); return; }
   if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Online challenges turn on when the live database is connected.')); return; }
   const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=20');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
@@ -2148,6 +2154,7 @@ async function runOnlineAction(action) {
   }
 }
 async function createOnline() {
+  if (!requireCompetitionAccount('online chess')) return;
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
   const code = rnd6();
   const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, status: 'waiting', moves: '' }) });
@@ -2155,6 +2162,7 @@ async function createOnline() {
   startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, ''));
 }
 async function joinOnline(raw) {
+  if (!requireCompetitionAccount('online chess')) return;
   const code = String(raw || '').trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
