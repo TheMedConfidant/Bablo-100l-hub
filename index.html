@@ -377,68 +377,86 @@ body.on-home .wrap{padding-bottom:170px}
 #splash .sp-sub{color:var(--sp-sub) !important}
 
 
-/* BH gold finish: deep metallic gold across the interface, without touching the approved app icon */
-:root[data-tint="gold"]{
-  --brand:#D6A52B;
-  --brand-ink:#211400;
-  --brand-soft:rgba(214,165,43,.18);
-  --gold:#E0AD32;
-  --gold-soft:rgba(184,125,18,.22);
-  --glow-a:rgba(214,165,43,.42);
-  --glow-b:rgba(160,100,10,.34);
-  --glow-c:rgba(255,220,120,.20);
-  --glass-edge:rgba(237,190,67,.42);
+
+/* BH readability pass: strong foreground/background contrast in every mode */
+:root[data-mode="light"]{
+  color-scheme:light;
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F4F4F4;
+  --ink:#111111;--ink2:#333333;--line:#D0D0D0;
+  --shadow:0 2px 5px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
 }
+:root[data-mode="dark"]{
+  color-scheme:dark;
+  --bg:#000000;--surface:#111111;--surface2:#1D1D1D;
+  --ink:#FFFFFF;--ink2:#EEEEEE;--line:#484848;
+  --shadow:0 2px 5px rgba(0,0,0,.38),0 8px 24px rgba(0,0,0,.24);
+}
+/* Gold light mode stays genuinely light: white surfaces, black text, gold accents. */
 :root[data-tint="gold"][data-mode="light"]{
-  --bg:#171108;
-  --surface:#241A09;
-  --surface2:#33240B;
-  --ink:#FFF1C2;
-  --ink2:#D8BD79;
-  --line:rgba(220,171,51,.32);
-  --brand:#E2B33F;
-  --brand-ink:#211400;
-  --brand-soft:rgba(226,179,63,.18);
-  --gold:#F0C04C;
-  --gold-soft:rgba(201,143,23,.2);
-  --shadow:0 8px 26px rgba(0,0,0,.28),0 0 0 1px rgba(220,171,51,.08);
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F7F3E8;
+  --ink:#111111;--ink2:#333333;--line:#D9C58E;
+  --brand:#8A5A00;--brand-ink:#FFFFFF;--brand-soft:#F8EAC2;
+  --gold:#8A5A00;--gold-soft:#FFF1C2;
+  --glow-a:rgba(214,165,43,.20);--glow-b:rgba(160,100,10,.12);--glow-c:rgba(255,220,120,.12);
+  --glass-edge:rgba(138,90,0,.30);
+  --shadow:0 2px 5px rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.06);
 }
-:root[data-tint="gold"] body{background:radial-gradient(ellipse at 12% 0%,rgba(176,119,17,.15),transparent 42%),var(--bg)}
+:root[data-tint="gold"][data-mode="dark"]{
+  --bg:#000000;--surface:#111111;--surface2:#1D1D1D;
+  --ink:#FFFFFF;--ink2:#EEEEEE;--line:#484848;
+  --brand:#F3C957;--brand-ink:#171000;--brand-soft:#33280E;
+  --gold:#F3C957;--gold-soft:#33280E;
+  --glow-a:rgba(214,165,43,.28);--glow-b:rgba(160,100,10,.20);--glow-c:rgba(255,220,120,.12);
+  --glass-edge:rgba(237,190,67,.35);
+}
+:root[data-tint="gold"] body{background:radial-gradient(ellipse at 12% 0%,rgba(176,119,17,.10),transparent 42%),var(--bg)}
 :root[data-tint="gold"] .hero{
   background:linear-gradient(135deg,#211603 0%,#49320B 52%,#76500E 100%);
   border:1px solid rgba(236,190,67,.45);
-  box-shadow:inset 0 1px 0 rgba(255,226,143,.14),0 12px 30px rgba(0,0,0,.24);
+  box-shadow:inset 0 1px 0 rgba(255,226,143,.14),0 12px 30px rgba(0,0,0,.18);
+  color:#FFFFFF;
 }
 :root[data-tint="gold"] .hero h1,
 :root[data-tint="gold"] .hero h1.hero-greeting{color:#FFE5A0}
+:root[data-tint="gold"] .hero p,
+:root[data-tint="gold"] .hero-stats span{color:#FFFFFF}
 :root[data-tint="gold"] .card,
 :root[data-tint="gold"] .panel,
 :root[data-tint="gold"] .tile,
 :root[data-tint="gold"] .course-card{
-  border-color:rgba(220,171,51,.28);
-  box-shadow:inset 0 1px 0 rgba(255,226,143,.07),0 8px 22px rgba(0,0,0,.12);
+  border-color:rgba(160,110,15,.35);
+  box-shadow:inset 0 1px 0 rgba(255,226,143,.07),0 8px 22px rgba(0,0,0,.08);
+}
+:root[data-tint="gold"][data-mode="light"] .card,
+:root[data-tint="gold"][data-mode="light"] .panel,
+:root[data-tint="gold"][data-mode="light"] .tile,
+:root[data-tint="gold"][data-mode="light"] .course-card,
+:root[data-tint="gold"][data-mode="light"] .nav,
+:root[data-tint="gold"][data-mode="light"] .dock,
+:root[data-tint="gold"][data-mode="light"] .modal{
+  background:#FFFFFF;color:#111111;
 }
 :root[data-tint="gold"] .btn-primary,
 :root[data-tint="gold"] .btn.brand,
 :root[data-tint="gold"] button.primary{
   background:linear-gradient(135deg,#F3D37A,#C28A19 58%,#95610C);
-  color:#241704;border-color:#E2B34A;
+  color:#211400;border-color:#B98418;
 }
 :root[data-tint="gold"] .chip.gold,
-:root[data-tint="gold"] .badge.gold{background:rgba(224,173,50,.18);color:#F5D77E;border-color:rgba(224,173,50,.35)}
-:root[data-tint="gold"] .dock{background:rgba(28,20,7,.94);border-color:rgba(220,171,51,.3)}
+:root[data-tint="gold"] .badge.gold{background:#FFF1C2;color:#593900;border-color:#C79A30}
+:root[data-tint="gold"] .dock{border-color:rgba(160,110,15,.30)}
 :root[data-tint="gold"] .dock a[aria-current="page"],
-:root[data-tint="gold"] .dock button[aria-current="page"]{color:#F3CB61}
-:root[data-tint="gold"] .monitor{background:linear-gradient(135deg,#171106,#302107);border-color:rgba(231,181,54,.4);box-shadow:inset 0 0 26px rgba(191,133,18,.12)}
-:root[data-tint="gold"] .monitor-grid path{stroke:rgba(224,173,50,.16)!important}
-:root[data-tint="gold"] .monitor-line path,
+:root[data-tint="gold"] .dock button[aria-current="page"]{color:#8A5A00}
+:root[data-tint="gold"][data-mode="dark"] .dock a[aria-current="page"],
+:root[data-tint="gold"][data-mode="dark"] .dock button[aria-current="page"]{color:#F3C957}
 :root[data-tint="gold"] .pulse path{stroke:#F3C957!important;filter:drop-shadow(0 0 4px rgba(243,201,87,.52))}
-:root[data-tint="gold"] .monitor-dot{background:#FFE28A;box-shadow:0 0 12px #E9B83F}
-/* Keep the ECG visibly moving after its initial draw; the reduced-motion preference is respected below. */
+:root[data-tint="gold"] .ecg path{stroke:#B7791F!important;filter:drop-shadow(0 0 3px rgba(183,121,31,.32))}
+:root[data-tint="gold"][data-mode="dark"] .ecg path{stroke:#F3C957!important;filter:drop-shadow(0 0 4px rgba(243,201,87,.52))}
+/* Random ECG morphology: visual easter egg only, no labels or medical interpretation. */
 @keyframes bhEcgSweep{from{stroke-dashoffset:0}to{stroke-dashoffset:-360}}
-@keyframes bhEcgGlow{0%,100%{opacity:.82;filter:drop-shadow(0 0 2px rgba(224,173,50,.28))}50%{opacity:1;filter:drop-shadow(0 0 6px rgba(243,201,87,.72))}}
+@keyframes bhEcgGlow{0%,100%{opacity:.84;filter:drop-shadow(0 0 2px rgba(224,173,50,.25))}50%{opacity:1;filter:drop-shadow(0 0 6px rgba(243,201,87,.55))}}
+.pulse path{stroke-dasharray:900;stroke-dashoffset:0;animation:bhEcgSweep var(--bh-ecg-speed,2.8s) linear infinite,bhEcgGlow 1.8s ease-in-out infinite}
 .ecg path{stroke-dasharray:18 8!important;stroke-dashoffset:0;animation:bhEcgSweep 1.35s linear infinite,bhEcgGlow 1.8s ease-in-out infinite!important}
-.pulse path{animation:bhEcgSweep 2.4s linear infinite,bhEcgGlow 1.8s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.ecg path,.pulse path{animation:none!important;stroke-dashoffset:0!important}}
 
 </style>
@@ -1459,21 +1477,36 @@ function onboarding() {
 }
 
 /* ---------- home ---------- */
-const PULSE = 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360';
+function makePulse() {
+  const patterns = [
+    // Baseline rhythm
+    { speed: '2.8s', d: 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360' },
+    // Faster rhythm
+    { speed: '1.05s', d: 'M0 30H22L28 30L32 10L39 50L45 18L50 30H78L84 30L88 10L95 50L101 18L106 30H134L140 30L144 10L151 50L157 18L162 30H190L196 30L200 10L207 50L213 18L218 30H246L252 30L256 10L263 50L269 18L274 30H302L308 30L312 10L319 50L325 18L330 30H360' },
+    // Slower rhythm
+    { speed: '4.8s', d: 'M0 30H95L110 30L120 8L132 52L144 18L154 30H250L265 30L275 8L287 52L299 18L309 30H360' },
+    // Irregular-looking rhythm
+    { speed: '2.2s', d: 'M0 30H35L43 30L49 9L57 51L65 19L71 30H102L108 30L114 17L120 43L126 25L132 30H211L221 30L227 6L239 54L249 18L257 30H284L291 30L297 12L305 47L313 21L320 30H360' }
+  ];
+  const p = patterns[Math.floor(Math.random() * patterns.length)];
+  return { d: p.d, speed: p.speed };
+}
 function homeView() {
   const p = DB.profile, first = p.name.split(' ')[0], hr = new Date().getHours();
   const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const st = Core.streak(DB.history.map(x => x.ts), Date.now());
   const weak = Object.keys(DB.missed).length;
+  const pulse = makePulse();
   const hero = h('section', { class: 'hero' },
     h('h1', { class: 'hero-greeting' }, greet + ', ' + first),
     h('p', null, 'Pick a course, practise a topic, then test yourself.'),
-    svgEl('0 0 360 56', '<path d="' + PULSE + '"/>', 'pulse'),
+    svgEl('0 0 360 56', '<path d="' + pulse.d + '"/>', 'pulse'),
     h('div', { class: 'hero-stats' },
       h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
       h('div', null, h('b', null, DB.history.length), h('span', null, 'attempts')),
       h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
   hero.querySelector('svg').setAttribute('class', 'pulse');
+  hero.querySelector('svg').style.setProperty('--bh-ecg-speed', pulse.speed);
   const L200 = DB.profile && DB.profile.level === '200L';
   const actions = L200 ? h('section', { class: 'grid', style: { gridTemplateColumns: 'repeat(4,1fr)', gap: '10px' } },
     [['#/flashcards', 'Flashcards'], ['#/notes', 'Notes'], ['#/quiz200', 'Quizzes'], ['#/practicals', 'Practicals']].map(([href, label]) => h('a', { class: 'panel', href, style: { textAlign: 'center', padding: '14px 6px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none' } }, label))) : null;
