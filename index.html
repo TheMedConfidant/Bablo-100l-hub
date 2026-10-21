@@ -1477,7 +1477,7 @@ function route() {
     else if (v === 'flashcards' || v === 'notes') pendingPage(v === 'flashcards' ? 'Flashcards' : 'Notes');
     else if (v === 'quiz200') pendingPage('Quizzes');
     else if (v === 'programmes') programmesView();
-    else if (v === 'chess') chessView();
+    else if (v === 'chess') { chessView(); if (CHESS && CHESS.mode === 'online') startOnlinePoll(); }
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
     else homeView();
@@ -2102,7 +2102,7 @@ function chessView() {
   const clockTop = G.clock ? h('div', { id: 'clockTop', class: 'clock' }) : null, clockBot = G.clock ? h('div', { id: 'clockBottom', class: 'clock' }) : null;
   const undo = h('button', { id: 'chessUndo', class: 'btn grow', disabled: !G.friendly, onclick: takeBack }, 'Take back');
   const level = S.level === 'auto' ? 'matches you (' + (computerSettings(chessRec().rating).depth === 1 ? 'easy' : computerSettings(chessRec().rating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
-  mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: () => { stopChessTick(); stopOnlinePoll(); CHESS = null; } }, '\u2039 Chess settings'),
+  mount(wrap(h('a', { class: 'back', href: '#/', onclick: () => { stopChessTick(); stopOnlinePoll(); } }, '\u2039 Home'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
@@ -2166,13 +2166,21 @@ async function pollOnlineOnce(G) {
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
   G.online.status = g.status;
-  const moves = g.moves ? g.moves.split(' ') : [];
+  // Keep opponent names current while the game is active, not only after it ends.
+  G.online.white = g.white_nick || G.online.white;
+  G.online.black = g.black_nick || G.online.black;
+  const moves = g.moves ? g.moves.trim().split(/\\s+/).filter(Boolean) : [];
   if (moves.length > G.moves.length) {
-    const s = Chess.replay(moves);
-    if (s) { G.s = s; G.moves = moves; const prev = Chess.replay(moves.slice(0, -1)); const lm = prev && Chess.fromUci(prev, moves[moves.length - 1]); G.last = lm ? { from: lm.from, to: lm.to } : null; }
+    const nextState = Chess.replay(moves);
+    if (nextState) {
+      G.s = nextState; G.moves = moves;
+      const prev = Chess.replay(moves.slice(0, -1));
+      const lm = prev && Chess.fromUci(prev, moves[moves.length - 1]);
+      G.last = lm ? { from: lm.from, to: lm.to } : null;
+      G.sel = null; G.legal = [];
+    }
   }
   if (g.status === 'finished' && g.result && !G.endResult) {
-    G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
     G.endResult = g.result; G.endText = g.result === 'draw' ? 'Draw.' : (g.result === G.color ? 'You win!' : 'You lost this one.');
     recordOnline(G, g.result); stopOnlinePoll(); clearChat(G);
   }
