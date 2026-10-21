@@ -1907,7 +1907,7 @@ function computerSettings(rating) {
   return { depth, noise, opp };
 }
 function botRating(level) {
-  const m = String(level || '').match(/^bot-(\\d{3,4})$/);
+  const m = String(level || '').match(/^bot-(\d{3,4})$/);
   return m ? Math.max(600, Math.min(2200, Number(m[1]))) : null;
 }
 function levelParams() {
