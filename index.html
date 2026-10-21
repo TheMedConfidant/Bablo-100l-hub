@@ -2169,7 +2169,7 @@ async function pollOnlineOnce(G) {
   // Keep opponent names current while the game is active, not only after it ends.
   G.online.white = g.white_nick || G.online.white;
   G.online.black = g.black_nick || G.online.black;
-  const moves = g.moves ? g.moves.trim().split(/\\s+/).filter(Boolean) : [];
+  const moves = g.moves ? g.moves.trim().split(/\s+/).filter(Boolean) : [];
   if (moves.length > G.moves.length) {
     const nextState = Chess.replay(moves);
     if (nextState) {
