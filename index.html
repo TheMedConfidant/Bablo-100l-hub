@@ -2282,20 +2282,25 @@ async function loadUploadsPage(pass, container) {
         }).then(x => x.json());
         if (!saved || !saved.ok) throw new Error(saved && saved.error ? saved.error : 'Could not save draft. Confirm the admin passcode.');
         toast('Draft generated and saved for review. Approve the upload to publish it.');
-        const noteSamples = (pack.notes.sections || []).slice(0, 4);
-        const cardSamples = (pack.flashcards || []).slice(0, 3);
-        const questionSamples = (pack.questions || []).slice(0, 3);
-        const preview = h('div', { class: 'panel stack' },
+        const preview = h('div', { class: 'panel stack' });
+        preview.append(
           h('b', null, 'Study-pack draft preview'),
-          h('p', { class: 'tiny muted' }, pack.quality_note),
-          h('p', { class: 'small' }, 'Notes: ' + pack.notes.sections.length + ' • Flashcards: ' + pack.flashcards.length + ' • Question drafts: ' + pack.questions.length),
-          h('h3', null, 'Notes sample'),
-          ...(noteSamples.length ? noteSamples.map((n, i) => h('div', { class: 'rev' }, h('b', { class: 'small' }, n.heading || ('Point ' + (i + 1))), h('p', { class: 'small' }, n.body || '')) : [h('p', { class: 'small muted' }, 'No notes were extracted.')]),
-          h('h3', null, 'Flashcard sample'),
-          ...(cardSamples.length ? cardSamples.map(card => h('div', { class: 'rev' }, h('b', { class: 'small' }, card.front || 'Question'), h('p', { class: 'small' }, card.back || ''))) : [h('p', { class: 'small muted' }, 'No flashcards were generated.')]),
-          h('h3', null, 'Question sample'),
-          ...(questionSamples.length ? questionSamples.map(q => h('div', { class: 'rev' }, h('b', { class: 'small' }, q.question || 'Review question'), h('p', { class: 'small' }, q.type === 'multiple_choice_draft' ? 'Draft MCQ • ' + (q.options || []).length + ' options • answer index ' + q.answer : 'Short-answer review draft'), h('p', { class: 'tiny muted' }, q.expected_answer || q.explanation || 'Review before publishing.'))) : [h('p', { class: 'small muted' }, 'No question drafts were generated.')]),
-          h('p', { class: 'tiny muted' }, 'Review these samples before approving. Generated material is a draft and may need editing.'));
+          h('p', { class: 'tiny muted' }, pack.quality_note || 'Draft generated from the uploaded source. Review before publishing.'),
+          h('p', { class: 'small' }, 'Notes: ' + ((pack.notes && pack.notes.sections) || []).length + ' • Flashcards: ' + (pack.flashcards || []).length + ' • Question drafts: ' + (pack.questions || []).length),
+          h('h3', null, 'Notes sample')
+        );
+        ((pack.notes && pack.notes.sections) || []).slice(0, 4).forEach((n, i) => {
+          preview.append(h('div', { class: 'rev' }, h('b', { class: 'small' }, n.heading || ('Point ' + (i + 1))), h('p', { class: 'small' }, n.body || '')));
+        });
+        preview.append(h('h3', null, 'Flashcard sample'));
+        (pack.flashcards || []).slice(0, 3).forEach(card => {
+          preview.append(h('div', { class: 'rev' }, h('b', { class: 'small' }, card.front || 'Question'), h('p', { class: 'small' }, card.back || '')));
+        });
+        preview.append(h('h3', null, 'Question sample'));
+        (pack.questions || []).slice(0, 3).forEach(q => {
+          preview.append(h('div', { class: 'rev' }, h('b', { class: 'small' }, q.question || 'Review question'), h('p', { class: 'small' }, q.type === 'multiple_choice_draft' ? 'Draft MCQ • ' + (q.options || []).length + ' options • answer index ' + q.answer : 'Short-answer review draft'), h('p', { class: 'tiny muted' }, q.expected_answer || q.explanation || 'Review before publishing.')));
+        });
+        preview.append(h('p', { class: 'tiny muted' }, 'Review these samples before approving. Generated material is a draft and may need editing.'));
         holder.append(preview);
       } catch (err) { toast(err && err.message ? err.message : 'Could not generate a draft.'); }
       finally { b.disabled = false; b.textContent = old; }
