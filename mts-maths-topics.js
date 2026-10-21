@@ -115,7 +115,11 @@
  'Operations: A∪B is union; A∩B is intersection; A−B contains members of A not in B; A′ contains members of U outside A; A △ B=(A−B)∪(B−A).',
  'Laws include commutative, associative, idempotent, identity, complement, absorption and distributive laws. De Morgan: (A∪B)′=A′∩B′ and (A∩B)′=A′∪B′.',
  'For finite sets n(A∪B)=n(A)+n(B)−n(A∩B). If A and B are disjoint, n(A∩B)=0, so add the cardinalities directly. Example: 7+5−2=10 when the intersection has 2 elements.',
- 'Exam traps: distinguish ∈ from ⊆; A−B is not generally B−A; specify U before finding a complement; subtract the intersection once in cardinality problems; do not count duplicate roster entries twice.'
+ 'Exam traps: distinguish ∈ from ⊆; A−B is not generally B−A; specify U before finding a complement; subtract the intersection once in cardinality problems; do not count duplicate roster entries twice.',
+ 'Worked example (two sets): In a class of 30 students, 18 study Biology, 14 study Chemistry and 6 study both. The number studying at least one is 18+14−6=26. The number studying neither is 30−26=4. The overlap is subtracted once because those 6 students were counted in both groups.',
+ 'Worked example (complement): If U={1,2,3,4,5,6,7,8} and A={2,4,6,8}, then A′={1,3,5,7}. A complement is always relative to the stated universal set; changing U can change the answer.',
+ 'How to read set-builder notation: {x∈ℤ : 1≤x≤4} means all integers x such that x is between 1 and 4 inclusive, so the roster form is {1,2,3,4}. The colon means “such that”, and ℤ denotes the integers.',
+ 'Quick method for Venn questions: write the intersection first, subtract it from each given set total to fill the non-overlapping regions, then use the universal total to find the outside region. Check that every region adds to n(U).'
  ]},
  {title:I,sections:[
  'Mathematical induction proves a statement P(n) for every integer in a specified range. A standard proof has a base case, induction hypothesis, inductive step and conclusion.',
@@ -127,7 +131,11 @@
  'Worked example: 1+3+…+(2n−1)=n². Assume the sum to k is k²; add 2k+1 to obtain k²+2k+1=(k+1)².',
  'Divisibility strategy: rearrange the k+1 expression into a multiple of the induction-hypothesis expression plus a multiple of the required divisor. Example: 5ᵏ⁺¹−1=5(5ᵏ−1)+4.',
  'For inequalities, multiply by a positive quantity to preserve the inequality direction, then show the resulting bound is enough for the next case.',
- 'Exam traps: use the correct starting integer; label P(k); prove the exact next case; do not confuse examples with proof; do not claim induction proves statements for all real numbers.'
+ 'Exam traps: use the correct starting integer; label P(k); prove the exact next case; do not confuse examples with proof; do not claim induction proves statements for all real numbers.',
+ 'Full worked example: Prove 1+2+…+n=n(n+1)/2 for n≥1. Base case n=1: left side 1 and right side 1(2)/2=1. Assume 1+…+k=k(k+1)/2. For k+1, add the next term: k(k+1)/2+(k+1)=[(k+1)(k+2)]/2. This is the required formula with n=k+1, so the result holds for every n≥1.',
+ 'Worked divisibility example: Prove 7ⁿ−1 is divisible by 6 for n≥1. Base case: 7−1=6. Assume 7ᵏ−1=6m for some integer m. Then 7ᵏ⁺¹−1=7(7ᵏ−1)+6=7(6m)+6=6(7m+1), a multiple of 6. Therefore the claim holds by induction.',
+ 'Choosing a proof structure: for a sum identity, write the assumed sum and add the next term; for divisibility, rewrite the next expression as a multiple of the assumed divisible expression plus a multiple of the divisor; for inequalities, preserve the inequality direction and explicitly justify the final comparison.',
+ 'Checklist before submitting: state the domain; verify the base case numerically; write “assume P(k)”; begin the next case with the expression for k+1; use the hypothesis visibly; simplify to the exact target; finish with a conclusion covering the stated domain.'
  ]}
  ]};
 })();
