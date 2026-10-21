@@ -376,6 +376,71 @@ body.on-home .wrap{padding-bottom:170px}
 #splash .sp-name{color:var(--sp-ink) !important}
 #splash .sp-sub{color:var(--sp-sub) !important}
 
+
+/* BH gold finish: deep metallic gold across the interface, without touching the approved app icon */
+:root[data-tint="gold"]{
+  --brand:#D6A52B;
+  --brand-ink:#211400;
+  --brand-soft:rgba(214,165,43,.18);
+  --gold:#E0AD32;
+  --gold-soft:rgba(184,125,18,.22);
+  --glow-a:rgba(214,165,43,.42);
+  --glow-b:rgba(160,100,10,.34);
+  --glow-c:rgba(255,220,120,.20);
+  --glass-edge:rgba(237,190,67,.42);
+}
+:root[data-tint="gold"][data-mode="light"]{
+  --bg:#171108;
+  --surface:#241A09;
+  --surface2:#33240B;
+  --ink:#FFF1C2;
+  --ink2:#D8BD79;
+  --line:rgba(220,171,51,.32);
+  --brand:#E2B33F;
+  --brand-ink:#211400;
+  --brand-soft:rgba(226,179,63,.18);
+  --gold:#F0C04C;
+  --gold-soft:rgba(201,143,23,.2);
+  --shadow:0 8px 26px rgba(0,0,0,.28),0 0 0 1px rgba(220,171,51,.08);
+}
+:root[data-tint="gold"] body{background:radial-gradient(ellipse at 12% 0%,rgba(176,119,17,.15),transparent 42%),var(--bg)}
+:root[data-tint="gold"] .hero{
+  background:linear-gradient(135deg,#211603 0%,#49320B 52%,#76500E 100%);
+  border:1px solid rgba(236,190,67,.45);
+  box-shadow:inset 0 1px 0 rgba(255,226,143,.14),0 12px 30px rgba(0,0,0,.24);
+}
+:root[data-tint="gold"] .hero h1,
+:root[data-tint="gold"] .hero h1.hero-greeting{color:#FFE5A0}
+:root[data-tint="gold"] .card,
+:root[data-tint="gold"] .panel,
+:root[data-tint="gold"] .tile,
+:root[data-tint="gold"] .course-card{
+  border-color:rgba(220,171,51,.28);
+  box-shadow:inset 0 1px 0 rgba(255,226,143,.07),0 8px 22px rgba(0,0,0,.12);
+}
+:root[data-tint="gold"] .btn-primary,
+:root[data-tint="gold"] .btn.brand,
+:root[data-tint="gold"] button.primary{
+  background:linear-gradient(135deg,#F3D37A,#C28A19 58%,#95610C);
+  color:#241704;border-color:#E2B34A;
+}
+:root[data-tint="gold"] .chip.gold,
+:root[data-tint="gold"] .badge.gold{background:rgba(224,173,50,.18);color:#F5D77E;border-color:rgba(224,173,50,.35)}
+:root[data-tint="gold"] .dock{background:rgba(28,20,7,.94);border-color:rgba(220,171,51,.3)}
+:root[data-tint="gold"] .dock a[aria-current="page"],
+:root[data-tint="gold"] .dock button[aria-current="page"]{color:#F3CB61}
+:root[data-tint="gold"] .monitor{background:linear-gradient(135deg,#171106,#302107);border-color:rgba(231,181,54,.4);box-shadow:inset 0 0 26px rgba(191,133,18,.12)}
+:root[data-tint="gold"] .monitor-grid path{stroke:rgba(224,173,50,.16)!important}
+:root[data-tint="gold"] .monitor-line path,
+:root[data-tint="gold"] .pulse path{stroke:#F3C957!important;filter:drop-shadow(0 0 4px rgba(243,201,87,.52))}
+:root[data-tint="gold"] .monitor-dot{background:#FFE28A;box-shadow:0 0 12px #E9B83F}
+/* Keep the ECG visibly moving after its initial draw; the reduced-motion preference is respected below. */
+@keyframes bhEcgSweep{from{stroke-dashoffset:0}to{stroke-dashoffset:-360}}
+@keyframes bhEcgGlow{0%,100%{opacity:.82;filter:drop-shadow(0 0 2px rgba(224,173,50,.28))}50%{opacity:1;filter:drop-shadow(0 0 6px rgba(243,201,87,.72))}}
+.ecg path{stroke-dasharray:18 8!important;stroke-dashoffset:0;animation:bhEcgSweep 1.35s linear infinite,bhEcgGlow 1.8s ease-in-out infinite!important}
+.pulse path{animation:bhEcgSweep 2.4s linear infinite,bhEcgGlow 1.8s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.ecg path,.pulse path{animation:none!important;stroke-dashoffset:0!important}}
+
 </style>
 </head>
 <body>
