@@ -1928,8 +1928,13 @@ function recordComputerGame(G, res) {
   const score = res === 'draw' ? 0.5 : res === G.color ? 1 : 0;
   const selectedBotRating = botRating(chessSet().level);
   const opponentRating = selectedBotRating !== null ? selectedBotRating : chessSet().level === 'auto' ? computerSettings(R.rating).opp : chessSet().level === 'easy' ? 700 : chessSet().level === 'medium' ? 1150 : 1550;
-  const expected = 1 / (1 + Math.pow(10, (opponentRating - R.rating) / 400));
-  R.rating = Math.round(Math.max(600, Math.min(2200, R.rating + 32 * (score - expected))));
+  const ratingBefore = R.rating;
+  const expected = 1 / (1 + Math.pow(10, (opponentRating - ratingBefore) / 400));
+  R.rating = Math.round(Math.max(600, Math.min(2200, ratingBefore + 32 * (score - expected))));
+  G.ratingBefore = ratingBefore;
+  G.ratingAfter = R.rating;
+  G.ratingChange = R.rating - ratingBefore;
+  G.opponentRating = opponentRating;
   if (score === 1) R.w++; else if (score === 0.5) R.d++; else R.l++;
   const idx = G.color === 'w' ? 0 : 1, first = G.moves[idx];
   if (first) R.openings[first] = (R.openings[first] || 0) + 1;
@@ -2018,10 +2023,16 @@ function resultPopup(G) {
   save();
   const title = go.res === 'draw' ? 'Draw' : (go.res === G.color ? 'You won!' : 'You lost');
   const who = go.res === 'draw' ? 'Neither side could win this one.' : (winner + ' won this game' + (loser ? ' against ' + loser : '') + '.');
+  const ratingLine = G.mode !== 'online' && !G.friendly && Number.isFinite(G.ratingChange)
+    ? h('section', { class: 'panel stack', style: { textAlign: 'center' } },
+        h('b', null, 'Rating update'),
+        h('div', { style: { fontSize: '1.5rem', fontWeight: '800', color: G.ratingChange > 0 ? 'var(--good)' : G.ratingChange < 0 ? 'var(--bad)' : 'var(--text)' } }, (G.ratingChange > 0 ? '+' : '') + G.ratingChange + ' points'),
+        h('p', { class: 'small muted' }, 'New rating: ' + G.ratingAfter + ' • Bot rating: ' + G.opponentRating))
+    : null;
   let close;
   const back = () => { stopChessTick(); stopOnlinePoll(); CHESS = null; close(); go2('#/chess'); };
   close = modal(h('div', { class: 'stack', style: { textAlign: 'center' } }, h('div', { style: { fontSize: '2.4rem' } }, go.res === G.color ? '\uD83C\uDFC6' : go.res === 'draw' ? '\uD83E\uDD1D' : '\u265F\uFE0F'),
-    h('h2', null, title), h('p', { class: 'muted' }, who), h('p', { class: 'small' }, go.text),
+    h('h2', null, title), h('p', { class: 'muted' }, who), h('p', { class: 'small' }, go.text), ratingLine,
     h('button', { class: 'btn primary block', onclick: back }, 'Back to chess')), false);
 }
 function go2(hash) { if (location.hash === hash) route(); else location.hash = hash; }
