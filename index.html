@@ -1722,8 +1722,8 @@ function runView() {
     card.replaceChildren(h('div', { class: 'qcard' }, kids));
     const last = i === s.n - 1;
     dock.replaceChildren(h('div', { class: 'in' }, practice
-      ? [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, '\\u2039 Previous'), h('button', { class: 'btn primary', onclick: submitPracticeAnswer }, done ? (changedAfterSubmit ? 'Submit changed answer' : 'Submit answer again') : 'Submit answer'), h('button', { class: 'btn ghost', onclick: next }, last ? 'Finish' : 'Next')]
-      : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, '\\u2039 Previous'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
+      ? [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Previous'), h('button', { class: 'btn primary', onclick: submitPracticeAnswer }, done ? (changedAfterSubmit ? 'Submit changed answer' : 'Submit answer again') : 'Submit answer'), h('button', { class: 'btn ghost', onclick: next }, last ? 'Finish' : 'Next')]
+      : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Previous'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
   }
   const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your progress in this attempt will be lost.', ok: 'Leave', danger: true })) { stopTimer(); SESS = null; go('#/course/' + s.course); } };
   const head = exam
