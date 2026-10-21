@@ -1438,7 +1438,7 @@ function route() {
     else if (v === 'cup') cupView();
     else if (v === 'weak') weakView();
     else if (v === 'plan') planView();
-    else if (v === 'admin') adminView();
+    else if (v === 'admin') { if (signedIn() && DB.profile && DB.profile.uid === 'MBB-4635') adminView(); else { toast('Admin access is restricted to the authorised owner account.'); meView(); } }
     else if (v === 'timetable') timetableView();
     else if (v === 'files') filesView();
     else if (v === 'settings') settingsView();
