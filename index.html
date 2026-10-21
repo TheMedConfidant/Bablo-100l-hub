@@ -2051,29 +2051,51 @@ async function clearChat(G) {
 
 /* ---------- admin page: passcode only, nothing shown until it is right ---------- */
 function adminView() {
-  const pass = h('input', { type: 'password', placeholder: 'Admin passcode', autocomplete: 'off' });
+  const pass = h('input', { type: 'password', placeholder: 'Admin password (needed once per session)', autocomplete: 'current-password' });
+  const gate = h('section', { class: 'panel stack' }, pass);
   const out = h('div', { class: 'stack' });
+  let adminToken = '';
+  try { adminToken = sessionStorage.getItem('babloAdminToken') || ''; } catch (e) {}
   const sec = (title, rows) => h('section', { class: 'panel stack' }, h('h2', null, title), rows.length ? rows : [h('p', { class: 'muted small' }, 'Nothing yet.')]);
   const show = d => {
     out.replaceChildren(
       sec('Summary', [h('p', null, 'People with accounts: ' + d.accounts), ...(d.programme_counts || []).map(p => h('p', { class: 'small' }, p.programme + ': ' + p.people))]),
       sec('Qualifications poll', (d.poll || []).map(p => h('p', { class: 'small' }, p.option_id + ': ' + p.votes))),
-      sec('Feedback (newest first)', (d.feedback || []).map(f => h('div', { class: 'rev' }, h('span', { class: 'chip brand' }, f.kind), h('span', { class: 'tiny muted' }, ' ' + (f.nick || '') + ' \u2022 ' + (f.programme || '') + ' \u2022 ' + new Date(f.created_at).toLocaleString()), h('p', { class: 'small', style: { margin: '6px 0 0', whiteSpace: 'pre-wrap' } }, f.body)))),
+      sec('Feedback (newest first)', (d.feedback || []).map(f => h('div', { class: 'rev' }, h('span', { class: 'chip brand' }, f.kind), h('span', { class: 'tiny muted' }, ' ' + (f.nick || '') + ' • ' + (f.programme || '') + ' • ' + new Date(f.created_at).toLocaleString()), h('p', { class: 'small', style: { margin: '6px 0 0', whiteSpace: 'pre-wrap' } }, f.body)))),
       sec('Reported questions', (d.reports || []).map(r => h('p', { class: 'small' }, r.question_id + ': ' + r.reports + ' report(s)'))),
       sec('Weakest questions (5+ answers)', (d.weakest_questions || []).map(q => h('p', { class: 'small' }, q.question_id + ': ' + q.percent_correct + '% correct over ' + q.attempts))),
-      sec('Corrections', (d.corrections || []).map(c => h('div', { class: 'rev' }, h('span', { class: 'chip' }, c.status), h('p', { class: 'small', style: { margin: '6px 0 0' } }, c.question_id + ' \u2192 ' + c.correct_text), h('p', { class: 'tiny muted' }, 'Source: ' + c.source))))
+      sec('Corrections', (d.corrections || []).map(c => h('div', { class: 'rev' }, h('span', { class: 'chip' }, c.status), h('p', { class: 'small', style: { margin: '6px 0 0' } }, c.question_id + ' → ' + c.correct_text), h('p', { class: 'tiny muted' }, 'Source: ' + c.source))))
     );
+    gate.hidden = true;
+  };
+  const summary = async () => {
+    const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_summary', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: adminToken }) });
+    return r.json();
   };
   const go2 = async () => {
-    out.replaceChildren(h('p', { class: 'muted' }, 'Checking\u2026'));
+    out.replaceChildren(h('p', { class: 'muted' }, 'Checking…'));
     try {
-      const r = await fetch(LB.url + '/rest/v1/rpc/hub_admin_summary', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass.value }) });
-      const d = await r.json();
-      if (!d.ok) { out.replaceChildren(h('p', { style: { color: 'var(--bad)' } }, d.error || 'Wrong passcode.')); return; }
+      if (!adminToken) {
+        const lr = await fetch(LB.url + '/rest/v1/rpc/hub_admin_login', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_pass: pass.value }) });
+        const login = await lr.json();
+        if (!login.ok || !login.token) { out.replaceChildren(h('p', { style: { color: 'var(--bad)' } }, login.error || 'Admin sign-in failed.')); return; }
+        adminToken = login.token;
+        try { sessionStorage.setItem('babloAdminToken', adminToken); } catch (e) {}
+      }
+      const d = await summary();
+      if (!d.ok) {
+        adminToken = '';
+        try { sessionStorage.removeItem('babloAdminToken'); } catch (e) {}
+        gate.hidden = false;
+        out.replaceChildren(h('p', { style: { color: 'var(--bad)' } }, d.error || 'Admin session expired. Enter the password again.'));
+        return;
+      }
       show(d);
-    } catch (e) { out.replaceChildren(h('p', { class: 'muted' }, 'Could not reach the server.')); }
+    } catch (e) { out.replaceChildren(h('p', { class: 'muted' }, 'Could not reach the server. Check your connection and retry.')); }
   };
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin'), h('section', { class: 'panel stack' }, pass, h('button', { class: 'btn primary block', onclick: go2 }, 'Open'), h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: previewLevel200 }, 'Preview 200L here'), h('button', { class: 'btn ghost grow', onclick: resetPreviewLevel }, 'Back to 100L'), h('button', { class: 'btn ghost block', onclick: () => { DB.premium = !DB.premium; save(); toast('Premium here: ' + (DB.premium ? 'on' : 'off')); } }, 'Toggle premium on this device'))), out)));
+  gate.append(h('button', { class: 'btn primary block', onclick: go2 }, 'Open Admin'));
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin'), gate, h('div', { class: 'row wrapr' }, h('button', { class: 'btn grow', onclick: previewLevel200 }, 'Preview 200L here'), h('button', { class: 'btn ghost grow', onclick: resetPreviewLevel }, 'Back to 100L'), h('button', { class: 'btn ghost', onclick: () => { DB.premium = !DB.premium; save(); toast('Premium here: ' + (DB.premium ? 'on' : 'off')); } }, 'Toggle premium on this device')), out)));
+  if (adminToken) go2();
 }
 
 ;
