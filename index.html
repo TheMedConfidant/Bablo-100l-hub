@@ -1897,7 +1897,16 @@ function weakView() {
 const PIECE = { K: '\u2654', Q: '\u2655', R: '\u2656', B: '\u2657', N: '\u2658', P: '\u2659', k: '\u265A', q: '\u265B', r: '\u265C', b: '\u265D', n: '\u265E', p: '\u265F' };
 let CHESS = null, CHESS_TICK = null;
 const chessRec = () => (DB.chess = DB.chess || { rating: 1000, w: 0, d: 0, l: 0, openings: {}, games: [], settings: {} });
-const CHESS_DEFAULTS = { mode: 'friendly', level: 'auto', color: 'w', time: 0 };
+const CHESS_BOTS = [
+{id:'freshie',name:'Freshie',rating:650,style:'The enthusiastic beginner',hello:'Okay, let’s play! I’m here to learn too. ♟️',lines:{strong:'Wait, that move was actually pretty good!',check:'Oh! Check? Let me think.',win:'I got this one! Rematch?',loss:'You got me this time. One more game?'}},
+{id:'medmind',name:'MedMind',rating:1000,style:'The analytical thinker',hello:'Let’s evaluate the position carefully.',lines:{strong:'A useful positional idea. I’ll need to reassess.',check:'The king is in check. Calculating the response.',win:'The position favoured me in the end.',loss:'Your plan held up. Well played.'}},
+{id:'clinician',name:'The Clinician',rating:1450,style:'The tactical specialist',hello:'Ready for a tactical examination? ♟️',lines:{strong:'Interesting tactic. I’ll run a quick diagnosis.',check:'Diagnosis: the king is under pressure.',win:'Diagnosis complete. Your king is in trouble. ♟️',loss:'Excellent treatment of that position. You found the cure.'}},
+{id:'professor',name:'The Professor',rating:1800,style:'The strategic master',hello:'A new game. Let’s see what your position reveals.',lines:{strong:'A sound choice. The next few moves will matter.',check:'Check. Precision is required now.',win:'The position has reached its logical conclusion.',loss:'A well-conducted game. You earned that result.'}}
+];
+function selectedBot(){return CHESS_BOTS.find(b=>b.id===chessSet().bot)||CHESS_BOTS[1]}
+function botName(){return selectedBot().name}
+function botDialogue(G,event){const b=CHESS_BOTS.find(x=>x.id===G.botId)||selectedBot();if(event==='hello')return b.hello;if(event==='result'){const go=gameOver(G);return go.res==='draw'?'A draw. We’ll have to settle this another time.':go.res===G.color?b.lines.loss:b.lines.win}const st=Chess.status(G.s);if(st.check)return b.lines.check;if(event==='strong')return b.lines.strong;if(event==='move'&&G.moves.length>8&&G.moves.length%8===0)return b.id==='freshie'?'Still keeping up! This is fun.':b.id==='medmind'?'We’re entering a more complex middlegame.':b.id==='clinician'?'The position is getting complicated. Stay alert.':'The middlegame is taking shape. Watch the weak squares.';return ''}
+const CHESS_DEFAULTS = { mode:'friendly', level:'auto', bot:'medmind', color:'w', time:0, increment:0 };
 const chessSet = () => Object.assign({}, CHESS_DEFAULTS, chessRec().settings || {});
 function setChessSet(p) { chessRec().settings = Object.assign(chessSet(), p); save(); }
 function computerSettings(rating) {
@@ -1911,7 +1920,7 @@ function botRating(level) {
   return m ? Math.max(600, Math.min(2200, Number(m[1]))) : null;
 }
 function levelParams() {
-  const L = chessSet().level, rating = botRating(L);
+  const bot=selectedBot(); const L=chessSet().level==='auto'?'bot-'+bot.rating:chessSet().level, rating=botRating(L);
   if (rating !== null) {
     const depth = rating < 900 ? 1 : rating < 1500 ? 2 : 3;
     const noise = rating < 900 ? 0.42 : rating < 1200 ? 0.28 : rating < 1500 ? 0.14 : rating < 1800 ? 0.06 : 0.015;
@@ -1926,8 +1935,8 @@ function recordComputerGame(G, res) {
   if (G.friendly || G.recorded) return; G.recorded = true;
   const R = chessRec();
   const score = res === 'draw' ? 0.5 : res === G.color ? 1 : 0;
-  const selectedBotRating = botRating(chessSet().level);
-  const opponentRating = selectedBotRating !== null ? selectedBotRating : chessSet().level === 'auto' ? computerSettings(R.rating).opp : chessSet().level === 'easy' ? 700 : chessSet().level === 'medium' ? 1150 : 1550;
+  const selectedBotRating = botRating(chessSet().level === 'auto' ? 'bot-' + selectedBot().rating : chessSet().level);
+  const opponentRating = selectedBotRating !== null ? selectedBotRating : chessSet().level === 'easy' ? 700 : chessSet().level === 'medium' ? 1150 : 1550;
   const ratingBefore = R.rating;
   const expected = 1 / (1 + Math.pow(10, (opponentRating - ratingBefore) / 400));
   R.rating = Math.round(Math.max(600, Math.min(2200, ratingBefore + 32 * (score - expected))));
@@ -1950,10 +1959,13 @@ function chessMenu() {
     h('section', { class: 'panel stack' }, h('div', { class: 'row between' }, h('span', null, h('b', null, 'Your rating'), h('div', { class: 'tiny muted' }, R.w + ' wins \u2022 ' + R.d + ' draws \u2022 ' + R.l + ' losses')), h('span', { class: 'chip gold' }, R.rating)),
       top ? h('p', { class: 'small muted' }, 'You open with ' + top[0].slice(0, 2) + '-' + top[0].slice(2, 4) + ' most often.') : null, last),
     h('section', { class: 'panel stack' }, h('h2', null, 'Game settings'),
+h('div',{class:'stack'},h('span',{class:'small muted'},'Choose your opponent'),h('div',{class:'stack'},CHESS_BOTS.map(b=>h('button',{class:'panel row between',style:{textAlign:'left',border:S.bot===b.id?'2px solid var(--gold)':'1px solid var(--line)',cursor:'pointer'},'aria-pressed':String(S.bot===b.id),onclick:()=>{setChessSet({bot:b.id,level:'auto'});chessMenu()}},h('span',{class:'stack',style:{gap:'2px'}},h('b',null,b.name),h('span',{class:'tiny muted'},b.style)),h('span',{class:'chip gold'},String(b.rating))))),h('p',{class:'tiny muted'},'Each bot has its own strength and personality. Their comments respond to the game position.')),
+
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Game type'), seg([['friendly', 'Friendly (take-backs)'], ['ranked', 'Ranked (no take-backs)']], S.mode, 'mode')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Computer opponent rating'), h('select', { class: 'input', 'aria-label': 'Computer opponent rating', onchange: e => { setChessSet({ level: e.target.value }); chessMenu(); } }, [['auto', 'Match my rating'], ['bot-600', '600 rating'], ['bot-800', '800 rating'], ['bot-1000', '1000 rating'], ['bot-1200', '1200 rating'], ['bot-1400', '1400 rating'], ['bot-1600', '1600 rating'], ['bot-1800', '1800 rating'], ['bot-2000', '2000 rating'], ['bot-2200', '2200 rating']].map(([v, label]) => h('option', { value: v, selected: S.level === v }, label))), h('label', { class: 'stack small' }, 'Or choose an exact bot rating (600–2200)', h('input', { class: 'input', type: 'number', inputmode: 'numeric', min: '600', max: '2200', step: '50', placeholder: 'e.g. 1350', value: botRating(S.level) !== null ? String(botRating(S.level)) : '', 'aria-label': 'Custom bot rating', onchange: e => { const raw = e.target.value.trim(); if (!raw) return; const rating = Number(raw); if (!Number.isInteger(rating) || rating < 600 || rating > 2200) { toast('Choose a whole-number rating from 600 to 2200.'); e.target.value = ''; return; } setChessSet({ level: 'bot-' + rating }); chessMenu(); } })), h('p', { class: 'tiny muted' }, 'Choose an estimated-rating bot or enter your own rating. Ranked results move your rating up or down; friendly games do not affect it.')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Play as'), seg([['w', 'White'], ['b', 'Black'], ['random', 'Random']], S.color, 'color')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [60, '1 min'], [180, '3 min'], [300, '5 min'], [600, '10 min'], [900, '15 min']], S.time, 'time'),
+ h('label',{class:'stack small'},'Increment per move (seconds)',h('select',{class:'input',value:String(S.increment||0),onchange:e=>{setChessSet({increment:Number(e.target.value)});chessMenu()}},[[0,'No increment'],[1,'1 second'],[2,'2 seconds'],[3,'3 seconds'],[5,'5 seconds'],[10,'10 seconds']].map(([v,label])=>h('option',{value:String(v),selected:Number(S.increment||0)===v},label))),
         h('label', { class: 'stack small' }, 'Or set custom minutes (1–180)', h('input', { class: 'input', type: 'number', inputmode: 'numeric', min: '1', max: '180', step: '1', placeholder: 'e.g. 7', value: S.time && S.time % 60 === 0 && ![60,180,300,600,900].includes(S.time) ? String(S.time / 60) : '', 'aria-label': 'Custom clock minutes', onchange: e => { const raw = e.target.value.trim(); if (!raw) return; const mins = Number(raw); if (!Number.isInteger(mins) || mins < 1 || mins > 180) { toast('Choose between 1 and 180 minutes.'); e.target.value = ''; return; } setChessSet({ time: mins * 60 }); chessMenu(); } }))),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked computer games change your rating after a result. Wins can raise it; losses can lower it. Friendly games do not affect your rating.' : 'Friendly games never change your rating, and you can take back your last move.')),
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
@@ -1967,7 +1979,7 @@ function chessMenu() {
 function newChess() {
   const S = chessSet();
   const color = S.color === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : S.color;
-  CHESS = { mode: 'computer', friendly: S.mode === 'friendly', color, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: S.time ? { w: S.time * 1000, b: S.time * 1000, side: 'w', at: Date.now() } : null, recorded: false };
+  CHESS = { mode:'computer',botId:selectedBot().id,friendly:S.mode==='friendly',color,s:Chess.initial(),sel:null,legal:[],last:null,busy:false,msg:'',botChat:selectedBot().hello,resigned:false,resignText:'',endResult:null,endText:'',moves:[],hist:[],clock:S.time?{w:S.time*1000,b:S.time*1000,side:'w',at:Date.now(),increment:Number(S.increment||0)*1000}:null,recorded:false};
   if (CHESS.clock) CHESS.clock.side = 'w';
   chessView();
 }
@@ -2011,16 +2023,17 @@ function clockMs(G, side) {
 function fmtClock(ms) { const sec = Math.ceil(ms / 1000); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
 function clockSwitch(G, mover) {
   if (!G.clock) return; const now = Date.now();
-  G.clock[mover] = Math.max(0, G.clock[mover] - (now - G.clock.at));
+  G.clock[mover] = Math.max(0, G.clock[mover] - (now - G.clock.at)) + (Number(G.clock.increment || 0) || 0);
   G.clock.side = mover === 'w' ? 'b' : 'w'; G.clock.at = now;
 }
 function resultPopup(G) {
   if (G.popupShown) return; G.popupShown = true;
   const go = gameOver(G); const R = chessRec();
-  const nameOf = c => (G.mode === 'online' ? (c === 'w' ? G.online.white : G.online.black) : (c === G.color ? DB.profile.nick : 'Computer'));
+  const nameOf = c => (G.mode === 'online' ? (c === 'w' ? G.online.white : G.online.black) : (c === G.color ? DB.profile.nick : (CHESS_BOTS.find(b=>b.id===G.botId)?.name || 'Chess bot')));
   const winner = go.res === 'draw' ? null : nameOf(go.res), loser = go.res === 'draw' ? null : nameOf(go.res === 'w' ? 'b' : 'w');
   R.last = winner ? { winner, loser, online: G.mode === 'online', ts: Date.now() } : { winner: 'Nobody', loser: 'draw', online: G.mode === 'online', ts: Date.now() };
   save();
+  if(G.mode!=='online') G.botChat=botDialogue(G,'result');
   const title = go.res === 'draw' ? 'Draw' : (go.res === G.color ? 'You won!' : 'You lost');
   const who = go.res === 'draw' ? 'Neither side could win this one.' : (winner + ' won this game' + (loser ? ' against ' + loser : '') + '.');
   const ratingLine = G.mode !== 'online' && !G.friendly && Number.isFinite(G.ratingChange)
@@ -2040,6 +2053,7 @@ function chessDraw() {
   const G = CHESS; if (!G) return;
   const status = document.getElementById('chessStatus'), holder = document.getElementById('chessBoard'), undo = document.getElementById('chessUndo');
   if (status) status.textContent = statusText(G);
+  const botTalk=document.getElementById('botTalk'); if(botTalk&&G.mode!=='online') botTalk.textContent=G.botChat||'';
   if (holder) holder.replaceChildren(boardEl(G, !gameOver(G).over && !G.busy && G.s.turn === G.color && (G.mode !== 'online' || G.online.status === 'active')));
   if (undo) undo.disabled = !(G.friendly && G.hist.length && !G.busy && !gameOver(G).over);
   chessClocks();
@@ -2065,7 +2079,7 @@ function tap(ri) {
     const m = Chess.legalMoves(G.s).find(x => x.from === G.sel && x.to === ri);
     if (m) {
       G.hist.push({ s: G.s, moves: G.moves.slice(), last: G.last, clock: G.clock ? Object.assign({}, G.clock) : null });
-      G.s = Chess.apply(G.s, m); clockSwitch(G, G.color); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; G.sel = null; G.legal = []; G.msg = m.promo ? 'Promoted to a queen.' : '';
+      G.s = Chess.apply(G.s, m); clockSwitch(G, G.color); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; G.sel = null; G.legal = []; G.msg = m.promo ? 'Promoted to a queen.' : ''; G.botChat=botDialogue(G,'move');
       chessDraw(); afterHumanMove(); return;
     }
   }
@@ -2089,7 +2103,7 @@ function computerTurn() {
   setTimeout(() => {
     if (CHESS !== G) return;
     const m = Chess.aiMoveDN(G.s, lp.depth, lp.noise);
-    if (m) { G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; }
+    if (m) { G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; G.botChat=botDialogue(G,'move'); }
     G.busy = false;
     if (gameOver(G).over) finishComputer();
     chessDraw();
@@ -2121,12 +2135,13 @@ function chessView() {
   const holder = h('div', { id: 'chessBoard', class: 'stack', style: { alignItems: 'center' } });
   const clockTop = G.clock ? h('div', { id: 'clockTop', class: 'clock' }) : null, clockBot = G.clock ? h('div', { id: 'clockBottom', class: 'clock' }) : null;
   const undo = h('button', { id: 'chessUndo', class: 'btn grow', disabled: !G.friendly, onclick: takeBack }, 'Take back');
-  const chosenBotRating = botRating(S.level);
+  const chosenBotRating = botRating(S.level === 'auto' ? 'bot-' + (CHESS_BOTS.find(b=>b.id===G.botId)?.rating || selectedBot().rating) : S.level);
   const level = chosenBotRating !== null ? 'rated about ' + chosenBotRating : S.level === 'auto' ? 'matches you (' + (computerSettings(chessRec().rating).depth === 1 ? 'easy' : computerSettings(chessRec().rating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
   mount(wrap(h('a', { class: 'back', href: '#/', onclick: () => { stopChessTick(); stopOnlinePoll(); } }, '\u2039 Home'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
+ G.mode!=='online'?h('section',{class:'panel stack',style:{marginTop:'8px'}},h('div',{class:'row'},h('span',{style:{fontSize:'1.5rem'}},'♟️'),h('div',{class:'stack',style:{gap:'2px'}},h('b',null,botName()),h('span',{class:'tiny muted'},CHESS_BOTS.find(b=>b.id===G.botId)?.style||'Chess opponent'))),h('p',{id:'botTalk',class:'small',style:{margin:'0'}},G.botChat||'Let’s play.')):null,
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
       G.mode === 'online' && G.online ? chatPanel(G) : null,
     h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
