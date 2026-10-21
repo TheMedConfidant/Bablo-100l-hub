@@ -2058,7 +2058,7 @@ function chessDraw() {
   const chatLog=document.getElementById('botChatLog'); if(chatLog&&G.mode!=='online'){chatLog.replaceChildren(...(G.botMessages||[]).map(m=>h('div',{class:'panel small',style:{padding:'8px 10px',margin:'0'}},m.text)));chatLog.scrollTop=chatLog.scrollHeight;}
   if (holder) holder.replaceChildren(boardEl(G, !gameOver(G).over && !G.busy && G.s.turn === G.color && (G.mode !== 'online' || G.online.status === 'active')));
   const cap=(side)=>{const sym={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'};return (G.captures?.[side]||[]).map(p=>sym[p.toLowerCase()]||'').join(' ')||'—'};
-  const ct=document.getElementById('capturedTop'),cb=document.getElementById('capturedBottom');if(ct)ct.innerHTML='♟ Captured by '+(G.color==='w'?'you':'opponent')+': '+cap(G.color);if(cb)cb.innerHTML='♟ Captured by '+(G.color==='w'?'opponent':'you')+': '+cap(G.color==='w'?'b':'w');
+  const ct=document.getElementById('capturedTop'),cb=document.getElementById('capturedBottom');if(ct)ct.textContent='♟ Opponent captured: '+cap(G.color==='w'?'b':'w');if(cb)cb.textContent='♟ You captured: '+cap(G.color);
   if (undo) undo.disabled = !(G.friendly && G.hist.length && !G.busy && !gameOver(G).over);
   chessClocks();
   if (gameOver(G).over && !G.popupShown && G.endResult !== undefined) setTimeout(() => resultPopup(G), 0);
@@ -2083,7 +2083,7 @@ function tap(ri) {
     const m = Chess.legalMoves(G.s).find(x => x.from === G.sel && x.to === ri);
     if (m) {
       G.hist.push({ s: G.s, moves: G.moves.slice(), last: G.last, captures: JSON.parse(JSON.stringify(G.captures||{w:[],b:[]})), clock: G.clock ? Object.assign({}, G.clock) : null });
-      if(m.capture){const victim=G.s.board[m.to]||(m.ep?(G.color==='w'?'p':'P'):null);if(victim){G.captures=G.captures||{w:[],b:[]};G.captures[G.color].push(victim);}} G.s = Chess.apply(G.s, m); clockSwitch(G, G.color); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; G.sel = null; G.legal = []; G.msg = m.promo ? 'Promoted to a queen.' : ''; addBotMessage(G,'move'); chessSound(m.capture?'capture':'move');
+      if(m.capture){const victim=G.s.board[m.to]||(m.ep?(G.color==='w'?'p':'P'):null);if(victim){G.captures=G.captures||{w:[],b:[]};G.captures[G.color].push(victim);}} G.s = Chess.apply(G.s, m); clockSwitch(G, G.color); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; G.sel = null; G.legal = []; G.msg = m.promo ? 'Promoted to a queen.' : ''; addBotMessage(G,'move'); chessSound(Chess.status(G.s).check?'check':m.capture?'capture':'move');
       chessDraw(); afterHumanMove(); return;
     }
   }
@@ -2107,7 +2107,7 @@ function computerTurn() {
   setTimeout(() => {
     if (CHESS !== G) return;
     const m = Chess.aiMoveDN(G.s, lp.depth, lp.noise);
-    if (m) { if(m.capture){const mover=G.color==='w'?'b':'w',victim=G.s.board[m.to]||(m.ep?(mover==='w'?'p':'P'):null);if(victim){G.captures=G.captures||{w:[],b:[]};G.captures[mover].push(victim);}} G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; addBotMessage(G,'move'); chessSound(m.capture?'capture':'move'); }
+    if (m) { if(m.capture){const mover=G.color==='w'?'b':'w',victim=G.s.board[m.to]||(m.ep?(mover==='w'?'p':'P'):null);if(victim){G.captures=G.captures||{w:[],b:[]};G.captures[mover].push(victim);}} G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; addBotMessage(G,'move'); chessSound(Chess.status(G.s).check?'check':m.capture?'capture':'move'); }
     G.busy = false;
     if (gameOver(G).over) finishComputer();
     chessDraw();
@@ -2116,6 +2116,7 @@ function computerTurn() {
 function finishComputer() {
   const G = CHESS; if (!G) return; const go = gameOver(G);
   if (!go.over) return;
+  if(!G.endSoundPlayed){chessSound('end');G.endSoundPlayed=true;}
   stopChessTick();
   recordComputerGame(G, go.res);
 }
