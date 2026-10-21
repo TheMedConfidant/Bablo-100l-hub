@@ -1425,7 +1425,7 @@ function route() {
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
-  if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
+  if (!DB.profile) { renderNav(null); landingView(); return; }
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
@@ -1457,6 +1457,27 @@ function route() {
   } catch (e) { console.error(e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'Something went wrong'), h('p', { class: 'muted' }, 'Go back home and try again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
 }
 
+/* ---------- unauthenticated landing ---------- */
+function landingView() {
+  mount(wrap(
+    h('div', { class: 'top' }, brand()),
+    h('section', { class: 'hero stack' },
+      h('p', { class: 'chip brand' }, 'BH lib • Learn together'),
+      h('h1', { class: 'hero-greeting' }, 'Your courses. Your community. Your progress.'),
+      h('p', { class: 'muted' }, 'Study resources, practise questions, revise with flashcards and join your programme community.'),
+      h('p', { class: 'tiny muted' }, 'Made for every student — Yoruba, Igbo, Hausa and all backgrounds.')
+    ),
+    h('div', { class: 'stack-l' },
+      accountSection(),
+      h('section', { class: 'panel stack' },
+        h('h3', null, 'Just looking around?'),
+        h('p', { class: 'muted small' }, 'You can continue as a guest. Creating an account is recommended to keep your progress across devices.'),
+        h('button', { class: 'btn block', onclick: onboarding }, 'Continue as guest')
+      )
+    )
+  ));
+}
+ 
 /* ---------- onboarding ---------- */
 function onboarding() {
   const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
@@ -2559,7 +2580,7 @@ function accountSection() {
       h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
-  const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
+  const name = h('input', { type: 'text', placeholder: 'e.g. Omotoyosi / Chidera / Amina', maxlength: '60', autocomplete: 'name' });
   const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
   const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
   const pass = h('input', { type: 'password', placeholder: 'Password (6+ characters)', autocomplete: 'new-password' });
@@ -2576,7 +2597,7 @@ function accountSection() {
   };
   const tabs = h('div', { class: 'seg' }, h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'), h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
   const fields = mode === 'signup'
-    ? [name, nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
+    ? [name, h('p', { class: 'tiny muted' }, 'Name examples: Omotoyosi (Yoruba), Chidera (Igbo), Amina (Hausa). Use your own name.'), nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
     : [loginId, loginPass];
   return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), tabs, ...fields, err,
     h('button', { class: 'btn primary block', onclick: () => go2(mode === 'signup') }, mode === 'signup' ? 'Create account' : 'Log in'),
