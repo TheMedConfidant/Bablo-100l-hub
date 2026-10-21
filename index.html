@@ -238,6 +238,15 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 :root[data-skin="glass"]{--glow-a:rgba(99,102,241,.55);--glow-b:rgba(45,212,191,.45);--glow-c:rgba(236,72,153,.32)}
 :root[data-tint="pink"]{--glow-a:rgba(244,114,182,.6);--glow-b:rgba(251,113,133,.45);--glow-c:rgba(192,132,252,.38);--brand:#EC4899;--glass-edge:rgba(251,207,232,.36);--ink:#FFF1F7;--ink2:#F3C4DA}
 :root[data-tint="purple"]{--glow-a:rgba(139,92,246,.62);--glow-b:rgba(168,85,247,.45);--glow-c:rgba(59,130,246,.32);--brand:#8B5CF6;--glass-edge:rgba(221,214,254,.36);--ink:#F5F3FF;--ink2:#C4B5FD}
+/* Targeted contrast repair: pink/purple tint text must follow the light-mode palette. */
+:root[data-tint][data-mode="light"]{--ink:#0B1220;--ink2:#41506A;--line:rgba(15,23,42,.16);--glass-edge:rgba(71,85,105,.28)}
+:root[data-skin][data-mode="light"] input,
+:root[data-skin][data-mode="light"] select,
+:root[data-skin][data-mode="light"] textarea{color:var(--ink);background-color:rgba(255,255,255,.82)}
+:root[data-skin][data-mode="light"] input::placeholder,
+:root[data-skin][data-mode="light"] textarea::placeholder{color:var(--ink2);opacity:1}
+:root[data-skin][data-mode="light"] select option{color:#0B1220;background:#FFFFFF}
+
 :root[data-tint="pink"][data-mode="light"]{--brand:#BE185D;--ink:#3B0A22;--ink2:#7A2A52;--glow-a:rgba(244,114,182,.7);--glow-b:rgba(251,146,60,.4);--glow-c:rgba(232,121,249,.4)}
 :root[data-tint="purple"][data-mode="light"]{--brand:#6D28D9;--ink:#1E1140;--ink2:#4C3A7A;--glow-a:rgba(139,92,246,.7);--glow-b:rgba(96,165,250,.4);--glow-c:rgba(192,132,252,.4)}
 
@@ -1236,9 +1245,9 @@ function renderNav(active) {
 }
 function route() {
   stopTimer();
-  const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
+  const pathRoute = location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase(); const raw = pathRoute === 'admin' ? 'admin' : location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
-  if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
+  if (!DB.profile && v !== 'admin') { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
