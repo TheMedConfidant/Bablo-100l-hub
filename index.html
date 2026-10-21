@@ -1906,8 +1906,17 @@ function computerSettings(rating) {
   const opp = (depth === 1 ? 700 : depth === 2 ? 1150 : 1550) - noise * 200;
   return { depth, noise, opp };
 }
+function botRating(level) {
+  const m = String(level || '').match(/^bot-(\\d{3,4})$/);
+  return m ? Math.max(600, Math.min(2200, Number(m[1]))) : null;
+}
 function levelParams() {
-  const L = chessSet().level;
+  const L = chessSet().level, rating = botRating(L);
+  if (rating !== null) {
+    const depth = rating < 900 ? 1 : rating < 1500 ? 2 : 3;
+    const noise = rating < 900 ? 0.42 : rating < 1200 ? 0.28 : rating < 1500 ? 0.14 : rating < 1800 ? 0.06 : 0.015;
+    return { depth, noise };
+  }
   if (L === 'easy') return { depth: 1, noise: 0.35 };
   if (L === 'medium') return { depth: 2, noise: 0.1 };
   if (L === 'hard') return { depth: 3, noise: 0 };
@@ -1917,11 +1926,10 @@ function recordComputerGame(G, res) {
   if (G.friendly || G.recorded) return; G.recorded = true;
   const R = chessRec();
   const score = res === 'draw' ? 0.5 : res === G.color ? 1 : 0;
-  if (chessSet().level === 'auto') {
-    const cs = computerSettings(R.rating);
-    const expected = 1 / (1 + Math.pow(10, (cs.opp - R.rating) / 400));
-    R.rating = Math.round(Math.max(600, Math.min(2200, R.rating + 32 * (score - expected))));
-  }
+  const selectedBotRating = botRating(chessSet().level);
+  const opponentRating = selectedBotRating !== null ? selectedBotRating : chessSet().level === 'auto' ? computerSettings(R.rating).opp : chessSet().level === 'easy' ? 700 : chessSet().level === 'medium' ? 1150 : 1550;
+  const expected = 1 / (1 + Math.pow(10, (opponentRating - R.rating) / 400));
+  R.rating = Math.round(Math.max(600, Math.min(2200, R.rating + 32 * (score - expected))));
   if (score === 1) R.w++; else if (score === 0.5) R.d++; else R.l++;
   const idx = G.color === 'w' ? 0 : 1, first = G.moves[idx];
   if (first) R.openings[first] = (R.openings[first] || 0) + 1;
@@ -1938,9 +1946,9 @@ function chessMenu() {
       top ? h('p', { class: 'small muted' }, 'You open with ' + top[0].slice(0, 2) + '-' + top[0].slice(2, 4) + ' most often.') : null, last),
     h('section', { class: 'panel stack' }, h('h2', null, 'Game settings'),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Game type'), seg([['friendly', 'Friendly (take-backs)'], ['ranked', 'Ranked (no take-backs)']], S.mode, 'mode')),
-      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Computer level'), seg([['auto', 'Matches me'], ['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']], S.level, 'level')),
+      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Computer opponent'), seg([['auto', 'Matches me'], ['bot-600', '600'], ['bot-800', '800'], ['bot-1000', '1000'], ['bot-1200', '1200'], ['bot-1400', '1400'], ['bot-1600', '1600'], ['bot-1800', '1800'], ['bot-2000', '2000'], ['bot-2200', '2200']], S.level, 'level'), h('p', { class: 'tiny muted' }, 'Choose an estimated-rating bot. Ranked results move your rating up or down; friendly games do not affect it.')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Play as'), seg([['w', 'White'], ['b', 'Black'], ['random', 'Random']], S.color, 'color')),
-      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
+      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [60, '1 min'], [180, '3 min'], [300, '5 min'], [600, '10 min'], [900, '15 min']], S.time, 'time')),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
     h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, signedIn() ? 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.' : 'Sign in from Me to create or join online chess challenges. Computer chess stays available without an account.'), !signedIn() ? h('a', { class: 'btn block', href: '#/me' }, 'Sign in / create account') : null,
@@ -2101,7 +2109,8 @@ function chessView() {
   const holder = h('div', { id: 'chessBoard', class: 'stack', style: { alignItems: 'center' } });
   const clockTop = G.clock ? h('div', { id: 'clockTop', class: 'clock' }) : null, clockBot = G.clock ? h('div', { id: 'clockBottom', class: 'clock' }) : null;
   const undo = h('button', { id: 'chessUndo', class: 'btn grow', disabled: !G.friendly, onclick: takeBack }, 'Take back');
-  const level = S.level === 'auto' ? 'matches you (' + (computerSettings(chessRec().rating).depth === 1 ? 'easy' : computerSettings(chessRec().rating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
+  const chosenBotRating = botRating(S.level);
+  const level = chosenBotRating !== null ? 'rated about ' + chosenBotRating : S.level === 'auto' ? 'matches you (' + (computerSettings(chessRec().rating).depth === 1 ? 'easy' : computerSettings(chessRec().rating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
   mount(wrap(h('a', { class: 'back', href: '#/', onclick: () => { stopChessTick(); stopOnlinePoll(); } }, '\u2039 Home'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
