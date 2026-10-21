@@ -2058,7 +2058,7 @@ function chessDraw() {
   const chatLog=document.getElementById('botChatLog'); if(chatLog&&G.mode!=='online'){chatLog.replaceChildren(...(G.botMessages||[]).map(m=>h('div',{class:'panel small',style:{padding:'8px 10px',margin:'0'}},m.text)));chatLog.scrollTop=chatLog.scrollHeight;}
   if (holder) holder.replaceChildren(boardEl(G, !gameOver(G).over && !G.busy && G.s.turn === G.color && (G.mode !== 'online' || G.online.status === 'active')));
   const cap=(side)=>{const sym={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'};return (G.captures?.[side]||[]).map(p=>sym[p.toLowerCase()]||'').join(' ')||'—'};
-  const ct=document.getElementById('capturedTop'),cb=document.getElementById('capturedBottom');if(ct)ct.textContent='Captured: '+cap(G.color);if(cb)cb.textContent='Captured: '+cap(G.color==='w'?'b':'w');
+  const ct=document.getElementById('capturedTop'),cb=document.getElementById('capturedBottom');if(ct)ct.textContent='Captured by opponent: '+cap(G.color==='w'?'b':'w');if(cb)cb.textContent='Captured by you: '+cap(G.color);
   if (undo) undo.disabled = !(G.friendly && G.hist.length && !G.busy && !gameOver(G).over);
   chessClocks();
   if (gameOver(G).over && !G.popupShown && G.endResult !== undefined) setTimeout(() => resultPopup(G), 0);
