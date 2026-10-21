@@ -1667,7 +1667,9 @@ function runView() {
   const s = SESS; if (!s || s.res) { go('#/'); return; }
   const practice = s.mode === 'practice', exam = s.mode === 'exam', c = s.mode === 'qualifier' ? { label: 'Qualifications', color: '#0B7A75' } : (courseBy(s.course) || { label: s.course, color: '#0B7A75' });
   const timerEl = h('span', { class: 'timer' }), bar = h('i'), counter = h('span', { class: 'small muted' }), card = h('div'), dock = h('div', { class: 'dock' });
-  const answered = () => s.answers.filter(a => a != null && a !== '').length;
+  if (practice && !Array.isArray(s.submittedAnswers)) s.submittedAnswers = s.answers.map(() => null);
+  const submitted = i => practice ? s.submittedAnswers[i] : s.answers[i];
+  const answered = () => (practice ? s.submittedAnswers : s.answers).filter(a => a != null && a !== '').length;
   const tick = () => {
     const el = Math.floor((Date.now() - s.t0) / 1000);
     if (s.timer.kind === 'down') {
@@ -1688,10 +1690,17 @@ function runView() {
     if (practice) { s.answers[i] = k; } else s.answers[i] = s.answers[i] === k ? null : k;
     render();
   };
+  const submitPracticeAnswer = () => {
+    const i = s.cur, a = s.answers[i];
+    if (a == null || a === '') { toast('Choose or type an answer before submitting.'); return; }
+    s.submittedAnswers[i] = a;
+    render();
+  };
   const next = () => { if (s.cur < s.n - 1) { s.cur++; render(); } else finishSession(false); };
 
   function render() {
-    const i = s.cur, q = s.qs[i], a = s.answers[i], done = practice && a != null;
+    const i = s.cur, q = s.qs[i], a = s.answers[i], checkedAnswer = submitted(i), done = practice && checkedAnswer != null && checkedAnswer !== '';
+    const changedAfterSubmit = practice && done && a !== checkedAnswer;
     counter.textContent = 'Question ' + (i + 1) + ' of ' + s.n; bar.style.width = Math.round((answered() / s.n) * 100) + '%';
     const kids = [h('div', { class: 'row between wrapr' }, h('span', { class: 'chip brand' }, q.unit),
       practice ? null : h('button', { class: 'btn sm ghost', 'aria-pressed': String(s.flags[i]), onclick: () => { s.flags[i] = !s.flags[i]; render(); } }, s.flags[i] ? '\u2691 Flagged' : '\u2690 Flag'))];
@@ -1699,22 +1708,21 @@ function runView() {
     if (q.flag) kids.push(h('div', { class: 'warnbox' }, 'This question\'s answer key is under review. Treat the answer with care.'));
     if (q.type === 'fill') {
       const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', 'aria-label': 'Your answer' });
-      const check = () => { const v = inp.value.trim(); if (!v) { toast('Type an answer first.'); return; } s.answers[i] = v; render(); };
-      if (!practice) inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
-      else inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !done) check(); });
-      kids.push(h('div', { class: 'row' }, inp, practice ? h('button', { class: 'btn primary', onclick: check }, done ? 'Update answer' : 'Check') : null));
-      if (done) { /* feedback below */ }
+      if (practice) inp.addEventListener('input', () => { s.answers[i] = inp.value.trim() || null; });
+      else inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
+      kids.push(h('div', { class: 'row' }, inp));
     } else {
       q.opts.forEach((o, k) => {
-        let cls = 'choice'; if (done) { if (k === q.ans) cls += ' right'; else if (k === a) cls += ' wrong'; }
+        let cls = 'choice'; if (done) { if (k === q.ans) cls += ' right'; else if (k === checkedAnswer) cls += ' wrong'; }
         kids.push(h('button', { class: cls, 'aria-pressed': String(a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
       });
     }
-    if (done) { const ok = Core.isCorrect(q, a); kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' }, h('b', null, ok ? 'Correct. ' : 'Not quite. Answer: '), ok ? '' : fmt(correctText(q), q.subj), q.exp ? h('div', { class: 'small', style: { marginTop: '6px' } }, q.exp) : null)); }
+    if (done) { const ok = Core.isCorrect(q, checkedAnswer); kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' }, h('b', null, ok ? 'Correct. ' : 'Not quite. Correct answer: '), ok ? '' : fmt(correctText(q), q.subj), q.exp ? h('div', { class: 'small', style: { marginTop: '6px' } }, q.exp) : h('div', { class: 'small', style: { marginTop: '6px' } }, 'Explanation for this question is being expanded. Review the topic: ' + (q.unit || c.label) + '.'))); }
+    if (practice && changedAfterSubmit) kids.push(h('p', { class: 'muted small', role: 'status' }, 'Your selection has changed. Submit your answer again to update the feedback.'));
     card.replaceChildren(h('div', { class: 'qcard' }, kids));
     const last = i === s.n - 1;
     dock.replaceChildren(h('div', { class: 'in' }, practice
-      ? [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, '\\u2039 Previous'), h('button', { class: 'btn ghost', onclick: next }, last ? 'Finish' : 'Skip'), h('button', { class: 'btn primary', disabled: !done, onclick: next }, last ? 'Finish' : 'Next')]
+      ? [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, '\\u2039 Previous'), h('button', { class: 'btn primary', onclick: submitPracticeAnswer }, done ? (changedAfterSubmit ? 'Submit changed answer' : 'Submit answer again') : 'Submit answer'), h('button', { class: 'btn ghost', onclick: next }, last ? 'Finish' : 'Next')]
       : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, '\\u2039 Previous'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
   }
   const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your progress in this attempt will be lost.', ok: 'Leave', danger: true })) { stopTimer(); SESS = null; go('#/course/' + s.course); } };
@@ -1731,7 +1739,7 @@ function runView() {
 async function finishSession(auto, early) {
   const s = SESS; if (!s || s.res) return;
   if (!auto) {
-    const un = s.n - s.answers.filter(a => a != null && a !== '').length;
+    const un = s.n - (s.mode === 'practice' ? (s.submittedAnswers || []).filter(a => a != null && a !== '').length : s.answers.filter(a => a != null && a !== '').length);
     if (early && s.answers.every(a => a == null)) { stopTimer(); SESS = null; go('#/course/' + s.course); return; }
     if (s.mode !== 'practice' || early) {
       const ok = await confirmBox({ title: s.mode === 'exam' ? 'Submit examination?' : s.mode === 'quiz' ? 'Submit quiz?' : 'Finish practice?', msg: un ? un + ' question' + (un === 1 ? ' is' : 's are') + ' unanswered and will count as wrong.' : 'You answered every question.', ok: 'Submit' });
@@ -1739,9 +1747,10 @@ async function finishSession(auto, early) {
     }
   }
   stopTimer();
-  if (s.mode === 'practice') {                 // practice only scores what you attempted
-    const keep = s.answers.map(a => a != null && a !== '');
-    s.qs = s.qs.filter((_, i) => keep[i]); s.flags = s.flags.filter((_, i) => keep[i]); s.answers = s.answers.filter((_, i) => keep[i]); s.n = s.qs.length;
+  if (s.mode === 'practice') {                 // practice scores only answers explicitly submitted
+    const checked = s.submittedAnswers || s.answers.map(() => null);
+    const keep = checked.map(a => a != null && a !== '');
+    s.qs = s.qs.filter((_, i) => keep[i]); s.flags = s.flags.filter((_, i) => keep[i]); s.answers = checked.filter((_, i) => keep[i]); s.n = s.qs.length;
     if (!s.n) { SESS = null; go('#/course/' + s.course); return; }
   }
   s.secs = Math.max(1, Math.round((Date.now() - s.t0) / 1000)); s.res = Core.score(s);
