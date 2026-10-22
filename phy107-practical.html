@@ -199,7 +199,7 @@ v.innerHTML=`<h2>Graph Lab</h2><div class="card ctl"><div class="w"><label>Load 
 function draw(){const c=lab,p=c.txt.split('\n').map(l=>l.split(/[\s,;]+/).map(num)).filter(a=>a.length>=2&&isFinite(a[0])&&isFinite(a[1])).map(a=>[a[0],a[1]]);$('#gr').innerHTML=plot(p,{title:c.title,xl:c.xl,yl:c.yl,x0:num(c.x0),x1:num(c.x1),y0:num(c.y0),y1:num(c.y1),org:c.org,grid:c.grid,tri:c.tri,line:c.line})}
 document.addEventListener('click',ev=>{const t=ev.target.closest('button,img');if(!t)return;const d=t.dataset;
 if(d.k){cur={t:d.k,e:null,sub:'Notes'}}else if(d.e){cur.e=d.e;cur.sub='Notes'}else if(d.home){cur.e=null}else if(d.sub){cur.sub=d.sub}
-else if(d.z){const z=$('#lbi');z.onerror=()=>{if(!z.dataset.fallback){z.dataset.fallback='1';z.src=IMG[d.z]}else{z.alt='Image unavailable; close the viewer and refresh the page.'}};z.dataset.fallback='';z.src=IMG_URL[d.z];$('#lb').classList.add('on');$('#lb').scrollTop=0;return}else if(t.id==='lbx'){$('#lb').classList.remove('on');return}
+else if(d.z){const z=$('#lbi');z.onerror=()=>{z.onerror=null;z.alt='Image unavailable. Close the viewer and return to the Photos tab; if it persists, the source image must be replaced.';z.style.display='block';z.style.minHeight='120px';z.style.background='#fff';};z.dataset.fallback='';z.src=IMG_URL[d.z];$('#lb').classList.add('on');$('#lb').scrollTop=0;return}else if(t.id==='lbx'){$('#lb').classList.remove('on');return}
 else if(d.add){const e=E.find(x=>x.id===cur.e),s=st(e);s.rows.push(e.inp.map(()=>NaN));save()}
 else if(d.del){const e=E.find(x=>x.id===cur.e);st(e).rows.splice(+d.del,1);save()}
 else if(d.reset){const e=E.find(x=>x.id===cur.e);delete S[e.id];save()}
