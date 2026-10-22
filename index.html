@@ -507,7 +507,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 .calc-key:active{transform:scale(.97)}
 .calc-key.fn{background:var(--surface2);color:var(--ink2)}
 .calc-key.op{background:color-mix(in srgb,var(--brand) 13%,var(--surface));border-color:color-mix(in srgb,var(--brand) 24%,var(--line))}
-.calc-key.equals{background:var(--brand);color:#fff;border-color:var(--brand)}
+.calc-key.equals{background:var(--brand);color:#fff;border-color:var(--brand);grid-row:span 2}
 .calc-key.util{background:color-mix(in srgb,var(--bad) 8%,var(--surface))}
 @media(max-width:420px){.calc-keypad{gap:6px}.calc-key{min-height:46px;border-radius:10px}}
 </style>
@@ -1489,7 +1489,7 @@ function scientificCalculatorView(){
     ['7','num'],['8','num'],['9','num'],['−','op'],['+','op'],
     ['4','num'],['5','num'],['6','num'],['⌫','util'],['ANS','fn'],
     ['1','num'],['2','num'],['3','num'],['AC','util'],['=','equals'],
-    ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
+    ['0','num'],['.','num'],['±','util'],['00','num'],['ANS','fn']
   ];
   keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
     if(label==='AC'){input.value='';out.textContent='0';status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';input.focus();return;}
@@ -2047,7 +2047,7 @@ function drEcgSpeak(G, context={}) {
   clearTimeout(G.drLineTimer);
   G.drLineTimer=setTimeout(()=>{if(CHESS===G&&G.drLineToken===token){const target=document.getElementById('drEcgLine');if(target)target.textContent='“Dr ECG is watching the board…”';}},2000);
 }
-const chessSet = () => Object.assign({}, CHESS_DEFAULTS, chessRec().settings || {});
+const chessSet = () => { const s=Object.assign({},CHESS_DEFAULTS,chessRec().settings||{}); s.temperament=({balanced:'clinical',aggressive:'ruthless',careful:'mentor',unpredictable:'playful',teaching:'mentor'})[s.temperament]||s.temperament||'clinical'; return s; };
 function setChessSet(p) { chessRec().settings = Object.assign(chessSet(), p); save(); }
 function computerSettings(rating) {
   const depth = rating < 1100 ? 1 : rating < 1500 ? 2 : 3;
@@ -2102,7 +2102,7 @@ function chessMenu() {
     h('section', { class: 'panel stack' }, h('h2', null, 'Game settings'),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Game type'), seg([['friendly', 'Friendly (take-backs)'], ['ranked', 'Ranked (no take-backs)']], S.mode, 'mode')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Computer level'), seg([['auto', 'Matches me'], ['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']], S.level, 'level')),
-      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Dr ECG temperament'), seg([['balanced', 'Balanced'], ['aggressive', 'Aggressive'], ['careful', 'Careful'], ['unpredictable', 'Unpredictable']], S.temperament || 'balanced', 'temperament')),
+      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Dr ECG temperament'), seg([['clinical', 'Clinical'], ['playful', 'Playful'], ['ruthless', 'Ruthless'], ['mentor', 'Mentor']], S.temperament || 'clinical', 'temperament')),
       h('div', { class: 'stack' }, h('label', { class: 'small muted', for: 'drEcgRating' }, 'Dr ECG rating (Auto or 600–2200 Elo)'), h('select', { id: 'drEcgRating', onchange: ev => { setChessSet({ botRating: ev.target.value }); chessMenu(); } }, [['auto','Auto — matches me'],['600','600 Elo'],['800','800 Elo'],['1000','1000 Elo'],['1200','1200 Elo'],['1400','1400 Elo'],['1600','1600 Elo'],['1800','1800 Elo'],['2000','2000 Elo'],['2200','2200 Elo']].map(([v,label]) => h('option', { value: v, selected: String(S.botRating || 'auto') === v }, label))), h('p', { class: 'tiny muted' }, 'In Auto level, rating sets Dr ECG’s strength. Temperament changes how predictably he plays.')) ,
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Play as'), seg([['w', 'White'], ['b', 'Black'], ['random', 'Random']], S.color, 'color')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
