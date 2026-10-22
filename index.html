@@ -3204,13 +3204,18 @@ function filesView() {
       const seen = await sbGet('uploads?select=id&file_hash=eq.' + hash);
       if (Array.isArray(seen) && seen.length) throw new Error('This file has already been uploaded. Thank you.');
       // plain form upload: no custom headers, so the browser needs no extra safety check
-      const fd = new FormData(); fd.append('file', f, f.name);
-      const up = await fetch(LB.url + '/functions/v1/hub-upload?token=' + encodeURIComponent(DB.account.token) + '&ext=' + encodeURIComponent(ext), { method: 'POST', body: fd });
+      const fd = new FormData();
+      fd.append('file', f, f.name);
+      fd.append('token', DB.account.token);
+      fd.append('ext', ext);
+      fd.append('course', course.value);
+      fd.append('title', title.value.trim().slice(0, 120));
+      fd.append('nickname', (DB.profile.nick || DB.profile.name || 'Student').slice(0, 30));
+      fd.append('copyright_ok', 'true');
+      fd.append('file_hash', hash);
+      const up = await fetch(LB.url + '/functions/v1/hub-upload', { method: 'POST', body: fd });
       const got = await up.json().catch(() => ({}));
-      if (!up.ok || !got.ok) throw new Error(got.error || 'upload');
-      const path = got.path;
-      const row = await fetch(LB.url + '/rest/v1/uploads', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, nickname: DB.profile.nick.slice(0, 30), course: course.value, title: title.value.trim().slice(0, 120), file_path: path, mime: f.type || 'application/octet-stream', size_bytes: f.size, copyright_ok: true, status: 'pending', file_hash: hash }) });
-      if (!row.ok) throw new Error('row');
+      if (!up.ok || !got.ok) throw new Error(got.error || ('Upload failed (' + up.status + ').'));
       toast('Thank you. Your file is waiting for review.'); title.value = ''; file.value = ''; copy.checked = false;
     } catch (e) { err.textContent = (e && e.message && e.message !== 'upload' && e.message !== 'row') ? e.message : 'Could not upload. Check your connection and try again.'; }
     send.disabled = false; send.textContent = 'Upload';
