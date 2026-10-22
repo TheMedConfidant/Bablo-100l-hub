@@ -383,13 +383,11 @@ body.on-home .wrap{padding-bottom:170px}
 .monitor:before{content:'B A B L O  •  V I T A L S';position:absolute;top:7px;left:12px;z-index:2;color:rgba(167,243,228,.68);font:600 8px/1 system-ui;letter-spacing:1.6px;pointer-events:none}
 .monitor:after{content:'LIVE  ·  ECG';position:absolute;right:10px;top:7px;z-index:2;color:#a7f3d0;font:600 8px/1 system-ui;letter-spacing:1px;pointer-events:none}
 .monitor svg{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-.monitor-track{position:absolute;left:0;top:0;height:100%;width:200%;animation:sweep calc(var(--beat-s,1s) * 4) linear infinite}
-.monitor-track svg{width:100%}
-.monitor-line path{fill:none;stroke:#5EEAD4;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(94,234,212,.85))}
+.monitor-svg{position:absolute;inset:0;width:100%;height:100%;display:block}.monitor-svg .ecg-base{fill:none;stroke:rgba(94,234,212,.38);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.monitor-svg .ecg-sweep{fill:none;stroke:#8FFFF0;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:125 643;stroke-dashoffset:768;filter:drop-shadow(0 0 5px rgba(94,234,212,.95));animation:ecgTrace calc(var(--beat-s,1s) * 8) linear infinite}@keyframes ecgTrace{to{stroke-dashoffset:0}}
 .monitor-dot{position:absolute;right:14%;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#CFFFF6;box-shadow:0 0 10px #5EEAD4,0 0 18px rgba(94,234,212,.7);animation:blip var(--beat-s,1s) ease-in-out infinite}
 @keyframes sweep{to{transform:translateX(-50%)}}
 @keyframes blip{0%,100%{opacity:.35;transform:scale(.8)}12%{opacity:1;transform:scale(1.25)}30%{opacity:.5;transform:scale(.9)}}
-@media (prefers-reduced-motion: reduce){.monitor-track,.monitor-dot{animation:none}}
+@media (prefers-reduced-motion: reduce){.monitor-svg .ecg-sweep,.monitor-dot{animation:none}}
 
 
 /* Gold look: gold-tinted glass (same glass as Glass), gold glow and gold edges */
@@ -1359,6 +1357,11 @@ function renderNav(active) {
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
 }
+
+let CALC_ANS=0,CALC_DEG=true;
+function calcEvaluate(raw){let src=String(raw||'').replace(/[×·]/g,'*').replace(/[÷]/g,'/').replace(/[−–]/g,'-').replace(/π/g,'pi');src=src.replace(/\bANS\b/gi,'('+CALC_ANS+')').replace(/\bpi\b/gi,String(Math.PI)).replace(/\be\b/g,String(Math.E));const t=src.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-zA-Z]+|[%()+\-*/^]/g);if(!t||t.join('')!==src.replace(/\s+/g,''))throw Error();let i=0,P=()=>t[i],T=()=>t[i++],N=x=>x&&/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(x),A=x=>N(x)||x==='('||/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x);function atom(){let x=T(),v;if(x===undefined)throw Error();if(x==='+'||x==='-'){v=atom();return x==='-'?-v:v;}if(x==='('){v=E();if(T()!==')')throw Error();}else if(N(x))v=+x;else if(/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x)){let f=x.toLowerCase(),a;if(P()==='('){T();a=E();if(T()!==')')throw Error();}else a=atom();if(['sin','cos','tan'].includes(f))v=Math[f](CALC_DEG?a*Math.PI/180:a);else if(f==='ln')v=Math.log(a);else if(f==='log')v=Math.log10(a);else if(f==='sqrt')v=Math.sqrt(a);else if(f==='abs')v=Math.abs(a);else v=Math.exp(a);}else throw Error();while(P()==='%'){T();v/=100;}return v;}function pow(){let a=atom();if(P()==='^'){T();a=Math.pow(a,unary());}return a;}function unary(){if(P()==='+'){T();return unary();}if(P()==='-'){T();return -unary();}return pow();}function term(){let a=unary();while(P()==='*'||P()==='/'||A(P())){if(P()==='*'){T();a*=unary();}else if(P()==='/'){T();a/=unary();}else a*=unary();}return a;}function E(){let a=term();while(P()==='+'||P()==='-'){let op=T(),b=term();a=op==='+'?a+b:a-b;}return a;}let v=E();if(i!==t.length||!Number.isFinite(v))throw Error();return v;}
+function scientificCalculatorView(){const root=document.createElement('main');root.className='wrap';root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">For MTS 101, PHY 101, CHM 101, COS 101 and other calculation courses. Supports trig, ln/log, roots, powers, brackets, percentages, ANS and implicit multiplication.</p></div><section class="panel stack"><input id="calcExpr" type="text" inputmode="decimal" placeholder="e.g. 5.910796644047ln(326)%" style="width:100%;font-size:1.1rem"><div id="calcResult" class="panel"><span class="tiny muted">Result</span><strong style="display:block;font-size:1.5rem">Enter an expression</strong></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">Angle: Degrees</button><button id="calcClear" class="btn danger">Clear</button><button id="calcBack" class="btn ghost">⌫</button></div><div id="calcPad" class="grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px"></div></section></div>';document.getElementById('app').replaceChildren(root);const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),pad=root.querySelector('#calcPad');const show=()=>{try{let n=calcEvaluate(input.value);CALC_ANS=n;out.innerHTML='<span class="tiny muted">Result</span><strong style="display:block;font-size:1.5rem;overflow-wrap:anywhere">'+String(Number(n.toPrecision(12)))+'</strong>';}catch(e){out.innerHTML='<span class="tiny muted">Result</span><strong style="display:block">'+(input.value.trim()?'Check expression':'Enter an expression')+'</strong>';}};['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','(',')','sin(','cos(','tan(','ln(','log(','sqrt(','^','%','π','ANS','+','-','*','/'].forEach(k=>{let b=document.createElement('button');b.className='btn';b.textContent=k;b.onclick=()=>{input.value+=k;show();};pad.append(b);});input.oninput=show;input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();show();}};root.querySelector('#calcAngle').onclick=e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'Angle: Degrees':'Angle: Radians';show();};root.querySelector('#calcClear').onclick=()=>{input.value='';show();};root.querySelector('#calcBack').onclick=()=>{input.value=input.value.slice(0,-1);show();};}
+
 function route() {
   stopTimer();
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
@@ -1369,7 +1372,8 @@ function route() {
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
-    if (v === 'course') courseView(seg[1]);
+    if (v === 'calculator') scientificCalculatorView();
+    else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
     else if (v === 'result') resultView();
@@ -1458,14 +1462,10 @@ function ecgBeatPath(x0) {
   return 'M'+x+' 40 L'+(x+8)+' 40 Q'+(x+14)+' 40 '+(x+18)+' 33 Q'+(x+22)+' 27 '+(x+27)+' 40 L'+(x+38)+' 40 L'+(x+43)+' 46 L'+(x+49)+' 8 L'+(x+56)+' 68 L'+(x+62)+' 40 L'+(x+74)+' 40 Q'+(x+85)+' 22 '+(x+96)+' 40 L'+(x+108)+' 40 ';
 }
 function ecgMonitor() {
-  let d = '';
-  for (let i = 0; i < 8; i++) d += ecgBeatPath(i * 96);
-  const track = '<path d="' + d + '"/>';
-  const grid = '<defs><pattern id="ecgGrid" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="rgba(94,234,212,.12)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#ecgGrid)"/>';
-  return h('div', { class: 'monitor', 'aria-hidden': 'true' },
-    svgEl('0 0 768 80', grid, 'monitor-grid'),
-    h('div', { class: 'monitor-track' }, svgEl('0 0 768 80', track, 'monitor-line')),
-    h('span', { class: 'monitor-dot' }));
+ let d='';for(let i=0;i<8;i++)d+=ecgBeatPath(i*96);
+ const grid='<defs><pattern id="ecgGrid" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="rgba(94,234,212,.14)" stroke-width="1"/></pattern></defs><rect width="768" height="80" fill="url(#ecgGrid)"/>';
+ const trace='<path class="ecg-base" d="'+d+'"/><path class="ecg-sweep" d="'+d+'"/>';
+ return h('div',{class:'monitor','aria-hidden':'true'},svgEl('0 0 768 80',grid+trace,'monitor-svg'),h('span',{class:'monitor-dot'}));
 }
 function brand() {
   return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
@@ -1487,6 +1487,7 @@ function courseView(code) {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
+      ['MTH101','PHY','CHM','COS','AGR'].includes(code) ? h('button', { class: 'btn ghost block', onclick: () => go('#/calculator') }, 'Open scientific calculator') : null,
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
         h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
@@ -2001,6 +2002,7 @@ function chessView() {
   mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: () => { stopChessTick(); stopOnlinePoll(); CHESS = null; } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
+      G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { class: 'tiny muted', style: { margin: '0' } }, '“Let’s examine that move.”'))) : null,
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
       G.mode === 'online' && G.online ? chatPanel(G) : null,
