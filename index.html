@@ -379,7 +379,9 @@ body.on-home .wrap{padding-bottom:170px}
 @media (prefers-reduced-motion: reduce){.hero .pulse{animation:none}}
 
 /* hospital monitor: the trace sweeps; one sweep covers four beats; the speed follows the beat rate (--beat-s) */
-.monitor{position:relative;height:74px;margin:14px 0 6px;border-radius:14px;overflow:hidden;background:rgba(3,20,22,.55);border:1px solid rgba(94,234,212,.22);box-shadow:inset 0 0 26px rgba(94,234,212,.08)}
+.monitor{position:relative;height:88px;margin:16px 0 8px;border-radius:16px;overflow:hidden;background:linear-gradient(145deg,rgba(2,17,22,.96),rgba(4,37,39,.82));border:1px solid rgba(94,234,212,.34);box-shadow:inset 0 0 30px rgba(45,212,191,.12),0 8px 24px rgba(0,0,0,.12)}
+.monitor:before{content:'B A B L O  •  V I T A L S';position:absolute;top:7px;left:12px;z-index:2;color:rgba(167,243,228,.68);font:600 8px/1 system-ui;letter-spacing:1.6px;pointer-events:none}
+.monitor:after{content:'LIVE  ·  ECG';position:absolute;right:10px;top:7px;z-index:2;color:#a7f3d0;font:600 8px/1 system-ui;letter-spacing:1px;pointer-events:none}
 .monitor svg{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
 .monitor-track{position:absolute;left:0;top:0;height:100%;width:200%;animation:sweep calc(var(--beat-s,1s) * 4) linear infinite}
 .monitor-track svg{width:100%}
@@ -1450,7 +1452,8 @@ function homeView() {
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
 function ecgBeatPath(x0) {
   const x = x0;
-  return 'M' + x + ' 40 L' + (x + 14) + ' 40 Q' + (x + 19) + ' 30 ' + (x + 24) + ' 40 L' + (x + 34) + ' 40 L' + (x + 38) + ' 6 L' + (x + 43) + ' 74 L' + (x + 48) + ' 40 L' + (x + 62) + ' 40 Q' + (x + 70) + ' 26 ' + (x + 80) + ' 40 L' + (x + 96) + ' 40 ';
+  // Clear P wave, PR segment, narrow QRS complex, ST segment and T wave.
+  return 'M'+x+' 40 L'+(x+8)+' 40 Q'+(x+14)+' 40 '+(x+18)+' 33 Q'+(x+22)+' 27 '+(x+27)+' 40 L'+(x+38)+' 40 L'+(x+43)+' 46 L'+(x+49)+' 8 L'+(x+56)+' 68 L'+(x+62)+' 40 L'+(x+74)+' 40 Q'+(x+85)+' 22 '+(x+96)+' 40 L'+(x+108)+' 40 ';
 }
 function ecgMonitor() {
   let d = '';
