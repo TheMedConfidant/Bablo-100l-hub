@@ -1517,7 +1517,7 @@ function route() {
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
-    if (v === 'calculator') scientificCalculatorView();
+    if (v === 'calculator') { go('#/'); return; }
     else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
@@ -1578,13 +1578,10 @@ function homeView() {
   const hero = h('section', { class: 'hero' + (DB.skin === 'gold' ? ' gold-hero' : '') },
     h('h1', null, greet + ', ' + first),
     h('p', null, 'Pick a course, practise a topic, then test yourself.'),
-    ecgMonitor(),
     h('div', { class: 'hero-stats' },
       h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
       h('div', null, h('b', null, DB.history.length), h('span', null, 'attempts')),
       h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
-  // heartbeat: resting around 72 bpm, quickening with your study streak (capped), slowing a little when you've not studied today
-  { const bpm = Math.min(110, 72 + (st.days || 0) * 4); hero.style.setProperty('--beat-s', (60 / bpm).toFixed(2) + 's'); }
   const L200 = DB.profile && DB.profile.level === '200L';
   const tiles = homeCourses().map(c => {
     if (c.pending200) return h('div', { class: 'tile pending', style: { '--c': c.color } }, h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title), h('div', { class: 'row wrapr', style: { marginTop: '6px' } }, ['Questions', 'Notes', 'Practicals', 'Labs'].map(t => h('button', { class: 'btn sm', onclick: () => open200(c.code, t) }, t))));
@@ -1639,8 +1636,6 @@ function courseView(code) {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
-      ['PHY','PHY101','PHY107'].includes(code) ? h('a', { class: 'btn primary block', href: '#/practicals/PHY', style: { textAlign: 'center', textDecoration: 'none' } }, '🧪 PHY 107 Practical Lab — open from PHY folder') : null,
-      ['MTH101','MTS101','MTS','PHY','PHY101','CHM','CHM101','COS','COS101','AGR','AGR101'].includes(code) ? h('button', { class: 'btn ghost block', onclick: () => go('#/calculator') }, '🧮 Open scientific calculator') : null,
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
         h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
