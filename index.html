@@ -48,6 +48,7 @@ sup{font-size:.7em;line-height:0}
 /* hero (the one bold moment: pulse trace) */
 .hero{position:relative;padding:20px 18px 14px;border-radius:20px;background:linear-gradient(135deg,#0E1F3D,#12365F 60%,#0B6B6A);color:#F2F7FF;overflow:hidden}
 .hero h1{font-size:1.6rem}.hero p{color:#C4D4EC;margin-top:4px}
+.hero.gold-hero{background:linear-gradient(135deg,#FFF1B8 0%,#E8B94E 52%,#B7791F 100%);color:#241805;border:1px solid #D6A33B;box-shadow:0 10px 28px rgba(148,98,0,.20)}.hero.gold-hero p,.hero.gold-hero .hero-stats span{color:#4D3510}.hero.gold-hero .monitor{border-color:rgba(148,98,0,.45)}
 .pulse{display:block;width:100%;height:56px;margin-top:10px}
 .pulse path{fill:none;stroke:#5EEAD4;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:900;stroke-dashoffset:900;animation:draw 2.2s ease-out .15s forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -1574,7 +1575,7 @@ function homeView() {
   const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const st = Core.streak(DB.history.map(x => x.ts), Date.now());
   const weak = Object.keys(DB.missed).length;
-  const hero = h('section', { class: 'hero' },
+  const hero = h('section', { class: 'hero' + (DB.skin === 'gold' ? ' gold-hero' : '') },
     h('h1', null, greet + ', ' + first),
     h('p', null, 'Pick a course, practise a topic, then test yourself.'),
     ecgMonitor(),
@@ -1585,14 +1586,12 @@ function homeView() {
   // heartbeat: resting around 72 bpm, quickening with your study streak (capped), slowing a little when you've not studied today
   { const bpm = Math.min(110, 72 + (st.days || 0) * 4); hero.style.setProperty('--beat-s', (60 / bpm).toFixed(2) + 's'); }
   const L200 = DB.profile && DB.profile.level === '200L';
-  const actions = h('section', { class: 'stack', 'aria-label': 'Study tools' },
-    h('div', { class: 'row between wrapr' }, h('h2', null, 'Study tools'), h('span', { class: 'tiny muted' }, 'Quick access')),
-    h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(auto-fit,minmax(125px,1fr))', gap: '10px' } },
+  const actions = h('section', { class: 'stack', 'aria-label': 'Useful tools' },
+    h('div', { class: 'row between wrapr' }, h('h2', null, 'Useful tools')),
+    h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(auto-fit,minmax(145px,1fr))', gap: '10px' } },
       [
-        [L200 ? '#/quiz200' : '#/weak', '✍️', 'Questions', 'Practise and review'],
-        ['#/calculator', '🧮', 'Calculator', 'Scientific practice tool'],
-        [L200 ? '#/notes' : '#/files', '📚', L200 ? 'Notes' : 'Study materials', L200 ? 'Review your notes' : 'Open your materials'],
-        [L200 ? '#/flashcards' : '#/practicals/PHY', '🧪', L200 ? 'Flashcards' : 'Practical labs', L200 ? 'Active recall' : 'Tables, graphs and experiments']
+        ['#/calculator', '🧮', 'Scientific calculator', 'Expressions, logs, trig and powers'],
+        ['#/lab/phy107', '🧪', 'PHY 107 practical lab', 'Experiments, readings and diagrams']
       ].map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '14px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '5px', minHeight: '112px' } },
         h('span', { style: { fontSize: '1.35rem' }, 'aria-hidden': 'true' }, icon),
         h('span', null, label),
