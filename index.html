@@ -1943,7 +1943,7 @@ function resultView() {
 
 /* ---------- leaderboard ---------- */
 function boardView() {
-  let scope = 'all', course = '*', data = null; const box = h('div', { class: 'stack' });
+  let scope = 'all', course = '*', data = readLbCache(); const box = h('div', { class: 'stack' });
   const draw = () => {
     const seg = (items, cur, set) => h('div', { class: 'seg' }, items.map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(cur === v), onclick: () => { set(v); draw(); } }, l)));
     const kids = [seg([['all', 'All-time'], ['week', 'This week'], ['prog', 'My programme']], scope, v => { scope = v; }),
