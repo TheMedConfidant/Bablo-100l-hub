@@ -394,6 +394,10 @@ body.on-home .wrap{padding-bottom:170px}
 :root[data-tint="gold"]{--glow-a:rgba(212,153,23,.58);--glow-b:rgba(146,87,0,.48);--glow-c:rgba(245,196,76,.30);--brand:#C58A12;--glass-edge:rgba(226,176,64,.55);--ink:#FFF3CC;--ink2:#E8C979}
 :root[data-tint="gold"][data-mode="light"]{--brand:#8F5D00;--ink:#302000;--ink2:#6E4A0B;--glow-a:rgba(191,133,12,.72);--glow-b:rgba(133,77,0,.46);--glow-c:rgba(230,177,53,.40);--glass-edge:rgba(180,120,20,.45)}
 :root[data-tint="gold"] .panel,:root[data-tint="gold"] .tile,:root[data-tint="gold"] .hero{border-color:rgba(253,230,138,.42)}
+/* Deep gold theme: keep the gold identity, but give it a genuinely dark bronze/black base. */
+:root[data-tint="gold"]:not([data-mode="light"]){--page:radial-gradient(1100px 600px at 8% -10%,rgba(181,125,19,.18),transparent),radial-gradient(900px 520px at 110% 8%,rgba(111,72,8,.16),transparent),linear-gradient(160deg,#090805,#171106 55%,#0B0905);--bg:#100D07;--surface:rgba(31,24,12,.94);--surface2:#28200F;--line:rgba(206,164,65,.25);--ink:#FFF1C5;--ink2:#D6BD7C;--brand:#C99A27;--brand-ink:#160F02;--brand-soft:#35280D;--glass-edge:rgba(214,170,62,.34);--gold:#D8AD3D;--gold-soft:#30230A;--shadow:0 2px 5px rgba(0,0,0,.42),0 12px 30px rgba(0,0,0,.28)}
+:root[data-tint="gold"]:not([data-mode="light"]) .panel,:root[data-tint="gold"]:not([data-mode="light"]) .tile,:root[data-tint="gold"]:not([data-mode="light"]) .rows{background:var(--surface);border-color:var(--line)}
+:root[data-tint="gold"]:not([data-mode="light"]) .btn.gold{background:linear-gradient(180deg,#8F6818,#5B3E08);border-color:#C99A27;color:#FFF1C5}
 
 </style>
 </head>
