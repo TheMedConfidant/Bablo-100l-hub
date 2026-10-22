@@ -1844,7 +1844,9 @@ function weakView() {
 const PIECE = { K: '\u2654', Q: '\u2655', R: '\u2656', B: '\u2657', N: '\u2658', P: '\u2659', k: '\u265A', q: '\u265B', r: '\u265C', b: '\u265D', n: '\u265E', p: '\u265F' };
 let CHESS = null, CHESS_TICK = null;
 const chessRec = () => (DB.chess = DB.chess || { rating: 1000, w: 0, d: 0, l: 0, openings: {}, games: [], settings: {} });
-const CHESS_DEFAULTS = { mode: 'friendly', level: 'auto', color: 'w', time: 0 };
+const CHESS_DEFAULTS = { mode: 'friendly', level: 'auto', color: 'w', time: 0, temperament: 'balanced', botRating: 'auto' };
+const DR_ECG_LINES = ['Interesting move. Let us check the response.','A quiet move can still change the whole position.','Watch the centre; it often tells the story.','No panic. Find the strongest safe move.','That move leaves a tactical question.','Check your king safety before attacking.','Good calculation beats a rushed move.','Let us look for a fork or pin.','The position is still playable. Stay precise.','A small improvement is still progress.'];
+function drEcgSpeak(G, line) { if (!G) return; const token = G.drLineToken = (G.drLineToken || 0) + 1; const el = document.getElementById('drEcgLine'); if (el) el.textContent = '“' + line + '”'; setTimeout(() => { if (CHESS === G && G.drLineToken === token) { const target = document.getElementById('drEcgLine'); if (target) target.textContent = '“Let’s examine that move.”'; } }, 2000); }
 const chessSet = () => Object.assign({}, CHESS_DEFAULTS, chessRec().settings || {});
 function setChessSet(p) { chessRec().settings = Object.assign(chessSet(), p); save(); }
 function computerSettings(rating) {
@@ -1854,11 +1856,18 @@ function computerSettings(rating) {
   return { depth, noise, opp };
 }
 function levelParams() {
-  const L = chessSet().level;
-  if (L === 'easy') return { depth: 1, noise: 0.35 };
-  if (L === 'medium') return { depth: 2, noise: 0.1 };
-  if (L === 'hard') return { depth: 3, noise: 0 };
-  const c = computerSettings(chessRec().rating); return { depth: c.depth, noise: c.noise };
+  const S = chessSet(), L = S.level;
+  let p;
+  if (L === 'easy') p = { depth: 1, noise: 0.35 };
+  else if (L === 'medium') p = { depth: 2, noise: 0.1 };
+  else if (L === 'hard') p = { depth: 3, noise: 0 };
+  else { const selected = S.botRating === 'auto' ? chessRec().rating : Number(S.botRating); const c = computerSettings(Number.isFinite(selected) && selected > 0 ? selected : chessRec().rating); p = { depth: c.depth, noise: c.noise }; }
+  const t = S.temperament || 'balanced';
+  if (t === 'aggressive') { p.noise *= 0.45; p.depth = Math.min(3, p.depth + 1); }
+  else if (t === 'careful') p.noise *= 0.6;
+  else if (t === 'unpredictable') p.noise = Math.min(0.62, p.noise + 0.18);
+  else if (t === 'teaching') p.noise = Math.min(0.42, p.noise + 0.1);
+  return p;
 }
 function recordComputerGame(G, res) {
   if (G.friendly || G.recorded) return; G.recorded = true;
@@ -1866,7 +1875,8 @@ function recordComputerGame(G, res) {
   const score = res === 'draw' ? 0.5 : res === G.color ? 1 : 0;
   if (chessSet().level === 'auto') {
     const cs = computerSettings(R.rating);
-    const expected = 1 / (1 + Math.pow(10, (cs.opp - R.rating) / 400));
+    const opponentRating = chessSet().botRating === 'auto' ? cs.opp : Number(chessSet().botRating);
+    const expected = 1 / (1 + Math.pow(10, ((Number.isFinite(opponentRating) && opponentRating > 0 ? opponentRating : cs.opp) - R.rating) / 400));
     R.rating = Math.round(Math.max(600, Math.min(2200, R.rating + 32 * (score - expected))));
   }
   if (score === 1) R.w++; else if (score === 0.5) R.d++; else R.l++;
@@ -1886,6 +1896,8 @@ function chessMenu() {
     h('section', { class: 'panel stack' }, h('h2', null, 'Game settings'),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Game type'), seg([['friendly', 'Friendly (take-backs)'], ['ranked', 'Ranked (no take-backs)']], S.mode, 'mode')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Computer level'), seg([['auto', 'Matches me'], ['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']], S.level, 'level')),
+      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Dr ECG temperament'), seg([['balanced', 'Balanced'], ['aggressive', 'Aggressive'], ['careful', 'Careful'], ['unpredictable', 'Unpredictable']], S.temperament || 'balanced', 'temperament')),
+      h('div', { class: 'stack' }, h('label', { class: 'small muted', for: 'drEcgRating' }, 'Dr ECG rating (Auto or 600–2200 Elo)'), h('select', { id: 'drEcgRating', onchange: ev => { setChessSet({ botRating: ev.target.value }); chessMenu(); } }, [['auto','Auto — matches me'],['600','600 Elo'],['800','800 Elo'],['1000','1000 Elo'],['1200','1200 Elo'],['1400','1400 Elo'],['1600','1600 Elo'],['1800','1800 Elo'],['2000','2000 Elo'],['2200','2200 Elo']].map(([v,label]) => h('option', { value: v, selected: String(S.botRating || 'auto') === v }, label))), h('p', { class: 'tiny muted' }, 'In Auto level, rating sets Dr ECG’s strength. Temperament changes how predictably he plays.')) ,
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Play as'), seg([['w', 'White'], ['b', 'Black'], ['random', 'Random']], S.color, 'color')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
@@ -2016,7 +2028,7 @@ function computerTurn() {
   setTimeout(() => {
     if (CHESS !== G) return;
     const m = Chess.aiMoveDN(G.s, lp.depth, lp.noise);
-    if (m) { G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; }
+    if (m) { G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; drEcgSpeak(G, DR_ECG_LINES[Math.floor(Math.random() * DR_ECG_LINES.length)]); }
     G.busy = false;
     if (gameOver(G).over) finishComputer();
     chessDraw();
@@ -2052,7 +2064,7 @@ function chessView() {
   mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: () => { stopChessTick(); stopOnlinePoll(); CHESS = null; } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
-      G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { class: 'tiny muted', style: { margin: '0' } }, '“Let’s examine that move.”'))) : null,
+      G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { id: 'drEcgLine', class: 'tiny muted', style: { margin: '0', minHeight: '1.2em' } }, '“Let’s examine that move.”'))) : null,
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
       G.mode === 'online' && G.online ? chatPanel(G) : null,
