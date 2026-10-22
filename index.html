@@ -1916,7 +1916,7 @@ function boardView() {
       // so a single displayed identity cannot occupy several leaderboard places.
       const seenNames = new Set();
       const rows = ranked.filter(row => {
-        const key = String(row.nick || '').normalize('NFKC').replace(/[\\u200B-\\u200D\\uFEFF]/g, '').replace(/\\s+/g, ' ').trim().toLocaleLowerCase();
+        const key = String(row.nick || '').normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
         if (!key || seenNames.has(key)) return false;
         seenNames.add(key);
         return true;
