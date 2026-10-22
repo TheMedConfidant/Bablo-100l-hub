@@ -451,6 +451,26 @@ body.on-home .wrap{padding-bottom:170px}
 :root[data-tint="gold"] .monitor-svg .ecg-base{stroke:rgba(232,184,66,.42)}
 :root[data-tint="gold"] .monitor-svg .ecg-sweep{stroke:#ffe58c;filter:drop-shadow(0 0 5px rgba(255,211,82,.95))}
 :root[data-tint="gold"] .monitor-dot{background:#fff0a8;box-shadow:0 0 10px #f2c94c,0 0 18px rgba(212,153,23,.7)}
+
+/* Responsive polish: prevent narrow screens from clipping panels and practical tables. */
+@media (max-width: 640px){
+  .wrap{padding-left:12px;padding-right:12px}
+  .panel,.tile,.qcard,.rev{min-width:0;overflow-wrap:anywhere}
+  .row{min-width:0;flex-wrap:wrap}
+  .scroll-x{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .scroll-x table{min-width:520px}
+  .field{min-width:0}
+  .field input,.field select,.field textarea{max-width:100%;min-width:0}
+  .monitor{max-width:100%}
+}
+button,a,input,select,textarea{touch-action:manipulation}
+:root[data-skin] :is(button,a,input,select,textarea):focus-visible{
+  outline:3px solid var(--focus,#60A5FA);
+  outline-offset:3px;
+}
+@media (prefers-reduced-motion: reduce){
+  .monitor-svg .ecg-sweep{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
+}
 </style>
 </head>
 <body>
