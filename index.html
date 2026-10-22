@@ -1952,6 +1952,12 @@ function recordComputerGame(G, res) {
   R.games = R.games.concat([{ res, n: G.moves.length, ts: Date.now(), color: G.color }]).slice(-30);
   save();
 }
+function resumeChess() {
+  if (!CHESS) return chessMenu();
+  if (CHESS.clock) { CHESS.clock.paused = false; CHESS.clock.at = Date.now(); }
+  chessView();
+  if (CHESS && CHESS.mode === 'online') startOnlinePoll();
+}
 function chessMenu() {
   const R = chessRec(), S = chessSet(), top = Object.entries(R.openings).sort((a, b) => b[1] - a[1])[0];
   const last = R.last ? h('p', { class: 'small', style: { color: 'var(--gold)' } }, R.last.loser === 'draw' ? 'Last result: a draw.' : 'Last result: ' + R.last.winner + ' beat ' + R.last.loser + (R.last.online ? ' (online)' : '') + '.') : null;
@@ -1968,6 +1974,7 @@ function chessMenu() {
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Play as'), seg([['w', 'White'], ['b', 'Black'], ['random', 'Random']], S.color, 'color')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
+    CHESS && !gameOver(CHESS).over ? h('button', { class: 'btn gold block', onclick: resumeChess }, 'Resume current game') : null,
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
     h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.'),
       h('button', { class: 'btn gold block', onclick: createOnline }, 'Create a challenge'),
@@ -2017,14 +2024,14 @@ function statusText(G) {
 }
 function clockMs(G, side) {
   const c = G.clock; if (!c) return 0;
-  const live = !gameOver(G).over && c.side === side ? Date.now() - c.at : 0;
+  const live = !c.paused && !gameOver(G).over && c.side === side ? Date.now() - c.at : 0;
   return Math.max(0, c[side] - live);
 }
 function fmtClock(ms) { const sec = Math.ceil(ms / 1000); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
 function clockSwitch(G, mover) {
   if (!G.clock) return; const now = Date.now();
   G.clock[mover] = Math.max(0, G.clock[mover] - (now - G.clock.at));
-  G.clock.side = mover === 'w' ? 'b' : 'w'; G.clock.at = now;
+  G.clock.side = mover === 'w' ? 'b' : 'w'; G.clock.at = now; G.clock.paused = false;
 }
 function resultPopup(G) {
   if (G.popupShown) return; G.popupShown = true;
@@ -2127,8 +2134,9 @@ function chessView() {
   const holder = h('div', { id: 'chessBoard', class: 'stack', style: { alignItems: 'center' } });
   const clockTop = G.clock ? h('div', { id: 'clockTop', class: 'clock' }) : null, clockBot = G.clock ? h('div', { id: 'clockBottom', class: 'clock' }) : null;
   const undo = h('button', { id: 'chessUndo', class: 'btn grow', disabled: !G.friendly, onclick: takeBack }, 'Take back');
-  const level = S.level === 'auto' ? 'matches you (' + (computerSettings(chessRec().rating).depth === 1 ? 'easy' : computerSettings(chessRec().rating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
-  mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: () => { stopChessTick(); stopOnlinePoll(); CHESS = null; } }, '\u2039 Chess settings'),
+  const drRating = S.botRating === 'auto' ? chessRec().rating : Number(S.botRating);
+  const level = S.level === 'auto' ? 'matches you (' + (computerSettings(drRating).depth === 1 ? 'easy' : computerSettings(drRating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
+  mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: () => { stopChessTick(); stopOnlinePoll(); stopChatPoll(); if (CHESS && CHESS.clock) { const side = CHESS.clock.side; CHESS.clock[side] = clockMs(CHESS, side); CHESS.clock.at = Date.now(); CHESS.clock.paused = true; } } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
       G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { id: 'drEcgLine', class: 'tiny muted', style: { margin: '0', minHeight: '1.2em' } }, '“Let’s examine that move.”'))) : null,
