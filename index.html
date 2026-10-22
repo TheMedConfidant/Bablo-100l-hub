@@ -3256,12 +3256,30 @@ function loadAlertForm(pass, container) {
 /* ---------- practicals (premium): the method, procedure, precautions and evaluation for each experiment ---------- */
 const PRACTICAL_FREE_UNTIL = Date.parse('2026-10-29T23:59:59+01:00'); // bonus week: practicals free for everyone
 function practicalsFor(code) { return (window.__PRACTICALS__ || {})[code] || null; }
-function embeddedPhyLabView(){
-  mount(wrap(back('#/practicals/PHY','Practical labs'),
-    h('div',{class:'stack-l'},
-      h('div',{class:'stack'},h('h1',null,'PHY 107 Interactive Lab'),h('p',{class:'muted small'},'The full practical manual is running inside Bablo Hub. Use the lab’s experiment tabs and photo viewer below.')),
-      h('div',{class:'phy-lab-frame',style:{width:'100%',height:'min(78vh,1000px)',minHeight:'560px',overflow:'hidden',border:'1px solid var(--line)',borderRadius:'16px',background:'var(--surface)'}},
-        h('iframe',{src:'phy107-practical.html?embedded=1',title:'PHY 107 interactive practical manual',loading:'lazy',style:{display:'block',width:'100%',height:'100%',border:'0',background:'#fff'}})))));
+function embeddedPhyLabView() {
+  const backLink = back('#/practicals/PHY', 'Practical labs');
+  const heading = h('div', { class: 'stack' },
+    h('h1', null, 'PHY 107 Interactive Lab'),
+    h('p', { class: 'muted small' }, 'The full practical manual is running inside Bablo Hub.')
+  );
+  const frame = h('div', {
+    class: 'phy-lab-frame',
+    style: {
+      width: '100%',
+      height: 'min(78vh, 1000px)',
+      minHeight: '560px',
+      overflow: 'hidden',
+      border: '1px solid var(--line)',
+      borderRadius: '16px',
+      background: 'var(--surface)'
+    }
+  }, h('iframe', {
+    src: 'phy107-practical.html?embedded=1',
+    title: 'PHY 107 interactive practical manual',
+    loading: 'lazy',
+    style: { display: 'block', width: '100%', height: '100%', border: '0', background: '#fff' }
+  }));
+  mount(wrap(backLink, h('div', { class: 'stack-l' }, heading, frame)));
 }
 function practicalsView(code) {
   const P = practicalsFor(code); const c = courseBy(code);
