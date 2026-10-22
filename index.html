@@ -383,7 +383,7 @@ body.on-home .wrap{padding-bottom:170px}
 .monitor:before{content:'B A B L O  •  V I T A L S';position:absolute;top:7px;left:12px;z-index:2;color:rgba(167,243,228,.68);font:600 8px/1 system-ui;letter-spacing:1.6px;pointer-events:none}
 .monitor:after{content:'LIVE  ·  ECG';position:absolute;right:10px;top:7px;z-index:2;color:#a7f3d0;font:600 8px/1 system-ui;letter-spacing:1px;pointer-events:none}
 .monitor svg{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
-.monitor-svg{position:absolute;inset:0;width:100%;height:100%;display:block}.monitor-svg .ecg-base{fill:none;stroke:rgba(94,234,212,.38);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.monitor-svg .ecg-sweep{fill:none;stroke:#8FFFF0;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:125 643;stroke-dashoffset:768;filter:drop-shadow(0 0 5px rgba(94,234,212,.95));animation:ecgTrace calc(var(--beat-s,1s) * 8) linear infinite}@keyframes ecgTrace{to{stroke-dashoffset:0}}
+.monitor-svg{position:absolute;inset:0;width:100%;height:100%;display:block}.monitor-svg .ecg-base{fill:none;stroke:rgba(94,234,212,.38);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.monitor-svg .ecg-sweep{fill:none;stroke:#8FFFF0;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:190 578;stroke-dashoffset:768;filter:drop-shadow(0 0 5px rgba(94,234,212,.95));animation:ecgTrace calc(var(--beat-s,1s) * 5) linear infinite}@keyframes ecgTrace{from{stroke-dashoffset:768}to{stroke-dashoffset:0}}
 .monitor-dot{position:absolute;right:14%;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#CFFFF6;box-shadow:0 0 10px #5EEAD4,0 0 18px rgba(94,234,212,.7);animation:blip var(--beat-s,1s) ease-in-out infinite}
 @keyframes sweep{to{transform:translateX(-50%)}}
 @keyframes blip{0%,100%{opacity:.35;transform:scale(.8)}12%{opacity:1;transform:scale(1.25)}30%{opacity:.5;transform:scale(.9)}}
@@ -444,6 +444,13 @@ body.on-home .wrap{padding-bottom:170px}
   background:linear-gradient(135deg,#fff4c8 0%,#f0cf72 52%,#c08a19 100%)!important;
   color:#332300!important;
 }
+
+:root[data-tint="gold"] .monitor{background:linear-gradient(145deg,rgba(18,12,3,.98),rgba(61,39,5,.96));border-color:rgba(240,190,64,.55);box-shadow:inset 0 0 30px rgba(212,153,23,.16),0 8px 24px rgba(0,0,0,.2)}
+:root[data-tint="gold"] .monitor:before{color:rgba(255,224,135,.78)}
+:root[data-tint="gold"] .monitor:after{color:#ffdf7b}
+:root[data-tint="gold"] .monitor-svg .ecg-base{stroke:rgba(232,184,66,.42)}
+:root[data-tint="gold"] .monitor-svg .ecg-sweep{stroke:#ffe58c;filter:drop-shadow(0 0 5px rgba(255,211,82,.95))}
+:root[data-tint="gold"] .monitor-dot{background:#fff0a8;box-shadow:0 0 10px #f2c94c,0 0 18px rgba(212,153,23,.7)}
 </style>
 </head>
 <body>
@@ -1494,6 +1501,7 @@ function homeView() {
     h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(auto-fit,minmax(125px,1fr))', gap: '10px' } },
       [
         [L200 ? '#/quiz200' : '#/weak', '✍️', 'Questions', 'Practise and review'],
+        ['#/calculator', '🧮', 'Calculator', 'Scientific practice tool'],
         [L200 ? '#/notes' : '#/files', '📚', L200 ? 'Notes' : 'Study materials', L200 ? 'Review your notes' : 'Open your materials'],
         [L200 ? '#/flashcards' : '#/practicals/PHY', '🧪', L200 ? 'Flashcards' : 'Practical labs', L200 ? 'Active recall' : 'Tables, graphs and experiments']
       ].map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '14px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '5px', minHeight: '112px' } },
@@ -1517,7 +1525,7 @@ function homeView() {
 function ecgBeatPath(x0) {
   const x = x0;
   // Clear P wave, PR segment, narrow QRS complex, ST segment and T wave.
-  return 'M'+x+' 40 L'+(x+8)+' 40 Q'+(x+14)+' 40 '+(x+18)+' 33 Q'+(x+22)+' 27 '+(x+27)+' 40 L'+(x+38)+' 40 L'+(x+43)+' 46 L'+(x+49)+' 8 L'+(x+56)+' 68 L'+(x+62)+' 40 L'+(x+74)+' 40 Q'+(x+85)+' 22 '+(x+96)+' 40 L'+(x+108)+' 40 ';
+  return 'M'+x+' 40 L'+(x+6)+' 40 Q'+(x+12)+' 40 '+(x+16)+' 33 Q'+(x+20)+' 27 '+(x+24)+' 40 L'+(x+34)+' 40 L'+(x+39)+' 46 L'+(x+45)+' 8 L'+(x+52)+' 68 L'+(x+58)+' 40 L'+(x+68)+' 40 Q'+(x+80)+' 22 '+(x+88)+' 40 L'+(x+96)+' 40 ';
 }
 function ecgMonitor() {
  let d='';for(let i=0;i<8;i++)d+=ecgBeatPath(i*96);
