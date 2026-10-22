@@ -3336,6 +3336,9 @@ function practicalView(code, n) {
     h('div', { class: 'row' }, prev ? h('button', { class: 'btn grow', onclick: () => go('#/practicals/' + code + '/' + prev.n) }, '\u2039 Experiment ' + prev.n) : h('span', { class: 'grow' }), next ? h('button', { class: 'btn primary grow', onclick: () => go('#/practicals/' + code + '/' + next.n) }, 'Experiment ' + next.n + ' \u203A') : h('span', { class: 'grow' })))));
 }
 
+</script>
+<script src="/cos-101-plus-bank.js"></script>
+<script>
 /* ---------- boot ---------- */
 applyTheme();
 loadHidden();
