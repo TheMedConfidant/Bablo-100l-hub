@@ -1584,13 +1584,19 @@ function homeView() {
       h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
   // heartbeat: resting around 72 bpm, quickening with your study streak (capped), slowing a little when you've not studied today
   { const bpm = Math.min(110, 72 + (st.days || 0) * 4); hero.style.setProperty('--beat-s', (60 / bpm).toFixed(2) + 's'); }
-  const actions = h('section', { class: 'stack', 'aria-label': 'Quick access' },
-    h('div', { class: 'row between wrapr' }, h('h2', null, 'Quick access'), h('span', { class: 'tiny muted' }, 'Just the useful shortcut')),
-    h('div', { class: 'grid', style: { gridTemplateColumns: 'minmax(0,1fr)', gap: '10px' } },
-      [ ['#/practicals/PHY', '🧪', 'Practical labs', 'Experiments, apparatus, diagrams and lab notes'] ]
-      .map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '16px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', minHeight: '78px' } },
-        h('span', { style: { fontSize: '1.6rem' }, 'aria-hidden': 'true' }, icon),
-        h('span', { class: 'stack', style: { gap: '3px' } }, h('span', null, label), h('span', { class: 'tiny muted', style: { fontWeight: '400' } }, sub))))));
+  const L200 = DB.profile && DB.profile.level === '200L';
+  const actions = h('section', { class: 'stack', 'aria-label': 'Study tools' },
+    h('div', { class: 'row between wrapr' }, h('h2', null, 'Study tools'), h('span', { class: 'tiny muted' }, 'Quick access')),
+    h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(auto-fit,minmax(125px,1fr))', gap: '10px' } },
+      [
+        [L200 ? '#/quiz200' : '#/weak', '✍️', 'Questions', 'Practise and review'],
+        ['#/calculator', '🧮', 'Calculator', 'Scientific practice tool'],
+        [L200 ? '#/notes' : '#/files', '📚', L200 ? 'Notes' : 'Study materials', L200 ? 'Review your notes' : 'Open your materials'],
+        [L200 ? '#/flashcards' : '#/practicals/PHY', '🧪', L200 ? 'Flashcards' : 'Practical labs', L200 ? 'Active recall' : 'Tables, graphs and experiments']
+      ].map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '14px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '5px', minHeight: '112px' } },
+        h('span', { style: { fontSize: '1.35rem' }, 'aria-hidden': 'true' }, icon),
+        h('span', null, label),
+        h('span', { class: 'tiny muted', style: { fontWeight: '400' } }, sub)))));
   const tiles = homeCourses().map(c => {
     if (c.pending200) return h('div', { class: 'tile pending', style: { '--c': c.color } }, h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title), h('div', { class: 'row wrapr', style: { marginTop: '6px' } }, ['Questions', 'Notes', 'Practicals', 'Labs'].map(t => h('button', { class: 'btn sm', onclick: () => open200(c.code, t) }, t))));
     const ok = isAvail(c), n = ok ? BYC[c.code].length : 0, bp = bestPct(c.code);
