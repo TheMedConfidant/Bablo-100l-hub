@@ -496,6 +496,20 @@ button,a,input,select,textarea{touch-action:manipulation}
 :root[data-tint="gold"] .monitor-svg .ecg-sweep{stroke:#ffe58c}
 :root[data-skin="classic"] .monitor-svg .ecg-base{stroke:rgba(14,116,144,.45)}
 :root[data-skin="classic"] .monitor-svg .ecg-sweep{stroke:#0e7490}
+
+/* Calculator: familiar scientific-keypad layout with smooth, consistent key sizing. */
+.calc-shell{max-width:720px;margin-inline:auto;width:100%;gap:14px}
+.calc-display{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface2);display:grid;gap:8px}
+.calc-display input{border:0!important;background:transparent!important;box-shadow:none!important;padding:4px 0!important;min-height:38px;font-size:clamp(1rem,3.5vw,1.25rem)!important;font-variant-numeric:tabular-nums}
+.calc-result{font-size:clamp(1.8rem,7vw,2.5rem);font-weight:700;text-align:right;overflow-wrap:anywhere;min-height:1.25em;font-variant-numeric:tabular-nums}
+.calc-keypad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.calc-key{min-width:0;min-height:52px;padding:8px 4px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink);font-size:clamp(.9rem,3vw,1.05rem);font-weight:650;box-shadow:0 2px 5px rgba(0,0,0,.05)}
+.calc-key:active{transform:scale(.97)}
+.calc-key.fn{background:var(--surface2);color:var(--ink2)}
+.calc-key.op{background:color-mix(in srgb,var(--brand) 13%,var(--surface));border-color:color-mix(in srgb,var(--brand) 24%,var(--line))}
+.calc-key.equals{background:var(--brand);color:#fff;border-color:var(--brand)}
+.calc-key.util{background:color-mix(in srgb,var(--bad) 8%,var(--surface))}
+@media(max-width:420px){.calc-keypad{gap:6px}.calc-key{min-height:46px;border-radius:10px}}
 </style>
 </head>
 <body>
@@ -1461,7 +1475,36 @@ function renderNav(active) {
 
 let CALC_ANS=0,CALC_DEG=true;
 function calcEvaluate(raw){let src=String(raw||'').replace(/[×·]/g,'*').replace(/[÷]/g,'/').replace(/[−–]/g,'-').replace(/π/g,'pi');src=src.replace(/\bANS\b/gi,'('+CALC_ANS+')').replace(/\bpi\b/gi,String(Math.PI)).replace(/\be\b/g,String(Math.E));const t=src.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-zA-Z]+|[%()+\-*/^]/g);if(!t||t.join('')!==src.replace(/\s+/g,''))throw Error();let i=0,P=()=>t[i],T=()=>t[i++],N=x=>x&&/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(x),A=x=>N(x)||x==='('||/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x);function atom(){let x=T(),v;if(x===undefined)throw Error();if(x==='+'||x==='-'){v=atom();return x==='-'?-v:v;}if(x==='('){v=E();if(T()!==')')throw Error();}else if(N(x))v=+x;else if(/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x)){let f=x.toLowerCase(),a;if(P()==='('){T();a=E();if(T()!==')')throw Error();}else a=atom();if(['sin','cos','tan'].includes(f))v=Math[f](CALC_DEG?a*Math.PI/180:a);else if(f==='ln')v=Math.log(a);else if(f==='log')v=Math.log10(a);else if(f==='sqrt')v=Math.sqrt(a);else if(f==='abs')v=Math.abs(a);else v=Math.exp(a);}else throw Error();while(P()==='%'){T();v/=100;}return v;}function pow(){let a=atom();if(P()==='^'){T();a=Math.pow(a,unary());}return a;}function unary(){if(P()==='+'){T();return unary();}if(P()==='-'){T();return -unary();}return pow();}function term(){let a=unary();while(P()==='*'||P()==='/'||A(P())){if(P()==='*'){T();a*=unary();}else if(P()==='/'){T();a/=unary();}else a*=unary();}return a;}function E(){let a=term();while(P()==='+'||P()==='-'){let op=T(),b=term();a=op==='+'?a+b:a-b;}return a;}let v=E();if(i!==t.length||!Number.isFinite(v))throw Error();return v;}
-function scientificCalculatorView(){const root=document.createElement('main');root.className='wrap';root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">For MTS 101, PHY 101, CHM 101, COS 101 and other calculation courses. Supports trig, ln/log, roots, powers, brackets, percentages, ANS and implicit multiplication.</p></div><section class="panel stack"><input id="calcExpr" type="text" inputmode="decimal" placeholder="e.g. 5.910796644047ln(326)%" style="width:100%;font-size:1.1rem"><div id="calcResult" class="panel"><span class="tiny muted">Result</span><strong style="display:block;font-size:1.5rem">Enter an expression</strong></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">Angle: Degrees</button><button id="calcClear" class="btn danger">Clear</button><button id="calcBack" class="btn ghost">⌫</button></div><div id="calcPad" class="grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px"></div></section></div>';document.getElementById('app').replaceChildren(root);const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),pad=root.querySelector('#calcPad');const show=()=>{try{let n=calcEvaluate(input.value);CALC_ANS=n;out.innerHTML='<span class="tiny muted">Result</span><strong style="display:block;font-size:1.5rem;overflow-wrap:anywhere">'+String(Number(n.toPrecision(12)))+'</strong>';}catch(e){out.innerHTML='<span class="tiny muted">Result</span><strong style="display:block">'+(input.value.trim()?'Check expression':'Enter an expression')+'</strong>';}};['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','(',')','sin(','cos(','tan(','ln(','log(','sqrt(','^','%','π','ANS','+','-','*','/'].forEach(k=>{let b=document.createElement('button');b.className='btn';b.textContent=k;b.onclick=()=>{input.value+=k;show();};pad.append(b);});input.oninput=show;input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();show();}};root.querySelector('#calcAngle').onclick=e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'Angle: Degrees':'Angle: Radians';show();};root.querySelector('#calcClear').onclick=()=>{input.value='';show();};root.querySelector('#calcBack').onclick=()=>{input.value=input.value.slice(0,-1);show();};}
+function scientificCalculatorView(){
+  const root=document.createElement('main');root.className='wrap calc-page';
+  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 5.910796644047 × ln(326)"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div><p class="tiny muted">Use × or * for multiplication. Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press Enter or = to evaluate.</p></section></div>';
+  document.getElementById('app').replaceChildren(root);
+  const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
+  let lastExpression='';
+  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';if(force)lastExpression=input.value;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
+  const keys=[
+    ['sin(','fn'],['cos(','fn'],['tan(','fn'],['ln(','fn'],['log(','fn'],
+    ['√(','fn'],['x²','fn'],['xʸ','fn'],['π','fn'],['e','fn'],
+    ['(','fn'],[')','fn'],['%','fn'],['÷','op'],['×','op'],
+    ['7','num'],['8','num'],['9','num'],['−','op'],['+','op'],
+    ['4','num'],['5','num'],['6','num'],['⌫','util'],['ANS','fn'],
+    ['1','num'],['2','num'],['3','num'],['AC','util'],['=','equals'],
+    ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
+  ];
+  keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
+    if(label==='AC'){input.value='';out.textContent='0';status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';input.focus();return;}
+    if(label==='⌫'){input.value=input.value.slice(0,-1);show();input.focus();return;}
+    if(label==='='){show(true);input.focus();return;}
+    if(label==='±'){input.value=input.value.startsWith('-')?input.value.slice(1):'-('+input.value+')';show();input.focus();return;}
+    const insert=label==='√('? 'sqrt(':label==='x²'?'^2':label==='xʸ'?'^':label==='×'?'*':label==='÷'?'/':label==='−'?'-':label;
+    const a=input.selectionStart??input.value.length,z=input.selectionEnd??input.value.length;
+    input.value=input.value.slice(0,a)+insert+input.value.slice(z);const pos=a+insert.length;input.setSelectionRange(pos,pos);show();input.focus();
+  };if(label==='=')b.style.gridColumn='span 1';pad.append(b);});
+  input.oninput=()=>show();input.onkeydown=e=>{if(e.key==='Enter'||e.key==='='){e.preventDefault();show(true);}else if(e.key==='Escape'){input.value='';show();}};
+  root.querySelector('#calcAngle').onclick=e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';show();};
+  root.querySelector('#calcClear').onclick=()=>{input.value='';show();input.focus();};
+  root.querySelector('#calcBack').onclick=()=>{const a=input.selectionStart??input.value.length,z=input.selectionEnd??a;if(a!==z)input.value=input.value.slice(0,a)+input.value.slice(z);else if(a>0)input.value=input.value.slice(0,a-1)+input.value.slice(z);input.focus();show();};
+}
 
 function route() {
   stopTimer();
@@ -1939,8 +1982,71 @@ const PIECE = { K: '\u2654', Q: '\u2655', R: '\u2656', B: '\u2657', N: '\u2658',
 let CHESS = null, CHESS_TICK = null;
 const chessRec = () => (DB.chess = DB.chess || { rating: 1000, w: 0, d: 0, l: 0, openings: {}, games: [], settings: {} });
 const CHESS_DEFAULTS = { mode: 'friendly', level: 'auto', color: 'w', time: 0, temperament: 'balanced', botRating: 'auto' };
-const DR_ECG_LINES = ['Interesting move. Let us check the response.','A quiet move can still change the whole position.','Watch the centre; it often tells the story.','No panic. Find the strongest safe move.','That move leaves a tactical question.','Check your king safety before attacking.','Good calculation beats a rushed move.','Let us look for a fork or pin.','The position is still playable. Stay precise.','A small improvement is still progress.'];
-function drEcgSpeak(G, line) { if (!G) return; const token = G.drLineToken = (G.drLineToken || 0) + 1; const el = document.getElementById('drEcgLine'); if (el) el.textContent = '“' + line + '”'; setTimeout(() => { if (CHESS === G && G.drLineToken === token) { const target = document.getElementById('drEcgLine'); if (target) target.textContent = '“Let’s examine that move.”'; } }, 2000); }
+const DR_ECG_SPEECH = {
+  clinical:[
+    'Clinical note: that move improves the position, but the next question is whether the king remains safe.',
+    'Let us read the board properly: activity, king safety, and the weak squares matter more than drama.',
+    'I would not rush this position. First identify the threat, then choose the move that answers it cleanly.',
+    'That exchange changes the balance. Recalculate before deciding the position is won.',
+    'A useful move, but not a diagnosis yet. We need to check the opponent’s strongest reply.',
+    'Board assessment: the centre is becoming important. Keep your pieces coordinated.',
+    'I see a tactical possibility, but we should verify the line rather than trust the first impression.',
+    'Good chess is differential diagnosis: list the candidate moves, test the replies, then commit.',
+    'The position is still alive. Avoid treating a small advantage as a finished game.',
+    'Let us keep the calculation precise. One loose piece can change the entire assessment.'
+  ],
+  playful:[
+    'Oho, that move has entered the consultation room with confidence. Let us see if it survives the tests.',
+    'Doctor’s note: the board is giving drama today, and I have not even ordered the scan yet.',
+    'You have made this position interesting. I respect the plot twist; now I have to answer it.',
+    'That was cheeky. I will allow it for now, but the next move needs to explain itself.',
+    'The pieces are behaving like a group project. Somebody needs to take responsibility for the king.',
+    'Interesting prescription. Let us see whether the position actually takes the medicine.',
+    'You are trying to make me sweat. Unfortunately for you, I brought a stethoscope and candidate moves.',
+    'That move has confidence. The question is whether it also has evidence.',
+    'This game is getting spicy. Please keep your king out of the emergency department.',
+    'I nearly applauded that idea. Nearly. Let us check the reply before celebrating.'
+  ],
+  ruthless:[
+    'I saw the weakness. You left it unattended, and I am not the sort of doctor who ignores symptoms.',
+    'That move gives me a target. I intend to keep asking questions until your position answers.',
+    'No sympathy from the board, my friend. Every loose piece is an invitation.',
+    'You have defended one problem and created another. I will make you choose.',
+    'I am not chasing decoration. I am improving the position until your options disappear.',
+    'That was a serious commitment. Now you must prove it works against the strongest reply.',
+    'You left a tactical detail behind. I have noticed, and I plan to investigate.',
+    'The position is not lost, but the margin for careless moves is getting thinner.',
+    'I will take the open file, the initiative, and any free material you leave lying around.',
+    'Respectfully, that plan needs a better defence. I am happy to test it.'
+  ],
+  mentor:[
+    'Pause for a moment: what changed after that move, and what is your opponent threatening next?',
+    'Good practice is to name two candidate moves before choosing one. Let us build that habit.',
+    'You do not need to find a brilliant move every turn. A safe, improving move is often enough.',
+    'Look at the whole board before calculating. Loose pieces and king safety usually reveal the clues.',
+    'That idea is worth exploring. Now test it against the opponent’s most forcing reply.',
+    'If the position feels confusing, simplify the question: checks, captures, threats, then quiet moves.',
+    'This is a useful learning position. Try to explain the purpose of the move, not only where it goes.',
+    'Do not panic after a mistake. Reassess the board and find the most resilient move available.',
+    'You are building pattern recognition here. Notice the alignment of pieces and the squares they control.',
+    'Before moving, ask what your opponent would play if you passed. That often exposes the real threat.'
+  ]
+};
+function drEcgSpeak(G, context={}) {
+  if(!G)return;
+  const settings=chessSet(),raw=settings.temperament||'clinical';
+  const key=({balanced:'clinical',aggressive:'ruthless',careful:'mentor',unpredictable:'playful',teaching:'mentor'})[raw]||raw;
+  const lines=DR_ECG_SPEECH[key]||DR_ECG_SPEECH.clinical;
+  let pool=lines;
+  if(context.capture)pool=lines.filter(x=>/exchange|target|material|capture|piece|tactical|weakness|loose|position|board|move/i.test(x));
+  let pick=Math.floor(Math.random()*pool.length);
+  if(pool.length>1&&pick===G.drLastLineIndex)pick=(pick+1+Math.floor(Math.random()*(pool.length-1)))%pool.length;
+  G.drLastLineIndex=pick;
+  const line=pool[pick],token=G.drLineToken=(G.drLineToken||0)+1,el=document.getElementById('drEcgLine');
+  if(el)el.textContent='“'+line+'”';
+  clearTimeout(G.drLineTimer);
+  G.drLineTimer=setTimeout(()=>{if(CHESS===G&&G.drLineToken===token){const target=document.getElementById('drEcgLine');if(target)target.textContent='“Dr ECG is watching the board…”';}},2000);
+}
 const chessSet = () => Object.assign({}, CHESS_DEFAULTS, chessRec().settings || {});
 function setChessSet(p) { chessRec().settings = Object.assign(chessSet(), p); save(); }
 function computerSettings(rating) {
@@ -2129,7 +2235,7 @@ function computerTurn() {
   setTimeout(() => {
     if (CHESS !== G) return;
     const m = Chess.aiMoveDN(G.s, lp.depth, lp.noise);
-    if (m) { G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; drEcgSpeak(G, DR_ECG_LINES[Math.floor(Math.random() * DR_ECG_LINES.length)]); }
+    if (m) { const wasCapture=!!G.s.board[m.to] || !!m.promo; G.s = Chess.apply(G.s, m); clockSwitch(G, G.color === 'w' ? 'b' : 'w'); G.moves.push(Chess.toUci(m)); G.last = { from: m.from, to: m.to }; drEcgSpeak(G,{capture:wasCapture,moveNumber:G.moves.length}); }
     G.busy = false;
     if (gameOver(G).over) finishComputer();
     chessDraw();
@@ -2163,7 +2269,7 @@ function chessView() {
   const undo = h('button', { id: 'chessUndo', class: 'btn grow', disabled: !G.friendly, onclick: takeBack }, 'Take back');
   const drRating = S.botRating === 'auto' ? chessRec().rating : Number(S.botRating);
   const level = S.level === 'auto' ? 'matches you (' + (computerSettings(drRating).depth === 1 ? 'easy' : computerSettings(drRating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
-  mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: () => { stopChessTick(); stopOnlinePoll(); stopChatPoll(); if (CHESS && CHESS.clock) { const side = CHESS.clock.side; CHESS.clock[side] = clockMs(CHESS, side); CHESS.clock.at = Date.now(); CHESS.clock.paused = true; } } }, '\u2039 Chess settings'),
+  mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: ev => { ev.preventDefault(); stopChessTick(); stopOnlinePoll(); stopChatPoll(); if (CHESS && CHESS.clock) { const side = CHESS.clock.side; CHESS.clock[side] = clockMs(CHESS, side); CHESS.clock.at = Date.now(); CHESS.clock.paused = true; } chessMenu(); } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
       G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { id: 'drEcgLine', class: 'tiny muted', style: { margin: '0', minHeight: '1.2em' } }, '“Let’s examine that move.”'))) : null,
