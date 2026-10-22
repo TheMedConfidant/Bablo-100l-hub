@@ -1477,16 +1477,41 @@ async function lbSubmit(e) {
     return r.ok ? 'global' : 'failed';
   } catch (x) { return 'failed'; }
 }
+const LB_CACHE_KEY = 'bablo100l:leaderboard-cache:v1';
+const LB_CACHE_TTL = 90 * 1000;
+function readLbCache() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LB_CACHE_KEY) || 'null');
+    if (saved && saved.mode === 'global' && Array.isArray(saved.rows) && Date.now() - saved.savedAt < LB_CACHE_TTL) {
+      return { mode: 'global', rows: saved.rows, cached: true };
+    }
+  } catch (e) { /* ignore an invalid or unavailable cache */ }
+  return null;
+}
+function writeLbCache(data) {
+  if (!data || data.mode !== 'global' || !Array.isArray(data.rows)) return;
+  try { localStorage.setItem(LB_CACHE_KEY, JSON.stringify({ mode: 'global', rows: data.rows, savedAt: Date.now() })); } catch (e) { /* cache is optional */ }
+}
 async function lbFetch() {
   if (!LB.url) return { mode: 'local', rows: localEntries() };
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeout = setTimeout(() => { if (controller) controller.abort(); }, 8000);
   try {
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', { headers: { apikey: LB.key } });
-    if (!r.ok) throw new Error('bad');
+    const opts = { headers: { apikey: LB.key } };
+    if (controller) opts.signal = controller.signal;
+    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', opts);
+    if (!r.ok) throw new Error('Leaderboard request failed: ' + r.status);
     const remote = await r.json();
     const synced = DB.syncedTs || {};
     const deviceOnly = DB.history.filter(e => !synced[e.ts]).map(x => Object.assign({ dev: DB.dev, nick: DB.profile ? DB.profile.nick : 'You', local: true }, x));
-    return { mode: 'global', rows: remote.concat(deviceOnly) };
-  } catch (x) { return { mode: 'offline', rows: localEntries() }; }
+    const data = { mode: 'global', rows: remote.concat(deviceOnly) };
+    writeLbCache(data);
+    return data;
+  } catch (x) {
+    const cached = readLbCache();
+    if (cached) return cached;
+    return { mode: 'offline', rows: localEntries() };
+  } finally { clearTimeout(timeout); }
 }
 
 /* ---------- shell + router ---------- */
