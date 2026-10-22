@@ -507,7 +507,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 .calc-key:active{transform:scale(.97)}
 .calc-key.fn{background:var(--surface2);color:var(--ink2)}
 .calc-key.op{background:color-mix(in srgb,var(--brand) 13%,var(--surface));border-color:color-mix(in srgb,var(--brand) 24%,var(--line))}
-.calc-key.equals{background:var(--brand);color:#fff;border-color:var(--brand);grid-row:span 2}
+.calc-key.equals{background:var(--brand);color:#fff;border-color:var(--brand)}
 .calc-key.util{background:color-mix(in srgb,var(--bad) 8%,var(--surface))}
 @media(max-width:420px){.calc-keypad{gap:6px}.calc-key{min-height:46px;border-radius:10px}}
 </style>
@@ -1488,8 +1488,8 @@ function scientificCalculatorView(){
     ['(','fn'],[')','fn'],['%','fn'],['÷','op'],['×','op'],
     ['7','num'],['8','num'],['9','num'],['−','op'],['+','op'],
     ['4','num'],['5','num'],['6','num'],['⌫','util'],['ANS','fn'],
-    ['1','num'],['2','num'],['3','num'],['AC','util'],['=','equals'],
-    ['0','num'],['.','num'],['±','util'],['00','num'],['ANS','fn']
+    ['1','num'],['2','num'],['3','num'],['AC','util'],['ANS','fn'],
+    ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
   ];
   keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
     if(label==='AC'){input.value='';out.textContent='0';status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';input.focus();return;}
