@@ -1606,16 +1606,16 @@ function homeView() {
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
 function ecgBeatPath(x0, variant) {
   const x=x0;
-  // Small beat-to-beat changes make the trace feel like a live monitor rather than a repeated stamp.
+  // Relative coordinates keep each distinct beat correctly aligned along the continuous trace.
   const beats=[
-    'M0 40 L7 40 Q13 40 17 33 Q21 27 25 40 L35 40 L40 46 L46 9 L53 67 L59 40 L70 40 Q80 22 89 40 L96 40',
-    'M0 40 L8 40 Q14 40 18 35 Q22 29 26 40 L36 40 L41 44 L47 13 L53 63 L60 40 L71 40 Q82 25 90 40 L96 40',
-    'M0 40 L6 40 Q12 40 17 31 Q21 25 25 40 L34 40 L40 48 L46 5 L53 70 L59 40 L69 40 Q79 19 89 40 L96 40',
-    'M0 40 L7 40 Q13 40 17 34 Q21 28 25 40 L35 40 L40 45 L46 11 L52 65 L59 40 L70 40 Q81 23 89 40 L96 40',
-    'M0 40 L8 40 Q15 40 19 32 Q23 27 27 40 L36 40 L41 47 L47 7 L54 69 L61 40 L72 40 Q83 21 91 40 L96 40',
-    'M0 40 L6 40 Q12 40 16 35 Q20 30 24 40 L34 40 L39 44 L45 14 L52 62 L58 40 L69 40 Q79 26 88 40 L96 40'
+    'l7 0 q6 0 10 -7 q4 -6 8 7 l10 0 l5 6 l6 -37 l7 58 l6 -27 l11 0 q10 -18 19 0 l7 0',
+    'l8 0 q6 0 10 -5 q4 -6 8 5 l10 0 l5 4 l6 -31 l6 50 l7 -23 l11 0 q11 -15 19 0 l6 0',
+    'l6 0 q6 0 11 -9 q4 -6 8 9 l9 0 l6 8 l6 -43 l7 65 l6 -30 l10 0 q10 -21 20 0 l7 0',
+    'l7 0 q6 0 10 -6 q4 -6 8 6 l10 0 l5 5 l6 -34 l6 54 l7 -25 l11 0 q11 -18 19 0 l7 0',
+    'l8 0 q7 0 11 -8 q4 -5 8 8 l9 0 l5 7 l6 -39 l7 62 l7 -29 l11 0 q11 -19 19 0 l5 0',
+    'l6 0 q6 0 10 -5 q4 -5 8 5 l10 0 l5 4 l6 -30 l7 48 l6 -22 l11 0 q10 -14 19 0 l8 0'
   ];
-  return beats[variant%beats.length].replace(/([MLQ])(-?\d+(?:\.\d+)?)/g,(m,cmd,n)=>cmd+(Number(n)+x));
+  return 'M'+x+' 40 '+beats[variant%beats.length];
 }
 function ecgMonitor() {
  let d='';for(let i=0;i<8;i++)d+=ecgBeatPath(i*96,i);
