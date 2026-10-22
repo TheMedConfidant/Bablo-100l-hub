@@ -1590,7 +1590,7 @@ function homeView() {
       [ ['#/practicals/PHY', '🧪', 'Practical labs', 'Experiments, apparatus, diagrams and lab notes'] ]
       .map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '16px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', minHeight: '78px' } },
         h('span', { style: { fontSize: '1.6rem' }, 'aria-hidden': 'true' }, icon),
-        h('span', { class: 'stack', style: { gap: '3px' } }, h('span', null, label), h('span', { class: 'tiny muted', style: { fontWeight: '400' } }, sub)))));
+        h('span', { class: 'stack', style: { gap: '3px' } }, h('span', null, label), h('span', { class: 'tiny muted', style: { fontWeight: '400' } }, sub))))));
   const tiles = homeCourses().map(c => {
     if (c.pending200) return h('div', { class: 'tile pending', style: { '--c': c.color } }, h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title), h('div', { class: 'row wrapr', style: { marginTop: '6px' } }, ['Questions', 'Notes', 'Practicals', 'Labs'].map(t => h('button', { class: 'btn sm', onclick: () => open200(c.code, t) }, t))));
     const ok = isAvail(c), n = ok ? BYC[c.code].length : 0, bp = bestPct(c.code);
