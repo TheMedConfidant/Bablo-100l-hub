@@ -1586,16 +1586,6 @@ function homeView() {
   // heartbeat: resting around 72 bpm, quickening with your study streak (capped), slowing a little when you've not studied today
   { const bpm = Math.min(110, 72 + (st.days || 0) * 4); hero.style.setProperty('--beat-s', (60 / bpm).toFixed(2) + 's'); }
   const L200 = DB.profile && DB.profile.level === '200L';
-  const actions = h('section', { class: 'stack', 'aria-label': 'Useful tools' },
-    h('div', { class: 'row between wrapr' }, h('h2', null, 'Useful tools')),
-    h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(auto-fit,minmax(145px,1fr))', gap: '10px' } },
-      [
-        ['#/calculator', '🧮', 'Scientific calculator', 'Expressions, logs, trig and powers'],
-        ['#/lab/phy107', '🧪', 'PHY 107 practical lab', 'Experiments, readings and diagrams']
-      ].map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '14px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '5px', minHeight: '112px' } },
-        h('span', { style: { fontSize: '1.35rem' }, 'aria-hidden': 'true' }, icon),
-        h('span', null, label),
-        h('span', { class: 'tiny muted', style: { fontWeight: '400' } }, sub)))));
   const tiles = homeCourses().map(c => {
     if (c.pending200) return h('div', { class: 'tile pending', style: { '--c': c.color } }, h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title), h('div', { class: 'row wrapr', style: { marginTop: '6px' } }, ['Questions', 'Notes', 'Practicals', 'Labs'].map(t => h('button', { class: 'btn sm', onclick: () => open200(c.code, t) }, t))));
     const ok = isAvail(c), n = ok ? BYC[c.code].length : 0, bp = bestPct(c.code);
@@ -1607,7 +1597,7 @@ function homeView() {
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
   mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
-    h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
+    h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
 function ecgBeatPath(x0, variant) {
@@ -1649,6 +1639,7 @@ function courseView(code) {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
+      ['PHY','PHY101','PHY107'].includes(code) ? h('a', { class: 'btn primary block', href: '#/practicals/PHY', style: { textAlign: 'center', textDecoration: 'none' } }, '🧪 PHY 107 Practical Lab — open from PHY folder') : null,
       ['MTH101','MTS101','MTS','PHY','PHY101','CHM','CHM101','COS','COS101','AGR','AGR101'].includes(code) ? h('button', { class: 'btn ghost block', onclick: () => go('#/calculator') }, '🧮 Open scientific calculator') : null,
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
@@ -3274,7 +3265,8 @@ function embeddedPhyLabView() {
   const backLink = back('#/practicals/PHY', 'Practical labs');
   const heading = h('div', { class: 'stack' },
     h('h1', null, 'PHY 107 Interactive Lab'),
-    h('p', { class: 'muted small' }, 'The full practical manual is running inside Bablo Hub.')
+    h('p', { class: 'muted small' }, 'PHY 107 experiments, labelled diagrams, readings and worked examples.'),
+    h('a', { class: 'btn primary', href: '/phy107-practical.html', target: '_blank', rel: 'noopener', style: { alignSelf: 'flex-start', textDecoration: 'none' } }, 'Open lab directly if it does not load')
   );
   const frame = h('div', {
     class: 'phy-lab-frame',
@@ -3288,7 +3280,7 @@ function embeddedPhyLabView() {
       background: 'var(--surface)'
     }
   }, h('iframe', {
-    src: 'phy107-practical.html?embedded=1',
+    src: '/phy107-practical.html?embedded=1',
     title: 'PHY 107 interactive practical manual',
     loading: 'lazy',
     style: { display: 'block', width: '100%', height: '100%', border: '0', background: '#fff' }
