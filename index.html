@@ -471,6 +471,31 @@ button,a,input,select,textarea{touch-action:manipulation}
 @media (prefers-reduced-motion: reduce){
   .monitor-svg .ecg-sweep{animation:none;stroke-dasharray:none;stroke-dashoffset:0}
 }
+
+/* Consistent, softer component language across every skin (Classic remains high contrast). */
+:root[data-skin]:not([data-skin="classic"]) .panel,
+:root[data-skin]:not([data-skin="classic"]) .tile,
+:root[data-skin]:not([data-skin="classic"]) .rows,
+:root[data-skin]:not([data-skin="classic"]) .rev,
+:root[data-skin]:not([data-skin="classic"]) .qcard,
+:root[data-skin]:not([data-skin="classic"]) .slip,
+:root[data-skin]:not([data-skin="classic"]) .modal,
+:root[data-skin]:not([data-skin="classic"]) .nav,
+:root[data-skin]:not([data-skin="classic"]) .dock{
+  border-color:color-mix(in srgb,var(--line) 62%,transparent)!important;
+  border-radius:18px!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.08)!important;
+}
+:root[data-skin]:not([data-skin="classic"]) .tile{transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+:root[data-skin]:not([data-skin="classic"]) .tile:active{transform:scale(.985)}
+:root[data-skin]:not([data-skin="classic"]) .monitor{border-color:rgba(94,234,212,.18);box-shadow:inset 0 0 24px rgba(45,212,191,.08),0 8px 24px rgba(0,0,0,.10)}
+/* Keep the base ECG line visible end-to-end while a long luminous trace sweeps over it. */
+.monitor-svg .ecg-base{stroke:rgba(94,234,212,.48);stroke-width:1.8}
+.monitor-svg .ecg-sweep{stroke-dasharray:430 338;stroke-dashoffset:768;animation:ecgTrace calc(var(--beat-s,1s) * 5) linear infinite}
+:root[data-tint="gold"] .monitor-svg .ecg-base{stroke:rgba(232,184,66,.5)}
+:root[data-tint="gold"] .monitor-svg .ecg-sweep{stroke:#ffe58c}
+:root[data-skin="classic"] .monitor-svg .ecg-base{stroke:rgba(14,116,144,.45)}
+:root[data-skin="classic"] .monitor-svg .ecg-sweep{stroke:#0e7490}
 </style>
 </head>
 <body>
@@ -1515,19 +1540,13 @@ function homeView() {
       h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
   // heartbeat: resting around 72 bpm, quickening with your study streak (capped), slowing a little when you've not studied today
   { const bpm = Math.min(110, 72 + (st.days || 0) * 4); hero.style.setProperty('--beat-s', (60 / bpm).toFixed(2) + 's'); }
-  const L200 = DB.profile && DB.profile.level === '200L';
-  const actions = h('section', { class: 'stack', 'aria-label': 'Study tools' },
-    h('div', { class: 'row between wrapr' }, h('h2', null, 'Study tools'), h('span', { class: 'tiny muted' }, 'Quick access')),
-    h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(auto-fit,minmax(125px,1fr))', gap: '10px' } },
-      [
-        [L200 ? '#/quiz200' : '#/weak', '✍️', 'Questions', 'Practise and review'],
-        ['#/calculator', '🧮', 'Calculator', 'Scientific practice tool'],
-        [L200 ? '#/notes' : '#/files', '📚', L200 ? 'Notes' : 'Study materials', L200 ? 'Review your notes' : 'Open your materials'],
-        [L200 ? '#/flashcards' : '#/practicals/PHY', '🧪', L200 ? 'Flashcards' : 'Practical labs', L200 ? 'Active recall' : 'Tables, graphs and experiments']
-      ].map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '14px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '5px', minHeight: '112px' } },
-        h('span', { style: { fontSize: '1.35rem' }, 'aria-hidden': 'true' }, icon),
-        h('span', null, label),
-        h('span', { class: 'tiny muted', style: { fontWeight: '400' } }, sub)))));
+  const actions = h('section', { class: 'stack', 'aria-label': 'Quick access' },
+    h('div', { class: 'row between wrapr' }, h('h2', null, 'Quick access'), h('span', { class: 'tiny muted' }, 'Just the useful shortcut')),
+    h('div', { class: 'grid', style: { gridTemplateColumns: 'minmax(0,1fr)', gap: '10px' } },
+      [ ['#/practicals/PHY', '🧪', 'Practical labs', 'Experiments, apparatus, diagrams and lab notes'] ]
+      .map(([href, icon, label, sub]) => h('a', { class: 'panel study-tool', href, style: { textAlign: 'left', padding: '16px', fontWeight: '700', color: 'var(--ink)', textDecoration: 'none', display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', minHeight: '78px' } },
+        h('span', { style: { fontSize: '1.6rem' }, 'aria-hidden': 'true' }, icon),
+        h('span', { class: 'stack', style: { gap: '3px' } }, h('span', null, label), h('span', { class: 'tiny muted', style: { fontWeight: '400' } }, sub)))));
   const tiles = homeCourses().map(c => {
     if (c.pending200) return h('div', { class: 'tile pending', style: { '--c': c.color } }, h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title), h('div', { class: 'row wrapr', style: { marginTop: '6px' } }, ['Questions', 'Notes', 'Practicals', 'Labs'].map(t => h('button', { class: 'btn sm', onclick: () => open200(c.code, t) }, t))));
     const ok = isAvail(c), n = ok ? BYC[c.code].length : 0, bp = bestPct(c.code);
@@ -1542,13 +1561,21 @@ function homeView() {
     h('div', { class: 'stack-l' }, eventBanner(), hero, actions || null, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
-function ecgBeatPath(x0) {
-  const x = x0;
-  // Clear P wave, PR segment, narrow QRS complex, ST segment and T wave.
-  return 'M'+x+' 40 L'+(x+6)+' 40 Q'+(x+12)+' 40 '+(x+16)+' 33 Q'+(x+20)+' 27 '+(x+24)+' 40 L'+(x+34)+' 40 L'+(x+39)+' 46 L'+(x+45)+' 8 L'+(x+52)+' 68 L'+(x+58)+' 40 L'+(x+68)+' 40 Q'+(x+80)+' 22 '+(x+88)+' 40 L'+(x+96)+' 40 ';
+function ecgBeatPath(x0, variant) {
+  const x=x0;
+  // Small beat-to-beat changes make the trace feel like a live monitor rather than a repeated stamp.
+  const beats=[
+    'M0 40 L7 40 Q13 40 17 33 Q21 27 25 40 L35 40 L40 46 L46 9 L53 67 L59 40 L70 40 Q80 22 89 40 L96 40',
+    'M0 40 L8 40 Q14 40 18 35 Q22 29 26 40 L36 40 L41 44 L47 13 L53 63 L60 40 L71 40 Q82 25 90 40 L96 40',
+    'M0 40 L6 40 Q12 40 17 31 Q21 25 25 40 L34 40 L40 48 L46 5 L53 70 L59 40 L69 40 Q79 19 89 40 L96 40',
+    'M0 40 L7 40 Q13 40 17 34 Q21 28 25 40 L35 40 L40 45 L46 11 L52 65 L59 40 L70 40 Q81 23 89 40 L96 40',
+    'M0 40 L8 40 Q15 40 19 32 Q23 27 27 40 L36 40 L41 47 L47 7 L54 69 L61 40 L72 40 Q83 21 91 40 L96 40',
+    'M0 40 L6 40 Q12 40 16 35 Q20 30 24 40 L34 40 L39 44 L45 14 L52 62 L58 40 L69 40 Q79 26 88 40 L96 40'
+  ];
+  return beats[variant%beats.length].replace(/([MLQ])(-?\d+(?:\.\d+)?)/g,(m,cmd,n)=>cmd+(Number(n)+x));
 }
 function ecgMonitor() {
- let d='';for(let i=0;i<8;i++)d+=ecgBeatPath(i*96);
+ let d='';for(let i=0;i<8;i++)d+=ecgBeatPath(i*96,i);
  const grid='<defs><pattern id="ecgGrid" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="rgba(94,234,212,.14)" stroke-width="1"/></pattern></defs><rect width="768" height="80" fill="url(#ecgGrid)"/>';
  const trace='<path class="ecg-base" pathLength="768" d="'+d+'"/><path class="ecg-sweep" pathLength="768" d="'+d+'"/>';
  return h('div',{class:'monitor','aria-hidden':'true'},svgEl('0 0 768 80',grid+trace,'monitor-svg'),h('span',{class:'monitor-dot'}));
