@@ -1906,7 +1906,16 @@ function boardView() {
       // only scores above 50% are shown on the board; lower scores stay saved, just not ranked
       const above = data.rows.filter(r => Number(r.pct) > 50);
       const pool = scope === 'prog' ? above.filter(r => r.programme === DB.profile.programme) : above;
-      const rows = Core.rank(pool, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 }).slice(0, 50);
+      const ranked = Core.rank(pool, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 });
+      // Multiple devices can submit the same public nickname. Keep the strongest visible entry per nickname
+      // so a single displayed identity cannot occupy several leaderboard places.
+      const seenNames = new Set();
+      const rows = ranked.filter(row => {
+        const key = String(row.nick || '').trim().normalize('NFKC').toLocaleLowerCase();
+        if (!key || seenNames.has(key)) return false;
+        seenNames.add(key);
+        return true;
+      }).slice(0, 50);
       const note = data.mode === 'global' ? 'Live leaderboard \u2022 best score per course counts.' : data.mode === 'offline' ? 'Could not reach the live leaderboard, showing this device only.' : 'Global leaderboard is not switched on yet. This board shows your attempts on this device.';
       kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes (10+ questions) and the Premium exam rank.' + (signedIn() ? '' : ' Create an account to appear on the boards.')));
       if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
