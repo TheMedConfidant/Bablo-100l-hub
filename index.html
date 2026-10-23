@@ -1414,7 +1414,11 @@ window.__BANK__.push(...[{"i":"COSPLUS-2026-261","c":"COS","u":"COS 101 +++","s"
         current = { title: (el.textContent || '').trim(), sections: [] };
         topics.push(current);
       } else if (current) {
-        const text = (el.innerText || el.textContent || '').replace(/\u00a0/g, ' ').trim();
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll('br').forEach(x => x.replaceWith(document.createTextNode('\n')));
+        clone.querySelectorAll('td, th').forEach(x => x.appendChild(document.createTextNode(' — ')));
+        clone.querySelectorAll('p, li, tr').forEach(x => x.appendChild(document.createTextNode('\n')));
+        const text = (clone.textContent || '').replace(/\u00a0/g, ' ').trim();
         text.split(/\n+/).map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean).forEach(line => current.sections.push(line));
       }
     });
