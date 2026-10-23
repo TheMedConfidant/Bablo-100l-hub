@@ -580,6 +580,11 @@ button,a,input,select,textarea{touch-action:manipulation}
 .note-table tr:last-child td{border-bottom:0}
 .note-table tbody tr:nth-child(even){background:color-mix(in srgb,var(--surface) 88%,var(--brand) 12%)}
 .fc-topic-select{max-width:100%;min-width:0}
+
+/* Saved chess friends and online identity actions. */
+#onlineFriendAction .row{gap:8px;align-items:center}
+#chessFriendsList .panel{padding:10px 12px}
+#chessFriendsList .btn{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2219,9 +2224,10 @@ function chessMenu() {
     h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.'),
       h('button', { class: 'btn gold block', onclick: createOnline }, 'Create a challenge'),
       h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
+      h('h3', null, 'Saved friends'), h('p', { class: 'tiny muted' }, 'Saved on this device. Create a challenge and share its code with them.'), h('div', { id: 'chessFriendsList', class: 'stack' }, h('p', { class: 'muted small' }, 'No saved friends yet. Add someone after an online game.')),
       h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
       h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list')))));
-  loadOpenList();
+  loadOpenList(); renderSavedChessFriends();
 }
 function newChess() {
   const S = chessSet();
@@ -2378,14 +2384,14 @@ function chessView() {
   const level = S.level === 'auto' ? 'matches you (' + (computerSettings(drRating).depth === 1 ? 'easy' : computerSettings(drRating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
   mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: ev => { ev.preventDefault(); stopChessTick(); stopOnlinePoll(); stopChatPoll(); if (CHESS && CHESS.clock) { const side = CHESS.clock.side; CHESS.clock[side] = clockMs(CHESS, side); CHESS.clock.at = Date.now(); CHESS.clock.paused = true; } chessMenu(); } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
-      h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts')), G.mode === 'online' ? h('p', { id: 'onlineRatingLine', class: 'muted tiny' }, 'Loading online ratings…') : null),
+      h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts')), G.mode === 'online' ? h('p', { id: 'onlineRatingLine', class: 'muted tiny' }, 'Loading online ratings…') : null, G.mode === 'online' ? h('div', { id: 'onlineFriendAction', class: 'stack' }) : null),
       G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { id: 'drEcgLine', class: 'tiny muted', style: { margin: '0', minHeight: '1.2em' } }, '“Let’s examine that move.”'))) : null,
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
       G.mode === 'online' && G.online ? chatPanel(G) : null,
     h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
   chessDraw();
-  if (G.mode === 'online') refreshOnlineRatingLine(G);
+  if (G.mode === 'online') { refreshOnlineRatingLine(G); renderOnlineFriendAction(G); }
   if (G.clock && !CHESS_TICK) CHESS_TICK = setInterval(() => { if (!location.hash.startsWith('#/chess')) { stopChessTick(); return; } chessClocks(); }, 250);
   if (G.mode !== 'online' && G.s.turn !== G.color && !G.busy && !gameOver(G).over) computerTurn();
 }
@@ -2396,6 +2402,57 @@ async function sbFetchJson(path, opts) {
   if (!liveOn()) return null;
   try { const r = await fetch(LB.url + '/rest/v1/' + path, Object.assign({ headers: sbHeaders() }, opts || {})); if (!r.ok) return null; return r.status === 204 ? [] : await r.json(); }
   catch (e) { return null; }
+}
+function savedChessFriends() {
+  if (!Array.isArray(DB.chessFriends)) DB.chessFriends = [];
+  return DB.chessFriends;
+}
+function chessOpponent(G) {
+  if (!G || !G.online) return { dev: '', nick: '' };
+  return G.color === 'w'
+    ? { dev: G.online.blackDev || '', nick: G.online.black || '' }
+    : { dev: G.online.whiteDev || '', nick: G.online.white || '' };
+}
+function renderOnlineFriendAction(G) {
+  const box = document.getElementById('onlineFriendAction');
+  if (!box || !G || !G.online) return;
+  const opponent = chessOpponent(G), friends = savedChessFriends();
+  const isFriend = !!opponent.dev && friends.some(f => f.dev === opponent.dev);
+  const add = h('button', { class: 'btn sm ' + (isFriend ? 'ghost' : 'primary'), disabled: !opponent.dev || opponent.dev === DB.dev || isFriend, onclick: () => {
+    if (!opponent.dev || opponent.dev === DB.dev) return;
+    friends.push({ dev: opponent.dev, nick: (opponent.nick || 'Chess friend').slice(0, 30), rating: 1000, addedAt: new Date().toISOString() });
+    save(); renderOnlineFriendAction(G); renderSavedChessFriends();
+    toast((opponent.nick || 'Friend') + ' saved on this device.');
+  } }, isFriend ? '✓ Friend saved' : (opponent.dev ? 'Add ' + (opponent.nick || 'opponent') + ' as friend' : 'Waiting for opponent…'));
+  const actions = [add];
+  if (G.online.status === 'waiting') actions.push(h('button', { class: 'btn sm ghost', onclick: () => shareOnlineChallenge(G) }, 'Share challenge code'));
+  box.replaceChildren(h('div', { class: 'row wrapr' }, ...actions), h('p', { class: 'tiny muted' }, 'Friend list is saved on this device. Online rating updates after a completed game.'));
+}
+async function shareOnlineChallenge(G) {
+  if (!G || !G.online) return;
+  const message = 'Join my Bablo Hub chess challenge! Code: ' + G.online.code + ' — open Bablo Hub → Chess → Join.';
+  try {
+    if (navigator.share) { await navigator.share({ title: 'Bablo Hub chess challenge', text: message }); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(message); toast('Challenge details copied.'); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  toast('Share this code with your friend: ' + G.online.code);
+}
+function renderSavedChessFriends() {
+  const box = document.getElementById('chessFriendsList');
+  if (!box) return;
+  const friends = savedChessFriends();
+  if (!friends.length) { box.replaceChildren(h('p', { class: 'muted small' }, 'No saved friends yet. Add someone after an online game.')); return; }
+  box.replaceChildren(...friends.map(f => h('div', { class: 'panel row between wrapr' },
+    h('div', { class: 'stack', style: { gap: '2px', minWidth: '0' } }, h('b', null, f.nick), h('span', { class: 'tiny muted' }, 'Online chess friend')),
+    h('div', { class: 'row wrapr' },
+      h('button', { class: 'btn sm primary', onclick: async () => {
+        const before = CHESS && CHESS.online ? CHESS.online.id : '';
+        await createOnline();
+        if (CHESS && CHESS.mode === 'online' && CHESS.online.id !== before) { CHESS.online.targetNick = f.nick; await shareOnlineChallenge(CHESS); }
+      } }, 'Challenge'),
+      h('button', { class: 'btn sm ghost', onclick: () => { DB.chessFriends = savedChessFriends().filter(x => x.dev !== f.dev); save(); renderSavedChessFriends(); } }, 'Remove')
+    )
+  )));
 }
 async function loadOpenList() {
   const box = document.getElementById('openList'); if (!box) return;
@@ -2445,7 +2502,7 @@ async function pollOnlineOnce(G) {
   const opponentJoined = !!g.black_dev && G.online.blackDev !== g.black_dev;
   G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
   G.online.whiteDev = g.white_dev || G.online.whiteDev; G.online.blackDev = g.black_dev || G.online.blackDev;
-  if (opponentJoined) refreshOnlineRatingLine(G);
+  if (opponentJoined) { refreshOnlineRatingLine(G); renderOnlineFriendAction(G); }
   const moves = g.moves ? g.moves.split(' ') : [];
   if (moves.length > G.moves.length) {
     const s = Chess.replay(moves);
