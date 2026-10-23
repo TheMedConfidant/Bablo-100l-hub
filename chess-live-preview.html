@@ -121,8 +121,10 @@ function clickSquare(r,c){
  const legal=game.moves({square:from,verbose:true}).find(m=>m.to===to);
  if(!legal){toast('That move is not legal. Choose a highlighted square.');return}
  const played=game.move({from,to,promotion:'q'});
- const move={fr:selected.r,fc:selected.c,tr:r,tc:c,piece:p,captured:capt,text:played.san,from,to,promotion:'q'};
- if(capt){(capt[0]==='w'?capturedW:capturedB).push(capt)}
+ // Use the engine's capture metadata: en-passant captures happen beside the destination square.
+ const capturedPiece=played.captured?((played.color==='w'?'b':'w')+played.captured.toUpperCase()):'';
+ const move={fr:selected.r,fc:selected.c,tr:r,tc:c,piece:p,captured:capturedPiece,text:played.san,from,to,promotion:'q'};
+ if(capturedPiece){(capturedPiece[0]==='w'?capturedW:capturedB).push(capturedPiece)}
  history.push(move);redo=[];syncBoardFromEngine();selected=null;targets=[];render();
  const lines=['A legal move. Progress. Now calculate the reply. 😏','Interesting. I have updated the position, not your excuses.','You moved with confidence. Let’s see what the position says. 🧠','No panic—calculate before you donate another piece.','A bold choice. Bowen exam week has trained your nerves.'];
  if(!game.isGameOver())say(lines[(history.length-1)%lines.length]);announceGameState();
