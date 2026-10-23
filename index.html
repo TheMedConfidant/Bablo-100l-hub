@@ -2997,7 +2997,7 @@ function updatePomoFloat() {
     const time = h('span', { id: 'pomoFloatTime', class: 'pomo-float-time' }, fmtTime(POMO.left));
     const label = h('span', { id: 'pomoFloatLabel', class: 'pomo-float-label' }, POMO.mode === 'focus' ? 'Focus' : 'Break');
     const toggle = h('button', { id: 'pomoFloatToggle', class: 'btn sm', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.h = null; POMO.running = false; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; } updatePomoFloat(); } }, POMO.running ? 'Pause' : 'Resume');
-    const open = h('button', { class: 'btn sm ghost', onclick: () => { PLAN_TAB = 'timer'; go2('#/time'); } }, 'Open');
+    const open = h('button', { class: 'btn sm ghost', onclick: () => { PLAN_TAB = 'timer'; go2('#/plan'); if (location.hash === '#/plan') planView(); } }, 'Open');
     el = h('div', { id: 'pomoFloat', class: 'pomo-float', role: 'status', 'aria-live': 'off' }, label, time, toggle, open);
     document.body.append(el);
   }
