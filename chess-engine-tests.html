@@ -21,8 +21,8 @@ const tests=[
 ['En passant capture is recorded',()=>{const g=new Chess();['e4','a6','e5','d5'].forEach(s=>g.move(s));const m=g.move({from:'e5',to:'d6'});return !!m&&m.flags.includes('e')&&m.captured==='p'&&!g.get('d5')&&g.get('d6')?.type==='p'}],
 ['Kingside castling works',()=>{const g=new Chess('r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1');const m=g.move({from:'e1',to:'g1'});return !!m&&m.san==='O-O'&&g.get('f1')?.type==='r'&&g.get('g1')?.type==='k'}],
 ['Promotion to queen works',()=>{const g=new Chess('7k/P7/8/8/8/8/8/7K w - - 0 1');const m=g.move({from:'a7',to:'a8',promotion:'q'});return !!m&&g.get('a8')?.type==='q'}],
-['Fool’s Mate is detected as checkmate',()=>{const g=new Chess();['f3','e5','g4','Qh4#'].forEach(s=>g.move(s));return g.isCheckmate()&&g.isGameOver()}],
-['Stalemate is detected',()=>{const g=new Chess('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1');return g.isStalemate()&&g.isDraw()}],
+['Fool’s Mate is detected as checkmate',()=>{const g=new Chess();['f3','e5','g4','Qh4#'].forEach(s=>g.move(s));return g.in_checkmate()&&g.game_over()}],
+['Stalemate is detected',()=>{const g=new Chess('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1');return g.in_stalemate()&&g.in_draw()}],
 ['Undo restores the previous position',()=>{const g=new Chess();const before=g.fen();g.move('e4');g.undo();return g.fen()===before}],
 ['Undo then replay restores the move',()=>{const g=new Chess();g.move('e4');const after=g.fen();const m=g.undo();const replay=g.move({from:m.from,to:m.to,promotion:m.promotion});return !!replay&&g.fen()===after}]
 ];
