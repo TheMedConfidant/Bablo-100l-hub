@@ -2658,7 +2658,7 @@ function chatPanel(G) {
 const CHAT_SEEN_BY_GAME = Object.create(null);
 async function loadChat(G) {
   if (!G || !G.online || !document.getElementById('chatList')) return;
-  const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=id,nick,body,created_at&order=created_at.asc&limit=100');
+  const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=nick,body,created_at&order=created_at.asc&limit=100');
   const list = document.getElementById('chatList'); if (!list || !Array.isArray(rows)) return;
   const gameKey = String(G.online.id), seen = CHAT_SEEN_BY_GAME[gameKey] || (CHAT_SEEN_BY_GAME[gameKey] = new Set());
   const firstLoad = !CHAT_SEEN_BY_GAME[gameKey + ':ready'];
