@@ -2360,13 +2360,14 @@ function chessView() {
   const level = S.level === 'auto' ? 'matches you (' + (computerSettings(drRating).depth === 1 ? 'easy' : computerSettings(drRating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
   mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: ev => { ev.preventDefault(); stopChessTick(); stopOnlinePoll(); stopChatPoll(); if (CHESS && CHESS.clock) { const side = CHESS.clock.side; CHESS.clock[side] = clockMs(CHESS, side); CHESS.clock.at = Date.now(); CHESS.clock.paused = true; } chessMenu(); } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
-      h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
+      h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \\u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \\u2022 computer ' + level + (G.friendly ? ' \\u2022 take-backs on' : ' \\u2022 rating counts')), G.mode === 'online' ? h('p', { id: 'onlineRatingLine', class: 'muted tiny' }, 'Loading online ratings…') : null),
       G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { id: 'drEcgLine', class: 'tiny muted', style: { margin: '0', minHeight: '1.2em' } }, '“Let’s examine that move.”'))) : null,
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
       G.mode === 'online' && G.online ? chatPanel(G) : null,
     h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
   chessDraw();
+  if (G.mode === 'online') refreshOnlineRatingLine(G);
   if (G.clock && !CHESS_TICK) CHESS_TICK = setInterval(() => { if (!location.hash.startsWith('#/chess')) { stopChessTick(); return; } chessClocks(); }, 250);
   if (G.mode !== 'online' && G.s.turn !== G.color && !G.busy && !gameOver(G).over) computerTurn();
 }
@@ -2387,15 +2388,15 @@ async function loadOpenList() {
   box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => joinOnline(r.code) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
 }
 function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
-function onlineState(color, id, code, status, white, black) {
-  return { mode: 'online', online: { id, code, status, recorded: false, white: white || DB.profile.nick, black: black || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
+function onlineState(color, id, code, status, white, black, whiteDev, blackDev) {
+  return { mode: 'online', online: { id, code, status, recorded: false, ratingApplied: false, white: white || DB.profile.nick, black: black || '', whiteDev: whiteDev || '', blackDev: blackDev || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
 }
 async function createOnline() {
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
   const code = rnd6();
   const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, status: 'waiting', moves: '' }) });
   if (!Array.isArray(row) || !row[0]) { toast('Could not create the challenge. Try again.'); return; }
-  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, ''));
+  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, '', DB.dev, ''));
 }
 async function joinOnline(raw) {
   const code = String(raw || '').trim().toUpperCase();
@@ -2406,7 +2407,7 @@ async function joinOnline(raw) {
   if (found[0].white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
   const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
   if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
-  startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick));
+  startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick, found[0].white_dev, DB.dev));
 }
 let ONLINE_POLL = null;
 function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } stopChatPoll(); }
@@ -2419,10 +2420,14 @@ async function pollOnline() {
   try { await pollOnlineOnce(G); } finally { POLL_BUSY = false; }
 }
 async function pollOnlineOnce(G) {
-  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick');
+  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick,white_dev,black_dev');
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
   G.online.status = g.status;
+  const opponentJoined = !!g.black_dev && G.online.blackDev !== g.black_dev;
+  G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
+  G.online.whiteDev = g.white_dev || G.online.whiteDev; G.online.blackDev = g.black_dev || G.online.blackDev;
+  if (opponentJoined) refreshOnlineRatingLine(G);
   const moves = g.moves ? g.moves.split(' ') : [];
   if (moves.length > G.moves.length) {
     const s = Chess.replay(moves);
@@ -2438,6 +2443,42 @@ async function pollOnlineOnce(G) {
 function recordOnline(G, res) {
   if (G.recorded) return; G.recorded = true;
   const R = chessRec(); if (res === 'draw') R.d++; else if (res === G.color) R.w++; else R.l++; save();
+  applyOnlineRating(G, res);
+}
+async function onlineRatingRow(dev) {
+  if (!dev || !liveOn()) return null;
+  const rows = await sbFetchJson('chess_ratings?dev=eq.' + encodeURIComponent(dev) + '&select=dev,nick,rating,wins,draws,losses');
+  return Array.isArray(rows) ? (rows[0] || null) : null;
+}
+async function refreshOnlineRatingLine(G) {
+  const el = document.getElementById('onlineRatingLine');
+  if (!el || !G || !G.online) return;
+  const whiteName = G.online.white || 'White', blackName = G.online.black || 'Waiting for opponent';
+  const [wr, br] = await Promise.all([onlineRatingRow(G.online.whiteDev), onlineRatingRow(G.online.blackDev)]);
+  if (!document.getElementById('onlineRatingLine') || CHESS !== G) return;
+  el.textContent = whiteName + ' ' + (wr ? wr.rating : 1000) + '  •  ' + blackName + ' ' + (br ? br.rating : (G.online.blackDev ? 1000 : '—'));
+}
+async function applyOnlineRating(G, res) {
+  if (!G || !G.online || G.online.ratingApplied || !liveOn()) return;
+  G.online.ratingApplied = true;
+  const ownDev = String(DB.dev || '');
+  const opponentDev = G.color === 'w' ? G.online.blackDev : G.online.whiteDev;
+  const ownRows = await sbFetchJson('chess_ratings?dev=eq.' + encodeURIComponent(ownDev) + '&select=dev,nick,rating,wins,draws,losses');
+  if (!Array.isArray(ownRows)) { G.online.ratingApplied = false; return; }
+  const own = ownRows[0] || { dev: ownDev, nick: DB.profile.nick, rating: 1000, wins: 0, draws: 0, losses: 0 };
+  const opp = await onlineRatingRow(opponentDev);
+  const ownRating = Number(own.rating) || 1000, oppRating = opp ? Number(opp.rating) || 1000 : 1000;
+  const score = res === 'draw' ? 0.5 : (res === G.color ? 1 : 0);
+  const expected = 1 / (1 + Math.pow(10, (oppRating - ownRating) / 400));
+  const rating = Math.max(400, Math.min(3000, Math.round(ownRating + 24 * (score - expected))));
+  const payload = { dev: ownDev, nick: DB.profile.nick.slice(0, 30), rating, wins: (Number(own.wins) || 0) + (score === 1 ? 1 : 0), draws: (Number(own.draws) || 0) + (score === 0.5 ? 1 : 0), losses: (Number(own.losses) || 0) + (score === 0 ? 1 : 0), updated_at: new Date().toISOString() };
+  const saved = ownRows.length
+    ? await sbFetchJson('chess_ratings?dev=eq.' + encodeURIComponent(ownDev), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(payload) })
+    : await sbFetchJson('chess_ratings', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(payload) });
+  if (saved === null) { G.online.ratingApplied = false; toast('Online rating could not sync yet.'); return; }
+  const line = document.getElementById('onlineRatingLine');
+  if (line) line.textContent = 'Your online rating: ' + rating + ' • change ' + (rating - ownRating >= 0 ? '+' : '') + (rating - ownRating);
+  toast('Online rating updated: ' + rating + ' (' + (rating - ownRating >= 0 ? '+' : '') + (rating - ownRating) + ').');
 }
 function onlineFinish(res) {
   const G = CHESS; recordOnline(G, res); stopOnlinePoll();
