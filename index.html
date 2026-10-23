@@ -2490,6 +2490,23 @@ function startIncomingChessWatcher() {
   INCOMING_CHESS_TIMER = setInterval(pollIncomingChessChallenges, 9000);
   setTimeout(pollIncomingChessChallenges, 2200);
 }
+let REST_SESSION_START = Date.now(), REST_REMINDER_TIMER = null;
+function maybeRestReminder() {
+  if (!DB.profile || document.visibilityState !== 'visible') return;
+  if (!DB.notify) { REST_SESSION_START = Date.now(); return; }
+  if (Date.now() - REST_SESSION_START < 2 * 60 * 60 * 1000) return;
+  REST_SESSION_START = Date.now();
+  const msg = 'Take a breather. Stretch, drink some water, or grab a bite before your next study session.';
+  toast(msg); playNoticeSound('timer');
+  try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub · Rest reminder', { body: msg }); } catch (e) {}
+}
+function startRestReminder() {
+  if (REST_REMINDER_TIMER) clearInterval(REST_REMINDER_TIMER);
+  REST_SESSION_START = Date.now();
+  REST_REMINDER_TIMER = setInterval(maybeRestReminder, 60000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') REST_SESSION_START = Date.now(); });
+}
+
 
 function onlineState(color, id, code, status, white, black, whiteDev, blackDev, targetDev) {
   return { mode: 'online', online: { id, code, status, recorded: false, ratingApplied: false, white: white || DB.profile.nick, black: black || '', whiteDev: whiteDev || '', blackDev: blackDev || '', targetDev: targetDev || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
@@ -3626,6 +3643,7 @@ loadHidden();
 window.addEventListener('hashchange', route);
 route();
 startIncomingChessWatcher();
+startRestReminder();
 setTimeout(liveNotice, 1200);
 
 </script>
