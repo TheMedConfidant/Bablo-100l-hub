@@ -52,6 +52,7 @@
           <div class="reactionrow"><button class="reaction" data-reaction="😂" aria-label="Laugh reaction">😂</button><button class="reaction" data-reaction="😤" aria-label="Frustrated reaction">😤</button><button class="reaction" data-reaction="🧠" aria-label="Thinking reaction">🧠</button><button class="reaction" data-reaction="🔥" aria-label="Fire reaction">🔥</button></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="ghost" id="soundToggle" type="button" aria-pressed="true">🔊 Sounds on</button></div>
         </div>
       </section>
+      <section class="card"><div class="cardhead"><h2>Dr ECG difficulty</h2><span class="tiny">LOCAL BOT</span></div><div class="cardbody"><label for="botDifficulty" style="display:block;font-size:11px;color:var(--muted);margin-bottom:8px">Choose challenge level</label><select id="botDifficulty" style="width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#0b1118;color:var(--text)"><option value="warmup">Warm-up · Introductory</option><option value="clinical" selected>Clinical · Balanced</option><option value="registrar">Registrar · Sharp</option><option value="consultant">Consultant · Strongest local level</option></select><div class="speech" id="difficultyDescription" style="margin-top:10px">Balanced replies with basic material and threat awareness.</div></div></section>
       <section class="card">
         <div class="cardhead"><h2>Game activity</h2><span class="tiny" id="moveCount">0 moves</span></div>
         <div class="tabs"><button class="tab active" data-tab="moves">Moves</button><button class="tab" data-tab="details">Details</button></div>
@@ -95,7 +96,7 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, botTimer=null, soundOn=true, audioContext=null;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, botTimer=null, soundOn=true, audioContext=null, botDifficulty='clinical';
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){if(game.in_checkmate()){say('Checkmate. That position has a diagnosis—and it is not good news for the mated side. 🩺');eventPopup('♚ CHECKMATE', 'mate');showModal('Checkmate!', 'The legal-move engine confirms checkmate. Reset the local board to play again.', reset, 'New game')}else if(game.in_draw()){say('The position is drawn. No winner today; review the decisions that got us here.');eventPopup('DRAW', 'check')}else if(game.in_check()){say('Check. Your king needs urgent attention.');eventPopup('⚠ CHECK!', 'check')}}
@@ -145,7 +146,7 @@ function materialForBlack(){
  return score;
 }
 function chooseDrECGMove(){
- const options=game.moves({verbose:true});let best=null,bestScore=-Infinity;
+ const options=game.moves({verbose:true}),scored=[];
  for(const option of options){
   const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
   if(!played)continue;
@@ -153,18 +154,21 @@ function chooseDrECGMove(){
   if(game.in_checkmate())score+=100000;
   else if(game.in_draw())score-=50;
   if(game.in_check())score+=24;
-  if(played.promotion)score+=pieceValues[played.promotion]-pieceValues.p;
+  if(played.promotion)score+=(pieceValues[played.promotion]||0)-pieceValues.p;
   const target=sqCoords(option.to),centre=3.5-(Math.abs(target.r-3.5)+Math.abs(target.c-3.5))/2;
   score+=centre*3;
-  // Prefer not to leave a valuable black piece immediately capturable.
+  // Penalize a valuable black piece becoming immediately capturable.
   let biggestImmediateLoss=0;
   for(const reply of game.moves({verbose:true}))if(reply.captured)biggestImmediateLoss=Math.max(biggestImmediateLoss,pieceValues[reply.captured]||0);
   score-=biggestImmediateLoss*.78;
   game.undo();
-  score+=Math.random()*7;
-  if(score>bestScore){bestScore=score;best=option}
+  scored.push({move:option,score});
  }
- return best;
+ if(!scored.length)return null;
+ scored.sort((a,b)=>b.score-a.score);
+ const pool={warmup:8,clinical:4,registrar:2,consultant:1}[botDifficulty]||4;
+ const shortlist=scored.slice(0,Math.min(pool,scored.length));
+ return shortlist[Math.floor(Math.random()*shortlist.length)].move;
 }
 function playDrECGMove(){
  botTimer=null;
@@ -175,10 +179,18 @@ function playDrECGMove(){
  const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
  if(!played)return;
  commitMove(played,option.from,option.to,piece);
- if(played.captured)say('A donated piece? In medicine, we call that a preventable complication. 😂');
- else if(game.in_check())say('Check. Please review the king’s vitals. 🩺');
+ if(played.captured){
+  const captureLines={warmup:'A donated piece? That is a preventable complication. 😂',clinical:'You left material unattended. I have documented the finding. 🩺',registrar:'That capture changes the differential. Recalculate your plan. 🧠',consultant:'Material advantage secured. Show me the recovery plan. 😏'};
+  say(captureLines[botDifficulty]||captureLines.clinical);
+ }else if(game.in_check())say('Check. The king’s vitals are unstable. Please review the position. 🩺');
  else {
-  const lines=['I’ve responded. Did you calculate the next two moves, or just the first? 😏','Your move was interesting. My reply is the follow-up investigation. 🧠','No panic—this is chess, not a surprise practical.','A move for a move. Let’s see whether your plan survives review.','You’ve got the floor again. Please bring evidence, not vibes.'];
+  const linesForLevel={
+   warmup:['Easy does it. Even Anatomy starts with orientation. 😌','A move at a time—no need to cram the whole board.','Your turn again. Look for safe squares first.'],
+   clinical:['I’ve responded. Did you calculate the next two moves, or just the first? 😏','That move needs a differential diagnosis. What is your next line? 🧠','No panic—this is chess, not a surprise practical.'],
+   registrar:['Your plan has a complication. Reassess before the next move. 🩺','A decent line—but I can see the weakness you left behind.','Treat every loose piece like an abnormal result: investigate.'],
+   consultant:['Calculated, not crammed. Your move. 😏','I have a response for that line. Please present your next argument.','Position reviewed. Your strategy is due for a second opinion. 🧠']
+  };
+  const lines=linesForLevel[botDifficulty]||linesForLevel.clinical;
   say(lines[(history.length-1)%lines.length]);
  }
  announceGameState();
@@ -240,6 +252,19 @@ $('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the loc
 $('drawBtn').onclick=()=>toast('Draw offers are outside this preview scope.');
 $('exitBtn').onclick=()=>showModal('Leave this preview?','You can return to the separate dashboard design preview. This does not affect your live account.',()=>{location.href='/chess-preview.html'},'Exit preview');
 document.querySelectorAll('[data-reaction]').forEach(b=>b.onclick=()=>{const e=b.dataset.reaction;popReaction(e);say('I see that reaction. Now show me a move to match it. '+e)});
+const difficultyDescriptions={
+ warmup:'A relaxed opponent. It considers legal moves but may overlook stronger continuations.',
+ clinical:'Balanced replies with basic material and threat awareness.',
+ registrar:'Chooses among the top two evaluated moves more consistently.',
+ consultant:'Chooses the highest-scored move from this lightweight local evaluator. This is not a certified Elo rating or a full chess engine.'
+};
+$('botDifficulty').addEventListener('change',()=>{
+ botDifficulty=$('botDifficulty').value;
+ $('difficultyDescription').textContent=difficultyDescriptions[botDifficulty];
+ const opening={warmup:'We’ll take it step by step. No panic. 😌',clinical:'Clinical mode. Show your working. 🧠',registrar:'Registrar mode. Expect fewer easy gifts.',consultant:'Consultant mode. I’ll take the strongest line this local evaluator finds. 😏'};
+ say(opening[botDifficulty]);
+ toast('Dr ECG difficulty set to '+$('botDifficulty').selectedOptions[0].textContent+'.');
+});
 $('soundToggle').onclick=()=>{soundOn=!soundOn;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(soundOn)gameSound('move');toast(soundOn?'Chess sounds enabled.':'Chess sounds muted.')};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const details=b.dataset.tab==='details';$('movePanel').style.display=details?'none':'block';$('detailsPanel').style.display=details?'block':'none'});
 
