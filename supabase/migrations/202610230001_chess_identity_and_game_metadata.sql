@@ -9,7 +9,7 @@ create table if not exists public.chess_players (
 );
 
 alter table public.chess_players enable row level security;
-revoke all on table public.chess_players from anon, authenticated;
+revoke all on table public.chess_players from PUBLIC, anon, authenticated;
 
 alter table public.chess_games
   add column if not exists white_player_id uuid references public.chess_players(player_id),
@@ -39,7 +39,7 @@ create or replace function public.apply_chess_elo_rating()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = pg_catalog, public
 as $function$
 declare
   white_rating integer;
@@ -122,5 +122,8 @@ begin
   return new;
 end;
 $function$;
+
+-- The rating trigger is the only intended caller of this privileged function.
+revoke all on function public.apply_chess_elo_rating() from PUBLIC, anon, authenticated;
 
 -- Legacy rows remain nullable for player IDs and are not silently linked to accounts.
