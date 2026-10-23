@@ -28,7 +28,7 @@
   <div class="crumb">Chess Hub <span>›</span> Play <span>›</span> <b>Live Game UI preview</b></div>
   <div class="layout">
     <section class="maincol">
-      <div class="gamehead"><div><div class="eyebrow">Casual practice · Local demo</div><h1>Make your move.</h1></div><div class="headright"><button class="ghost" id="newGame">↻ New demo</button></div></div>
+      <div class="gamehead"><div><div class="eyebrow">Vs Dr ECG · Local practice</div><h1>Make your move.</h1></div><div class="headright"><button class="ghost" id="newGame">↻ New demo</button></div></div>
       <div class="playerbar">
         <div class="playerid"><div class="avatar">♟</div><div><div class="playername">Dr ECG <span style="color:#8c9b9d">· Bot preview</span></div><div class="sub">Bablo tactical menace</div><div class="captured" id="capturedTop"></div></div></div>
         <div class="clock" id="topClock">05:00</div>
@@ -38,10 +38,10 @@
         <div class="boardnote"><span id="turnNote">White to move · Demo interaction</span><span>Coordinates on</span></div>
       </div>
       <div class="playerbar">
-        <div class="playerid"><div class="avatar gold">♙</div><div><div class="playername">You <span style="color:#8c9b9d">· White</span></div><div class="sub">Local board interaction only</div><div class="captured" id="capturedBottom"></div></div></div>
+        <div class="playerid"><div class="avatar gold">♙</div><div><div class="playername">You <span style="color:#8c9b9d">· White</span></div><div class="sub">You play White · Dr ECG plays Black</div><div class="captured" id="capturedBottom"></div></div></div>
         <div class="clock active" id="bottomClock">05:00</div>
       </div>
-      <div class="underboard"><div class="tiny">Select a piece, then a square to preview the move interaction.</div><div class="move-controls"><button class="iconbtn" id="backMove" aria-label="Undo demo move">↶</button><button class="iconbtn" id="forwardMove" aria-label="Redo demo move">↷</button><button class="iconbtn" id="flipBoard" aria-label="Board orientation preview">⇅</button></div></div>
+      <div class="underboard"><div class="tiny">Select a white piece, then choose a highlighted legal square. Dr ECG replies automatically.</div><div class="move-controls"><button class="iconbtn" id="backMove" aria-label="Undo demo move">↶</button><button class="iconbtn" id="forwardMove" aria-label="Redo demo move">↷</button><button class="iconbtn" id="flipBoard" aria-label="Board orientation preview">⇅</button></div></div>
     </section>
     <aside class="side">
       <section class="card">
@@ -75,7 +75,7 @@
       </section>
       <section class="card">
         <div class="cardhead"><h2>Preview scope</h2><span class="tiny">HONEST STATUS</span></div>
-        <div class="cardbody"><div class="info-list"><div class="info-line"><span>Board selection</span><b style="color:var(--good)">Interactive</b></div><div class="info-line"><span>Move log & undo</span><b style="color:var(--good)">Local demo</b></div><div class="info-line"><span>Legal chess engine</span><b>Not connected</b></div><div class="info-line"><span>Online / ratings</span><b>Not connected</b></div></div></div>
+        <div class="cardbody"><div class="info-list"><div class="info-line"><span>Board selection</span><b style="color:var(--good)">Interactive</b></div><div class="info-line"><span>Move log & undo</span><b style="color:var(--good)">Local demo</b></div><div class="info-line"><span>Rules engine</span><b style="color:var(--good)">chess.js</b></div><div class="info-line"><span>Online / ratings</span><b>Not connected</b></div></div></div>
       </section>
     </aside>
   </div>
@@ -95,7 +95,7 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, soundOn=true, audioContext=null;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, botTimer=null, soundOn=true, audioContext=null;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){if(game.in_checkmate()){say('Checkmate. That position has a diagnosis—and it is not good news for the mated side. 🩺');eventPopup('♚ CHECKMATE', 'mate');showModal('Checkmate!', 'The legal-move engine confirms checkmate. Reset the local board to play again.', reset, 'New game')}else if(game.in_draw()){say('The position is drawn. No winner today; review the decisions that got us here.');eventPopup('DRAW', 'check')}else if(game.in_check()){say('Check. Your king needs urgent attention.');eventPopup('⚠ CHECK!', 'check')}}
@@ -120,40 +120,121 @@ function render(){
   if(vr===7){const co=document.createElement('span');co.className='coord';co.style.left='auto';co.style.right='4px';co.style.bottom='auto';co.style.top='2px';co.textContent='abcdefgh'[c];b.append(co)}
   b.addEventListener('click',()=>clickSquare(r,c));el.append(b)
  }}
- $('turnNote').textContent=(whiteTurn?'White':'Black')+' to move'+(game.in_check()?' · CHECK':'')+' · Legal-move preview';
+ $('turnNote').textContent=(whiteTurn?'Your move · White':'Dr ECG to move · Black')+(game.in_check()?' · CHECK':'')+' · Legal moves highlighted';
  $('moveCount').textContent=history.length+' '+(history.length===1?'move':'moves');
- $('capturedTop').textContent=capturedW.map(p=>glyph[p]).join('');
- $('capturedBottom').textContent=capturedB.map(p=>glyph[p]).join('');
+ $('capturedTop').textContent=capturedB.map(p=>glyph[p]).join('');
+ $('capturedBottom').textContent=capturedW.map(p=>glyph[p]).join('');
  const g=$('moveGrid');g.innerHTML='';
  if(!history.length){g.innerHTML='<div class="num">—</div><div style="color:#7e8b98">No demo moves yet</div><div></div>'}
  else for(let i=0;i<history.length;i+=2){let n=document.createElement('div'),w=document.createElement('div'),b=document.createElement('div');n.className='num';n.textContent=(i/2+1)+'.';w.textContent=history[i].text;b.textContent=history[i+1]?.text||'';if(i===history.length-1)w.classList.add('latest');if(i+1===history.length-1)b.classList.add('latest');g.append(n,w,b)}
 }
 function getTargets(r,c){const p=board[r][c];if(!p||p[0]!==game.turn())return [];return game.moves({square:sqName(r,c),verbose:true}).map(m=>sqCoords(m.to))}
+function capturePieceCode(played){return played.captured?((played.color==='w'?'b':'w')+played.captured.toUpperCase()):''}
+function commitMove(played,from,to,piece){
+ const a=sqCoords(from),z=sqCoords(to),capturedPiece=capturePieceCode(played);
+ const move={fr:a.r,fc:a.c,tr:z.r,tc:z.c,piece:piece||((played.color==='w'?'w':'b')+played.piece.toUpperCase()),captured:capturedPiece,text:played.san,from,to,promotion:played.promotion||'q',side:played.color};
+ if(capturedPiece)(capturedPiece[0]==='w'?capturedW:capturedB).push(capturedPiece);
+ history.push(move);redo=[];syncBoardFromEngine();selected=null;targets=[];render();
+ if(capturedPiece)eventPopup('CAPTURE!', 'capture');else gameSound('move');
+ return move;
+}
+const pieceValues={p:100,n:320,b:335,r:500,q:900,k:20000};
+function materialForBlack(){
+ let score=0;
+ for(const row of game.board())for(const p of row)if(p)score+=(p.color==='b'?1:-1)*(pieceValues[p.type]||0);
+ return score;
+}
+function chooseDrECGMove(){
+ const options=game.moves({verbose:true});let best=null,bestScore=-Infinity;
+ for(const option of options){
+  const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
+  if(!played)continue;
+  let score=materialForBlack();
+  if(game.in_checkmate())score+=100000;
+  else if(game.in_draw())score-=50;
+  if(game.in_check())score+=24;
+  if(played.promotion)score+=pieceValues[played.promotion]-pieceValues.p;
+  const target=sqCoords(option.to),centre=3.5-(Math.abs(target.r-3.5)+Math.abs(target.c-3.5))/2;
+  score+=centre*3;
+  // Prefer not to leave a valuable black piece immediately capturable.
+  let biggestImmediateLoss=0;
+  for(const reply of game.moves({verbose:true}))if(reply.captured)biggestImmediateLoss=Math.max(biggestImmediateLoss,pieceValues[reply.captured]||0);
+  score-=biggestImmediateLoss*.78;
+  game.undo();
+  score+=Math.random()*7;
+  if(score>bestScore){bestScore=score;best=option}
+ }
+ return best;
+}
+function playDrECGMove(){
+ botTimer=null;
+ if(game.game_over()||game.turn()!=='b')return;
+ const option=chooseDrECGMove();
+ if(!option){announceGameState();return}
+ const piece=board[sqCoords(option.from).r][sqCoords(option.from).c];
+ const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
+ if(!played)return;
+ commitMove(played,option.from,option.to,piece);
+ if(played.captured)say('A donated piece? In medicine, we call that a preventable complication. 😂');
+ else if(game.in_check())say('Check. Please review the king’s vitals. 🩺');
+ else {
+  const lines=['I’ve responded. Did you calculate the next two moves, or just the first? 😏','Your move was interesting. My reply is the follow-up investigation. 🧠','No panic—this is chess, not a surprise practical.','A move for a move. Let’s see whether your plan survives review.','You’ve got the floor again. Please bring evidence, not vibes.'];
+  say(lines[(history.length-1)%lines.length]);
+ }
+ announceGameState();
+}
+function finishHumanMove(from,to,promotion){
+ const startSquare=sqCoords(from),piece=board[startSquare.r][startSquare.c];
+ const played=game.move({from,to,promotion:promotion||'q'});
+ if(!played){toast('That move is not legal.');return}
+ commitMove(played,from,to,piece);
+ if(game.game_over()){announceGameState();return}
+ const lines=['Good. Now calculate the response before celebrating. 😏','A legal move. Progress. Let’s see how you handle the reply.','You moved with confidence. The position will give the verdict. 🧠','No panic—calculate before you donate another piece.','A bold choice. Bowen exam week has trained your nerves.'];
+ say(lines[(history.length-1)%lines.length]);
+ botTimer=setTimeout(playDrECGMove,520);
+}
+function askPromotion(onChoice){
+ const box=$('modalText');box.textContent='Your pawn reached the final rank. Choose what it becomes.';
+ const select=document.createElement('select');select.id='promotionChoice';select.setAttribute('aria-label','Promotion piece');
+ select.style.cssText='display:block;width:100%;margin-top:12px;padding:11px;border-radius:10px;background:#0b1118;color:#f4f5f7;border:1px solid #e8bb6250';
+ [['q','Queen'],['r','Rook'],['b','Bishop'],['n','Knight']].forEach(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)});
+ box.append(select);$('modalTitle').textContent='Choose your promotion';$('confirmModal').textContent='Promote';
+ modalAction=()=>{const selectedPromotion=select.value;onChoice(selectedPromotion)};$('modalback').classList.add('show');
+}
 function clickSquare(r,c){
+ if(game.game_over()){toast('The game has ended. Start a new game to continue.');return}
+ if(game.turn()!=='w'){toast('Dr ECG is calculating a reply…');return}
  const name=sqName(r,c);
- if(!selected){if(!board[r][c]||pieceColor(board[r][c])!==(game.turn())){toast('Select one of your legal pieces.');return}selected={r,c};targets=getTargets(r,c);render();return}
+ if(!selected){if(!board[r][c]||pieceColor(board[r][c])!=='w'){toast('Select one of your white pieces.');return}selected={r,c};targets=getTargets(r,c);render();return}
  if(selected.r===r&&selected.c===c){selected=null;targets=[];render();return}
- if(board[r][c]&&pieceColor(board[r][c])===pieceColor(board[selected.r][selected.c])){selected={r,c};targets=getTargets(r,c);render();return}
- const from=sqName(selected.r,selected.c),to=name,p=board[selected.r][selected.c],capt=board[r][c];
+ if(board[r][c]&&pieceColor(board[r][c])==='w'){selected={r,c};targets=getTargets(r,c);render();return}
+ const from=sqName(selected.r,selected.c),to=name;
  const legal=game.moves({square:from,verbose:true}).find(m=>m.to===to);
  if(!legal){toast('That move is not legal. Choose a highlighted square.');return}
- const played=game.move({from,to,promotion:'q'});
- // Use the engine's capture metadata: en-passant captures happen beside the destination square.
- const capturedPiece=played.captured?((played.color==='w'?'b':'w')+played.captured.toUpperCase()):'';
- const move={fr:selected.r,fc:selected.c,tr:r,tc:c,piece:p,captured:capturedPiece,text:played.san,from,to,promotion:'q'};
- if(capturedPiece){(capturedPiece[0]==='w'?capturedW:capturedB).push(capturedPiece)}
- history.push(move);redo=[];syncBoardFromEngine();selected=null;targets=[];render();gameSound(capturedPiece?'capture':'move');if(capturedPiece)eventPopup('CAPTURE!', 'capture');
- const lines=['A legal move. Progress. Now calculate the reply. 😏','Interesting. I have updated the position, not your excuses.','You moved with confidence. Let’s see what the position says. 🧠','No panic—calculate before you donate another piece.','A bold choice. Bowen exam week has trained your nerves.'];
- if(!game.game_over())say(lines[(history.length-1)%lines.length]);announceGameState();
+ selected=null;targets=[];render();
+ if(legal.promotion){askPromotion(promotion=>finishHumanMove(from,to,promotion));return}
+ finishHumanMove(from,to,'q');
 }
-function restoreMove(m,forward){if(forward){const played=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});if(!played){toast('Could not replay that move.');return}if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);history.push(m)}else{game.undo();if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).pop();history.pop()}syncBoardFromEngine();selected=null;targets=[];render()}
-function reset(){game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Please calculate first; my clinic is not accepting donated queens today. 😌');render();gameSound('reset');toast('Local legal-move board reset.')}
+function restoreMove(m,forward){
+ if(forward){
+  const played=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});
+  if(!played){toast('Could not replay that move.');return}
+  if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);
+  history.push(m);
+ }else{
+  game.undo();
+  if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).pop();
+  history.pop();
+ }
+ syncBoardFromEngine();selected=null;targets=[];render();
+}
+function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Fresh diagnosis. Let’s see whether your opening survives peer review. 😌');render();gameSound('reset');toast('Local game reset.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
-$('cancelModal').onclick=()=>$('modalback').classList.remove('show');
+$('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
 $('newGame').onclick=reset;$('rematchBtn').onclick=reset;
-$('backMove').onclick=()=>{if(!history.length){toast('No move to undo yet.');return}const m=history[history.length-1];redo.push(m);restoreMove(m,false);say('Takeback noted. Even the best students correct their work.')}
-$('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true)}
+$('backMove').onclick=()=>{if(botTimer){clearTimeout(botTimer);botTimer=null}if(!history.length){toast('No move to undo yet.');return}let undone=0;while(history.length){const m=history[history.length-1];redo.push(m);restoreMove(m,false);undone++;if(m.piece?.[0]==='w'||undone>=2)break}say('Takeback noted. Even the best students correct their work.');toast('Last turn taken back. You can try another line.')}
+$('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else botTimer=setTimeout(playDrECGMove,520)}}
 $('flipBoard').onclick=()=>{flipped=!flipped;render();toast('Board orientation preview toggled. Online games will keep the approved fixed orientation.')}
 $('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
 $('drawBtn').onclick=()=>toast('Draw offers are outside this preview scope.');
