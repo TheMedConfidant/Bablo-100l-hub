@@ -19,6 +19,15 @@ alter table public.chess_games
   -- New API-created games always explicitly set rated=true/false.
   add column if not exists rated boolean not null default true;
 
+
+-- The server-authoritative API records canonical chess results, while legacy games use w/b/draw.
+-- Permit both formats so checkmate results can be stored without breaking older clients.
+alter table public.chess_games drop constraint if exists chess_games_result_check;
+alter table public.chess_games
+  add constraint chess_games_result_check
+  check (result in ('w','b','draw','1-0','0-1','1/2-1/2')) not valid;
+alter table public.chess_games validate constraint chess_games_result_check;
+
 alter table public.chess_games
   add constraint chess_games_time_control_check
   check (time_control in ('1+0','2+1','3+0','3+2','5+0','10+0','10+5','15+10','unlimited'))
