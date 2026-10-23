@@ -127,13 +127,13 @@ function clickSquare(r,c){
  const lines=['A legal move. Progress. Now calculate the reply. 😏','Interesting. I have updated the position, not your excuses.','You moved with confidence. Let’s see what the position says. 🧠','No panic—calculate before you donate another piece.','A bold choice. Bowen exam week has trained your nerves.'];
  if(!game.isGameOver())say(lines[(history.length-1)%lines.length]);announceGameState();
 }
-function restoreMove(m,forward){if(forward){const played=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});if(!played){toast('Could not replay that move.');return}if(m.captured){let arr=m.captured[0]==='w'?capturedW:capturedB;arr.pop()}history.push(m)}else{game.undo();if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);history.pop()}syncBoardFromEngine();selected=null;targets=[];render()}
+function restoreMove(m,forward){if(forward){const played=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});if(!played){toast('Could not replay that move.');return}if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);history.push(m)}else{game.undo();if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).pop();history.pop()}syncBoardFromEngine();selected=null;targets=[];render()}
 function reset(){game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Please calculate first; my clinic is not accepting donated queens today. 😌');render();toast('Local legal-move board reset.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>$('modalback').classList.remove('show');
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
 $('newGame').onclick=reset;$('rematchBtn').onclick=reset;
-$('backMove').onclick=()=>{if(!history.length){toast('No move to undo yet.');return}const m=history.pop();redo.push(m);restoreMove(m,false);say('Takeback noted. Even the best students correct their work.')}
+$('backMove').onclick=()=>{if(!history.length){toast('No move to undo yet.');return}const m=history[history.length-1];redo.push(m);restoreMove(m,false);say('Takeback noted. Even the best students correct their work.')}
 $('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true)}
 $('flipBoard').onclick=()=>{flipped=!flipped;render();toast('Board orientation preview toggled. Online games will keep the approved fixed orientation.')}
 $('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
