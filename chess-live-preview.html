@@ -96,17 +96,17 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, botTimer=null, soundOn=true, audioContext=null, botDifficulty='clinical';
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, soundOn=true, audioContext=null, botDifficulty='clinical';
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){if(game.in_checkmate()){say('Checkmate. That position has a diagnosis—and it is not good news for the mated side. 🩺');eventPopup('♚ CHECKMATE', 'mate');showModal('Checkmate!', 'The legal-move engine confirms checkmate. Reset the local board to play again.', reset, 'New game')}else if(game.in_draw()){say('The position is drawn. No winner today; review the decisions that got us here.');eventPopup('DRAW', 'check')}else if(game.in_check()){say('Check. Your king needs urgent attention.');eventPopup('⚠ CHECK!', 'check')}}
 const $=id=>document.getElementById(id);
 function sqName(r,c){return 'abcdefgh'[c]+(8-r)}
-function say(msg){$('speech').innerHTML='<strong>Dr ECG:</strong> '+msg}
+function say(msg){const el=$('speech');el.style.display='block';el.innerHTML='<strong>Dr ECG:</strong> '+msg;clearTimeout(speechTimer);speechTimer=setTimeout(()=>{el.innerHTML='';el.style.display='none'},1800)}
 function gameSound(kind='move'){if(!soundOn)return;try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;audioContext=audioContext||new Ctx();if(audioContext.state==='suspended')audioContext.resume();const osc=audioContext.createOscillator(),gain=audioContext.createGain(),now=audioContext.currentTime;const tones={move:[520,.055],capture:[330,.10],check:[740,.12],mate:[880,.22],reset:[440,.07],reaction:[620,.06]};const t=tones[kind]||tones.move;osc.type='sine';osc.frequency.setValueAtTime(t[0],now);if(kind==='mate')osc.frequency.exponentialRampToValueAtTime(440,now+.2);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+t[1]);osc.connect(gain);gain.connect(audioContext.destination);osc.start(now);osc.stop(now+t[1]+.015)}catch(e){/* Audio is optional; chess play must still work. */}}
 function eventPopup(text,kind='move'){const el=$('eventPop');el.textContent=text;el.classList.add('show');clearTimeout(eventTimer);eventTimer=setTimeout(()=>el.classList.remove('show'),1800);gameSound(kind)}
 function popReaction(emoji){const el=$('reactionFloat');el.hidden=false;el.textContent=emoji;el.style.animation='none';void el.offsetWidth;el.style.animation='reactionPop 1.8s ease forwards';clearTimeout(reactionTimer);reactionTimer=setTimeout(()=>{el.hidden=true;el.style.animation=''},1800);gameSound('reaction')}
-function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2400)}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),1800)}
 function pieceColor(p){return p?p[0]:''}
 function render(){
  const el=$('board');el.innerHTML='';
@@ -251,7 +251,7 @@ $('flipBoard').onclick=()=>{flipped=!flipped;render();toast('Board orientation p
 $('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
 $('drawBtn').onclick=()=>toast('Draw offers are outside this preview scope.');
 $('exitBtn').onclick=()=>showModal('Leave this preview?','You can return to the separate dashboard design preview. This does not affect your live account.',()=>{location.href='/chess-preview.html'},'Exit preview');
-document.querySelectorAll('[data-reaction]').forEach(b=>b.onclick=()=>{const e=b.dataset.reaction;popReaction(e);say('I see that reaction. Now show me a move to match it. '+e)});
+document.querySelectorAll('[data-reaction]').forEach(b=>b.onclick=()=>{popReaction(b.dataset.reaction)});
 const difficultyDescriptions={
  warmup:'A relaxed opponent. It considers legal moves but may overlook stronger continuations.',
  clinical:'Balanced replies with basic material and threat awareness.',
@@ -281,7 +281,7 @@ function card(c){return '<article class="pagecard"><div class="cardicon">'+c[0]+
 function showChessPage(name){const d=pageData[name]||pageData.Home;navButtons.forEach(b=>b.classList.toggle('active',b.textContent.trim()===name));crumb.innerHTML='Chess Hub <span>›</span> <b>'+name+'</b>';if(name==='Play'){pageHost.hidden=true;gameLayout.hidden=false;return}gameLayout.hidden=true;pageHost.hidden=false;let body='<div class="pagehero"><div class="eyebrow">'+d.eyebrow+'</div><h1>'+d.title+'</h1><p>'+d.desc+'</p><div class="page-actions"><span class="statuschip">♟ Bablo Chess · Development preview</span><span class="statuschip">Production unchanged</span></div></div>';if(d.stats)body+='<div class="metricgrid">'+d.stats.map(x=>'<div class="metric"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div>';body+='<div class="pagegrid">'+d.cards.map(card).join('')+'</div>';pageHost.innerHTML='<div class="pageview">'+body+'</div>';pageHost.querySelectorAll('[data-page-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.pageAction;if(['Play','Learn','Compete','Profile'].includes(a)){showChessPage(a);return}const msg={fundamentals:'Fundamentals lesson content is not yet built.',tactics:'Tactical puzzles need validated positions before scoring.',openings:'Opening explorer is not yet connected to a validated database.',endgames:'Endgame lesson content is not yet built.',puzzles:'Puzzle Rush needs validated puzzles and score persistence.',analysis:'Reliable engine analysis is a separate milestone.',ratings:'Ratings must come from server-verified games; demo ratings are not fabricated.',stats:'Profile statistics will populate from verified chess records.',history:'Game history needs the authenticated game API.',achievements:'Achievements will be connected after verified progress is available.',connection:'Account bridge is not integrated into this standalone preview. No token is read or stored here.'};toast(msg[a]||'This section is mapped, but not implemented yet.')}))}
 navButtons.forEach(b=>b.addEventListener('click',()=>showChessPage(b.textContent.trim())));showChessPage('Play');
 
-syncBoardFromEngine();render();
+syncBoardFromEngine();render();say('Welcome to the board. Show me something better than last-minute cramming. 😏');
 </script>
 <script type="module">
 import { createChessApiClient } from './chess-api-client.js';
