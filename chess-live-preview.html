@@ -69,6 +69,7 @@
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="modalback" id="modalback"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle">End this demo?</h2><p id="modalText">This is a local interface preview. No live game will be affected.</p><div class="modalbuttons"><button class="ghost" id="cancelModal">Keep playing</button><button class="primary" id="confirmModal">Confirm</button></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <script>
 const start = [
 ['bR','bN','bB','bQ','bK','bB','bN','bR'],
@@ -80,7 +81,10 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer;
+function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
+function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
+function announceGameState(){if(game.isCheckmate())say('Checkmate. That position has a diagnosis—and it is not good news for the mated side. 🩺');else if(game.isDraw())say('The position is drawn. No winner today; review the decisions that got us here.');else if(game.isCheck())say('Check. Your king needs urgent attention.');}
 const $=id=>document.getElementById(id);
 function sqName(r,c){return 'abcdefgh'[c]+(8-r)}
 function say(msg){$('speech').innerHTML='<strong>Dr ECG:</strong> '+msg}
@@ -99,7 +103,7 @@ function render(){
   if(vr===7){const co=document.createElement('span');co.className='coord';co.style.left='auto';co.style.right='4px';co.style.bottom='auto';co.style.top='2px';co.textContent='abcdefgh'[c];b.append(co)}
   b.addEventListener('click',()=>clickSquare(r,c));el.append(b)
  }}
- $('turnNote').textContent=(whiteTurn?'White':'Black')+' to move · Demo interaction';
+ $('turnNote').textContent=(whiteTurn?'White':'Black')+' to move'+(game.isCheck()?' · CHECK':'')+' · Legal-move preview';
  $('moveCount').textContent=history.length+' '+(history.length===1?'move':'moves');
  $('capturedTop').textContent=capturedW.map(p=>glyph[p]).join('');
  $('capturedBottom').textContent=capturedB.map(p=>glyph[p]).join('');
@@ -107,22 +111,24 @@ function render(){
  if(!history.length){g.innerHTML='<div class="num">—</div><div style="color:#7e8b98">No demo moves yet</div><div></div>'}
  else for(let i=0;i<history.length;i+=2){let n=document.createElement('div'),w=document.createElement('div'),b=document.createElement('div');n.className='num';n.textContent=(i/2+1)+'.';w.textContent=history[i].text;b.textContent=history[i+1]?.text||'';if(i===history.length-1)w.classList.add('latest');if(i+1===history.length-1)b.classList.add('latest');g.append(n,w,b)}
 }
-function getTargets(r,c){let out=[];const p=board[r][c];if(!p)return out;
- // Deliberately illustrative selection targets, not chess legality validation.
- for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){if(!dr&&!dc)continue;let nr=r+dr,nc=c+dc;if(nr<0||nr>7||nc<0||nc>7)continue;const q=board[nr][nc];if(!q||pieceColor(q)!==pieceColor(p))out.push({r:nr,c:nc})}
- return out}
+function getTargets(r,c){const p=board[r][c];if(!p||p[0]!==game.turn())return [];return game.moves({square:sqName(r,c),verbose:true}).map(m=>sqCoords(m.to))}
 function clickSquare(r,c){
- if(!selected){if(!board[r][c]){toast('Select a piece first.');return}selected={r,c};targets=getTargets(r,c);render();return}
+ const name=sqName(r,c);
+ if(!selected){if(!board[r][c]||pieceColor(board[r][c])!==(game.turn())){toast('Select one of your legal pieces.');return}selected={r,c};targets=getTargets(r,c);render();return}
  if(selected.r===r&&selected.c===c){selected=null;targets=[];render();return}
  if(board[r][c]&&pieceColor(board[r][c])===pieceColor(board[selected.r][selected.c])){selected={r,c};targets=getTargets(r,c);render();return}
- const p=board[selected.r][selected.c],capt=board[r][c],move={fr:selected.r,fc:selected.c,tr:r,tc:c,piece:p,captured:capt,text:glyph[p]+' '+sqName(r,c)};
+ const from=sqName(selected.r,selected.c),to=name,p=board[selected.r][selected.c],capt=board[r][c];
+ const legal=game.moves({square:from,verbose:true}).find(m=>m.to===to);
+ if(!legal){toast('That move is not legal. Choose a highlighted square.');return}
+ const played=game.move({from,to,promotion:'q'});
+ const move={fr:selected.r,fc:selected.c,tr:r,tc:c,piece:p,captured:capt,text:played.san,from,to,promotion:'q'};
  if(capt){(capt[0]==='w'?capturedW:capturedB).push(capt)}
- history.push(move);redo=[];board[r][c]=p;board[selected.r][selected.c]='';selected=null;targets=[];whiteTurn=!whiteTurn;render();
- const lines=['That was a move. I am waiting for the part where you surprise me. 😏','Interesting. Even my ECG line paused for that one.','You moved with confidence. Let’s see if the position agrees. 🧠','No panic—just calculate before you donate another piece.','A bold choice. Bowen exam week has clearly trained your nerves.'];
- say(lines[(history.length-1)%lines.length]);
+ history.push(move);redo=[];syncBoardFromEngine();selected=null;targets=[];render();
+ const lines=['A legal move. Progress. Now calculate the reply. 😏','Interesting. I have updated the position, not your excuses.','You moved with confidence. Let’s see what the position says. 🧠','No panic—calculate before you donate another piece.','A bold choice. Bowen exam week has trained your nerves.'];
+ if(!game.isGameOver())say(lines[(history.length-1)%lines.length]);announceGameState();
 }
-function restoreMove(m,forward){if(forward){board[m.tr][m.tc]=m.piece;board[m.fr][m.fc]='';if(m.captured){let arr=m.captured[0]==='w'?capturedW:capturedB;arr.pop()}history.push(m);whiteTurn=!whiteTurn}else{board[m.fr][m.fc]=m.piece;board[m.tr][m.tc]=m.captured||'';if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);history.pop();whiteTurn=!whiteTurn}render()}
-function reset(){board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Please calculate first; my clinic is not accepting donated queens today. 😌');render();toast('Local demo board reset.')}
+function restoreMove(m,forward){if(forward){const played=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});if(!played){toast('Could not replay that move.');return}if(m.captured){let arr=m.captured[0]==='w'?capturedW:capturedB;arr.pop()}history.push(m)}else{game.undo();if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);history.pop()}syncBoardFromEngine();selected=null;targets=[];render()}
+function reset(){game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Please calculate first; my clinic is not accepting donated queens today. 😌');render();toast('Local legal-move board reset.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>$('modalback').classList.remove('show');
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
@@ -136,6 +142,6 @@ $('exitBtn').onclick=()=>showModal('Leave this preview?','You can return to the 
 document.querySelectorAll('[data-reaction]').forEach(b=>b.onclick=()=>{const e=b.dataset.reaction;toast('Reaction preview: '+e);say('I see that reaction. Now show me a move to match it. '+e)});
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const details=b.dataset.tab==='details';$('movePanel').style.display=details?'none':'block';$('detailsPanel').style.display=details?'block':'none'});
 document.querySelectorAll('.topnav button').forEach(b=>b.onclick=()=>toast(b.textContent+' navigation is not connected in this isolated preview.'));
-render();
+syncBoardFromEngine();render();
 </script>
 </body></html>
