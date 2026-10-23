@@ -2011,7 +2011,7 @@ function meView() {
     h('h1', null, 'Me'), installCard(), accountSection(),
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Name'), name), h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick), h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: '100L' }; save(); toast('Saved.'); } }, 'Save changes')),
-    h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic'))),
+    h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic'))),
     h('section', { class: 'stack' }, h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     feedbackSection(), h('section', { class: 'stack' }, h('h2', null, 'About'), h('p', { class: 'muted small' }, 'Bablo Hub v' + APP.version + ' \u2022 ' + plural(BANK.length, 'question') + '. Answer keys come from the original lecture quizzes and are not independently verified' + (flagged ? '; ' + flagged + ' flagged questions are kept out of timed quizzes and exams' : '') + '. Spot a mistake? Tell Bablo so it can be fixed.')),
     h('section', { class: 'stack' }, h('button', { class: 'btn danger', onclick: async () => { if (await confirmBox({ title: 'Erase my data?', msg: 'This clears your profile, scores and weak spots on this device.', ok: 'Erase', danger: true })) { try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } location.hash = '#/'; location.reload(); } } }, 'Erase my data on this device')))));
@@ -3303,7 +3303,7 @@ function settingsView() {
   const sound = h('button', { class: 'opt', 'aria-pressed': String(!!DB.sound), onclick: () => { DB.sound = !DB.sound; save(); toast(DB.sound ? 'Sound effects on.' : 'Sound effects off.'); settingsView(); } }, DB.sound ? 'On' : 'Off');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Settings')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: () => DB.alerts ? disablePushAlerts() : enablePushAlerts() }, DB.alerts ? 'On' : 'Turn on')),
       h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
