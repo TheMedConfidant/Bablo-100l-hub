@@ -3202,7 +3202,7 @@ function notesView(code, topicIdx) {
       if (section.type === 'paragraph') return h('p', { class: 'note-paragraph' }, section.text);
       if (section.type === 'callout') return h('aside', { class: 'notes-callout' }, h('strong', null, section.title), h('p', null, section.text));
       if (section.type === 'list') return h('ul', { class: 'notes-list' }, section.items.map(item => h('li', null, item)));
-      if (section.type === 'table') return h('div', { class: 'notes-table-wrap' }, section.caption ? h('h3', { class: 'notes-table-caption' }, section.caption) : null, h('table', { class: 'notes-table' }, h('thead', null, h('tr', null, section.headers.map(cell => h('th', null, cell)))), h('tbody', null, section.rows.map(row => h('tr', null, row.map(cell => h('td', null, cell))))));
+      if (section.type === 'table') return h('div', { class: 'notes-table-wrap' }, section.caption ? h('h3', { class: 'notes-table-caption' }, section.caption) : null, h('table', { class: 'notes-table' }, h('thead', null, h('tr', null, section.headers.map(cell => h('th', null, cell)))), h('tbody', null, section.rows.map(row => h('tr', null, row.map(cell => h('td', null, cell)))))));
       return null;
     }).filter(Boolean)),
     h('div', { class: 'row' }, prev ? h('button', { class: 'btn grow', onclick: () => go('#/notes/' + code + '/' + (topicIdx - 1)) }, '\u2039 Previous') : h('span', { class: 'grow' }),
