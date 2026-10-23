@@ -39,9 +39,20 @@ export function createChessApiClient({ endpoint, getSessionToken, fetchImpl = fe
       call("create_game", { time_control: timeControl, rated: Boolean(rated) }),
     acceptGame: (code) => call("accept_game", { code }),
     state: (gameId) => call("state", { game_id: gameId }),
-    move: (gameId, uci) => call("move", { game_id: gameId, uci }),
+    move: (gameId, uci) => {
+      if (typeof uci !== "string" || !/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(uci)) {
+        return Promise.reject(new Error("Move must use UCI format."));
+      }
+      return call("move", { game_id: gameId, uci });
+    },
     resign: (gameId) => call("finish", { game_id: gameId, reason: "resign" }),
     messages: (gameId) => call("messages", { game_id: gameId }),
-    sendMessage: (gameId, message) => call("send_message", { game_id: gameId, message }),
+    sendMessage: (gameId, message) => {
+      const clean = typeof message === "string" ? message.trim() : "";
+      if (!clean || clean.length > 200) {
+        return Promise.reject(new Error("Messages must be 1–200 characters."));
+      }
+      return call("send_message", { game_id: gameId, message: clean });
+    },
   });
 }
