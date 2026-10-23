@@ -549,6 +549,11 @@ button,a,input,select,textarea{touch-action:manipulation}
 .chess-reaction-pop{position:fixed;z-index:10000;left:50%;top:38%;transform:translate(-50%,-50%);font-size:3.5rem;line-height:1;pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.28));animation:chessReactionRise 1.25s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes chessReactionRise{0%{opacity:0;transform:translate(-50%,10%) scale(.45)}15%{opacity:1;transform:translate(-50%,-10%) scale(1.12)}65%{opacity:1;transform:translate(-50%,-70%) scale(1)}100%{opacity:0;transform:translate(-50%,-130%) scale(.82)}}
 @media(prefers-reduced-motion:reduce){.chess-reaction-pop{animation-duration:.01ms}}
+
+/* Persistent floating focus timer. */
+.pomo-float{position:fixed;z-index:9998;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:0 8px 28px rgba(0,0,0,.22);max-width:calc(100vw - 24px);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.pomo-float-time{font-variant-numeric:tabular-nums;font-size:1.05rem;font-weight:850;white-space:nowrap}.pomo-float-label{font-size:.75rem;font-weight:750;color:var(--ink2)}
+@media(max-width:480px){.pomo-float{right:8px;bottom:calc(76px + env(safe-area-inset-bottom,0px));gap:5px;padding:7px 8px}.pomo-float .btn{padding:6px 8px;font-size:.75rem}}
 </style>
 </head>
 <body>
@@ -2956,16 +2961,43 @@ function downloadIcs(ev) {
 }
 function fmtTime(sec) { sec = Math.max(0, sec | 0); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
 function pomoCfg() { const c = DB.pomo || {}; return { focus: Math.min(120, Math.max(1, +c.focus || 25)), brk: Math.min(60, Math.max(1, +c.brk || 5)) }; }
-let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null };
+let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null, floatOn: false };
+function playAppSound(kind) {
+  if (!DB.sound) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const ctx = new AC(), now = ctx.currentTime;
+    const tones = kind === 'chess' ? [660, 880] : kind === 'done' ? [660, 784, 988] : [520];
+    tones.forEach((hz, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = hz; g.gain.setValueAtTime(0.0001, now + i * .12); g.gain.exponentialRampToValueAtTime(.07, now + i * .12 + .025); g.gain.exponentialRampToValueAtTime(.0001, now + i * .12 + .12); o.connect(g); g.connect(ctx.destination); o.start(now + i * .12); o.stop(now + i * .12 + .13); });
+    setTimeout(() => ctx.close().catch(() => {}), 700);
+  } catch (e) {}
+}
+function updatePomoFloat() {
+  let el = document.getElementById('pomoFloat');
+  if (!POMO.floatOn) { if (el) el.remove(); return; }
+  if (!el) {
+    const time = h('span', { id: 'pomoFloatTime', class: 'pomo-float-time' }, fmtTime(POMO.left));
+    const label = h('span', { id: 'pomoFloatLabel', class: 'pomo-float-label' }, POMO.mode === 'focus' ? 'Focus' : 'Break');
+    const toggle = h('button', { id: 'pomoFloatToggle', class: 'btn sm', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.h = null; POMO.running = false; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; } updatePomoFloat(); } }, POMO.running ? 'Pause' : 'Resume');
+    const open = h('button', { class: 'btn sm ghost', onclick: () => { PLAN_TAB = 'timer'; go2('#/time'); } }, 'Open');
+    el = h('div', { id: 'pomoFloat', class: 'pomo-float', role: 'status', 'aria-live': 'off' }, label, time, toggle, open);
+    document.body.append(el);
+  }
+  const t = document.getElementById('pomoFloatTime'), l = document.getElementById('pomoFloatLabel'), b = document.getElementById('pomoFloatToggle');
+  if (t) t.textContent = fmtTime(POMO.left);
+  if (l) l.textContent = (POMO.mode === 'focus' ? 'Focus' : 'Break') + (POMO.running ? '' : ' paused');
+  if (b) b.textContent = POMO.running ? 'Pause' : 'Resume';
+}
 function pomoTick() {
   POMO.left -= 1;
   if (POMO.left <= 0) {
     clearInterval(POMO.h); POMO.running = false;
     const done = POMO.mode === 'focus' ? 'Focus session done. Take a 5-minute break.' : 'Break over. Back to it.';
-    toast(done); try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
+    toast(done); playAppSound('done'); try { if (DB.notify && 'Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
+    POMO.floatOn = false; updatePomoFloat();
     POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? pomoCfg().focus : pomoCfg().brk) * 60;
   }
-  const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
+  const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left); updatePomoFloat();
 }
 function ttCourse(code) { const base = code.replace(/ 10[17]$/, ''); return ({ 'COS': 'COS', 'AGR': 'AGR', 'BUI-GEL': 'GEL101', 'GST': 'GST111', 'BUI-LIB': 'LIB101', 'CHM': 'CHM', 'PHY': 'PHY', 'MTH': 'MTH101', 'BIO': 'BIO' })[base] || base; }
 function timetableView() { PLAN_TAB = 'timetable'; planView(); }
@@ -2987,10 +3019,10 @@ function planCalendar() {
       h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')));
 }
 function planTimer() {
-  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } } }, POMO.running ? 'Pause' : 'Start');
+  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.h = null; POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; POMO.floatOn = true; pomoBtn.textContent = 'Pause'; if (DB.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } updatePomoFloat(); } }, POMO.running ? 'Pause' : 'Start');
   return h('div', { class: 'stack' }, h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
     h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? pomoCfg().focus + ' minutes of focus' : pomoCfg().brk + ' minute break'),
-    h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Reset'))),
+    h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.h = null; POMO.running = false; POMO.floatOn = false; updatePomoFloat(); POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Reset'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Timer settings'),
       h('div', { class: 'row wrapr' }, h('label', { class: 'field grow' }, h('span', null, 'Focus (minutes)'), h('input', { type: 'number', min: '1', max: '120', value: pomoCfg().focus, id: 'pomoFocus' })), h('label', { class: 'field grow' }, h('span', null, 'Break (minutes)'), h('input', { type: 'number', min: '1', max: '60', value: pomoCfg().brk, id: 'pomoBrk' }))),
       h('button', { class: 'btn block', onclick: () => { clearInterval(POMO.h); POMO.running = false; DB.pomo = { focus: +document.getElementById('pomoFocus').value || 25, brk: +document.getElementById('pomoBrk').value || 5 }; save(); POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Save timer settings')));
