@@ -79,7 +79,7 @@ async function playerFor(account: { unique_id: string }) {
   const filter = new URLSearchParams({ select: "player_id", account_unique_id: `eq.${account.unique_id}`, limit: "1" });
   let rows = await db(`chess_players?${filter}`);
   if (!Array.isArray(rows) || !rows.length) {
-    await db("chess_players", {
+    await db("chess_players?on_conflict=account_unique_id", {
       method: "POST",
       headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
       body: JSON.stringify({ account_unique_id: account.unique_id }),
@@ -132,7 +132,7 @@ Deno.serve(async (request: Request) => {
     const tooLarge = error instanceof RangeError;
     return json({ ok: false, error: tooLarge ? "Request too large." : "Invalid JSON." }, tooLarge ? 413 : 400, origin);
   }
-  const token = request.headers.get("x-hub-session") || (typeof body.token === "string" ? body.token : "");
+  const token = request.headers.get("x-hub-session") || "";
   if (!token) return json({ ok: false, error: "Valid Hub session required." }, 401, origin);
   try {
     const account = await hubIdentity(token);
@@ -154,7 +154,7 @@ Deno.serve(async (request: Request) => {
           code: crypto.randomUUID().replaceAll("-", "").slice(0, 6).toUpperCase(),
           white_nick: nick, white_dev: ratingKey(playerId), white_player_id: playerId,
           black_player_id: null, status: "waiting", moves: "",
-          time_control: timeControl, rated: Boolean(body.rated) && timeControl !== "unlimited",
+          time_control: timeControl, rated: body.rated === true && timeControl !== "unlimited",
         }),
       });
       return json({ ok: true, game: rows?.[0] ?? null }, 201, origin);
@@ -193,7 +193,7 @@ Deno.serve(async (request: Request) => {
     if (action === "send_message") {
       if (game.status !== "active") return json({ ok: false, error: "Chat is closed for this game." }, 409, origin);
       const message = String(body.message ?? "").trim();
-      if (!message || message.length > 240) return json({ ok: false, error: "Messages must be 1–240 characters." }, 400, origin);
+      if (!message || message.length > 200) return json({ ok: false, error: "Messages must be 1–200 characters." }, 400, origin);
       const inserted = await db("chess_messages", {
         method: "POST", headers: { Prefer: "return=representation" },
         body: JSON.stringify({ game_id: gameId, nick, body: message }),
