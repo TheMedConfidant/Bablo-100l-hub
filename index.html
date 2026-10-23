@@ -538,6 +538,17 @@ button,a,input,select,textarea{touch-action:manipulation}
 :root[data-skin="glass"] .hero{-webkit-backdrop-filter:blur(10px) saturate(110%) !important;backdrop-filter:blur(10px) saturate(110%) !important;box-shadow:0 7px 20px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.14) !important}
 :root[data-skin="glass"] .btn,:root[data-skin="glass"] .opt,:root[data-skin="glass"] .clock,:root[data-skin="glass"] input[type=text],:root[data-skin="glass"] input[type=number],:root[data-skin="glass"] select,:root[data-skin="glass"] textarea{-webkit-backdrop-filter:blur(5px) saturate(105%) !important;backdrop-filter:blur(5px) saturate(105%) !important}
 @media(max-width:700px){:root[data-skin="glass"] body::before{filter:blur(28px) saturate(104%) !important;opacity:.22 !important}:root[data-skin="glass"] .panel,:root[data-skin="glass"] .tile,:root[data-skin="glass"] .rows,:root[data-skin="glass"] .rev,:root[data-skin="glass"] .qcard,:root[data-skin="glass"] .modal,:root[data-skin="glass"] .slip,:root[data-skin="glass"] .nav,:root[data-skin="glass"] .dock{-webkit-backdrop-filter:blur(6px) saturate(105%) !important;backdrop-filter:blur(6px) saturate(105%) !important}}
+
+/* Chess chat: readable speech bubbles and quick-reaction animation. */
+#chatList{gap:8px !important;padding:6px 2px}
+.chat-bubble{display:flex;flex-direction:column;gap:3px;max-width:86%;padding:9px 12px;border:1px solid var(--line);border-radius:16px;line-height:1.35;overflow-wrap:anywhere}
+.chat-bubble.mine{align-self:flex-end;background:var(--brand-soft);border-bottom-right-radius:5px}
+.chat-bubble.theirs{align-self:flex-start;background:var(--surface);border-bottom-left-radius:5px}
+.chat-sender{font-size:.72rem;font-weight:750;color:var(--ink2)}
+.chat-message{font-size:.92rem;color:var(--ink)}
+.chess-reaction-pop{position:fixed;z-index:10000;left:50%;top:38%;transform:translate(-50%,-50%);font-size:3.5rem;line-height:1;pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.28));animation:chessReactionRise 1.25s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes chessReactionRise{0%{opacity:0;transform:translate(-50%,10%) scale(.45)}15%{opacity:1;transform:translate(-50%,-10%) scale(1.12)}65%{opacity:1;transform:translate(-50%,-70%) scale(1)}100%{opacity:0;transform:translate(-50%,-130%) scale(.82)}}
+@media(prefers-reduced-motion:reduce){.chess-reaction-pop{animation-duration:.01ms}}
 </style>
 </head>
 <body>
@@ -2433,6 +2444,11 @@ function onlineAfterMove() {
 }
 
 /* ---------- chess chat (friend games only; cleared when the game ends) ---------- */
+function popChessReaction(emoji) {
+  const el = h('div', { class: 'chess-reaction-pop', 'aria-hidden': 'true' }, emoji);
+  document.body.append(el); setTimeout(() => el.remove(), 1350);
+}
+
 let CHAT_POLL = null;
 const CHAT_EMOJI = ['\u{1F44D}', '\u{1F602}', '\u{1F525}', '\u{1F62E}', '\u{1F622}', '\u{1F64F}', '\u{1F3AF}', '\u{1F9E0}'];
 function chatPanel(G) {
@@ -2441,7 +2457,7 @@ function chatPanel(G) {
   const send = async (text) => {
     const t = String(text || '').trim(); if (!t || !G.online) return;
     input.value = '';
-    try { await fetch(LB.url + '/rest/v1/chess_messages', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ game_id: G.online.id, nick: DB.profile.nick.slice(0, 30), body: t.slice(0, 200) }) }); loadChat(G); }
+    try { const resp = await fetch(LB.url + '/rest/v1/chess_messages', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ game_id: G.online.id, nick: DB.profile.nick.slice(0, 30), body: t.slice(0, 200) }) }); if (!resp.ok) throw new Error('send failed'); if (CHAT_EMOJI.includes(t)) popChessReaction(t); loadChat(G); }
     catch (e) { toast('Message not sent. Check your connection.'); }
   };
   input.addEventListener('keydown', e => { if (e.key === 'Enter') send(input.value); });
@@ -2453,7 +2469,7 @@ async function loadChat(G) {
   if (!G || !G.online || !document.getElementById('chatList')) return;
   const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=nick,body,created_at&order=created_at.asc&limit=100');
   const list = document.getElementById('chatList'); if (!list || !Array.isArray(rows)) return;
-  list.replaceChildren(...(rows.length ? rows.map(m => h('div', null, h('b', null, m.nick + ': '), m.body)) : [h('p', { class: 'tiny muted' }, 'No messages yet. Say hello.')]));
+  list.replaceChildren(...(rows.length ? rows.map(m => h('div', { class: 'chat-bubble ' + (m.nick === DB.profile.nick ? 'mine' : 'theirs') }, h('span', { class: 'chat-sender' }, m.nick === DB.profile.nick ? 'You' : m.nick), h('span', { class: 'chat-message' }, m.body))) : [h('p', { class: 'tiny muted' }, 'No messages yet. Say hello.')]));
   list.scrollTop = list.scrollHeight;
 }
 function startChatPoll(G) { if (CHAT_POLL) clearInterval(CHAT_POLL); CHAT_POLL = setInterval(() => loadChat(CHAT_G_REF()), 3000); }
