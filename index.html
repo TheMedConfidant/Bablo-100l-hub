@@ -3665,6 +3665,11 @@ startIncomingChessWatcher();
 startRestReminder();
 setTimeout(liveNotice, 1200);
 
+
+// Same-origin bridge for the isolated chess module. Never expose the token as a property.
+window.BABLO_HUB_SESSION_PROVIDER = Object.freeze({
+  getSessionToken: () => (typeof signedIn === 'function' && signedIn() && DB.account) ? DB.account.token : null
+});
 </script>
 </body>
 </html>

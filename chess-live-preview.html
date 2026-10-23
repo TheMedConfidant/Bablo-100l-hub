@@ -179,7 +179,7 @@ checkButton.addEventListener('click', async () => {
   if (!provider || typeof provider.getSessionToken !== 'function') {
     setStatus(sessionStatus, 'Not detected', '#ffb6a9');
     setStatus(apiStatus, 'Not tested', 'var(--muted)');
-    message.textContent = 'The existing Hub login has not exposed a session-provider bridge on this preview. No token was requested or stored. The next integration step is to connect the real Hub session provider here.';
+    message.textContent = 'No same-origin Hub session bridge was found. Open this chess preview from the same deployment as the Hub and sign in first. No token is requested or stored by this page.';
     checkButton.disabled = false;
     checkButton.textContent = 'Check account connection';
     return;
