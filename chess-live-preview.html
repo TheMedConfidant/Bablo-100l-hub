@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0e13">
+<title>Bablo Chess — Live Game UI Preview</title>
+<style>
+:root{color-scheme:dark;--bg:#090c11;--panel:#111720;--panel2:#151e28;--line:#283340;--gold:#e8bb62;--gold2:#f5d994;--text:#f4f5f7;--muted:#9ca9b8;--light:#e7d7b9;--dark:#536c63;--good:#7ad7a1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#24303a 0,#10151d 35%,var(--bg) 72%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);min-height:100vh}button,select{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.topbar{height:68px;border-bottom:1px solid #ffffff13;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(14px,3vw,42px);gap:14px;background:#090c11b8;backdrop-filter:blur(14px);position:sticky;top:0;z-index:4}.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.3px}.mark{width:36px;height:36px;border-radius:12px;background:linear-gradient(145deg,#f5d994,#b37a2c);color:#17130b;display:grid;place-items:center;font-size:22px;box-shadow:0 0 25px #e8bb6226}.brand small{display:block;color:var(--muted);font-weight:500;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}.topnav{display:flex;gap:6px}.topnav button,.top-actions button{border:1px solid transparent;background:transparent;color:var(--muted);padding:9px 12px;border-radius:10px}.topnav button.active{background:#e8bb6218;color:var(--gold2);border-color:#e8bb6235}.top-actions{display:flex;align-items:center;gap:8px}.pill{font-size:11px;color:var(--gold2);border:1px solid #e8bb6240;background:#e8bb6210;padding:7px 10px;border-radius:99px;white-space:nowrap}
+.wrap{max-width:1320px;margin:auto;padding:24px clamp(12px,2.6vw,32px) 38px}.crumb{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:12px;margin:0 0 18px}.crumb b{color:#e9d3a4;font-weight:600}.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}.maincol{min-width:0}.gamehead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800}.gamehead h1{font-size:clamp(22px,3vw,32px);letter-spacing:-1px;margin:5px 0 0}.headright{display:flex;gap:8px;align-items:center}.ghost,.primary,.danger{border-radius:11px;padding:10px 13px;border:1px solid var(--line);background:#141b24;color:#e9edf2;font-size:12px;font-weight:700}.primary{background:linear-gradient(135deg,#f3d48e,#c28c3d);color:#20170b;border:0}.danger{color:#ffb6a9;border-color:#6d3734;background:#281817}.playerbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 14px;border:1px solid var(--line);background:linear-gradient(135deg,#141c25,#10151d);border-radius:14px}.playerid{display:flex;align-items:center;gap:11px;min-width:0}.avatar{height:36px;width:36px;border-radius:12px;display:grid;place-items:center;font-size:19px;background:#24352f;border:1px solid #476458}.avatar.gold{background:#302719;border-color:#725a32}.playername{font-weight:750;font-size:13px}.sub{color:var(--muted);font-size:11px;margin-top:3px}.clock{font-variant-numeric:tabular-nums;font-size:22px;font-weight:800;letter-spacing:.5px;background:#090d12;padding:8px 12px;border-radius:9px;min-width:88px;text-align:center;border:1px solid #ffffff0d}.clock.active{color:var(--gold2);box-shadow:inset 0 0 0 1px #e8bb6245;background:#201b12}.boardzone{max-width:720px;margin:12px auto 0;position:relative}.board{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));width:100%;aspect-ratio:1;border:5px solid #202a31;border-radius:7px;overflow:hidden;box-shadow:0 18px 50px #0008,0 0 0 1px #ffffff10;touch-action:manipulation}.sq{border:0;border-radius:0;display:grid;place-items:center;position:relative;min-width:0;min-height:0;padding:0}.sq.light{background:var(--light)}.sq.dark{background:var(--dark)}.sq .piece{font-family:"DejaVu Sans","Segoe UI Symbol",serif;font-size:clamp(23px,4.8vw,54px);line-height:1;filter:drop-shadow(0 2px 1px #0004);user-select:none}.piece.white{color:#fffdf5;text-shadow:0 1px 2px #182019,0 0 1px #111}.piece.black{color:#17211f;text-shadow:0 1px 0 #d8dfd3}.sq .coord{position:absolute;font-size:9px;font-weight:800;left:4px;bottom:2px;opacity:.72;pointer-events:none}.sq.light .coord{color:#50645c}.sq.dark .coord{color:#f1dfb8}.sq.last{box-shadow:inset 0 0 0 100px #f0cf6b65}.sq.selected{box-shadow:inset 0 0 0 4px #f3c961}.sq.target:after{content:"";position:absolute;width:23%;height:23%;border-radius:50%;background:#0b171d60;pointer-events:none}.sq.capture:after{content:"";position:absolute;inset:5%;border:4px solid #16211c8c;border-radius:50%;pointer-events:none}.sq:focus-visible{outline:3px solid #f3c961;outline-offset:-4px;z-index:1}.boardnote{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:10px;padding:8px 2px}.captured{min-height:18px;color:#c2cbd4;font-size:14px;letter-spacing:2px}.underboard{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px}.move-controls{display:flex;gap:5px}.iconbtn{height:36px;min-width:38px;border-radius:10px;border:1px solid var(--line);background:#141b24;color:#dfe5ec}.side{display:flex;flex-direction:column;gap:13px}.card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(155deg,#151e28f2,#0e141bf5);overflow:hidden}.cardhead{padding:15px 16px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff0b}.cardhead h2{margin:0;font-size:13px}.tiny{font-size:10px;color:var(--muted)}.cardbody{padding:14px 16px}.engine-row{display:flex;align-items:center;gap:10px}.ecg-orb{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,#fff0b8,#bd8736 55%,#4d3517);color:#17120b;font-size:23px;box-shadow:0 0 22px #e8bb6220;flex-shrink:0}.engine-name{font-size:12px;font-weight:800}.engine-tag{font-size:10px;color:var(--gold);margin-top:3px}.speech{margin-top:13px;border:1px solid #e8bb6226;background:#e8bb620b;padding:12px;border-radius:11px;font-size:12px;line-height:1.6;color:#e8e1d5}.speech strong{color:var(--gold2)}.reactionrow{display:flex;gap:7px;margin-top:10px}.reaction{flex:1;border:1px solid var(--line);background:#111923;border-radius:9px;padding:7px;font-size:17px}.tabs{display:flex;gap:5px;padding:10px 12px 0}.tab{flex:1;padding:8px 5px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);font-size:11px}.tab.active{background:#e8bb6214;color:var(--gold2);border-color:#e8bb6227}.moves{height:176px;overflow:auto;padding:10px 12px}.movegrid{display:grid;grid-template-columns:28px 1fr 1fr;gap:0 6px;font-size:12px}.movegrid div{padding:7px 5px;border-bottom:1px solid #ffffff08}.movegrid .num{color:var(--muted)}.movegrid .latest{background:#e8bb6216;border-radius:5px;color:var(--gold2)}.gameactions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.gameactions button{padding:11px 8px}.gameactions .wide{grid-column:1/-1}.info-list{display:grid;gap:11px}.info-line{display:flex;justify-content:space-between;gap:10px;font-size:11px}.info-line span:first-child{color:var(--muted)}.info-line b{font-weight:700}.footerhint{text-align:center;color:#657180;font-size:10px;margin:25px 0 0}.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#202a33;border:1px solid #e8bb6250;border-radius:12px;padding:12px 16px;font-size:12px;box-shadow:0 15px 40px #0008;transition:.2s;z-index:10;max-width:calc(100vw - 24px)}.toast.show{opacity:1;transform:translate(-50%,0)}.modalback{position:fixed;inset:0;background:#030508b8;backdrop-filter:blur(8px);display:none;place-items:center;padding:20px;z-index:9}.modalback.show{display:grid}.modal{max-width:400px;width:100%;border:1px solid #e8bb6245;border-radius:18px;background:#111821;padding:24px;box-shadow:0 30px 80px #000a}.modal h2{font-size:20px;margin:0 0 9px}.modal p{font-size:13px;line-height:1.65;color:var(--muted)}.modalbuttons{display:flex;gap:9px;justify-content:flex-end;margin-top:18px}
+@media(max-width:940px){.layout{grid-template-columns:minmax(0,1fr) 300px;gap:13px}.topnav button{padding:8px}.wrap{padding-top:18px}}
+@media(max-width:760px){.topbar{height:60px;padding:0 12px}.topnav{display:none}.brand small{display:none}.pill{display:none}.wrap{padding:15px 10px 30px}.crumb{margin-bottom:12px}.layout{grid-template-columns:1fr}.gamehead{margin-bottom:10px}.gamehead h1{font-size:24px}.headright .ghost{padding:9px}.boardzone{max-width:620px;margin-top:9px}.board{border-width:3px}.sq .piece{font-size:clamp(26px,8vw,54px)}.side{display:grid;grid-template-columns:1fr;gap:10px}.playerbar{padding:9px 11px}.clock{font-size:20px}.boardnote{padding:6px 1px}.footerhint{margin-top:18px}}
+@media(min-width:761px){.side .card:first-child{order:0}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="mark">♞</div><div>BABLO CHESS<small>Think sharp. Play bold.</small></div></div>
+  <nav class="topnav" aria-label="Chess navigation"><button>Home</button><button class="active">Play</button><button>Learn</button><button>Compete</button><button>Profile</button></nav>
+  <div class="top-actions"><span class="pill">♛ PHASE 2 · GAME UI</span><button id="exitBtn">← Exit preview</button></div>
+</header>
+<main class="wrap">
+  <div class="crumb">Chess Hub <span>›</span> Play <span>›</span> <b>Live Game UI preview</b></div>
+  <div class="layout">
+    <section class="maincol">
+      <div class="gamehead"><div><div class="eyebrow">Casual practice · Local demo</div><h1>Make your move.</h1></div><div class="headright"><button class="ghost" id="newGame">↻ New demo</button></div></div>
+      <div class="playerbar">
+        <div class="playerid"><div class="avatar">♟</div><div><div class="playername">Dr ECG <span style="color:#8c9b9d">· Bot preview</span></div><div class="sub">Bablo tactical menace</div><div class="captured" id="capturedTop"></div></div></div>
+        <div class="clock" id="topClock">05:00</div>
+      </div>
+      <div class="boardzone">
+        <div class="board" id="board" role="grid" aria-label="Interactive chessboard"></div>
+        <div class="boardnote"><span id="turnNote">White to move · Demo interaction</span><span>Coordinates on</span></div>
+      </div>
+      <div class="playerbar">
+        <div class="playerid"><div class="avatar gold">♙</div><div><div class="playername">You <span style="color:#8c9b9d">· White</span></div><div class="sub">Local board interaction only</div><div class="captured" id="capturedBottom"></div></div></div>
+        <div class="clock active" id="bottomClock">05:00</div>
+      </div>
+      <div class="underboard"><div class="tiny">Select a piece, then a square to preview the move interaction.</div><div class="move-controls"><button class="iconbtn" id="backMove" aria-label="Undo demo move">↶</button><button class="iconbtn" id="forwardMove" aria-label="Redo demo move">↷</button><button class="iconbtn" id="flipBoard" aria-label="Board orientation preview">⇅</button></div></div>
+    </section>
+    <aside class="side">
+      <section class="card">
+        <div class="cardhead"><h2>Dr ECG is watching</h2><span class="tiny">TEXT ONLY</span></div>
+        <div class="cardbody">
+          <div class="engine-row"><div class="ecg-orb">♞</div><div><div class="engine-name">Dr ECG</div><div class="engine-tag">MED STUDENT · TRASH-TALK MODE</div></div></div>
+          <div class="speech" id="speech"><strong>Dr ECG:</strong> Welcome to the board. Show me something better than last-minute cramming. 😏</div>
+          <div class="reactionrow"><button class="reaction" data-reaction="😂">😂</button><button class="reaction" data-reaction="😤">😤</button><button class="reaction" data-reaction="🧠">🧠</button><button class="reaction" data-reaction="🔥">🔥</button></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Game activity</h2><span class="tiny" id="moveCount">0 moves</span></div>
+        <div class="tabs"><button class="tab active" data-tab="moves">Moves</button><button class="tab" data-tab="details">Details</button></div>
+        <div class="moves" id="movePanel"><div class="movegrid" id="moveGrid"><div class="num">—</div><div style="color:#7e8b98">No demo moves yet</div><div></div></div></div>
+        <div class="cardbody" id="detailsPanel" style="display:none"><div class="info-list"><div class="info-line"><span>Mode</span><b>Casual · local</b></div><div class="info-line"><span>Time control</span><b>5 + 0</b></div><div class="info-line"><span>Board orientation</span><b>Fixed by default</b></div><div class="info-line"><span>Server connection</span><b style="color:#e7bd69">Not connected</b></div></div></div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Game controls</h2><span class="tiny">PREVIEW</span></div>
+        <div class="cardbody"><div class="gameactions"><button class="ghost" id="resignBtn">⚑ Resign</button><button class="ghost" id="drawBtn">◇ Offer draw</button><button class="primary wide" id="rematchBtn">↻ Reset board</button></div></div>
+      </section>
+      <section class="card">
+        <div class="cardhead"><h2>Preview scope</h2><span class="tiny">HONEST STATUS</span></div>
+        <div class="cardbody"><div class="info-list"><div class="info-line"><span>Board selection</span><b style="color:var(--good)">Interactive</b></div><div class="info-line"><span>Move log & undo</span><b style="color:var(--good)">Local demo</b></div><div class="info-line"><span>Legal chess engine</span><b>Not connected</b></div><div class="info-line"><span>Online / ratings</span><b>Not connected</b></div></div></div>
+      </section>
+    </aside>
+  </div>
+  <p class="footerhint">Bablo Chess · Phase 2 interface preview. Demo moves are local and are not sent to your live account or saved to the production database.</p>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modalback" id="modalback"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle">End this demo?</h2><p id="modalText">This is a local interface preview. No live game will be affected.</p><div class="modalbuttons"><button class="ghost" id="cancelModal">Keep playing</button><button class="primary" id="confirmModal">Confirm</button></div></div></div>
+<script>
+const start = [
+['bR','bN','bB','bQ','bK','bB','bN','bR'],
+['bP','bP','bP','bP','bP','bP','bP','bP'],
+['','','','','','','',''],
+['','','','','','','',''],
+['','','','','','','',''],
+['','','','','','','',''],
+['wP','wP','wP','wP','wP','wP','wP','wP'],
+['wR','wN','wB','wQ','wK','wB','wN','wR']];
+const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
+let board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer;
+const $=id=>document.getElementById(id);
+function sqName(r,c){return 'abcdefgh'[c]+(8-r)}
+function say(msg){$('speech').innerHTML='<strong>Dr ECG:</strong> '+msg}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2400)}
+function pieceColor(p){return p?p[0]:''}
+function render(){
+ const el=$('board');el.innerHTML='';
+ for(let vr=0;vr<8;vr++){for(let vc=0;vc<8;vc++){
+  const r=flipped?7-vr:vr,c=flipped?7-vc:vc,p=board[r][c],b=document.createElement('button');
+  b.className='sq '+((r+c)%2===0?'light':'dark');b.setAttribute('role','gridcell');b.setAttribute('aria-label',sqName(r,c)+(p?' '+p:' empty'));
+  if(history.length){const last=history[history.length-1];if((last.fr===r&&last.fc===c)||(last.tr===r&&last.tc===c))b.classList.add('last')}
+  if(selected&&selected.r===r&&selected.c===c)b.classList.add('selected');
+  if(targets.some(t=>t.r===r&&t.c===c)){if(board[r][c])b.classList.add('capture');else b.classList.add('target')}
+  if(p){const span=document.createElement('span');span.className='piece '+(p[0]==='w'?'white':'black');span.textContent=glyph[p];b.append(span)}
+  if(vc===0){const co=document.createElement('span');co.className='coord';co.textContent=String(8-r);b.append(co)}
+  if(vr===7){const co=document.createElement('span');co.className='coord';co.style.left='auto';co.style.right='4px';co.style.bottom='auto';co.style.top='2px';co.textContent='abcdefgh'[c];b.append(co)}
+  b.addEventListener('click',()=>clickSquare(r,c));el.append(b)
+ }}
+ $('turnNote').textContent=(whiteTurn?'White':'Black')+' to move · Demo interaction';
+ $('moveCount').textContent=history.length+' '+(history.length===1?'move':'moves');
+ $('capturedTop').textContent=capturedW.map(p=>glyph[p]).join('');
+ $('capturedBottom').textContent=capturedB.map(p=>glyph[p]).join('');
+ const g=$('moveGrid');g.innerHTML='';
+ if(!history.length){g.innerHTML='<div class="num">—</div><div style="color:#7e8b98">No demo moves yet</div><div></div>'}
+ else for(let i=0;i<history.length;i+=2){let n=document.createElement('div'),w=document.createElement('div'),b=document.createElement('div');n.className='num';n.textContent=(i/2+1)+'.';w.textContent=history[i].text;b.textContent=history[i+1]?.text||'';if(i===history.length-1)w.classList.add('latest');if(i+1===history.length-1)b.classList.add('latest');g.append(n,w,b)}
+}
+function getTargets(r,c){let out=[];const p=board[r][c];if(!p)return out;
+ // Deliberately illustrative selection targets, not chess legality validation.
+ for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){if(!dr&&!dc)continue;let nr=r+dr,nc=c+dc;if(nr<0||nr>7||nc<0||nc>7)continue;const q=board[nr][nc];if(!q||pieceColor(q)!==pieceColor(p))out.push({r:nr,c:nc})}
+ return out}
+function clickSquare(r,c){
+ if(!selected){if(!board[r][c]){toast('Select a piece first.');return}selected={r,c};targets=getTargets(r,c);render();return}
+ if(selected.r===r&&selected.c===c){selected=null;targets=[];render();return}
+ if(board[r][c]&&pieceColor(board[r][c])===pieceColor(board[selected.r][selected.c])){selected={r,c};targets=getTargets(r,c);render();return}
+ const p=board[selected.r][selected.c],capt=board[r][c],move={fr:selected.r,fc:selected.c,tr:r,tc:c,piece:p,captured:capt,text:glyph[p]+' '+sqName(r,c)};
+ if(capt){(capt[0]==='w'?capturedW:capturedB).push(capt)}
+ history.push(move);redo=[];board[r][c]=p;board[selected.r][selected.c]='';selected=null;targets=[];whiteTurn=!whiteTurn;render();
+ const lines=['That was a move. I am waiting for the part where you surprise me. 😏','Interesting. Even my ECG line paused for that one.','You moved with confidence. Let’s see if the position agrees. 🧠','No panic—just calculate before you donate another piece.','A bold choice. Bowen exam week has clearly trained your nerves.'];
+ say(lines[(history.length-1)%lines.length]);
+}
+function restoreMove(m,forward){if(forward){board[m.tr][m.tc]=m.piece;board[m.fr][m.fc]='';if(m.captured){let arr=m.captured[0]==='w'?capturedW:capturedB;arr.pop()}history.push(m);whiteTurn=!whiteTurn}else{board[m.fr][m.fc]=m.piece;board[m.tr][m.tc]=m.captured||'';if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);history.pop();whiteTurn=!whiteTurn}render()}
+function reset(){board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Please calculate first; my clinic is not accepting donated queens today. 😌');render();toast('Local demo board reset.')}
+function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
+$('cancelModal').onclick=()=>$('modalback').classList.remove('show');
+$('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
+$('newGame').onclick=reset;$('rematchBtn').onclick=reset;
+$('backMove').onclick=()=>{if(!history.length){toast('No move to undo yet.');return}const m=history.pop();redo.push(m);restoreMove(m,false);say('Takeback noted. Even the best students correct their work.')}
+$('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true)}
+$('flipBoard').onclick=()=>{flipped=!flipped;render();toast('Board orientation preview toggled. Online games will keep the approved fixed orientation.')}
+$('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
+$('drawBtn').onclick=()=>toast('Draw offers are outside this preview scope.');
+$('exitBtn').onclick=()=>showModal('Leave this preview?','You can return to the separate dashboard design preview. This does not affect your live account.',()=>{location.href='/chess-preview.html'},'Exit preview');
+document.querySelectorAll('[data-reaction]').forEach(b=>b.onclick=()=>{const e=b.dataset.reaction;toast('Reaction preview: '+e);say('I see that reaction. Now show me a move to match it. '+e)});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const details=b.dataset.tab==='details';$('movePanel').style.display=details?'none':'block';$('detailsPanel').style.display=details?'block':'none'});
+document.querySelectorAll('.topnav button').forEach(b=>b.onclick=()=>toast(b.textContent+' navigation is not connected in this isolated preview.'));
+render();
+</script>
+</body></html>
