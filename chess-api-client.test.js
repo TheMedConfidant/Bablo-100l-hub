@@ -69,6 +69,36 @@ test("surfaces a safe API error when the server rejects a request", async () => 
   await assert.rejects(client.move("game-id", "e7e5"), /It is not your turn/);
 });
 
+test("rejects malformed UCI moves without calling the server", async () => {
+  let called = false;
+  const client = createChessApiClient({
+    endpoint: "https://example.test/functions/v1/chess-api",
+    getSessionToken: () => session,
+    fetchImpl: async () => { called = true; return response({ ok: true }); },
+  });
+  await assert.rejects(client.move("game-id", "e2e5-wrong"), /Move must use UCI format/);
+  assert.equal(called, false);
+});
+
+test("trims chat and blocks empty or overlong messages before the server call", async () => {
+  let sentBody;
+  let calls = 0;
+  const client = createChessApiClient({
+    endpoint: "https://example.test/functions/v1/chess-api",
+    getSessionToken: () => session,
+    fetchImpl: async (_url, init) => {
+      calls++;
+      sentBody = JSON.parse(init.body);
+      return response({ ok: true });
+    },
+  });
+  await client.sendMessage("game-id", "  Good game  ");
+  assert.equal(sentBody.message, "Good game");
+  await assert.rejects(client.sendMessage("game-id", "  "), /Messages must be 1–200 characters/);
+  await assert.rejects(client.sendMessage("game-id", "x".repeat(201)), /Messages must be 1–200 characters/);
+  assert.equal(calls, 1);
+});
+
 test("rejects malformed server responses", async () => {
   const client = createChessApiClient({
     endpoint: "https://example.test/functions/v1/chess-api",
