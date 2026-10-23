@@ -2194,6 +2194,7 @@ function chessMenu() {
       h('button', { class: 'btn gold block', onclick: createOnline }, 'Create a challenge'),
       h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
       h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
+      h('h3', null, 'Friends'), h('div', { id: 'chessFriendsList', class: 'stack' }, (DB.chessFriends || []).length ? DB.chessFriends.map(f => h('div', { class: 'row between' }, h('span', null, h('b', null, f.nick), h('div', { class: 'tiny muted' }, 'Added on this device')), h('button', { class: 'btn sm ghost', onclick: () => { DB.chessFriends = (DB.chessFriends || []).filter(x => x.dev !== f.dev); save(); chessMenu(); } }, 'Remove'))) : [h('p', { class: 'muted small' }, 'Add an opponent from an online game to save them here.')]),
       h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list')))));
   loadOpenList();
 }
@@ -2353,6 +2354,7 @@ function chessView() {
   mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: ev => { ev.preventDefault(); stopChessTick(); stopOnlinePoll(); stopChatPoll(); if (CHESS && CHESS.clock) { const side = CHESS.clock.side; CHESS.clock[side] = clockMs(CHESS, side); CHESS.clock.at = Date.now(); CHESS.clock.paused = true; } chessMenu(); } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { id: 'onlinePlayers', class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
+      G.mode === 'online' ? h('button', { class: 'btn ghost block', onclick: () => addChessFriend(G) }, (DB.chessFriends || []).some(f => f.dev === (G.color === 'w' ? G.online.black_dev : G.online.white_dev)) ? 'Opponent is a friend ✓' : 'Add opponent as friend') : null,
       G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { id: 'drEcgLine', class: 'tiny muted', style: { margin: '0', minHeight: '1.2em' } }, '“Let’s examine that move.”'))) : null,
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
@@ -2495,8 +2497,20 @@ function popChessReaction(emoji) {
   document.body.append(el); setTimeout(() => el.remove(), 1350);
 }
 
-let CHAT_POLL = null;
+let CHAT_POLL = null, CHAT_LAST_ID = null, CHAT_LAST_GAME = null;
 const CHAT_EMOJI = ['\u{1F44D}', '\u{1F602}', '\u{1F525}', '\u{1F62E}', '\u{1F622}', '\u{1F64F}', '\u{1F3AF}', '\u{1F9E0}'];
+function addChessFriend(G) {
+  if (!G || G.mode !== 'online' || !G.online) return;
+  const dev = G.color === 'w' ? G.online.black_dev : G.online.white_dev;
+  const nick = G.color === 'w' ? G.online.black : G.online.white;
+  if (!dev || !nick) { toast('Your opponent has not joined yet.'); return; }
+  if (dev === DB.dev) { toast('That is your own account.'); return; }
+  DB.chessFriends = Array.isArray(DB.chessFriends) ? DB.chessFriends : [];
+  if (DB.chessFriends.some(f => f.dev === dev)) { toast(nick + ' is already on your friends list.'); return; }
+  DB.chessFriends.unshift({ dev, nick: String(nick).slice(0, 30), addedAt: Date.now() });
+  DB.chessFriends = DB.chessFriends.slice(0, 100); save(); toast(nick + ' added to your friends list.');
+  if (location.hash.startsWith('#/chess')) chessDraw();
+}
 function chatPanel(G) {
   const list = h('div', { id: 'chatList', class: 'stack', style: { maxHeight: '180px', overflowY: 'auto', fontSize: '.9rem' } }, h('p', { class: 'tiny muted' }, 'Chat clears when the game ends.'));
   const input = h('input', { type: 'text', maxlength: '200', placeholder: 'Say something', 'aria-label': 'Chat message' });
@@ -2513,8 +2527,11 @@ function chatPanel(G) {
 }
 async function loadChat(G) {
   if (!G || !G.online || !document.getElementById('chatList')) return;
-  const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=nick,body,created_at&order=created_at.asc&limit=100');
+  const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=id,nick,body,created_at&order=created_at.asc&limit=100');
   const list = document.getElementById('chatList'); if (!list || !Array.isArray(rows)) return;
+  const latest = rows.reduce((m, r) => Math.max(m, Number(r.id) || 0), 0);
+  if (CHAT_LAST_GAME === G.online.id && CHAT_LAST_ID !== null && rows.some(m => Number(m.id) > CHAT_LAST_ID && m.nick !== DB.profile.nick)) playAppSound('chess');
+  if (CHAT_LAST_GAME !== G.online.id) { CHAT_LAST_GAME = G.online.id; CHAT_LAST_ID = latest; } else CHAT_LAST_ID = Math.max(CHAT_LAST_ID || 0, latest);
   list.replaceChildren(...(rows.length ? rows.map(m => h('div', { class: 'chat-bubble ' + (m.nick === DB.profile.nick ? 'mine' : 'theirs') }, h('span', { class: 'chat-sender' }, m.nick === DB.profile.nick ? 'You' : m.nick), h('span', { class: 'chat-message' }, m.body))) : [h('p', { class: 'tiny muted' }, 'No messages yet. Say hello.')]));
   list.scrollTop = list.scrollHeight;
 }
@@ -3282,13 +3299,14 @@ function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
+  const sound = h('button', { class: 'opt', 'aria-pressed': String(!!DB.sound), onclick: () => { DB.sound = !DB.sound; save(); toast(DB.sound ? 'Sound effects on.' : 'Sound effects off.'); settingsView(); } }, DB.sound ? 'On' : 'Off');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Settings')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
       h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
-      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
+      h('div', { class: 'row between' }, h('span', null, 'Sound effects (timer and chess)'), sound), h('p', { class: 'tiny muted' }, 'Sound is optional. Browser notification permission is separate from sound effects.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
       h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
     h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' \u2022 version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '\u00A9 Bababola Moses Bolawaife, The MedConfidant Channel')))));
