@@ -2425,8 +2425,8 @@ function renderOnlineFriendAction(G) {
     toast((opponent.nick || 'Friend') + ' saved on this device.');
   } }, isFriend ? '✓ Friend saved' : (opponent.dev ? 'Add ' + (opponent.nick || 'opponent') + ' as friend' : 'Waiting for opponent…'));
   const actions = [add];
-  if (G.online.status === 'waiting') actions.push(h('button', { class: 'btn sm ghost', onclick: () => shareOnlineChallenge(G) }, 'Share challenge code'));
-  box.replaceChildren(h('div', { class: 'row wrapr' }, ...actions), h('p', { class: 'tiny muted' }, 'Friend list is saved on this device. Online rating updates after a completed game.'));
+  if (G.online.status === 'waiting' && !G.online.targetDev) actions.push(h('button', { class: 'btn sm ghost', onclick: () => shareOnlineChallenge(G) }, 'Share challenge code'));
+  box.replaceChildren(h('div', { class: 'row wrapr' }, ...actions), h('p', { class: 'tiny muted' }, G.online.status === 'waiting' && G.online.targetDev ? 'Direct invitation sent. Waiting for your friend to accept.' : 'Friend list is saved on this device. Online rating updates after a completed game.'));
 }
 async function shareOnlineChallenge(G) {
   if (!G || !G.online) return;
@@ -2446,9 +2446,8 @@ function renderSavedChessFriends() {
     h('div', { class: 'stack', style: { gap: '2px', minWidth: '0' } }, h('b', null, f.nick), h('span', { class: 'tiny muted' }, 'Online chess friend')),
     h('div', { class: 'row wrapr' },
       h('button', { class: 'btn sm primary', onclick: async () => {
-        const before = CHESS && CHESS.online ? CHESS.online.id : '';
-        await createOnline();
-        if (CHESS && CHESS.mode === 'online' && CHESS.online.id !== before) { CHESS.online.targetNick = f.nick; await shareOnlineChallenge(CHESS); }
+        await createOnline(f.dev);
+        if (CHESS && CHESS.mode === 'online' && CHESS.online.targetDev === f.dev) toast('Chess challenge sent to ' + f.nick + '. They will get an in-app prompt.');
       } }, 'Challenge'),
       h('button', { class: 'btn sm ghost', onclick: () => { DB.chessFriends = savedChessFriends().filter(x => x.dev !== f.dev); save(); renderSavedChessFriends(); } }, 'Remove')
     )
@@ -2457,29 +2456,59 @@ function renderSavedChessFriends() {
 async function loadOpenList() {
   const box = document.getElementById('openList'); if (!box) return;
   if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Online challenges turn on when the live database is connected.')); return; }
-  const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=20');
+  const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,target_dev,created_at&order=created_at.desc&limit=20');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
-  const open = rows.filter(r => r.white_dev !== DB.dev);
+  const open = rows.filter(r => r.white_dev !== DB.dev && (!r.target_dev || r.target_dev === DB.dev));
   box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => joinOnline(r.code) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
 }
 function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
-function onlineState(color, id, code, status, white, black, whiteDev, blackDev) {
-  return { mode: 'online', online: { id, code, status, recorded: false, ratingApplied: false, white: white || DB.profile.nick, black: black || '', whiteDev: whiteDev || '', blackDev: blackDev || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
+
+let INCOMING_CHESS_TIMER = null, INCOMING_CHESS_BUSY = false;
+async function pollIncomingChessChallenges() {
+  if (INCOMING_CHESS_BUSY || !liveOn() || !DB.profile || !DB.dev) return;
+  if (CHESS && CHESS.mode === 'online' && !gameOver(CHESS).over) return;
+  INCOMING_CHESS_BUSY = true;
+  try {
+    const rows = await sbFetchJson('chess_games?status=eq.waiting&target_dev=eq.' + encodeURIComponent(DB.dev) + '&select=id,code,white_nick,white_dev,target_dev,created_at&order=created_at.desc&limit=5');
+    if (!Array.isArray(rows) || !rows.length) return;
+    if (!Array.isArray(DB.seenChessInvites)) DB.seenChessInvites = [];
+    const fresh = rows.find(r => r.id && !DB.seenChessInvites.includes(r.id));
+    if (!fresh) return;
+    DB.seenChessInvites.push(fresh.id);
+    DB.seenChessInvites = DB.seenChessInvites.slice(-60);
+    save();
+    playNoticeSound('chess');
+    try { if (DB.notify && 'Notification' in window && Notification.permission === 'granted') new Notification('Chess challenge received', { body: (fresh.white_nick || 'A friend') + ' challenged you. Open Bablo Hub to accept.' }); } catch (e) {}
+    const accept = await confirmBox({ title: '♟ Chess challenge received', msg: (fresh.white_nick || 'A friend') + ' wants to play you online. Accept the challenge?', ok: 'Accept', cancel: 'Later' });
+    if (accept) await joinOnline(fresh.code);
+    else toast('Challenge saved under Chess → Open challenges.');
+  } catch (e) { /* invitations must never block the app */ }
+  finally { INCOMING_CHESS_BUSY = false; }
 }
-async function createOnline() {
+function startIncomingChessWatcher() {
+  if (INCOMING_CHESS_TIMER) clearInterval(INCOMING_CHESS_TIMER);
+  INCOMING_CHESS_TIMER = setInterval(pollIncomingChessChallenges, 9000);
+  setTimeout(pollIncomingChessChallenges, 2200);
+}
+
+function onlineState(color, id, code, status, white, black, whiteDev, blackDev, targetDev) {
+  return { mode: 'online', online: { id, code, status, recorded: false, ratingApplied: false, white: white || DB.profile.nick, black: black || '', whiteDev: whiteDev || '', blackDev: blackDev || '', targetDev: targetDev || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
+}
+async function createOnline(targetDev) {
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
   const code = rnd6();
-  const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, status: 'waiting', moves: '' }) });
+  const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, target_dev: targetDev || null, status: 'waiting', moves: '' }) });
   if (!Array.isArray(row) || !row[0]) { toast('Could not create the challenge. Try again.'); return; }
-  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, '', DB.dev, ''));
+  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, '', DB.dev, '', targetDev || ''));
 }
 async function joinOnline(raw) {
   const code = String(raw || '').trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
   if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
-  const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick');
+  const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick,target_dev');
   if (!Array.isArray(found) || !found.length) { toast('No open challenge with that code.'); return; }
   if (found[0].white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
+  if (found[0].target_dev && found[0].target_dev !== DB.dev) { toast('This challenge was sent to someone else.'); return; }
   const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
   if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
   startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick, found[0].white_dev, DB.dev));
@@ -3596,6 +3625,7 @@ applyTheme();
 loadHidden();
 window.addEventListener('hashchange', route);
 route();
+startIncomingChessWatcher();
 setTimeout(liveNotice, 1200);
 
 </script>
