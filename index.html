@@ -1494,7 +1494,7 @@ const plural = (n, s) => n + ' ' + s + (n === 1 ? '' : 's');
 
 /* ---------- saved state (this device) ---------- */
 const KEY = 'bablo100l:v1';
-let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'glass', dev: '' };
+let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'glass', dev: '', soundAlerts: false };
 try { Object.assign(DB, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* storage unavailable: stay in memory */ }
 if (!DB.dev) DB.dev = uid();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* ignore */ } if (typeof queuePush === 'function') queuePush(); }
@@ -2502,11 +2502,18 @@ async function pollOnlineOnce(G) {
   const opponentJoined = !!g.black_dev && G.online.blackDev !== g.black_dev;
   G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
   G.online.whiteDev = g.white_dev || G.online.whiteDev; G.online.blackDev = g.black_dev || G.online.blackDev;
-  if (opponentJoined) { refreshOnlineRatingLine(G); renderOnlineFriendAction(G); }
+  if (opponentJoined) {
+    refreshOnlineRatingLine(G); renderOnlineFriendAction(G);
+    if (G.color === 'w') {
+      playNoticeSound('chess'); toast((g.black_nick || 'Your opponent') + ' joined your chess challenge.');
+      try { if (DB.notify && 'Notification' in window && Notification.permission === 'granted') new Notification('Chess challenge accepted', { body: (g.black_nick || 'Your opponent') + ' joined your game.' }); } catch (e) {}
+    }
+  }
+  const previousMoveCount = G.moves.length;
   const moves = g.moves ? g.moves.split(' ') : [];
   if (moves.length > G.moves.length) {
     const s = Chess.replay(moves);
-    if (s) { G.s = s; G.moves = moves; const prev = Chess.replay(moves.slice(0, -1)); const lm = prev && Chess.fromUci(prev, moves[moves.length - 1]); G.last = lm ? { from: lm.from, to: lm.to } : null; }
+    if (s) { G.s = s; G.moves = moves; const prev = Chess.replay(moves.slice(0, -1)); const lm = prev && Chess.fromUci(prev, moves[moves.length - 1]); G.last = lm ? { from: lm.from, to: lm.to } : null; if (moves.length > previousMoveCount && G.s.turn === G.color) playNoticeSound('chess'); }
   }
   if (g.status === 'finished' && g.result && !G.endResult) {
     G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
@@ -3044,13 +3051,29 @@ function downloadIcs(ev) {
 }
 function fmtTime(sec) { sec = Math.max(0, sec | 0); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
 function pomoCfg() { const c = DB.pomo || {}; return { focus: Math.min(120, Math.max(1, +c.focus || 25)), brk: Math.min(60, Math.max(1, +c.brk || 5)) }; }
+let NOTICE_AUDIO = null;
+function playNoticeSound(kind) {
+  if (!DB.soundAlerts) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    if (!NOTICE_AUDIO) NOTICE_AUDIO = new AC();
+    const ctx = NOTICE_AUDIO; if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    const notes = kind === 'chess' ? [880, 1174] : [740, 988];
+    notes.forEach((hz, i) => {
+      const start = ctx.currentTime + i * 0.14, osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(hz, start);
+      gain.gain.setValueAtTime(0.0001, start); gain.gain.exponentialRampToValueAtTime(0.075, start + 0.025); gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.12);
+      osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start + 0.13);
+    });
+  } catch (e) { /* sound is optional and must never block the app */ }
+}
 let POMO = { left: 25 * 60, running: false, started: false, mode: 'focus', h: null };
 function pomoTick() {
   POMO.left -= 1;
   if (POMO.left <= 0) {
     clearInterval(POMO.h); POMO.h = null; POMO.running = false; POMO.started = false;
     const done = POMO.mode === 'focus' ? 'Focus session done. Take a 5-minute break.' : 'Break over. Back to it.';
-    toast(done); try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
+    toast(done); playNoticeSound('timer'); try { if (DB.notify && 'Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
     POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? pomoCfg().focus : pomoCfg().brk) * 60;
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
@@ -3069,7 +3092,7 @@ function renderPomoFloat() {
     const toggle = document.createElement('button'); toggle.id = 'pomoFloatToggle'; toggle.className = 'btn sm primary'; toggle.type = 'button';
     toggle.addEventListener('click', () => {
       if (POMO.running) { clearInterval(POMO.h); POMO.h = null; POMO.running = false; }
-      else { POMO.running = true; POMO.h = setInterval(pomoTick, 1000); try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} }
+      else { POMO.running = true; POMO.h = setInterval(pomoTick, 1000); try { if (DB.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} }
       renderPomoFloat();
     });
     const open = document.createElement('button'); open.className = 'btn sm ghost'; open.type = 'button'; open.textContent = 'Open timer';
@@ -3377,13 +3400,14 @@ function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
+  const sound = h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); if (DB.soundAlerts) playNoticeSound('chess'); toast(DB.soundAlerts ? 'Sound alerts on.' : 'Sound alerts off.'); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Settings')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
       h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
-      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Phone notifications need the app installed on the home screen, and are being added next.')),
+      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Browser notifications require permission.'), h('div', { class: 'row between' }, h('span', null, 'Sound effects for timer and chess'), sound), h('p', { class: 'tiny muted' }, 'Optional short tones for timer completion, incoming chess moves and accepted challenges.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
       h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
     h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' \u2022 version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '\u00A9 Bababola Moses Bolawaife, The MedConfidant Channel')))));
