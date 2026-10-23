@@ -1404,8 +1404,8 @@ window.__BANK__.push(...[{"i":"COSPLUS-2026-261","c":"COS","u":"COS 101 +++","s"
     const sourceDoc = new DOMParser().parseFromString(req.responseText, 'text/html');
     const noteRoot = sourceDoc.querySelector('#n');
     const scriptText = Array.from(sourceDoc.scripts).map(x => x.textContent || '').join('\n');
-    const qMatch = scriptText.match(/const Q=\x60([\s\S]*?)\x60\.split\("\\n"\)\.map\(l=>l\.split\("\\|"\)\);/);
-    const fMatch = scriptText.match(/const F=\x60([\s\S]*?)\x60\.split\("\\n"\)\.map\(l=>l\.split\("\\|"\)\);/);
+    const qMatch = scriptText.match(/const Q=\x60([\s\S]*?)\x60\.split/);
+    const fMatch = scriptText.match(/const F=\x60([\s\S]*?)\x60\.split/);
     if (!noteRoot || !qMatch || !fMatch) throw new Error('Could not parse AGR 101 pack content');
     const topics = [];
     let current = null;
