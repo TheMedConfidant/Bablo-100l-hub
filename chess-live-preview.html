@@ -16,7 +16,7 @@
 
 /* Primary chess navigation pages */
 .pageview{animation:pageIn .22s ease both}.pagehero{padding:26px;border:1px solid #e8bb6233;border-radius:20px;background:radial-gradient(ellipse at 90% 0,#e8bb621b,transparent 48%),linear-gradient(145deg,#151e28,#0d1219);margin-bottom:18px}.pagehero h1{font-size:clamp(26px,4vw,40px);letter-spacing:-1.3px;margin:7px 0 8px}.pagehero p{max-width:680px;color:var(--muted);font-size:13px;line-height:1.7;margin:0}.pagegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.pagecard{border:1px solid var(--line);border-radius:16px;background:linear-gradient(155deg,#151e28,#0e141b);padding:18px;min-width:0}.pagecard .cardicon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#e8bb6217;border:1px solid #e8bb6230;font-size:21px;margin-bottom:15px}.pagecard h2{font-size:15px;margin:0 0 7px}.pagecard p{font-size:12px;line-height:1.65;color:var(--muted);margin:0 0 15px}.pagecard button{width:100%;text-align:center}.metricgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.metric{padding:16px;border:1px solid var(--line);border-radius:14px;background:#111821}.metric strong{display:block;font-size:23px;color:var(--gold2);letter-spacing:-.5px}.metric span{font-size:10px;color:var(--muted)}.statuschip{display:inline-flex;border-radius:99px;border:1px solid #e8bb6233;background:#e8bb6210;color:var(--gold2);padding:6px 9px;font-size:10px}.page-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}@keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}@media(max-width:760px){.pagegrid{grid-template-columns:1fr 1fr}.metricgrid{grid-template-columns:1fr 1fr}.pagehero{padding:20px}.pagecard{padding:15px}}@media(max-width:440px){.pagegrid{grid-template-columns:1fr}}
-</style>
+.online-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}.online-card{display:block}.online-card .cardicon{margin-bottom:12px}.online-label{display:block;font-size:11px;color:var(--muted);margin:12px 0 7px}.online-input{display:block;width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#0b1118;color:var(--text);margin-bottom:12px}.online-check{display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:11px;line-height:1.5;margin:12px 0}.online-check input{margin-top:2px;accent-color:var(--gold)}.online-card button{margin-top:8px}.invite-code-panel{padding:15px;margin-top:14px;border:1px solid #e8bb6240;border-radius:13px;background:#e8bb620b}.invite-code{font:800 29px/1.3 ui-monospace,monospace;letter-spacing:7px;color:var(--gold2);margin:5px 0}.iconbtn:disabled{opacity:.4;cursor:not-allowed}@media(max-width:760px){.online-grid{grid-template-columns:1fr}}\n</style>
 </head>
 <body>
 <header class="topbar">
@@ -121,10 +121,11 @@ function render(){
   if(vr===7){const co=document.createElement('span');co.className='coord';co.style.left='auto';co.style.right='4px';co.style.bottom='auto';co.style.top='2px';co.textContent='abcdefgh'[c];b.append(co)}
   b.addEventListener('click',()=>clickSquare(r,c));el.append(b)
  }}
- $('turnNote').textContent=(whiteTurn?'Your move · White':'Dr ECG to move · Black')+(game.in_check()?' · CHECK':'')+' · Legal moves highlighted';
+ if(onlineGame){const side=game.turn()==='w'?'White':'Black';const status=onlineGame.status==='waiting'?'Waiting for opponent':onlineGame.status==='finished'?'Game finished':game.turn()===onlineColor?'Your move':'Opponent to move';$('turnNote').textContent=status+' · '+side+' to move'+(game.in_check()?' · CHECK':'')+' · Server-validated'}else $('turnNote').textContent=(whiteTurn?'Your move · White':'Dr ECG to move · Black')+(game.in_check()?' · CHECK':'')+' · Legal moves highlighted';
  $('moveCount').textContent=history.length+' '+(history.length===1?'move':'moves');
  $('capturedTop').textContent=capturedB.map(p=>glyph[p]).join('');
  $('capturedBottom').textContent=capturedW.map(p=>glyph[p]).join('');
+ updateOnlinePlayerLabels();
  const g=$('moveGrid');g.innerHTML='';
  if(!history.length){g.innerHTML='<div class="num">—</div><div style="color:#7e8b98">No demo moves yet</div><div></div>'}
  else for(let i=0;i<history.length;i+=2){let n=document.createElement('div'),w=document.createElement('div'),b=document.createElement('div');n.className='num';n.textContent=(i/2+1)+'.';w.textContent=history[i].text;b.textContent=history[i+1]?.text||'';if(i===history.length-1)w.classList.add('latest');if(i+1===history.length-1)b.classList.add('latest');g.append(n,w,b)}
@@ -195,7 +196,8 @@ function playDrECGMove(){
  }
  announceGameState();
 }
-function finishHumanMove(from,to,promotion){
+async function finishHumanMove(from,to,promotion){
+ if(onlineGame){await submitOnlineMove(from,to,promotion);return}
  const startSquare=sqCoords(from),piece=board[startSquare.r][startSquare.c];
  const played=game.move({from,to,promotion:promotion||'q'});
  if(!played){toast('That move is not legal.');return}
@@ -214,12 +216,16 @@ function askPromotion(onChoice){
  modalAction=()=>{const selectedPromotion=select.value;onChoice(selectedPromotion)};$('modalback').classList.add('show');
 }
 function clickSquare(r,c){
+ if(onlineMovePending){toast('Your move is being checked by the server…');return}
  if(game.game_over()){toast('The game has ended. Start a new game to continue.');return}
- if(game.turn()!=='w'){toast('Dr ECG is calculating a reply…');return}
+ const myColor=onlineGame?onlineColor:'w';
+ if(!myColor){toast('This account is not a player in the current game.');return}
+ if(onlineGame&&onlineGame.status!=='active'){toast(onlineGame.status==='waiting'?'Waiting for your opponent to accept the challenge.':'This online game has ended.');return}
+ if(game.turn()!==myColor){toast(onlineGame?'Waiting for your opponent’s move…':'Dr ECG is calculating a reply…');return}
  const name=sqName(r,c);
- if(!selected){if(!board[r][c]||pieceColor(board[r][c])!=='w'){toast('Select one of your white pieces.');return}selected={r,c};targets=getTargets(r,c);render();return}
+ if(!selected){if(!board[r][c]||pieceColor(board[r][c])!==myColor){toast('Select one of your own pieces.');return}selected={r,c};targets=getTargets(r,c);render();return}
  if(selected.r===r&&selected.c===c){selected=null;targets=[];render();return}
- if(board[r][c]&&pieceColor(board[r][c])==='w'){selected={r,c};targets=getTargets(r,c);render();return}
+ if(board[r][c]&&pieceColor(board[r][c])===myColor){selected={r,c};targets=getTargets(r,c);render();return}
  const from=sqName(selected.r,selected.c),to=name;
  const legal=game.moves({square:from,verbose:true}).find(m=>m.to===to);
  if(!legal){toast('That move is not legal. Choose a highlighted square.');return}
@@ -247,7 +253,7 @@ $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modal
 $('newGame').onclick=reset;$('rematchBtn').onclick=reset;
 $('backMove').onclick=()=>{if(botTimer){clearTimeout(botTimer);botTimer=null}if(!history.length){toast('No move to undo yet.');return}let undone=0;while(history.length){const m=history[history.length-1];redo.push(m);restoreMove(m,false);undone++;if(m.piece?.[0]==='w'||undone>=2)break}say('Takeback noted. Even the best students correct their work.');toast('Last turn taken back. You can try another line.')}
 $('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else botTimer=setTimeout(playDrECGMove,520)}}
-$('flipBoard').onclick=()=>{flipped=!flipped;render();toast('Board orientation preview toggled. Online games will keep the approved fixed orientation.')}
+$('flipBoard').onclick=()=>{if(onlineGame){toast('Online games keep the board orientation fixed.');return}flipped=!flipped;render();toast('Board orientation preview toggled.')}
 $('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
 $('drawBtn').onclick=()=>toast('Draw offers are outside this preview scope.');
 $('exitBtn').onclick=()=>showModal('Leave this preview?','You can return to the separate dashboard design preview. This does not affect your live account.',()=>{location.href='/chess-preview.html'},'Exit preview');
