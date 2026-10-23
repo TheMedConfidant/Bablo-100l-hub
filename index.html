@@ -2525,7 +2525,7 @@ async function joinOnline(raw) {
   const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick,target_dev');
   if (!Array.isArray(found) || !found.length) { toast('No open challenge with that code.'); return; }
   if (found[0].white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
-  if (found[0].target_dev && found[0].target_dev !== DB.dev) { toast('This challenge was sent to someone else.'); return; }
+  if (found[0].target_dev && found[0].target_dev !== DB.dev) { /* Device IDs can change after reinstall, storage clearing, or switching browsers. A valid six-character challenge code is the explicit invitation; allow the code holder to join. */ }
   const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
   if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
   startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick, found[0].white_dev, DB.dev));
