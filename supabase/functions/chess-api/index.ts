@@ -29,21 +29,34 @@ async function hubIdentity(token: string) {
     Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
   };
-  const query = new URLSearchParams({
-    select: "unique_id,expires_at,hub_accounts(unique_id,nickname,programme,is_guest)",
+  const sessionQuery = new URLSearchParams({
+    select: "unique_id",
     token: `eq.${token}`,
     expires_at: `gt.${new Date().toISOString()}`,
     limit: "1",
   });
-  const response = await fetch(`${base}/rest/v1/hub_sessions?${query}`, {
+  const sessionResponse = await fetch(`${base}/rest/v1/hub_sessions?${sessionQuery}`, {
     headers,
     signal: AbortSignal.timeout(5000),
   });
-  if (!response.ok) throw new Error("Session validation service unavailable");
-  const rows = await response.json();
-  if (!Array.isArray(rows) || rows.length !== 1 || !rows[0].hub_accounts) return null;
-  const account = Array.isArray(rows[0].hub_accounts) ? rows[0].hub_accounts[0] : rows[0].hub_accounts;
-  if (!account || account.unique_id !== rows[0].unique_id) return null;
+  if (!sessionResponse.ok) throw new Error("Session validation service unavailable");
+  const sessions = await sessionResponse.json();
+  if (!Array.isArray(sessions) || sessions.length !== 1 || typeof sessions[0].unique_id !== "string") return null;
+
+  const accountQuery = new URLSearchParams({
+    select: "unique_id,nickname,programme,is_guest",
+    unique_id: `eq.${sessions[0].unique_id}`,
+    limit: "1",
+  });
+  const accountResponse = await fetch(`${base}/rest/v1/hub_accounts?${accountQuery}`, {
+    headers,
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!accountResponse.ok) throw new Error("Account validation service unavailable");
+  const accounts = await accountResponse.json();
+  if (!Array.isArray(accounts) || accounts.length !== 1) return null;
+  const account = accounts[0];
+  if (account.unique_id !== sessions[0].unique_id) return null;
   return {
     uniqueId: account.unique_id,
     nickname: account.nickname,
