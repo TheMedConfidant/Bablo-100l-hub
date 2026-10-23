@@ -3305,7 +3305,7 @@ function settingsView() {
     h('div', { class: 'stack' }, h('h1', null, 'Settings')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: () => DB.alerts ? disablePushAlerts() : enablePushAlerts() }, DB.alerts ? 'On' : 'Turn on')),
       h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
       h('div', { class: 'row between' }, h('span', null, 'Sound effects (timer and chess)'), sound), h('p', { class: 'tiny muted' }, 'Sound is optional. Browser notification permission is separate from sound effects.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
@@ -3401,19 +3401,39 @@ function b64uToBytes(str) { const s = str.replace(/-/g, '+').replace(/_/g, '/');
 function bytesToB64u(buf) { const b = new Uint8Array(buf); let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 async function pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
 async function enablePushAlerts() {
-  if (!(await pushSupported())) { toast('Your browser does not support alerts. On iPhone, add the app to the home screen first.'); return; }
-  const perm = await Notification.requestPermission();
-  if (perm !== 'granted') { toast('Alerts stay off until you allow notifications.'); return; }
+  if (!(await pushSupported())) { toast('This browser cannot use push alerts. Try installing Bablo Hub to your home screen if supported.'); return; }
+  let perm;
+  try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
+  if (perm !== 'granted') { DB.alerts = false; save(); toast('Alerts stay off until you allow notifications in your browser.'); settingsView(); return; }
   try {
-    const got = await fetch(PUSH_FN(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'public' }) }).then(r => r.json());
+    const publicResp = await fetch(PUSH_FN(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'public' }) });
+    if (!publicResp.ok) throw new Error('Could not retrieve push key');
+    const got = await publicResp.json();
+    if (!got || !got.public) throw new Error('Push key missing');
+    await navigator.serviceWorker.register('./sw.js');
     const reg = await navigator.serviceWorker.ready;
-    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(got.public) }));
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(got.public) });
     const j = sub.toJSON();
-    await fetch(LB.url + '/rest/v1/push_subscriptions', { method: 'POST', headers: sbHeaders({ Prefer: 'resolution=ignore-duplicates,return=minimal' }), body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }) });
+    if (!j.endpoint || !j.keys || !j.keys.p256dh || !j.keys.auth) throw new Error('Invalid push subscription');
+    const saved = await fetch(LB.url + '/rest/v1/push_subscriptions', { method: 'POST', headers: sbHeaders({ Prefer: 'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }) });
+    if (!saved.ok) throw new Error('Subscription could not be saved');
     DB.alerts = true; save();
-    toast('Alerts are on. You will hear about polls and the Cup.');
+    toast('Alerts are on. Polls and announcements can now reach this device.');
     settingsView();
-  } catch (e) { toast('Could not turn on alerts. Check your connection and try again.'); }
+  } catch (e) { DB.alerts = false; save(); toast('Could not turn on alerts. Check browser permission and connection, then retry.'); settingsView(); }
+}
+async function disablePushAlerts() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration('./');
+    const sub = reg && await reg.pushManager.getSubscription();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      await sub.unsubscribe();
+      await fetch(LB.url + '/rest/v1/push_subscriptions?endpoint=eq.' + encodeURIComponent(endpoint), { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) });
+    }
+    DB.alerts = false; save(); toast('Push alerts turned off for this device.'); settingsView();
+  } catch (e) { toast('Could not update alerts. Try again.'); }
 }
 /* admin: send an alert to everyone who turned them on */
 function loadAlertForm(pass, container) {
