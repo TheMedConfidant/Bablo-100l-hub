@@ -84,7 +84,7 @@ const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'
 let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
-function announceGameState(){if(game.isCheckmate())say('Checkmate. That position has a diagnosis—and it is not good news for the mated side. 🩺');else if(game.isDraw())say('The position is drawn. No winner today; review the decisions that got us here.');else if(game.isCheck())say('Check. Your king needs urgent attention.');}
+function announceGameState(){if(game.in_checkmate())say('Checkmate. That position has a diagnosis—and it is not good news for the mated side. 🩺');else if(game.in_draw())say('The position is drawn. No winner today; review the decisions that got us here.');else if(game.in_check())say('Check. Your king needs urgent attention.');}
 const $=id=>document.getElementById(id);
 function sqName(r,c){return 'abcdefgh'[c]+(8-r)}
 function say(msg){$('speech').innerHTML='<strong>Dr ECG:</strong> '+msg}
@@ -103,7 +103,7 @@ function render(){
   if(vr===7){const co=document.createElement('span');co.className='coord';co.style.left='auto';co.style.right='4px';co.style.bottom='auto';co.style.top='2px';co.textContent='abcdefgh'[c];b.append(co)}
   b.addEventListener('click',()=>clickSquare(r,c));el.append(b)
  }}
- $('turnNote').textContent=(whiteTurn?'White':'Black')+' to move'+(game.isCheck()?' · CHECK':'')+' · Legal-move preview';
+ $('turnNote').textContent=(whiteTurn?'White':'Black')+' to move'+(game.in_check()?' · CHECK':'')+' · Legal-move preview';
  $('moveCount').textContent=history.length+' '+(history.length===1?'move':'moves');
  $('capturedTop').textContent=capturedW.map(p=>glyph[p]).join('');
  $('capturedBottom').textContent=capturedB.map(p=>glyph[p]).join('');
@@ -127,7 +127,7 @@ function clickSquare(r,c){
  if(capturedPiece){(capturedPiece[0]==='w'?capturedW:capturedB).push(capturedPiece)}
  history.push(move);redo=[];syncBoardFromEngine();selected=null;targets=[];render();
  const lines=['A legal move. Progress. Now calculate the reply. 😏','Interesting. I have updated the position, not your excuses.','You moved with confidence. Let’s see what the position says. 🧠','No panic—calculate before you donate another piece.','A bold choice. Bowen exam week has trained your nerves.'];
- if(!game.isGameOver())say(lines[(history.length-1)%lines.length]);announceGameState();
+ if(!game.game_over())say(lines[(history.length-1)%lines.length]);announceGameState();
 }
 function restoreMove(m,forward){if(forward){const played=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});if(!played){toast('Could not replay that move.');return}if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).push(m.captured);history.push(m)}else{game.undo();if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).pop();history.pop()}syncBoardFromEngine();selected=null;targets=[];render()}
 function reset(){game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Please calculate first; my clinic is not accepting donated queens today. 😌');render();toast('Local legal-move board reset.')}
