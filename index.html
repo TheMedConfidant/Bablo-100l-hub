@@ -2675,7 +2675,7 @@ async function loadChat(G) {
 }
 function startChatPoll(G) { if (CHAT_POLL) clearInterval(CHAT_POLL); CHAT_POLL = setInterval(() => loadChat(CHAT_G_REF()), 3000); }
 function CHAT_G_REF() { return CHESS; }
-function stopChatPoll() { if (CHAT_POLL) { clearInterval(CHAT_POLL); CHAT_POLL = null; } }
+function stopChatPoll() { if (CHAT_POLL) { clearInterval(CHAT_POLL); CHAT_POLL = null; } document.body.querySelectorAll('.chess-reaction-toolbar').forEach(el => el.remove()); }
 async function clearChat(G) {
   if (!G || !G.online) return;
   try { await fetch(LB.url + '/rest/v1/chess_messages?game_id=eq.' + G.online.id, { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) }); } catch (e) { /* ignore */ }
