@@ -562,6 +562,11 @@ button,a,input,select,textarea{touch-action:manipulation}
 .note-table th{font-weight:750;background:var(--brand-soft);color:var(--ink)}
 .note-table tr:last-child td{border-bottom:0}.note-table th:last-child,.note-table td:last-child{border-right:0}
 .fc-topic-select{width:100%;max-width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit}
+
+/* Persistent focus timer, visible across app navigation while a session is active or paused. */
+.pomo-float{position:fixed;z-index:1200;right:14px;bottom:calc(78px + env(safe-area-inset-bottom));width:min(290px,calc(100vw - 28px));padding:12px 13px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.24);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.pomo-float-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.pomo-float-title{font-size:.82rem;font-weight:750;color:var(--ink2)}.pomo-float-time{font-size:1.5rem;font-variant-numeric:tabular-nums;letter-spacing:.02em}.pomo-float-actions{display:flex;gap:8px}.pomo-float-actions .btn{flex:1;min-height:34px}
+@media(max-width:520px){.pomo-float{right:10px;bottom:calc(72px + env(safe-area-inset-bottom));width:min(260px,calc(100vw - 20px));padding:10px 11px}.pomo-float-time{font-size:1.35rem}}
 </style>
 </head>
 <body>
@@ -1551,7 +1556,7 @@ const app = document.getElementById('app'), navEl = document.getElementById('nav
 let timerHandle = null, SESS = null, SETUP = null;
 const stopTimer = () => { if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } };
 const go = hash => { if (location.hash === hash) route(); else location.hash = hash; };
-const mount = (...nodes) => { app.replaceChildren(...nodes); window.scrollTo(0, 0); };
+const mount = (...nodes) => { app.replaceChildren(...nodes); window.scrollTo(0, 0); renderPomoFloat(); };
 const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
@@ -2969,16 +2974,41 @@ function downloadIcs(ev) {
 }
 function fmtTime(sec) { sec = Math.max(0, sec | 0); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
 function pomoCfg() { const c = DB.pomo || {}; return { focus: Math.min(120, Math.max(1, +c.focus || 25)), brk: Math.min(60, Math.max(1, +c.brk || 5)) }; }
-let POMO = { left: 25 * 60, running: false, mode: 'focus', h: null };
+let POMO = { left: 25 * 60, running: false, started: false, mode: 'focus', h: null };
 function pomoTick() {
   POMO.left -= 1;
   if (POMO.left <= 0) {
-    clearInterval(POMO.h); POMO.running = false;
+    clearInterval(POMO.h); POMO.h = null; POMO.running = false; POMO.started = false;
     const done = POMO.mode === 'focus' ? 'Focus session done. Take a 5-minute break.' : 'Break over. Back to it.';
     toast(done); try { if ('Notification' in window && Notification.permission === 'granted') new Notification('Bablo Hub', { body: done }); } catch (e) {}
     POMO.mode = POMO.mode === 'focus' ? 'break' : 'focus'; POMO.left = (POMO.mode === 'focus' ? pomoCfg().focus : pomoCfg().brk) * 60;
   }
   const el = document.getElementById('pomoTime'); if (el) el.textContent = fmtTime(POMO.left);
+  renderPomoFloat();
+}
+function renderPomoFloat() {
+  let el = document.getElementById('pomoFloat');
+  if (!POMO.started) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('section'); el.id = 'pomoFloat'; el.className = 'pomo-float';
+    const top = document.createElement('div'); top.className = 'pomo-float-top';
+    const title = document.createElement('span'); title.className = 'pomo-float-title'; title.textContent = POMO.mode === 'focus' ? 'Focus session' : 'Break';
+    const time = document.createElement('strong'); time.id = 'pomoFloatTime'; time.className = 'pomo-float-time';
+    top.append(title, time);
+    const actions = document.createElement('div'); actions.className = 'pomo-float-actions';
+    const toggle = document.createElement('button'); toggle.id = 'pomoFloatToggle'; toggle.className = 'btn sm primary'; toggle.type = 'button';
+    toggle.addEventListener('click', () => {
+      if (POMO.running) { clearInterval(POMO.h); POMO.h = null; POMO.running = false; }
+      else { POMO.running = true; POMO.h = setInterval(pomoTick, 1000); try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} }
+      renderPomoFloat();
+    });
+    const open = document.createElement('button'); open.className = 'btn sm ghost'; open.type = 'button'; open.textContent = 'Open timer';
+    open.addEventListener('click', () => { PLAN_TAB = 'timer'; go('#/plan'); });
+    actions.append(toggle, open); el.append(top, actions); document.body.append(el);
+  }
+  const title = el.querySelector('.pomo-float-title'); if (title) title.textContent = POMO.mode === 'focus' ? 'Focus session' : 'Break';
+  const time = document.getElementById('pomoFloatTime'); if (time) time.textContent = fmtTime(POMO.left);
+  const toggle = document.getElementById('pomoFloatToggle'); if (toggle) toggle.textContent = POMO.running ? 'Pause' : 'Resume';
 }
 function ttCourse(code) { const base = code.replace(/ 10[17]$/, ''); return ({ 'COS': 'COS', 'AGR': 'AGR', 'BUI-GEL': 'GEL101', 'GST': 'GST111', 'BUI-LIB': 'LIB101', 'CHM': 'CHM', 'PHY': 'PHY', 'MTH': 'MTH101', 'BIO': 'BIO' })[base] || base; }
 function timetableView() { PLAN_TAB = 'timetable'; planView(); }
@@ -3000,13 +3030,13 @@ function planCalendar() {
       h('button', { class: 'btn block', onclick: () => { if (!title.value.trim() || !date.value) { toast('Add a title and a date.'); return; } DB.events = planEvents().concat([{ id: uid(), title: title.value.trim().slice(0, 60), date: date.value, time: time.value || '09:00', note: '' }]); save(); planView(); } }, 'Add event')));
 }
 function planTimer() {
-  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } } }, POMO.running ? 'Pause' : 'Start');
+  const pomoBtn = h('button', { class: 'btn primary', onclick: () => { if (POMO.running) { clearInterval(POMO.h); POMO.h = null; POMO.running = false; pomoBtn.textContent = 'Start'; } else { POMO.h = setInterval(pomoTick, 1000); POMO.running = true; POMO.started = true; pomoBtn.textContent = 'Pause'; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } renderPomoFloat(); } }, POMO.running ? 'Pause' : 'Start');
   return h('div', { class: 'stack' }, h('section', { class: 'panel stack' }, h('h2', null, 'Pomodoro'), h('div', { id: 'pomoTime', style: { fontSize: '3rem', fontWeight: '800', textAlign: 'center', fontVariantNumeric: 'tabular-nums' } }, fmtTime(POMO.left)),
     h('p', { class: 'small muted', style: { textAlign: 'center' } }, POMO.mode === 'focus' ? pomoCfg().focus + ' minutes of focus' : pomoCfg().brk + ' minute break'),
-    h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.running = false; POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Reset'))),
+    h('div', { class: 'row' }, pomoBtn, h('button', { class: 'btn ghost grow', onclick: () => { clearInterval(POMO.h); POMO.h = null; POMO.running = false; POMO.started = false; POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; renderPomoFloat(); planView(); } }, 'Reset'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Timer settings'),
       h('div', { class: 'row wrapr' }, h('label', { class: 'field grow' }, h('span', null, 'Focus (minutes)'), h('input', { type: 'number', min: '1', max: '120', value: pomoCfg().focus, id: 'pomoFocus' })), h('label', { class: 'field grow' }, h('span', null, 'Break (minutes)'), h('input', { type: 'number', min: '1', max: '60', value: pomoCfg().brk, id: 'pomoBrk' }))),
-      h('button', { class: 'btn block', onclick: () => { clearInterval(POMO.h); POMO.running = false; DB.pomo = { focus: +document.getElementById('pomoFocus').value || 25, brk: +document.getElementById('pomoBrk').value || 5 }; save(); POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; planView(); } }, 'Save timer settings')));
+      h('button', { class: 'btn block', onclick: () => { clearInterval(POMO.h); POMO.h = null; POMO.running = false; POMO.started = false; DB.pomo = { focus: +document.getElementById('pomoFocus').value || 25, brk: +document.getElementById('pomoBrk').value || 5 }; save(); POMO.mode = 'focus'; POMO.left = pomoCfg().focus * 60; renderPomoFloat(); planView(); } }, 'Save timer settings')));
 }
 function planTimetable() {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
