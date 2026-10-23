@@ -57,6 +57,9 @@ async function playerFor(account: { unique_id: string }) {
   if (!Array.isArray(rows) || rows.length !== 1) throw new Error("Chess profile setup failed.");
   return rows[0].player_id as string;
 }
+// Stable, server-derived identity used by the existing Elo trigger's dev key.
+// Never use a browser-supplied device ID for new authenticated games.
+const ratingKey = (playerId: string) => `hub:${playerId}`;
 function replayMoves(value: string | null | undefined) {
   const chess = new Chess();
   const moves = (value ?? "").trim() ? (value ?? "").trim().split(/\s+/) : [];
@@ -118,9 +121,9 @@ Deno.serve(async (request: Request) => {
         method: "POST", headers: { Prefer: "return=representation" },
         body: JSON.stringify({
           code: crypto.randomUUID().replaceAll("-", "").slice(0, 6).toUpperCase(),
-          white_nick: nick, white_player_id: playerId, black_player_id: null,
-          status: "waiting", moves: "", time_control: timeControl,
-          rated: Boolean(body.rated) && timeControl !== "unlimited",
+          white_nick: nick, white_dev: ratingKey(playerId), white_player_id: playerId,
+          black_player_id: null, status: "waiting", moves: "",
+          time_control: timeControl, rated: Boolean(body.rated) && timeControl !== "unlimited",
         }),
       });
       return json({ ok: true, game: rows?.[0] ?? null }, 201);
@@ -137,7 +140,10 @@ Deno.serve(async (request: Request) => {
       const updateQ = new URLSearchParams({ id: `eq.${game.id}`, status: "eq.waiting", black_player_id: "is.null", select: GAME_SELECT });
       const changed = await db(`chess_games?${updateQ}`, {
         method: "PATCH", headers: { Prefer: "return=representation" },
-        body: JSON.stringify({ black_player_id: playerId, black_nick: nick, status: "active", updated_at: new Date().toISOString() }),
+        body: JSON.stringify({
+          black_player_id: playerId, black_dev: ratingKey(playerId),
+          black_nick: nick, status: "active", updated_at: new Date().toISOString(),
+        }),
       });
       if (!Array.isArray(changed) || !changed.length) return json({ ok: false, error: "Another player accepted this challenge first." }, 409);
       return json({ ok: true, game: changed[0] });
@@ -176,7 +182,6 @@ Deno.serve(async (request: Request) => {
       if (!legal || !chess.move({ from, to, ...(promotion ? { promotion } : {}) })) return json({ ok: false, error: "Illegal move." }, 422);
       const nextMoves = [...moves, uci].join(" ");
       const result = terminalResult(chess);
-      // Compare-and-swap prevents stale clients from overwriting a newer move.
       const updateQ = new URLSearchParams({
         id: `eq.${gameId}`, status: "eq.active", moves: `eq.${game.moves ?? ""}`, select: GAME_SELECT,
       });
