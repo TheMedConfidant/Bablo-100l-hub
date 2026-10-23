@@ -1,0 +1,34 @@
+name: Chess API static checks
+
+on:
+  push:
+    branches:
+      - chess-redesign/phase-1-foundation
+    paths:
+      - "supabase/functions/chess-api/**"
+      - ".github/workflows/chess-api-static-check.yml"
+  pull_request:
+    paths:
+      - "supabase/functions/chess-api/**"
+      - ".github/workflows/chess-api-static-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: Deno type check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check chess API
+        run: deno check supabase/functions/chess-api/index.ts
