@@ -531,6 +531,13 @@ button,a,input,select,textarea{touch-action:manipulation}
     -webkit-backdrop-filter:blur(10px) saturate(115%) !important;backdrop-filter:blur(10px) saturate(115%) !important
   }
 }
+
+/* Comfort pass: soften glare and reduce expensive glass effects without merging theme colours. */
+:root[data-skin="glass"] body::before{filter:blur(42px) saturate(108%) !important;opacity:.28 !important;animation:none !important}
+:root[data-skin="glass"] .panel,:root[data-skin="glass"] .tile,:root[data-skin="glass"] .rows,:root[data-skin="glass"] .rev,:root[data-skin="glass"] .qcard,:root[data-skin="glass"] .modal,:root[data-skin="glass"] .slip,:root[data-skin="glass"] .nav,:root[data-skin="glass"] .dock{-webkit-backdrop-filter:blur(7px) saturate(108%) !important;backdrop-filter:blur(7px) saturate(108%) !important;box-shadow:0 5px 18px rgba(0,0,0,.15) !important}
+:root[data-skin="glass"] .hero{-webkit-backdrop-filter:blur(10px) saturate(110%) !important;backdrop-filter:blur(10px) saturate(110%) !important;box-shadow:0 7px 20px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.14) !important}
+:root[data-skin="glass"] .btn,:root[data-skin="glass"] .opt,:root[data-skin="glass"] .clock,:root[data-skin="glass"] input[type=text],:root[data-skin="glass"] input[type=number],:root[data-skin="glass"] select,:root[data-skin="glass"] textarea{-webkit-backdrop-filter:blur(5px) saturate(105%) !important;backdrop-filter:blur(5px) saturate(105%) !important}
+@media(max-width:700px){:root[data-skin="glass"] body::before{filter:blur(28px) saturate(104%) !important;opacity:.22 !important}:root[data-skin="glass"] .panel,:root[data-skin="glass"] .tile,:root[data-skin="glass"] .rows,:root[data-skin="glass"] .rev,:root[data-skin="glass"] .qcard,:root[data-skin="glass"] .modal,:root[data-skin="glass"] .slip,:root[data-skin="glass"] .nav,:root[data-skin="glass"] .dock{-webkit-backdrop-filter:blur(6px) saturate(105%) !important;backdrop-filter:blur(6px) saturate(105%) !important}}
 </style>
 </head>
 <body>
@@ -1814,7 +1821,7 @@ function runView() {
   };
   const pickOpt = k => {
     const i = s.cur;
-    if (practice) { if (s.answers[i] != null) return; s.answers[i] = k; } else s.answers[i] = s.answers[i] === k ? null : k;
+    if (practice) { s.answers[i] = k; } else s.answers[i] = s.answers[i] === k ? null : k;
     render();
   };
   const next = () => { if (s.cur < s.n - 1) { s.cur++; render(); } else finishSession(false); };
@@ -1827,23 +1834,23 @@ function runView() {
     kids.push(h('p', { class: 'qtext' }, fmt(q.text, q.subj)));
     if (q.flag) kids.push(h('div', { class: 'warnbox' }, 'This question\'s answer key is under review. Treat the answer with care.'));
     if (q.type === 'fill') {
-      const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', disabled: done, 'aria-label': 'Your answer' });
+      const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', 'aria-label': 'Your answer' });
       const check = () => { const v = inp.value.trim(); if (!v) { toast('Type an answer first.'); return; } s.answers[i] = v; render(); };
       if (!practice) inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
-      else inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !done) check(); });
-      kids.push(h('div', { class: 'row' }, inp, practice && !done ? h('button', { class: 'btn primary', onclick: check }, 'Check') : null));
+      else inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+      kids.push(h('div', { class: 'row' }, inp, practice ? h('button', { class: 'btn primary', onclick: check }, 'Check') : null));
       if (done) { /* feedback below */ }
     } else {
       q.opts.forEach((o, k) => {
         let cls = 'choice'; if (done) { if (k === q.ans) cls += ' right'; else if (k === a) cls += ' wrong'; }
-        kids.push(h('button', { class: cls, 'aria-pressed': String(!practice && a === k), disabled: done, onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
+        kids.push(h('button', { class: cls, 'aria-pressed': String(!practice && a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
       });
     }
     if (done) { const ok = Core.isCorrect(q, a); kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' }, h('b', null, ok ? 'Correct. ' : 'Not quite. Answer: '), ok ? '' : fmt(correctText(q), q.subj), q.exp ? h('div', { class: 'small', style: { marginTop: '6px' } }, q.exp) : null)); }
     card.replaceChildren(h('div', { class: 'qcard' }, kids));
     const last = i === s.n - 1;
     dock.replaceChildren(h('div', { class: 'in' }, practice
-      ? [h('button', { class: 'btn ghost', onclick: next }, last ? 'Finish' : 'Skip'), h('button', { class: 'btn primary', disabled: !done, onclick: next }, last ? 'Finish' : 'Next')]
+      ? [h('button', { class: 'btn ghost', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Previous'), h('button', { class: 'btn primary', disabled: !done, onclick: next }, last ? 'Finish' : 'Next')]
       : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Back'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
   }
   const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your progress in this attempt will be lost.', ok: 'Leave', danger: true })) { stopTimer(); SESS = null; go('#/course/' + s.course); } };
