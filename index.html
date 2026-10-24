@@ -608,6 +608,14 @@ body.bablo-chess-mode .chess-board .sq.dark .chess-board-coordinate{color:#e6e5d
 .chess-bot-select{font-size:.7rem;font-weight:800;color:#e9bd59;margin-top:2px}
 @media(max-width:430px){.chess-bot-grid{grid-template-columns:minmax(0,1fr)}.chess-bot-card{padding:11px}}
 
+
+/* Online friend-chat bubbles stay visible for the duration of the game */
+.chess-chat-message{align-self:flex-start;max-width:96%;padding:9px 12px;border:1px solid rgba(233,189,89,.16);border-left:3px solid rgba(233,189,89,.65);border-radius:6px 14px 14px 14px;background:rgba(233,189,89,.065);font-size:.86rem;line-height:1.45;overflow-wrap:anywhere;color:#ece6d6}
+.chess-chat-message b{color:#f0d183;display:block;font-size:.72rem;letter-spacing:.025em;margin-bottom:3px}
+.chess-chat-message+.chess-chat-message{margin-top:2px}
+#chatList{gap:7px!important;overscroll-behavior:contain;scrollbar-color:#6e572b transparent}
+#chatList:empty:after{content:'No messages yet';color:#8b8b82;font-size:.8rem}
+
 </style>
 </head>
 <body>
@@ -2310,7 +2318,7 @@ function chessMenu() {
       top ? h('p', { class: 'small muted' }, 'You open with ' + top[0].slice(0, 2) + '-' + top[0].slice(2, 4) + ' most often.') : null, last),
     h('section', { class: 'panel stack', id:'chessConfig' }, h('h2', null, 'Choose your opponent'),h('p',{class:'tiny muted'},'Each challenger keeps a fixed identity. Choose difficulty below; their playing style is not an in-game control.'),
 h('div',{class:'chess-bot-grid',role:'group','aria-label':'Choose a chess opponent'},
-  CHESS_BOTS.map(b=>h('button',{class:'chess-bot-card',type:'button','aria-pressed':String(S.bot===b.id),onclick:()=>{setChessSet({bot:b.id,level:'auto'});chessMenu();}},
+  CHESS_BOTS.map(b=>h('button',{class:'chess-bot-card',type:'button','aria-pressed':String(S.bot===b.id),onclick:()=>{setChessSet({bot:b.id,level:'bot-default'});chessMenu();}},
     botAvatar(b,64),
     h('span',{class:'chess-bot-card-copy'},
       h('b',null,b.name),
