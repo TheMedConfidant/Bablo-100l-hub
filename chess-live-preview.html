@@ -660,7 +660,8 @@ Profile:{eyebrow:'PLAYER SPACE',title:'Your chess journey.',desc:'A home for ver
 };
 const friendChallengeMarkup=`
 <div class="online-grid">
- <section class="pagecard online-card"><div class="cardicon">🔗</div><h2>Create a challenge</h2><p>Create an invite code for the exact game you want to play. Share the code privately with the intended opponent.</p>
+ <section class="pagecard online-card"><div class="cardicon">🔗</div><h2>Create a challenge</h2><p>Choose the clock and, if needed, restrict the challenge to one exact Bablo Hub account.</p>
+  <label class="online-label" for="targetPlayerId">Opponent Bablo Hub ID <span class="tiny">(optional)</span></label><input id="targetPlayerId" class="online-input" type="text" maxlength="11" placeholder="e.g. COH-1234" autocomplete="off" autocapitalize="characters" spellcheck="false"><p class="tiny">A targeted challenge can only be accepted by that account. Leave blank for a shareable invite code.</p>
   <label class="online-label" for="onlineTime">Time control</label><select id="onlineTime" class="online-input"><option value="3+0">Blitz · 3+0</option><option value="3+2">Blitz · 3+2</option><option value="5+0" selected>Blitz · 5+0</option><option value="10+0">Rapid · 10+0</option><option value="10+5">Rapid · 10+5</option><option value="15+10">Rapid · 15+10</option><option value="unlimited">Casual · unlimited</option></select>
   <label class="online-check"><input id="onlineRated" type="checkbox"> Rated game (ratings update only after a verified result)</label>
   <button class="primary" id="createOnlineGame" type="button">Create challenge code</button>
@@ -796,17 +797,21 @@ document.addEventListener('click',async(event)=>{
   if(activeOnlineId&&['waiting','active'].includes(window.babloChessOnlineGameStatus)){
    statusText('onlineStatus','You already have a waiting or active match. Open or finish it before creating another.',true);return;
   }
+  const targetUniqueId=(document.getElementById('targetPlayerId')?.value||'').trim().toUpperCase();
+  if(targetUniqueId&&!/^[A-Z]{2,4}-[0-9]{4,6}$/.test(targetUniqueId)){
+   statusText('onlineStatus','Enter a valid Bablo Hub ID, such as COH-1234.',true);return;
+  }
   target.disabled=true;statusText('onlineStatus','Creating your challenge…');
   try{
    await currentIdentity();
-   const result=await requireOnlineClient().createGame({timeControl:document.getElementById('onlineTime').value,rated:document.getElementById('onlineRated').checked});
+   const result=await requireOnlineClient().createGame({timeControl:document.getElementById('onlineTime').value,rated:document.getElementById('onlineRated').checked,targetUniqueId});
    const g=result.game;if(!g?.id||!g?.code)throw new Error('The chess service returned an incomplete challenge.');
    currentInviteCode=g.code;inviteOwner=true;
    document.getElementById('inviteCodePanel').hidden=false;
    document.getElementById('inviteCodeDisplay').textContent=g.code;
    document.getElementById('openOnlineGame').hidden=false;
-   statusText('onlineStatus','Challenge created. Send this code privately to the friend you want to play.');
-   statusText('inviteStatusText','Waiting for opponent to accept.');
+   statusText('onlineStatus',targetUniqueId?'Challenge created and restricted to '+targetUniqueId+'. Other accounts will be blocked.':'Challenge created. Send this code privately to the friend you want to play.');
+   statusText('inviteStatusText',targetUniqueId?'Waiting for '+targetUniqueId+' to accept.':'Waiting for opponent to accept.');
    window.babloChessApplyOnlineGame(g,onlineIdentity.player_id);startPolling(g.id);
   }catch(e){statusText('onlineStatus',e instanceof Error?e.message:'Could not create challenge.',true)}
   finally{target.disabled=false}
@@ -893,7 +898,7 @@ document.addEventListener('bablo-chess:page-shown',event=>{
  const open=document.getElementById('openOnlineGame');
  if(inviteOwner&&currentInviteCode&&panel&&code){
   panel.hidden=false;code.textContent=currentInviteCode;
-  if(status)status.textContent=window.babloChessOnlineGameStatus==='active'?'Opponent joined. Game is live.':window.babloChessOnlineGameStatus==='finished'?'Game finished. This code is no longer active.':'Waiting for opponent to accept.';
+  if(status)status.textContent=window.babloChessOnlineGameStatus==='active'?'Opponent joined. Game is live.':window.babloChessOnlineGameStatus==='finished'?'Game finished. This code is no longer active.':(document.getElementById('targetPlayerId')?.value?.trim()?'Waiting for the selected Bablo Hub account to accept.':'Waiting for opponent to accept.');
  }
  if(open&&activeOnlineId){
   open.hidden=false;
