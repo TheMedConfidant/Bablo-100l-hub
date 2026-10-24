@@ -2367,7 +2367,7 @@ function chessHomePage() {
       h('p',null,'A dedicated home for your games, board-based lessons, friend challenges and progress. Start a match or sharpen one decision at a time.'),
       h('div',{class:'chess-home-actions'},chessButton('♟  Play a game','#/chess/play',true),chessButton('▦  Learn on the board','#/chess/learn',false))),
     h('div',{class:'chess-stats-grid'},
-      h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Current rating')),
+      h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Computer rating')),
       h('div',{class:'chess-stat'},h('b',null,String(R.w||0)),h('span',null,'Wins')),
       h('div',{class:'chess-stat'},h('b',null,String(R.d||0)),h('span',null,'Draws')),
       h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses'))),
@@ -2490,7 +2490,7 @@ function chessCompetePage() {
   const friends=h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'♙'),h('strong',null,'Challenge a friend'),h('small',null,'Create a challenge code or join a friend with the code they share. Sign-in is required for online challenges.'),chessButton('Open challenge setup','#/chess/play',false));
   const recent=h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'◷'),h('strong',null,'Recent match record'),h('small',null,games.length?games.length+' game records are saved in your current chess profile.':'No completed games are recorded here yet.'),chessButton('Review profile','#/chess/profile',false));
   const stats=h('div',{class:'chess-stats-grid'},
-    h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Personal rating')),
+    h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Computer rating')),
     h('div',{class:'chess-stat'},h('b',null,String(R.w||0)),h('span',null,'Wins recorded')),
     h('div',{class:'chess-stat'},h('b',null,String(R.d||0)),h('span',null,'Draws recorded')),
     h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses recorded')));
@@ -2510,19 +2510,61 @@ function chessCompetePage() {
   loadChessLeaderboard(leaderboard);
 }
 
+
+async function loadChessDeviceRating(box) {
+  if(!box)return;
+  if(!liveOn()){
+    box.replaceChildren(h('p',{class:'muted small'},'Online ratings are unavailable because the live database connection is not active.'));
+    return;
+  }
+  const dev=String(DB.dev||'');
+  if(!dev){
+    box.replaceChildren(h('p',{class:'muted small'},'This device has not created a chess identity yet.'));
+    return;
+  }
+  const rows=await sbFetchJson('chess_ratings?dev=eq.'+encodeURIComponent(dev)+'&select=nick,rating,wins,draws,losses,updated_at&limit=1');
+  if(!Array.isArray(rows)){
+    box.replaceChildren(h('p',{class:'muted small'},'Could not load this device’s online rating. Check your connection and refresh.'));
+    return;
+  }
+  if(!rows.length){
+    box.replaceChildren(
+      h('div',{class:'chess-stat'},h('b',null,'—'),h('span',null,'No rated games yet')),
+      h('p',{class:'muted small'},'Your online rating starts after a completed two-player rated match. This is separate from the local computer-game rating above.')
+    );
+    return;
+  }
+  const r=rows[0];
+  box.replaceChildren(
+    h('div',{class:'chess-stats-grid'},
+      h('div',{class:'chess-stat'},h('b',null,String(Number(r.rating)||1000)),h('span',null,'Online rating')),
+      h('div',{class:'chess-stat'},h('b',null,String(Number(r.wins)||0)),h('span',null,'Online wins')),
+      h('div',{class:'chess-stat'},h('b',null,String(Number(r.draws)||0)),h('span',null,'Online draws')),
+      h('div',{class:'chess-stat'},h('b',null,String(Number(r.losses)||0)),h('span',null,'Online losses'))),
+    h('p',{class:'tiny muted'},'Server record updated '+new Date(r.updated_at||Date.now()).toLocaleDateString()+'. Rating is associated with this device identity.')
+  );
+}
+
 function chessProfilePage() {
   const R=chessRec(),games=Array.isArray(R.games)?R.games:[],openings=Object.entries(R.openings||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent=games.slice(-12).reverse();
   const total=(R.w||0)+(R.d||0)+(R.l||0);
+  const onlineRating=h('div',{id:'chessDeviceRating',class:'stack'},h('p',{class:'muted small'},'Loading online rating…'));
   mount(wrap(chessHeader(),chessPageNav('profile'),
     h('div',{class:'chess-kicker'},'Player profile'),
     h('h1',{class:'chess-page-title'},(DB.profile&&DB.profile.nick)||'Player'),
-    h('p',{class:'muted'},'Your rating, recorded game results, and opening history. These numbers come from the current chess record rather than invented sample statistics.'),
+    h('p',{class:'muted'},'Review local computer games separately from your server-recorded online chess rating, plus recent results and opening history.'),
     h('div',{class:'chess-stats-grid'},
-      h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Personal rating')),
+      h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Computer rating')),
       h('div',{class:'chess-stat'},h('b',null,String(total)),h('span',null,'Recorded results')),
       h('div',{class:'chess-stat'},h('b',null,String(R.w||0)),h('span',null,'Wins')),
       h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses'))),
+    h('section',{class:'panel stack',style:{marginTop:'16px'}},
+      h('div',{class:'row between wrapr'},
+        h('div',null,h('div',{class:'chess-kicker'},'Server record'),h('h2',null,'Online chess rating')),
+        h('button',{class:'btn',onclick:()=>loadChessDeviceRating(onlineRating)},'↻ Refresh')),
+      h('p',{class:'muted small'},'Separate from your local computer rating. This rating is recorded by the online match database.'),
+      onlineRating),
     h('div',{class:'chess-learn-layout',style:{marginTop:'17px'}},
       h('section',{class:'panel stack'},h('h2',null,'Recent games'),
         recent.length?recent.map((g,i)=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:i<recent.length-1?'1px solid rgba(234,193,91,.12)':'0'}},
@@ -2536,6 +2578,7 @@ function chessProfilePage() {
         h('p',{class:'chess-muted-note'},'Profile statistics reflect the chess record currently stored for this user on this device/account.'))),
     h('div',{class:'chess-home-actions'},chessButton('Play again','#/chess/play',true),chessButton('Return home','#/chess/home',false)),
     h('p',{class:'chess-page-footer'},'Bablo Chess · Player profile')));
+  loadChessDeviceRating(onlineRating);
 }
 
 const CHESS_PUZZLES=[
