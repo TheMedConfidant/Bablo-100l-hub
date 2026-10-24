@@ -1,5 +1,7 @@
 # Claude Handoff — Build the Complete Bablo Chess UI/UX Artifact
 
+**Cross-chat progress tracker:** [Bablo Chess Progress Hub](./BABLO_CHESS_PROGRESS_HUB.md)
+
 **Purpose:** Claude is the lead product designer and prototype builder for the complete Bablo Chess experience. Build the entire UI/UX as one cohesive, navigable Artifact first. ChatGPT will then act as the independent architect/reviewer: inspect the artifact against this brief, identify UX and logic flaws, request/fix refinements, and then help implement the approved design in the isolated code branch. Do not integrate into production Bablo Hub yet.
 
 ## The assignment
