@@ -2304,7 +2304,7 @@ function recordComputerGame(G, res) {
   if(score===1)R.w++;else if(score===0.5)R.d++;else R.l++;
   const idx=G.color==='w'?0:1,first=G.moves[idx];
   if(first)R.openings[first]=(R.openings[first]||0)+1;
-  R.games=R.games.concat([{res,n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
+  R.games=R.games.concat([{res,outcome:score===1?'win':score===0.5?'draw':'loss',n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
   save();
 }
 
@@ -2318,7 +2318,7 @@ function chessMenu() {
       top ? h('p', { class: 'small muted' }, 'You open with ' + top[0].slice(0, 2) + '-' + top[0].slice(2, 4) + ' most often.') : null, last),
     h('section', { class: 'panel stack', id:'chessConfig' }, h('h2', null, 'Choose your opponent'),h('p',{class:'tiny muted'},'Each challenger keeps a fixed identity. Choose difficulty below; their playing style is not an in-game control.'),
 h('div',{class:'chess-bot-grid',role:'group','aria-label':'Choose a chess opponent'},
-  CHESS_BOTS.map(b=>h('button',{class:'chess-bot-card',type:'button','aria-pressed':String(S.bot===b.id),onclick:()=>{setChessSet({bot:b.id,level:'bot-default'});chessMenu();}},
+  CHESS_BOTS.map(b=>h('button',{class:'chess-bot-card',type:'button','aria-pressed':String(S.bot===b.id),onclick:()=>{location.hash='#/chess/opponent/'+b.id;}},
     botAvatar(b,64),
     h('span',{class:'chess-bot-card-copy'},
       h('b',null,b.name),
@@ -2343,6 +2343,7 @@ h('div',{class:'chess-bot-grid',role:'group','aria-label':'Choose a chess oppone
       h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
       h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list'))));
   loadOpenList();
+  if(new URLSearchParams(location.hash.split('?')[1]||'').get('focus')==='chessConfig')setTimeout(()=>document.getElementById('chessConfig')?.scrollIntoView({behavior:'smooth',block:'start'}),80);
 }
 
 function chessCurrentPage() {
@@ -2402,25 +2403,29 @@ const CHESS_LESSONS=[
   {title:'Choose the English Opening',from:50,to:34,piece:'pawn',label:'Move the c-pawn from c2 to c4.',why:'The c-pawn controls d5 from the side and can support a flexible setup. This move is associated with the English Opening.',hint:'Select the pawn on c2, then select c4.'},
   {title:'Prepare a fianchetto',from:54,to:46,piece:'pawn',label:'Move the g-pawn from g2 to g3.',why:'The g-pawn move prepares Bg2, where the bishop can influence the long diagonal. It is a plan, not an immediate attack.',hint:'Select the pawn on g2, then select g3.'},
   {title:'Support the centre',from:52,to:44,piece:'pawn',label:'Move the king pawn from e2 to e3.',why:'A quieter e3 move supports d4 and opens a diagonal for the f1-bishop, though it claims less space than e4.',hint:'Select the pawn on e2, then select e3.'},
-  {title:'Recognise a king-safety trade-off',from:53,to:45,piece:'pawn',label:'Move the f-pawn from f2 to f3.',why:'This is a legal pawn move but not always a recommended opening choice: it weakens the king’s diagonal cover. Learn to compare the benefits and risks of pawn moves.',hint:'Select the pawn on f2, then select f3.'},
-  {title:'Castle to protect your king',fen:'4k3/8/8/8/8/8/8/4K2R',castling:'K',from:60,to:62,piece:'king',label:'Castle kingside: move the king from e1 to g1 in one move.',why:'Castling moves the king toward safety and develops the rook. It is legal here because the squares are clear and the king does not cross an attacked square.',hint:'Select the king on e1, then select g1. The rook will move automatically.'},
-  {title:'Capture a loose piece',fen:'7k/8/8/3n4/3R4/8/8/K7',castling:'-',from:35,to:27,piece:'rook',label:'Use the rook on d4 to capture the black knight on d5.',why:'Before capturing in a real game, check whether the target is defended and whether your own piece can be taken back. This exercise isolates the capture so you can practise reading the board.',hint:'Select the rook on d4, then select the knight on d5.'},
-  {title:'Escape a file check',fen:'4r1k1/8/8/8/8/8/8/4K3',castling:'-',from:60,to:61,piece:'king',label:'Your king on e1 is in check from the rook. Move it safely to f1.',why:'When in check, you must respond immediately: move the king, capture the checking piece, or block the line when legal. Here, moving to f1 is a legal escape.',hint:'The white king is in check. Select e1, then the highlighted safe square f1.'}
+  {title:'Recognise a king-safety trade-off',from:53,to:45,piece:'pawn',label:'Move the f-pawn from f2 to f3.',why:'This is a legal pawn move but not always a recommended opening choice: it weakens the king’s diagonal cover. Learn to compare the benefits and risks of pawn moves.',hint:'Select the pawn on f2, then select f3.'}
 ];
 let CHESS_LEARN=null;
-function chessLessonRecord(){
-  const R=chessRec();
-  if(!R.lessons||typeof R.lessons!=='object')R.lessons={current:0,completed:[]};
-  if(!Array.isArray(R.lessons.completed))R.lessons.completed=[];
-  R.lessons.current=Math.max(0,Math.min(CHESS_LESSONS.length-1,Number(R.lessons.current)||0));
-  return R.lessons;
+function chessLessonProgress() {
+  try { const x=JSON.parse(localStorage.getItem('babloChessLessonProgress')||'{}'); return x&&typeof x==='object'?x:{}; } catch(e) { return {}; }
+}
+function saveChessLessonProgress(index,completed) {
+  const p=chessLessonProgress();
+  if(completed)p[String(index)]=true;
+  try { localStorage.setItem('babloChessLessonProgress',JSON.stringify(p)); } catch(e) {}
+}
+function chessLessonHint() {
+  const L=CHESS_LEARN;if(!L||L.completed)return;
+  const task=CHESS_LESSONS[L.index];
+  L.selected=task.from;
+  L.destinations=[task.to];
+  L.feedback='Hint: select the highlighted piece at '+Chess.sqName(task.from)+', then move it to '+Chess.sqName(task.to)+'.';
+  chessLearnPage();
 }
 function resetChessLesson(n) {
   const index=((n%CHESS_LESSONS.length)+CHESS_LESSONS.length)%CHESS_LESSONS.length;
-  const task=CHESS_LESSONS[index];
-  const state=task.fen?Chess.fromState(task.fen,'w',task.castling||'-',-1):Chess.initial();
-  const record=chessLessonRecord();record.current=index;save();
-  CHESS_LEARN={index,state,selected:null,destinations:[],completed:record.completed.includes(index),feedback:record.completed.includes(index)?'You have completed this lesson before. Practise the move again to refresh the idea.':'Select the piece named in the instruction. Gold dots show its legal destinations.'};
+  const completed=!!chessLessonProgress()[String(index)];
+  CHESS_LEARN={index,state:Chess.initial(),selected:null,destinations:[],completed,feedback:completed?'Lesson already completed on this device. Review the explanation, or continue to the next lesson.':'Select the piece named in the instruction. Gold dots show its legal destinations.'};
 }
 function chessLearnTap(ri) {
   const L=CHESS_LEARN;if(!L||L.completed)return;
@@ -2429,7 +2434,7 @@ function chessLearnTap(ri) {
     const task=CHESS_LESSONS[L.index];
     if(move&&move.from===task.from&&move.to===task.to){
       L.state=Chess.apply(L.state,move);L.completed=true;L.selected=null;L.destinations=[];
-      const record=chessLessonRecord();if(!record.completed.includes(L.index))record.completed.push(L.index);record.current=L.index;save();
+      saveChessLessonProgress(L.index,true);
       L.feedback='Correct. '+task.why;
     } else {
       L.feedback='That is a legal move, but this exercise is practising '+Chess.sqName(task.from)+' to '+Chess.sqName(task.to)+'. Try again from the starting position.';
@@ -2457,18 +2462,19 @@ function chessLearnBoard() {
   return h('div',{class:'chess-learn-board',role:'grid','aria-label':'Interactive chess lesson board'},cells);
 }
 function chessLearnPage() {
-  if(!CHESS_LEARN)resetChessLesson(chessLessonRecord().current);
+  if(!CHESS_LEARN)resetChessLesson(0);
   const L=CHESS_LEARN,task=CHESS_LESSONS[L.index];
   mount(wrap(chessHeader(),chessPageNav('learn'),
     h('div',{class:'chess-kicker'},'Learn chess by doing'),
     h('h1',{class:'chess-page-title'},'Move a piece. Understand why.'),
     h('p',{class:'muted'},'Every lesson uses the board and legal move rules. Select a piece, follow the highlighted squares, and get feedback on the move.'),
-    h('div',{class:'chess-lesson-progress','aria-label':'Lesson completion progress'},CHESS_LESSONS.map((x,i)=>h('span',{class:chessLessonRecord().completed.includes(i)?'done':i===L.index?'current':'' ,'title':x.title,'aria-label':x.title+(chessLessonRecord().completed.includes(i)?', completed':i===L.index?', current lesson':', not completed')}))),
+    h('div',{class:'chess-lesson-progress','aria-label':Object.values(chessLessonProgress()).filter(Boolean).length+' of '+CHESS_LESSONS.length+' lessons completed'},CHESS_LESSONS.map((x,i)=>h('span',{class:chessLessonProgress()[String(i)]?'done':''}))),
     h('div',{class:'chess-learn-layout',style:{marginTop:'12px'}},
       h('section',{class:'panel stack',style:{padding:'clamp(10px,2vw,18px)'}},chessLearnBoard(),
         h('div',{class:'chess-feedback','aria-live':'polite',style:{marginTop:'12px'}},L.feedback),
         h('div',{class:'row wrapr',style:{marginTop:'12px'}},
           h('button',{class:'btn',onclick:()=>resetChessLesson(L.index)},'↺ Reset position'),
+          !L.completed?h('button',{class:'btn',onclick:chessLessonHint},'Show move hint'):null,
           L.completed?h('button',{class:'btn primary',onclick:()=>resetChessLesson((L.index+1)%CHESS_LESSONS.length)},L.index===CHESS_LESSONS.length-1?'Repeat lessons':'Next lesson'):null)),
       h('section',{class:'panel stack'},
         h('span',{class:'chip gold'},'LESSON '+(L.index+1)+' OF '+CHESS_LESSONS.length),
@@ -2624,6 +2630,7 @@ async function loadChessDeviceRating(box) {
   );
 }
 
+function chessGameOutcome(g) { return g.outcome || (g.res === 'draw' ? 'draw' : g.res === g.color ? 'win' : 'loss'); }
 function chessProfilePage() {
   const R=chessRec(),games=Array.isArray(R.games)?R.games:[],openings=Object.entries(R.openings||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent=games.slice(-12).reverse();
@@ -2654,7 +2661,7 @@ function chessProfilePage() {
       h('section',{class:'panel stack'},h('h2',null,'Recent games'),
         recent.length?recent.map((g,i)=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:i<recent.length-1?'1px solid rgba(234,193,91,.12)':'0'}},
           h('span',null,h('b',null,'Game '+(games.length-i)),h('div',{class:'tiny muted'},new Date(g.ts||Date.now()).toLocaleString())),
-          h('span',{class:'chip '+(g.res==='w'?'ok':g.res==='b'?'bad':'gold')},(g.res==='w'?'Win':g.res==='b'?'Loss':'Draw')+' · '+(g.n||0)+' plies'))):
+          h('span',{class:'chip '+(chessGameOutcome(g)==='win'?'ok':chessGameOutcome(g)==='loss'?'bad':'gold')},(chessGameOutcome(g)==='win'?'Win':chessGameOutcome(g)==='draw'?'Draw':'Loss')+' · '+(g.n||0)+' plies'))):
           h('p',{class:'muted small'},'No recorded games yet. Complete a game to start this list.')),
       h('section',{class:'panel stack'},h('h2',null,'Opening moves'),
         openings.length?openings.map(([move,count])=>h('div',{class:'row between',style:{padding:'8px 0',borderBottom:'1px solid rgba(234,193,91,.12)'}},
@@ -2769,7 +2776,45 @@ function chessPuzzlePage(){
     );
 }
 
+
+function chessOpponentPage(id) {
+  const bot=CHESS_BOTS.find(b=>b.id===id)||CHESS_BOTS[0];
+  const sample={
+    ecg:'Welcome to the clinic. Let’s examine your opening.',
+    professor:'We will focus on structure, development and long-term squares.',
+    zara:'I am looking for forcing moves from move one. Ready?',
+    blitz:'Quick game, sharp focus. Let’s move!'
+  }[bot.id]||bot.hello;
+  const profile=h('section',{class:'chess-opponent-hero'},
+    h('div',{class:'chess-opponent-avatar'},botAvatar(bot,112)),
+    h('div',{class:'chess-opponent-info'},
+      h('div',{class:'chess-kicker'},'Opponent profile'),
+      h('h1',{class:'chess-page-title'},bot.name),
+      h('p',{class:'chess-opponent-style'},bot.style),
+      h('div',{class:'chess-stats-grid'},
+        h('div',{class:'chess-stat'},h('b',null,String(bot.rating)),h('span',null,'Estimated strength')),
+        h('div',{class:'chess-stat'},h('b',null,'Fixed'),h('span',null,'Playing identity'))),
+      h('p',{class:'chess-opponent-quote'},'“'+sample+'”')));
+  const copy={
+    ecg:['The medical-student chess doctor','Balanced play, clinic-themed banter, and reminders to review your decisions.','Expect a calm diagnosis until the position calls for a sharper line.'],
+    professor:['The positional thinker','Focuses on development, pawn structure, central control, and patient improvements.','A good opponent when you want to practise plans rather than chase quick attacks.'],
+    zara:['The tactical challenger','Looks for forcing moves, checks, captures, and threats.','A sharper challenge: calculate the reply before committing to an attack.'],
+    blitz:['The quick attacker','Fast, direct games with energetic commentary and attacking ideas.','A lighter, quicker-feeling challenge for short sessions.']
+  }[bot.id]||['Chess opponent','A fixed playing identity.','Choose a challenge strength before the game.'];
+  mount(wrap(chessHeader(),chessPageNav('play'),
+    h('a',{class:'btn',href:'#/chess/play',style:{textDecoration:'none',display:'inline-flex',width:'fit-content'}},'‹ All opponents'),
+    profile,
+    h('div',{class:'chess-app-grid',style:{marginTop:'16px'}},
+      h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'♟'),h('strong',null,copy[0]),h('small',null,copy[1])),
+      h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'♜'),h('strong',null,'How to approach the game'),h('small',null,copy[2]))),
+    h('section',{class:'panel stack',style:{marginTop:'16px'}},
+      h('h2',null,'Ready to challenge '+bot.name+'?'),
+      h('p',{class:'muted small'},'This profile describes the opponent’s intended character, not a separate certified chess engine. Choose the actual difficulty and clock on the next screen. The opponent’s identity cannot be changed during a match.'),
+      h('button',{class:'btn primary',onclick:()=>{setChessSet({bot:bot.id,level:'bot-default'});location.hash='#/chess/play?focus=chessConfig';}},'Choose difficulty and time control →'))));
+}
+
 function chessSectionView(page) {
+  if(page==='opponent') return chessOpponentPage((location.hash.split('?')[0].split('/')[3]||'ecg'));
   if(page==='play') return chessMenu();
   if(page==='learn') return chessLearnPage();
   if(page==='puzzles') { chessPuzzlePage(); return; }
