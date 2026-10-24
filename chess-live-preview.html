@@ -18,6 +18,16 @@
 /* Primary chess navigation pages */
 .pageview{animation:pageIn .22s ease both}.pagehero{padding:26px;border:1px solid #e8bb6233;border-radius:20px;background:radial-gradient(ellipse at 90% 0,#e8bb621b,transparent 48%),linear-gradient(145deg,#151e28,#0d1219);margin-bottom:18px}.pagehero h1{font-size:clamp(26px,4vw,40px);letter-spacing:-1.3px;margin:7px 0 8px}.pagehero p{max-width:680px;color:var(--muted);font-size:13px;line-height:1.7;margin:0}.pagegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.pagecard{border:1px solid var(--line);border-radius:16px;background:linear-gradient(155deg,#151e28,#0e141b);padding:18px;min-width:0}.pagecard .cardicon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#e8bb6217;border:1px solid #e8bb6230;font-size:21px;margin-bottom:15px}.pagecard h2{font-size:15px;margin:0 0 7px}.pagecard p{font-size:12px;line-height:1.65;color:var(--muted);margin:0 0 15px}.pagecard button{width:100%;text-align:center}.metricgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.metric{padding:16px;border:1px solid var(--line);border-radius:14px;background:#111821}.metric strong{display:block;font-size:23px;color:var(--gold2);letter-spacing:-.5px}.metric span{font-size:10px;color:var(--muted)}.statuschip{display:inline-flex;border-radius:99px;border:1px solid #e8bb6233;background:#e8bb6210;color:var(--gold2);padding:6px 9px;font-size:10px}.page-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}@keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}@media(max-width:760px){.pagegrid{grid-template-columns:1fr 1fr}.metricgrid{grid-template-columns:1fr 1fr}.pagehero{padding:20px}.pagecard{padding:15px}}@media(max-width:440px){.pagegrid{grid-template-columns:1fr}}
 .online-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}.online-card{display:block}.online-card .cardicon{margin-bottom:12px}.online-label{display:block;font-size:11px;color:var(--muted);margin:12px 0 7px}.online-input{display:block;width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#0b1118;color:var(--text);margin-bottom:12px}.online-check{display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:11px;line-height:1.5;margin:12px 0}.online-check input{margin-top:2px;accent-color:var(--gold)}.online-card button{margin-top:8px}.invite-code-panel{padding:15px;margin-top:14px;border:1px solid #e8bb6240;border-radius:13px;background:#e8bb620b}.invite-code{font:800 29px/1.3 ui-monospace,monospace;letter-spacing:7px;color:var(--gold2);margin:5px 0}.iconbtn:disabled{opacity:.4;cursor:not-allowed}@media(max-width:760px){.online-grid{grid-template-columns:1fr}}\n.online-chat-messages{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto;margin-bottom:12px}.online-chat-bubble{align-self:flex-start;max-width:95%;padding:8px 10px;border-radius:10px;background:#e8bb6212;border:1px solid #e8bb6222;overflow-wrap:anywhere;font-size:12px}.online-chat-bubble.mine{align-self:flex-end;background:#7ad7a116;border-color:#7ad7a133}.online-chat-bubble strong{display:block;color:var(--gold2);font-size:10px;margin-bottom:3px}.online-chat-form{display:flex;gap:7px}.online-chat-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:10px;background:#0b1118;color:var(--text)}.online-chat-form button{padding:9px 12px}.online-chat-form button:disabled{opacity:.45}@media(max-width:760px){.online-chat-messages{max-height:170px}}\n
+
+/* Multiplayer chat is a temporary overlay; closing it returns focus to the live board. */
+.chat-unread{display:inline-block;margin-left:5px;color:var(--gold2);font-size:18px;line-height:0}
+.chat-backdrop{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:16px;background:#03060bd9;backdrop-filter:blur(8px)}
+.online-chat-popover{width:min(460px,100%);max-height:min(76vh,620px);display:flex;flex-direction:column;gap:12px;padding:18px;border:1px solid #e8bb6255;border-radius:18px;background:linear-gradient(150deg,#171f29,#0c1118);box-shadow:0 24px 90px #000a;animation:pageIn .16s ease both}
+.chat-popover-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.chat-popover-head h2{margin:4px 0 0;font-size:20px}.chat-popover-head .iconbtn{font-size:25px;flex:0 0 40px}
+.online-chat-popover .online-chat-messages{flex:1;min-height:90px;max-height:45vh;margin:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:#080d13}
+.online-chat-popover .online-chat-form{flex:0 0 auto}.online-chat-popover .tiny{line-height:1.5}
+@media(max-width:760px){.online-chat-popover{padding:14px;border-radius:16px;max-height:82svh}.online-chat-popover .online-chat-messages{max-height:52svh}}
+
 /* Chess.com-inspired compact play layout: keep the board and opponent in one view. */
 @media(min-width:761px){
   .wrap{padding-top:12px;padding-bottom:12px}
@@ -128,7 +138,7 @@
   </section>
   <div class="layout" id="gameLayout" hidden>
     <section class="maincol">
-      <div class="gamehead"><div><div class="eyebrow">Vs Dr ECG · Local practice</div><h1>Make your move.</h1></div><div class="headright"><button class="ghost" id="newGame">↻ New demo</button></div></div>
+      <div class="gamehead"><div><div class="eyebrow">Vs Dr ECG · Local practice</div><h1>Make your move.</h1></div><div class="headright"><button class="ghost" id="onlineChatOpenBtn" type="button" hidden>☷ Chat <span id="onlineChatUnread" class="chat-unread" hidden>•</span></button><button class="ghost" id="newGame">↻ New game</button></div></div>
       <div class="playerbar">
         <div class="playerid"><div class="avatar">♟</div><div><div class="playername" id="topPlayerName">Dr ECG <span style="color:#8c9b9d">· Bot preview</span></div><div class="sub" id="topPlayerSub">Bablo tactical menace</div><div class="captured" id="capturedTop"></div></div></div>
         <div class="clock" id="topClock">05:00</div>
@@ -161,7 +171,7 @@
         <div class="cardhead"><h2>Game controls</h2><span class="tiny">PREVIEW</span></div>
         <div class="cardbody"><div class="gameactions"><button class="ghost" id="resignBtn">⚑ Resign</button><button class="ghost" id="drawBtn">◇ Offer draw</button><button class="primary wide" id="rematchBtn">↻ Reset board</button></div></div>
       </section>
-      <section class="card" id="onlineChatCard"><div class="cardhead"><h2>Opponent chat</h2><span class="tiny">ONLINE</span></div><div class="cardbody"><div id="onlineChatMessages" class="online-chat-messages" aria-live="polite"><div class="tiny">Friend-game chat appears here after an online game starts.</div></div><form id="onlineChatForm" class="online-chat-form"><input id="onlineChatInput" maxlength="200" placeholder="Say good game…" autocomplete="off" aria-label="Chat message"><button class="primary" type="submit">Send</button></form><div class="tiny" id="onlineChatStatus">Keep messages respectful. Maximum 200 characters.</div></div></section>
+      
       <section class="card" id="accountConnectionCard">
         <div class="cardhead"><h2>Account connection</h2><span class="tiny">STAGE 1</span></div>
         <div class="cardbody">
@@ -178,6 +188,14 @@
         <div class="cardbody"><div class="info-list"><div class="info-line"><span>Board selection</span><b style="color:var(--good)">Interactive</b></div><div class="info-line"><span>Move log & undo</span><b style="color:var(--good)">Local demo</b></div><div class="info-line"><span>Rules engine</span><b style="color:var(--good)">chess.js</b></div><div class="info-line"><span>Online / ratings</span><b>Not connected</b></div></div></div>
       </section>
     </aside>
+  </div>
+  <div class="chat-backdrop" id="onlineChatBackdrop" hidden>
+    <section class="online-chat-popover" role="dialog" aria-modal="true" aria-labelledby="onlineChatTitle" aria-describedby="onlineChatStatus">
+      <div class="chat-popover-head"><div><div class="eyebrow">MULTIPLAYER · LIVE CHAT</div><h2 id="onlineChatTitle">Opponent chat</h2></div><button class="iconbtn" id="onlineChatCloseBtn" type="button" aria-label="Close chat and return to game">×</button></div>
+      <div id="onlineChatMessages" class="online-chat-messages" aria-live="polite"><div class="tiny">Messages appear here during your online game.</div></div>
+      <form id="onlineChatForm" class="online-chat-form"><input id="onlineChatInput" maxlength="200" placeholder="Say good game…" autocomplete="off" aria-label="Chat message"><button class="primary" type="submit">Send</button></form>
+      <div class="tiny" id="onlineChatStatus">Keep messages respectful. Maximum 200 characters.</div>
+    </section>
   </div>
   <p class="footerhint">Bablo Chess · Phase 2 interface preview. Demo moves are local and are not sent to your live account or saved to the production database.</p>
 </main>
@@ -447,6 +465,7 @@ window.babloChessApplyOnlineGame=function(remoteGame,playerId){
  if(!remoteGame||!remoteGame.id)return;
  gameStarted=true;$('preGameSetup').hidden=true;$('gameLayout').hidden=false;stopLocalClock();clockStarted=false;
  onlineGame=remoteGame;
+ if(chatOpenButton)chatOpenButton.hidden=false;
  onlineColor=remoteGame.white_player_id===playerId?'w':remoteGame.black_player_id===playerId?'b':null;
  const oldMoves=game.history();
  const newMoves=(remoteGame.moves||'').trim().split(/\s+/).filter(Boolean);
@@ -479,6 +498,13 @@ function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}botThinking=f
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
+const chatBackdrop=$('onlineChatBackdrop'),chatOpenButton=$('onlineChatOpenBtn'),chatUnread=$('onlineChatUnread');
+function openOnlineChat(){if(!onlineGame)return;chatBackdrop.hidden=false;chatUnread.hidden=true;document.body.style.overflow='hidden';setTimeout(()=>$('onlineChatInput')?.focus(),30)}
+function closeOnlineChat(){chatBackdrop.hidden=true;document.body.style.overflow='';chatOpenButton?.focus()}
+chatOpenButton?.addEventListener('click',openOnlineChat);
+$('onlineChatCloseBtn')?.addEventListener('click',closeOnlineChat);
+chatBackdrop?.addEventListener('click',e=>{if(e.target===chatBackdrop)closeOnlineChat()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&chatBackdrop&&!chatBackdrop.hidden)closeOnlineChat()});
 $('newGame').onclick=reset;$('rematchBtn').onclick=reset;
 $('openLocalSetup').onclick=()=>showPlayMode('setup');
 $('backToModeHub').onclick=()=>showPlayMode('hub');
@@ -698,6 +724,7 @@ async function refreshMessages(gameId){
   const result=await onlineClient.messages(gameId),box=document.getElementById('onlineChatMessages');
   if(!box)return;box.replaceChildren();
   const messages=Array.isArray(result.messages)?result.messages:[];
+  if(chatUnread)chatUnread.hidden=chatBackdrop&&!chatBackdrop.hidden;
   if(!messages.length){box.innerHTML='<div class="tiny">No messages yet. Say hello.</div>';return}
   for(const message of messages){
    const item=document.createElement('div');item.className='online-chat-bubble'+(message.nick===onlineIdentity.nickname?' mine':'');
