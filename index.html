@@ -595,6 +595,19 @@ body.bablo-chess-mode .chess-board .sq.dark .chess-board-coordinate{color:#e6e5d
 @keyframes chessReactionFloat{0%{opacity:0;transform:translateY(18px) scale(.82)}18%{opacity:1;transform:translateY(0) scale(1)}72%{opacity:1;transform:translateY(-5px) scale(1)}100%{opacity:0;transform:translateY(-24px) scale(.94)}}
 @media(prefers-reduced-motion:reduce){.chess-reaction-burst{animation:none;opacity:1}}
 
+
+/* Four fixed Bablo Chess opponents */
+.chess-bot-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 4px}
+.chess-bot-card{display:flex;align-items:center;gap:12px;min-width:0;padding:13px;border:1px solid rgba(234,193,91,.18);border-radius:16px;background:linear-gradient(145deg,rgba(29,32,38,.95),rgba(17,20,25,.95));color:#f3f0e7;text-align:left;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.chess-bot-card[aria-pressed=true]{border-color:#e9bd59;background:linear-gradient(145deg,rgba(75,60,31,.72),rgba(25,26,29,.98));box-shadow:inset 0 0 0 1px rgba(233,189,89,.2)}
+.chess-bot-card:active{transform:scale(.99)}
+.chess-bot-card-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.chess-bot-card-copy>b{font-size:.97rem;color:#f6df9e}
+.chess-bot-style{font-size:.76rem;color:#aaa99f;line-height:1.4}
+.chess-bot-rating{font-size:.7rem;color:#c3b58c}
+.chess-bot-select{font-size:.7rem;font-weight:800;color:#e9bd59;margin-top:2px}
+@media(max-width:430px){.chess-bot-grid{grid-template-columns:minmax(0,1fr)}.chess-bot-card{padding:11px}}
+
 </style>
 </head>
 <body>
@@ -1589,7 +1602,7 @@ function route() {
     else if (v === 'flashcards' || v === 'notes') pendingPage(v === 'flashcards' ? 'Flashcards' : 'Notes');
     else if (v === 'quiz200') pendingPage('Quizzes');
     else if (v === 'programmes') programmesView();
-    else if (v === 'chess') { chessView(); if (CHESS && CHESS.mode === 'online') startOnlinePoll(); }
+    else if (v === 'chess') { chessView(); if (CHESS && CHESS.mode === 'online' && chessCurrentPage() === 'game') startOnlinePoll(); }
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
     else homeView();
@@ -2159,23 +2172,69 @@ const PIECE = { K: '\u2654', Q: '\u2655', R: '\u2656', B: '\u2657', N: '\u2658',
 let CHESS = null, CHESS_TICK = null;
 const chessRec = () => (DB.chess = DB.chess || { rating: 1000, w: 0, d: 0, l: 0, openings: {}, games: [], settings: {} });
 const CHESS_BOTS = [
-{id:'ecg',name:'Dr ECG',rating:1650,style:'Your personal chess doctor — configurable strength and temperament',hello:'Welcome to the clinic. Let’s examine your opening.',lines:{strong:'Interesting move. Let’s examine the position.',check:'Clinical alert: your king is in check.',win:'Diagnosis complete. A decisive tactical result.',loss:'Well played. You found the right treatment for this position.'}}
+  {id:'ecg',name:'Dr ECG',rating:1650,style:'Medical humour · balanced',hello:'Welcome to the clinic. Let’s examine your opening.'},
+  {id:'professor',name:'The Professor',rating:1850,style:'Methodical · positional',hello:'Welcome. Let us assess the position before choosing a plan.'},
+  {id:'zara',name:'Zara',rating:1550,style:'Tactical · aggressive',hello:'Ready? I am looking for tactics. Keep your king safe.'},
+  {id:'blitz',name:'Blitz Kola',rating:1100,style:'Fast · attacking',hello:'No long lecture today. Quick moves, sharp ideas. Let’s go!'}
 ];
 function botAvatar(b,size=72){
 if(b.id==='ecg'){
 const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#132947"/><stop offset=".58" stop-color="#1B5262"/><stop offset="1" stop-color="#C18B2C"/></linearGradient><linearGradient id="coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#C9D8E5"/></linearGradient><linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#9B6045"/><stop offset=".55" stop-color="#75412F"/><stop offset="1" stop-color="#4A2B25"/></linearGradient><linearGradient id="scrubs" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#174F63"/><stop offset="1" stop-color="#0A293E"/></linearGradient></defs><circle cx="80" cy="80" r="79" fill="url(#bg)"/><path d="M8 125h44l8-5 7 5h15l7-5 8 5h55" fill="none" stroke="#62E6D4" stroke-width="1.5" opacity=".75"/><path d="M24 160c3-28 18-43 38-48h36c20 5 35 20 38 48" fill="url(#coat)"/><path d="M53 113l27 26 27-26-8-8H61z" fill="url(#skin)"/><path d="M58 113l22 23 22-23 9 9-13 38H62l-13-38z" fill="url(#scrubs)"/><path d="M58 112l-14 8 17 25 10-18zM102 112l14 8-17 25-10-18z" fill="#F7FAFC"/><path d="M70 127l10 9 10-9-4 33H74z" fill="#D6A53C"/><path d="M45 57c0-25 14-39 36-39 23 0 37 17 36 41l-5 28H49z" fill="#171D28"/><path d="M49 51c-4 17 0 41 11 52 7 8 14 12 20 12s14-4 21-12c11-11 15-35 11-52-4-18-17-26-32-26S53 33 49 51z" fill="url(#skin)"/><path d="M46 54c-4-24 10-41 31-43 18-2 35 9 39 29-11-3-19-11-23-19-9 10-27 17-47 17z" fill="#171D28"/><path d="M52 63q10-7 20 0M89 63q10-7 20 0" fill="none" stroke="#291C1B" stroke-width="3" stroke-linecap="round"/><ellipse cx="63" cy="68" rx="3.4" ry="4" fill="#17191D"/><ellipse cx="98" cy="68" rx="3.4" ry="4" fill="#17191D"/><circle cx="64" cy="67" r="1" fill="#fff"/><circle cx="99" cy="67" r="1" fill="#fff"/><path d="M80 69l-5 17 8 2" fill="none" stroke="#5B3028" stroke-width="2.5" stroke-linecap="round"/><path d="M65 96q15 11 30 0" fill="none" stroke="#F1C0A6" stroke-width="3" stroke-linecap="round"/><path d="M61 91q19 13 39 0l-3 12q-16 12-32 0z" fill="#231B1C"/><path d="M50 54q-6 3-5 13M112 54q6 3 5 13" fill="none" stroke="#75412F" stroke-width="4"/><path d="M43 120l14-8 13 21-11 12zM117 120l-14-8-13 21 11 12z" fill="#F8FAFC"/><path d="M57 116l-4 14 8 14 9-11zM103 116l4 14-8 14-9-11z" fill="#D9E3EB"/><path d="M105 117q16 12 7 29" fill="none" stroke="#B68B39" stroke-width="3"/><circle cx="113" cy="146" r="4" fill="#E4B84F"/><path d="M19 30h24M31 18v24" stroke="#F2D18A" stroke-width="1.5" opacity=".6"/><circle cx="128" cy="30" r="13" fill="#D9A83E"/><path d="M128 21v18M119 30h18" stroke="#173D4A" stroke-width="3" stroke-linecap="round"/></svg>';
 return h('img',{src:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg),alt:'Dr ECG, Bablo Hub chess doctor avatar',width:size,height:size,style:{width:size+'px',height:size+'px',flex:'0 0 '+size+'px',borderRadius:'50%',objectFit:'cover',border:'2px solid var(--gold)',boxShadow:'0 5px 16px #0002'}});
 }
-const palettes={freshie:['#6fbd94','#173d31','#f1c7a1'],medmind:['#7b9ee8','#202c57','#d9a982'],clinician:['#65c7ce','#124d56','#b87958'],professor:['#b59ae8','#382657','#e1b48d']};
+const palettes={freshie:['#6fbd94','#173d31','#f1c7a1'],medmind:['#7b9ee8','#202c57','#d9a982'],clinician:['#65c7ce','#124d56','#b87958'],professor:['#b59ae8','#382657','#e1b48d'],zara:['#ee96bd','#54213d','#bd8061'],blitz:['#f0a64e','#63351e','#895638']};
 const p=palettes[b.id]||palettes.medmind;
 const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+p[0]+'"/><stop offset="1" stop-color="'+p[1]+'"/></linearGradient></defs><circle cx="50" cy="50" r="49" fill="url(#bg)"/><circle cx="50" cy="39" r="19" fill="'+p[2]+'"/><path d="M18 94c2-22 14-34 32-34s30 12 32 34" fill="#f1f0ec"/><path d="M31 36c1-18 36-25 40 0-8-6-13-11-18-15-5 8-13 13-22 15" fill="'+p[1]+'"/><circle cx="43" cy="41" r="2" fill="#292929"/><circle cx="57" cy="41" r="2" fill="#292929"/><path d="M44 50q6 5 12 0" stroke="#8b4b45" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
 return h('img',{src:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg),alt:b.name+' avatar',width:size,height:size,style:{width:size+'px',height:size+'px',flex:'0 0 '+size+'px',borderRadius:'50%',objectFit:'cover',border:'2px solid var(--gold)',boxShadow:'0 5px 16px #0002'}});
 }
-function selectedBot(){return CHESS_BOTS[0]}
+function selectedBot(){return CHESS_BOTS.find(b=>b.id===chessSet().bot)||CHESS_BOTS[0]}
 function botName(){return (CHESS_BOTS.find(b=>b.id===CHESS?.botId)||selectedBot()).name}
 function drEcgPick(lines){const last=window.__drEcgLastLine;let choices=lines.filter(x=>x!==last);if(!choices.length)choices=lines;const msg=choices[Math.floor(Math.random()*choices.length)];window.__drEcgLastLine=msg;return msg;}
 function botDialogue(G,event){
-const t=chessSet().temperament||'clinical';
+const activeBot=CHESS_BOTS.find(b=>b.id===G.botId)||selectedBot();
+if(activeBot.id!=='ecg'){
+  const voices={
+    professor:{
+      hello:['Welcome. Let us assess the position before choosing a plan.','We will focus on structure, development and long-term squares.'],
+      move:['Improve your least active piece before starting a new operation.','Re-check the centre. A sound plan begins with a sound position.','A quiet improvement can be stronger than an immediate attack.'],
+      check:['Check. Enumerate every legal defence before making a decision.','King safety takes priority. Examine captures, blocks and escape squares.'],
+      takeback:['Review accepted. Compare the original plan with the alternative.','A useful correction. Now identify the positional reason.'],
+      win:['Well played. Let us review the turning point calmly.','A result is useful only when we understand the position behind it.'],
+      loss:['The plan held. Review the position and look for the critical decision.','Good effort. One inaccurate plan can change the whole board.'],
+      draw:['A balanced position and a balanced result.']
+    },
+    zara:{
+      hello:['Let us find a tactic. Keep your king safe.','I am looking for forcing moves from move one. Ready?'],
+      move:['That gives me something to calculate. Checks, captures, threats.','Open lines are invitations. I will check whether this one is safe.','You moved. Now calculate the forcing replies.'],
+      check:['Check! Find the strongest legal defence, not just the first one.','Your king is under pressure. Calculate carefully.'],
+      takeback:['Rewind accepted. Now find a move that survives the tactics.','Second chance. Watch every forcing reply.'],
+      win:['The tactic landed. Review the move that made it possible.','I found the sharp continuation this time. Rematch?'],
+      loss:['You defended the tactics well. That was a hard-fought game.','Nicely calculated. You found the forcing line before I did.'],
+      draw:['No breakthrough this time. We will find another attack.']
+    },
+    blitz:{
+      hello:['Blitz Kola in the building. Fast hands, clear ideas.','Quick game, sharp focus. Let’s move!'],
+      move:['Sharp. Keep the tempo.','No sleeping on the board—what is the next threat?','You have made your move. I am already looking ahead.'],
+      check:['Check! Find a safe square quickly, but do not panic.','Clock pressure means nothing without a good move. Defend.'],
+      takeback:['Quick rewind. Let’s keep the game moving.','Redo approved. Make this one count.'],
+      win:['That was quick! Another round?','Speed and accuracy today. Game over.'],
+      loss:['You got me this round. One more?','Nice finish. I will come back sharper.'],
+      draw:['Even game. Set another clock and try again.']
+    }
+  };
+  const voice=voices[activeBot.id]||voices.professor;
+  if(event==='result'){
+    const result=gameOver(G).res;
+    return drEcgPick(result==='draw'?voice.draw:(result===G.color?voice.loss:voice.win));
+  }
+  if(event==='takeback')return drEcgPick(voice.takeback);
+  if(event==='hello')return drEcgPick(voice.hello);
+  if(Chess.status(G.s).check)return drEcgPick(voice.check);
+  if(event==='strong'||event==='move')return drEcgPick(voice.move);
+  return '';
+}
+const picked=Number(chessSet().level==='auto'?(Number(chessRec().rating)||1000):(botRating(chessSet().level)||1000));
+const t=picked<900?'playful':picked<1300?'mentor':picked<1800?'clinical':'ruthless';
 const lines={
 hello:{clinical:['Welcome to the clinic. Let’s examine your opening.','Dr ECG on duty. Let’s keep our development healthy.','Ready when you are. I’ll watch the position closely.'],playful:['Alright, doc is on the board 😏 Let’s make this interesting.','Stethoscope on, chess brain activated. Your move! ♟️','Welcome to the clinic! Avoid tactical emergencies 😂'],ruthless:['No mercy today. Every inaccuracy will be examined.','The board is set. I intend to punish loose moves.','Let’s get to work. Weak squares won’t protect themselves.'],mentor:['Welcome. We’ll learn from every position.','Take your time. Good chess starts with a clear plan.','Let’s focus on development and king safety.']},
 move:{clinical:['Interesting move. What does it attack, and what does it leave behind?','Recheck the loose pieces and weak squares.','Look for forcing moves: checks, captures, and threats.','The position is evolving. Recalculate before committing.','Keep an eye on the centre and piece coordination.'],playful:['Oho, I see you 👀','That move has entered the patient record. ♟️','Okayyy, that move has some sauce.','Plot twist on the board! What’s your follow-up?','Chess cells loading… keep them coming 😂','Bold choice! Let’s see if it survives the check-up.'],ruthless:['Noted. I’ll test that move for weaknesses.','Every move leaves a clue. I’m looking for yours.','One mistake can decide this. Calculate accurately.','You have made your choice. Now defend it.','No move gets a free pass in this clinic.'],mentor:['Before your next move, scan for checks, captures, and threats.','Ask yourself: what is my opponent threatening now?','Look at your least active piece. Could it improve?','After every move, check whether any piece is hanging.','Try to connect your pieces before launching an attack.']},
@@ -2236,15 +2295,21 @@ function recordComputerGame(G, res) {
 }
 function chessMenu() {
   const R = chessRec(), S = chessSet(), top = Object.entries(R.openings).sort((a, b) => b[1] - a[1])[0];
-  if (S.bot !== 'ecg') { setChessSet({ bot:'ecg' }); S.bot='ecg'; }
   const last = R.last ? h('p', { class: 'small', style: { color: 'var(--gold)' } }, R.last.loser === 'draw' ? 'Last result: a draw.' : 'Last result: ' + R.last.winner + ' beat ' + R.last.loser + (R.last.online ? ' (online)' : '') + '.') : null;
   const seg = (items, cur, key) => h('div', { class: 'seg' }, items.map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(cur === v), onclick: () => { setChessSet({ [key]: v }); chessMenu(); } }, l)));
   mount(wrap(chessHeader(),chessPageNav('play'),back('#/chess/home','Chess home'),h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Play chess'), h('p', { class: 'muted' }, 'Choose a match type, set the challenge and clock, then start when you are ready.')),
     h('section', { class: 'panel stack' }, h('div', { class: 'row between' }, h('span', null, h('b', null, 'Your rating'), h('div', { class: 'tiny muted' }, R.w + ' wins \u2022 ' + R.d + ' draws \u2022 ' + R.l + ' losses')), h('span', { class: 'chip gold' }, R.rating)),
       top ? h('p', { class: 'small muted' }, 'You open with ' + top[0].slice(0, 2) + '-' + top[0].slice(2, 4) + ' most often.') : null, last),
-    h('section', { class: 'panel stack', id:'chessConfig' }, h('h2', null, 'Game settings'),
-h('div',{id:'chessBotPicker',class:'panel stack',style:{alignItems:'center',textAlign:'center',gap:'10px',padding:'18px'}},botAvatar(selectedBot(),96),h('h3',{style:{margin:'0'}},'Dr ECG'),h('span',{class:'chip gold'},'YOUR CHESS DOCTOR'),h('p',{class:'small muted',style:{margin:'0',maxWidth:'38ch'}},'Meet Dr ECG, your fixed chess opponent. Select playing strength and clock settings below before the match starts.'))),
+    h('section', { class: 'panel stack', id:'chessConfig' }, h('h2', null, 'Choose your opponent'),h('p',{class:'tiny muted'},'Each challenger keeps a fixed identity. Choose difficulty below; their playing style is not an in-game control.'),
+h('div',{class:'chess-bot-grid',role:'group','aria-label':'Choose a chess opponent'},
+  CHESS_BOTS.map(b=>h('button',{class:'chess-bot-card',type:'button','aria-pressed':String(S.bot===b.id),onclick:()=>{setChessSet({bot:b.id,level:'auto'});chessMenu();}},
+    botAvatar(b,64),
+    h('span',{class:'chess-bot-card-copy'},
+      h('b',null,b.name),
+      h('span',{class:'chess-bot-style'},b.style),
+      h('span',{class:'chess-bot-rating'},'Estimated rating · '+b.rating),
+      h('span',{class:'chess-bot-select'},S.bot===b.id?'Selected ✓':'Choose opponent')))))),
 
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Game type'), seg([['friendly', 'Friendly (take-backs)'], ['ranked', 'Ranked (no take-backs)']], S.mode, 'mode')),
       h('p', { class: 'tiny muted' }, 'Dr ECG has a fixed identity. Choose challenge strength and time control below; personality settings stay out of the game.'),
@@ -2667,7 +2732,7 @@ function chessView() {
     return h('span',{class:'chess-player-avatar','aria-hidden':'true'},side===G.color?'♙':'♟');
   };
   const topIdentity=h('span',{class:'chess-player-identity'},sideAvatar(topSide),
-    h('span',null,sideName(topSide),h('span',{class:'chess-player-hint'},G.mode==='online'?'Opponent':'Dr ECG · '+level)),
+    h('span',null,sideName(topSide),h('span',{class:'chess-player-hint'},G.mode==='online'?'Opponent':botName()+' · '+level)),
     G.mode!=='online'?h('span',{id:'botChatBubble',class:'panel small',hidden:!G.botChat,style:{position:'absolute',left:'0',top:'42px',zIndex:'10',maxWidth:'min(270px,78vw)',width:'max-content',padding:'9px 12px',border:'1px solid var(--gold)',borderRadius:'14px',boxShadow:'0 8px 24px #0004',background:'var(--panel)',display:G.botChat?'block':'none',whiteSpace:'normal'},'aria-live':'polite'},G.botChat||''):null);
   const bottomIdentity=h('span',{class:'chess-player-identity'},sideAvatar(bottomSide),
     h('span',null,sideName(bottomSide),h('span',{class:'chess-player-hint'},G.mode==='online'?'You · '+(G.color==='w'?'White':'Black'):'Your side')));
@@ -2693,7 +2758,7 @@ function chessView() {
   const sideChildren=[
     h('section',{class:'panel stack'},
       h('div',{class:'chess-kicker'},G.mode==='online'?'Online match':'Opponent'),
-      h('div',{class:'row between'},h('span',null,h('b',null,sideName(topSide)),h('div',{class:'tiny muted'},G.mode==='online'?'Friend challenge':'Dr ECG · fixed identity')),h('span',{class:'chip gold'},G.mode==='online'?'LIVE':String(chosenBotRating||selectedBot().rating))),
+      h('div',{class:'row between'},h('span',null,h('b',null,sideName(topSide)),h('div',{class:'tiny muted'},G.mode==='online'?'Friend challenge':botName()+' · fixed identity')),h('span',{class:'chip gold'},G.mode==='online'?'LIVE':String(chosenBotRating||selectedBot().rating))),
       G.mode==='online'&&G.online?h('p',{class:'tiny muted'},'Challenge code: '+G.online.code):h('p',{class:'tiny muted'},'Difficulty was set before the game. It cannot be changed mid-match.')),
     movePanel,controlPanel
   ];
@@ -2732,7 +2797,7 @@ async function loadOpenList() {
   const open = rows.filter(r => r.white_dev !== DB.dev);
   box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => runOnlineAction(() => joinOnline(r.code)) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
 }
-function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
+function startOnline(state) { CHESS = state; if (location.hash !== '#/chess/game') { location.hash = '#/chess/game'; return; } chessView(); startOnlinePoll(); }
 function onlineState(color, id, code, status, white, black) {
   const S=chessSet(); return { mode: 'online', online: { id, code, status, recorded: false, white: white || DB.profile.nick, black: black || '' }, color, friendly: true, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: S.time?{w:S.time*1000,b:S.time*1000,side:'w',at:Date.now(),increment:Number(S.increment||0)*1000}:null, captures:{w:[],b:[]}, recorded: false };
 }
