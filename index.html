@@ -1648,7 +1648,7 @@ function route() {
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
-  renderNav(v === 'run' || v === 'chess' || v === 'chess-play' || v === 'chess-compete' || v === 'chess-profile' ? null : (tab || 'home'));
+  renderNav(v === 'run' || v === 'chess' || v === 'chess-play' || v === 'chess-compete' || v === 'chess-profile' || v === 'chess-learn' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
     else if (v === 'course') courseView(seg[1]);
