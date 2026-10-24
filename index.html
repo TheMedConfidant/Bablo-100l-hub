@@ -2266,7 +2266,7 @@ function chessMenu() {
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Dr ECG temperament'), seg([['clinical', 'Clinical'], ['playful', 'Playful'], ['ruthless', 'Ruthless'], ['mentor', 'Mentor']], S.temperament || 'clinical', 'temperament')),
       h('div', { class: 'stack' }, h('label', { class: 'small muted', for: 'drEcgRating' }, 'Dr ECG rating (Auto or 600–2200 Elo)'), h('select', { id: 'drEcgRating', onchange: ev => { setChessSet({ botRating: ev.target.value }); chessMenu(); } }, [['auto','Auto — matches me'],['600','600 Elo'],['800','800 Elo'],['1000','1000 Elo'],['1200','1200 Elo'],['1400','1400 Elo'],['1600','1600 Elo'],['1800','1800 Elo'],['2000','2000 Elo'],['2200','2200 Elo']].map(([v,label]) => h('option', { value: v, selected: String(S.botRating || 'auto') === v }, label))), h('p', { class: 'tiny muted' }, 'In Auto level, rating sets Dr ECG’s strength. Temperament changes how predictably he plays.')) ,
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Play as'), seg([['w', 'White'], ['b', 'Black'], ['random', 'Random']], S.color, 'color')),
-      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
+      h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Clock (each side — also used for online challenges)'), seg([[0, 'Off'], [180, '3 min'], [300, '5 min'], [600, '10 min']], S.time, 'time')),
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
     CHESS && !gameOver(CHESS).over ? h('button', { class: 'btn gold block', onclick: resumeChess }, 'Resume current game') : null,
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
@@ -2363,8 +2363,10 @@ function chessClocks() {
   const go = gameOver(G);
   if (!go.over && G.clock && (clockMs(G, 'w') <= 0 || clockMs(G, 'b') <= 0)) {
     const loser = clockMs(G, 'w') <= 0 ? 'w' : 'b';
-    G.endResult = loser === 'w' ? 'b' : 'w'; G.endText = loser === G.color ? 'Your time is up. The computer wins.' : 'The computer ran out of time. You win!';
-    finishComputer(); chessDraw();
+    G.endResult = loser === 'w' ? 'b' : 'w';
+    if(G.mode==='online'){G.endText=loser===G.color?'Your time is up. You lost on time.':'Your opponent ran out of time. You win.';onlineFinish(G.endResult);}
+    else {G.endText = loser === G.color ? 'Your time is up. The computer wins.' : 'The computer ran out of time. You win!';finishComputer();}
+    chessDraw();
   }
 }
 function tap(ri) {
@@ -2590,10 +2592,12 @@ async function pollOnline() {
   try { await pollOnlineOnce(G); } finally { POLL_BUSY = false; }
 }
 async function pollOnlineOnce(G) {
-  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick,white_dev,black_dev,white_uid,black_uid,target_uid');
+  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick,white_dev,black_dev,white_uid,black_uid,target_uid,clock_seconds,clock_white_ms,clock_black_ms,clock_side,clock_updated_at');
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
   G.online.status = g.status; G.online.whiteUid = g.white_uid || G.online.whiteUid || ''; G.online.blackUid = g.black_uid || G.online.blackUid || ''; G.online.targetUid = g.target_uid || G.online.targetUid || '';
+  const seconds=Number(g.clock_seconds)||0;
+  if(seconds){if(!G.clock)G.clock={w:seconds*1000,b:seconds*1000,side:'w',at:Date.now(),paused:true};G.clock.w=Number.isFinite(Number(g.clock_white_ms))?Number(g.clock_white_ms):seconds*1000;G.clock.b=Number.isFinite(Number(g.clock_black_ms))?Number(g.clock_black_ms):seconds*1000;G.clock.side=g.clock_side==='b'?'b':'w';const stamp=g.clock_updated_at?Date.parse(g.clock_updated_at):Date.now();G.clock.at=Number.isFinite(stamp)?stamp:Date.now();G.clock.paused=g.status!=='active';G.online.clockSeconds=seconds;G.online.clockUpdatedAt=g.clock_updated_at||'';}else G.clock=null;
   const opponentJoined = !!g.black_dev && G.online.blackDev !== g.black_dev;
   G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
   G.online.whiteDev = g.white_dev || G.online.whiteDev; G.online.blackDev = g.black_dev || G.online.blackDev;
@@ -2663,7 +2667,9 @@ function onlineFinish(res) {
 }
 function onlineAfterMove() {
   const G = CHESS; const st = Chess.status(G.s);
-  const fields = { moves: G.moves.join(' '), updated_at: new Date().toISOString() };
+  const stamp=new Date().toISOString();
+  const fields = { moves: G.moves.join(' '), updated_at: stamp };
+  if(G.clock){fields.clock_white_ms=Math.max(0,Math.floor(clockMs(G,'w')));fields.clock_black_ms=Math.max(0,Math.floor(clockMs(G,'b')));fields.clock_side=G.clock.side;fields.clock_updated_at=stamp;}
   if (st.over) {
     const res = st.result === 'draw' ? 'draw' : (st.result === 'white' ? 'w' : 'b');
     G.endResult = res; G.endText = res === 'draw' ? 'Draw.' : (res === G.color ? 'Checkmate. You win!' : 'Checkmate. You lost this one.');
@@ -3712,22 +3718,26 @@ async function createOnline(targetDev,targetUid,targetUsername){
  if(!signedIn()||!DB.profile||!DB.profile.uid){toast('Log in to challenge players by username.');return;}
  await ensureChessIdentity(); if(!liveOn()){toast('Online challenges need the live connection.');return;}
  const username=DB.profile.username||DB.profile.nick;if(targetUid&&targetUid===DB.profile.uid){toast('You cannot challenge your own account.');return;}
- const code=rnd6();const row=await sbFetchJson('chess_games',{method:'POST',headers:sbHeaders({Prefer:'return=representation'}),body:JSON.stringify({code,white_nick:username.slice(0,30),white_dev:DB.dev,white_uid:DB.profile.uid,target_dev:targetDev||null,target_uid:targetUid||null,status:'waiting',moves:''})});
+ const clockSeconds=Number(chessSet().time)||0,now=new Date().toISOString(),initialMs=clockSeconds?clockSeconds*1000:null;
+ const code=rnd6();const row=await sbFetchJson('chess_games',{method:'POST',headers:sbHeaders({Prefer:'return=representation'}),body:JSON.stringify({code,white_nick:username.slice(0,30),white_dev:DB.dev,white_uid:DB.profile.uid,target_dev:targetDev||null,target_uid:targetUid||null,status:'waiting',moves:'',clock_seconds:clockSeconds,clock_white_ms:initialMs,clock_black_ms:initialMs,clock_side:clockSeconds?'w':null,clock_updated_at:clockSeconds?now:null})});
  if(!Array.isArray(row)||!row[0]){toast('Could not create the challenge. Try again.');return;}
- startOnline(onlineState('w',row[0].id,code,'waiting',username,'',DB.dev,'',targetDev||'',DB.profile.uid,'',targetUid||''));if(targetUid)toast('Challenge sent to @'+(targetUsername||'player')+'.');
+ startOnline(onlineState('w',row[0].id,code,'waiting',username,'',DB.dev,'',targetDev||'',DB.profile.uid,'',targetUid||'',clockSeconds,initialMs,initialMs,'w',now));if(targetUid)toast('Challenge sent to @'+(targetUsername||'player')+'.');
 }
 async function joinOnline(raw){
  const code=String(raw||'').trim().toUpperCase();if(!signedIn()||!DB.profile||!DB.profile.uid){toast('Log in before joining an online game.');return;}await ensureChessIdentity();
  if(code.length!==6){toast('Enter the 6-letter code.');return;}if(!liveOn()){toast('Online challenges need the live connection.');return;}
- const found=await sbFetchJson('chess_games?code=eq.'+code+'&status=eq.waiting&select=id,white_dev,white_nick,target_dev,white_uid,target_uid');
+ const found=await sbFetchJson('chess_games?code=eq.'+code+'&status=eq.waiting&select=id,white_dev,white_nick,target_dev,white_uid,target_uid,clock_seconds,clock_white_ms,clock_black_ms,clock_side,clock_updated_at');
  if(!Array.isArray(found)||!found.length){toast('No open challenge with that code.');return;}if(found[0].white_uid===DB.profile.uid||found[0].white_dev===DB.dev){toast('That is your own challenge. Share the code with a friend.');return;}
  if(found[0].target_uid&&found[0].target_uid!==DB.profile.uid){toast('This challenge was sent to another username.');return;}
- const username=DB.profile.username||DB.profile.nick;const joined=await sbFetchJson('chess_games?id=eq.'+found[0].id+'&status=eq.waiting',{method:'PATCH',headers:sbHeaders({Prefer:'return=representation'}),body:JSON.stringify({status:'active',black_nick:username.slice(0,30),black_dev:DB.dev,black_uid:DB.profile.uid,updated_at:new Date().toISOString()})});
+ const username=DB.profile.username||DB.profile.nick,startedAt=new Date().toISOString();const joined=await sbFetchJson('chess_games?id=eq.'+found[0].id+'&status=eq.waiting',{method:'PATCH',headers:sbHeaders({Prefer:'return=representation'}),body:JSON.stringify({status:'active',black_nick:username.slice(0,30),black_dev:DB.dev,black_uid:DB.profile.uid,clock_side:(Number(found[0].clock_seconds)||0)?'w':null,clock_updated_at:(Number(found[0].clock_seconds)||0)?startedAt:null,updated_at:startedAt})});
  if(!Array.isArray(joined)||!joined.length){toast('That challenge was just taken.');return;}
- startOnline(onlineState('b',found[0].id,code,'active',found[0].white_nick,username,found[0].white_dev,DB.dev,'',found[0].white_uid||'',DB.profile.uid,found[0].target_uid||''));
+ const g=joined[0],seconds=Number(g.clock_seconds)||0;
+ startOnline(onlineState('b',g.id,code,'active',g.white_nick,username,g.white_dev,DB.dev,'',g.white_uid||'',DB.profile.uid,g.target_uid||'',seconds,g.clock_white_ms,g.clock_black_ms,g.clock_side||'w',g.clock_updated_at||startedAt));
 }
-function onlineState(color,id,code,status,white,black,whiteDev,blackDev,targetDev,whiteUid,blackUid,targetUid){
- return {mode:'online',online:{id,code,status,recorded:false,ratingApplied:false,white:white||DB.profile.username||DB.profile.nick,black:black||'',whiteDev:whiteDev||'',blackDev:blackDev||'',targetDev:targetDev||'',whiteUid:whiteUid||'',blackUid:blackUid||'',targetUid:targetUid||''},color,friendly:false,s:Chess.initial(),sel:null,legal:[],last:null,busy:false,msg:'',resigned:false,resignText:'',endResult:null,endText:'',moves:[],hist:[],clock:null,recorded:false};
+function onlineState(color,id,code,status,white,black,whiteDev,blackDev,targetDev,whiteUid,blackUid,targetUid,clockSeconds,clockWhiteMs,clockBlackMs,clockSide,clockUpdatedAt){
+ const seconds=Number(clockSeconds)||0,stamp=clockUpdatedAt?Date.parse(clockUpdatedAt):Date.now();
+ const clock=seconds?{w:Number.isFinite(Number(clockWhiteMs))?Number(clockWhiteMs):seconds*1000,b:Number.isFinite(Number(clockBlackMs))?Number(clockBlackMs):seconds*1000,side:clockSide==='b'?'b':'w',at:Number.isFinite(stamp)?stamp:Date.now(),paused:status!=='active'}:null;
+ return {mode:'online',online:{id,code,status,recorded:false,ratingApplied:false,white:white||DB.profile.username||DB.profile.nick,black:black||'',whiteDev:whiteDev||'',blackDev:blackDev||'',targetDev:targetDev||'',whiteUid:whiteUid||'',blackUid:blackUid||'',targetUid:targetUid||'',clockSeconds:seconds,clockUpdatedAt:clockUpdatedAt||''},color,friendly:false,s:Chess.initial(),sel:null,legal:[],last:null,busy:false,msg:'',resigned:false,resignText:'',endResult:null,endText:'',moves:[],hist:[],clock,recorded:false};
 }
 async function loadOpenList(){
  const box=document.getElementById('openList');if(!box)return;if(!liveOn()){box.replaceChildren(h('p',{class:'muted small'},'Online challenges turn on when the live database is connected.'));return;}
