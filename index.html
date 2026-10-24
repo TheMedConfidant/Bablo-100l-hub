@@ -594,7 +594,18 @@ button,a,input,select,textarea{touch-action:manipulation}
 #chessFriendsList .panel{padding:10px 12px}
 #chessFriendsList .btn{white-space:nowrap}
 </style>
-</head>
+<style id="bablo-chess-shell-styles">
+.chess-app-shell{margin:0 0 22px;background:linear-gradient(120deg,rgba(232,187,98,.09),rgba(16,22,31,.18));border:1px solid rgba(232,187,98,.19);border-radius:18px;overflow:hidden}
+.chess-app-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px clamp(14px,3vw,28px);border-bottom:1px solid rgba(232,187,98,.15)}
+.chess-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}.chess-brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#f4d995,#bd8534);color:#1c160b;font-size:27px;box-shadow:0 0 30px rgba(232,187,98,.13)}.chess-brand b{display:block;font-size:14px;letter-spacing:1.5px}.chess-brand small{display:block;margin-top:3px;color:var(--muted);font-size:9px;letter-spacing:1.6px}.chess-status-pill{font-size:10px;letter-spacing:1px;color:var(--gold);border:1px solid rgba(232,187,98,.22);background:rgba(232,187,98,.06);padding:8px 11px;border-radius:999px}
+.chess-app-nav{display:flex;gap:5px;padding:8px clamp(10px,2vw,20px);overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.05)}.chess-nav-link{flex:1;min-width:64px;text-align:center;text-decoration:none;color:var(--muted);font-size:12px;font-weight:700;padding:11px 10px;border-radius:10px;white-space:nowrap;transition:background .18s,color .18s}.chess-nav-link.active{color:var(--gold);background:rgba(232,187,98,.11);box-shadow:inset 0 0 0 1px rgba(232,187,98,.17)}
+.chess-home{max-width:1120px;margin:0 auto;padding:10px 0 24px}.chess-hero{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(210px,.75fr);gap:22px;align-items:center;overflow:hidden;padding:clamp(24px,5vw,52px);border:1px solid rgba(232,187,98,.3);border-radius:24px;background:radial-gradient(ellipse at 84% 38%,rgba(232,187,98,.16),transparent 37%),linear-gradient(125deg,#111923,#151c25 58%,#20221e);box-shadow:0 20px 55px rgba(0,0,0,.14)}
+.chess-kicker{display:block;color:var(--gold);font-size:10px;font-weight:800;letter-spacing:2px}.chess-hero h1{font-size:clamp(30px,5vw,54px);line-height:1.05;letter-spacing:-1.8px;margin:16px 0}.chess-hero h1 em{font-style:normal;color:#f0ce83}.chess-hero-copy>p{max-width:510px;color:#b8c1cc;line-height:1.75;font-size:14px}.chess-hero-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:24px 0 18px}.chess-primary-cta,.chess-secondary-cta{display:inline-flex;align-items:center;justify-content:center;gap:14px;padding:13px 17px;border-radius:12px;font-weight:800;font-size:12px;text-decoration:none;border:1px solid rgba(232,187,98,.28);cursor:pointer}.chess-primary-cta{color:#20170b;background:linear-gradient(135deg,#f4d995,#c18a3b);border:0}.chess-secondary-cta{color:#f1dba8;background:rgba(255,255,255,.035)}.chess-hero-foot{display:flex;gap:17px;flex-wrap:wrap;color:#aab4c1;font-size:10px}.chess-hero-art{min-height:250px;position:relative;display:grid;place-items:center}.chess-king{position:relative;z-index:2;display:grid;place-items:center;width:170px;height:190px;border:1px solid rgba(244,217,149,.36);border-radius:48% 48% 35% 35%;font-size:112px;color:#f4d995;text-shadow:0 0 32px rgba(232,187,98,.32);background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(232,187,98,.045));box-shadow:inset 0 0 35px rgba(232,187,98,.07),0 0 60px rgba(232,187,98,.07);transform:rotate(2deg)}.chess-orbit{position:absolute;width:230px;height:230px;border:1px solid rgba(232,187,98,.18);border-radius:50%;transform:rotate(-22deg) scaleY(.48)}.orbit-two{width:265px;height:265px;transform:rotate(48deg) scaleY(.48);border-color:rgba(255,255,255,.12)}.chess-art-caption{position:absolute;bottom:5px;font-size:9px;letter-spacing:2px;color:#aeb5bd}
+.chess-stats-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0 30px}.chess-stat{min-width:0;padding:18px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:rgba(255,255,255,.025)}.chess-stat>span{display:block;font-size:9px;letter-spacing:1.5px;color:var(--muted);font-weight:800}.chess-stat>b{display:block;font-size:clamp(21px,3vw,29px);margin:9px 0 3px;color:var(--ink)}.chess-stat>small{display:block;color:var(--muted);font-size:10px;line-height:1.5}
+.chess-section-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:24px 0 14px}.chess-section-heading h2{margin:6px 0 0;font-size:clamp(20px,3vw,27px);letter-spacing:-.5px}.chess-section-note{font-size:11px;color:var(--muted)}.chess-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.chess-action-card{display:flex;align-items:center;gap:14px;min-width:0;padding:18px;border-radius:17px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.018));color:inherit;text-decoration:none;transition:transform .18s,border-color .18s,background .18s}.chess-action-card:hover{transform:translateY(-2px);border-color:rgba(232,187,98,.4);background:rgba(232,187,98,.055)}.chess-card-featured{border-color:rgba(232,187,98,.3);background:linear-gradient(125deg,rgba(232,187,98,.11),rgba(255,255,255,.025))}.chess-action-icon{flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:rgba(232,187,98,.1);color:var(--gold);font-size:23px}.chess-action-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}.chess-action-copy small{font-size:9px;letter-spacing:1.3px;color:var(--gold);font-weight:800}.chess-action-copy b{font-size:14px}.chess-action-copy>span{font-size:11px;line-height:1.5;color:var(--muted)}.chess-action-arrow{color:var(--gold);font-size:17px}.chess-lower-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:12px;margin-top:14px}.chess-lower-panel{padding:22px;border:1px solid rgba(255,255,255,.09);border-radius:17px;background:rgba(255,255,255,.025)}.chess-lower-panel h3,.chess-lower-panel h2{margin:9px 0}.chess-lower-panel p{font-size:12px;line-height:1.7;color:var(--muted)}.chess-muted-line{font-size:10px!important}.chess-text-link{display:inline-block;margin-top:6px;color:var(--gold);font-size:12px;font-weight:800;text-decoration:none;background:none;border:0;padding:0;cursor:pointer}.chess-quote-panel{background:radial-gradient(ellipse at 100% 0,rgba(232,187,98,.12),transparent 55%),rgba(255,255,255,.025)}.chess-quote-mark{height:26px;color:var(--gold);font-size:42px;line-height:1}.chess-quote-panel p{font-size:18px;color:var(--ink);font-weight:750}.chess-quote-panel>span:last-child{font-size:10px;color:var(--muted)}.chess-simple-page>h1{font-size:clamp(28px,4vw,42px);margin:10px 0}.chess-simple-intro{color:var(--muted);max-width:600px;line-height:1.7}
+@media(max-width:700px){.chess-status-pill{display:none}.chess-app-top{padding:13px 14px}.chess-hero{grid-template-columns:1fr;padding:24px 20px;gap:8px}.chess-hero-art{min-height:160px;grid-row:1}.chess-king{width:118px;height:130px;font-size:80px}.chess-orbit{width:170px;height:170px}.orbit-two{width:200px;height:200px}.chess-hero h1{font-size:36px;letter-spacing:-1.1px;margin:12px 0}.chess-hero-copy>p{font-size:13px}.chess-stats-row{gap:7px;margin-bottom:24px}.chess-stat{padding:12px 10px}.chess-stat>span{font-size:8px;letter-spacing:.7px}.chess-stat>small{font-size:9px}.chess-action-grid{grid-template-columns:1fr}.chess-action-card{padding:15px}.chess-lower-grid{grid-template-columns:1fr}.chess-section-note{display:none}.chess-home{padding-top:4px}}
+@media(prefers-reduced-motion:reduce){.chess-action-card,.chess-nav-link{transition:none}}
+</style></head>
 <body>
 <div id="splash" aria-hidden="true"><div class="sp-wrap"><svg class="sp-logo" viewBox="0 0 64 64" width="120" height="120"><defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="sp-line"/></svg><div class="sp-name">Bablo Hub</div><div class="sp-sub">for CoHES students</div></div></div>
 <script>(function(){try{var d=JSON.parse(localStorage.getItem("bablo100l:v1")||"{}");var l=d.skin||"glass";if(l==="green")l="glass";var sp=document.getElementById("splash");if(sp)sp.setAttribute("data-look",l);}catch(e){}})();</script>
@@ -1637,7 +1648,7 @@ function route() {
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
-  renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
+  renderNav(v === 'run' || v === 'chess' || v === 'chess-play' || v === 'chess-compete' || v === 'chess-profile' || v === 'chess-learn' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
     else if (v === 'course') courseView(seg[1]);
@@ -1664,6 +1675,9 @@ function route() {
     else if (v === 'quiz200') pendingPage('Quizzes');
     else if (v === 'programmes') programmesView();
     else if (v === 'chess-learn') chessLearnView(seg[1]);
+    else if (v === 'chess-play') chessPlayView();
+    else if (v === 'chess-compete') chessSectionView('compete');
+    else if (v === 'chess-profile') chessSectionView('profile');
     else if (v === 'chess') chessView();
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
@@ -2233,7 +2247,7 @@ function chessLearnView(topic){
  const progress=chessLearnProgress(), done=CHESS_LEARN_UNITS.filter(x=>progress[x.id]).length;
  const unit=CHESS_LEARN_UNITS.find(x=>x.id===topic);
  if(!unit){
-  mount(wrap(back('#/chess','Chess'),h('div',{class:'stack-l'},
+  mount(wrap(chessNav('learn'), back('#/chess','Chess home'),h('div',{class:'stack-l'},
    h('div',{class:'stack'},h('span',{class:'chip gold'},'BABLO CHESS ACADEMY'),h('h1',null,'Learn chess'),h('p',{class:'muted'},'Short lessons, clear examples and quick knowledge checks. Your progress is saved on this device.'),h('div',{class:'progress'},h('div',{style:{width:Math.round(done/CHESS_LEARN_UNITS.length*100)+'%'}})),h('p',{class:'tiny muted'},done+' of '+CHESS_LEARN_UNITS.length+' lessons completed')),
    h('section',{class:'grid two'},CHESS_LEARN_UNITS.map((x,i)=>h('a',{class:'tile',href:'#/chess-learn/'+x.id,style:{textDecoration:'none',color:'inherit'}},h('div',{class:'row between wrapr'},h('span',{class:'chip'},x.level),h('span',{class:'tiny muted'},progress[x.id]?'✓ Complete':x.time)),h('h2',null,(i+1)+'. '+x.title),h('p',{class:'small muted'},x.intro),h('span',{class:'btn sm '+(progress[x.id]?'ghost':'primary')},progress[x.id]?'Review lesson':'Start lesson')))),
    h('button',{class:'btn gold block',onclick:()=>{const next=CHESS_LEARN_UNITS.find(x=>!progress[x.id]);location.hash='#/chess-learn/'+(next||CHESS_LEARN_UNITS[0]).id;}},done===CHESS_LEARN_UNITS.length?'Review lessons':'Continue learning'))));
@@ -2244,23 +2258,83 @@ function chessLearnView(topic){
  const feedback=h('div',{class:'panel stack',hidden:true});
  const check=h('button',{class:'btn primary block',onclick:()=>{if(chosen===null){toast('Choose an answer first.');return;}checked=true;const correct=chosen===unit.a;feedback.hidden=false;feedback.replaceChildren(h('h3',null,correct?'Correct!':'Not quite'),h('p',{class:'small'},unit.why));if(correct){saveChessLearnProgress(unit.id);feedback.append(h('span',{class:'chip gold'},'Lesson completed'));check.textContent='Completed ✓';check.disabled=true;}else{feedback.append(h('button',{class:'btn sm',onclick:()=>{chosen=null;checked=false;feedback.hidden=true;opts.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));}},'Try again'));} }},progress[unit.id]?'Review answer':'Check answer');
  const idx=CHESS_LEARN_UNITS.findIndex(x=>x.id===unit.id), prev=CHESS_LEARN_UNITS[idx-1], next=CHESS_LEARN_UNITS[idx+1];
- mount(wrap(back('#/chess-learn','All lessons'),h('div',{class:'stack-l'},
+ mount(wrap(chessNav('learn'), back('#/chess-learn','All lessons'),h('div',{class:'stack-l'},
   h('div',{class:'stack'},h('span',{class:'chip gold'},unit.level+' • '+unit.time),h('h1',null,unit.title),h('p',{class:'muted'},unit.intro)),
   h('section',{class:'panel stack'},h('h2',null,'Key ideas'),h('ul',null,unit.points.map(p=>h('li',null,p)))),
   h('section',{class:'panel stack'},h('h2',null,'Quick check'),h('p',null,unit.q),opts,check,feedback),
   h('div',{class:'row between wrapr'},prev?h('a',{class:'btn ghost',href:'#/chess-learn/'+prev.id},'← Previous'):h('span'),next?h('a',{class:'btn primary',href:'#/chess-learn/'+next.id},'Next lesson →'):h('a',{class:'btn primary',href:'#/chess-learn'},'Finish course')))));
 }
 
+function chessNav(active) {
+  return h('div', { class: 'chess-app-shell' },
+    h('header', { class: 'chess-app-top' },
+      h('a', { class: 'chess-brand', href: '#/chess', 'aria-label': 'Bablo Chess home' },
+        h('span', { class: 'chess-brand-mark' }, '♞'),
+        h('span', null, h('b', null, 'BABLO CHESS'), h('small', null, 'THINK AHEAD. PLAY BOLD.'))),
+      h('span', { class: 'chess-status-pill' }, '♟  YOUR CHESS SPACE')),
+    h('nav', { class: 'chess-app-nav', 'aria-label': 'Bablo Chess' },
+      [['home','Home','#/chess'],['play','Play','#/chess-play'],['learn','Learn','#/chess-learn'],['compete','Compete','#/chess-compete'],['profile','Profile','#/chess-profile']].map(([id,label,href]) =>
+        h('a', { href, class: 'chess-nav-link' + (active===id?' active':''), 'aria-current': active===id?'page':null }, label))));
+}
 function chessMenu() {
+  const R=chessRec(), top=Object.entries(R.openings).sort((a,b)=>b[1]-a[1])[0];
+  const progress=typeof chessLearnProgress==='function'?chessLearnProgress():{};
+  const completed=typeof CHESS_LEARN_UNITS!=='undefined'?CHESS_LEARN_UNITS.filter(x=>progress[x.id]).length:0;
+  const last=R.last ? (R.last.loser==='draw'?'Your last game ended in a draw.':R.last.winner+' beat '+R.last.loser+(R.last.online?' online': '')+'.') : 'Your next great game starts here.';
+  const action=(eyebrow,title,desc,href,icon,cls='')=>h('a',{class:'chess-action-card '+cls,href},h('span',{class:'chess-action-icon','aria-hidden':'true'},icon),h('span',{class:'chess-action-copy'},h('small',null,eyebrow),h('b',null,title),h('span',null,desc)),h('span',{class:'chess-action-arrow','aria-hidden':'true'},'↗'));
+  mount(wrap(chessNav('home'),
+    h('main',{class:'chess-home'},
+      h('section',{class:'chess-hero'},
+        h('div',{class:'chess-hero-copy'},
+          h('span',{class:'chess-kicker'},'BABLO CHESS • YOUR NEXT MOVE'),
+          h('h1',null,'Every move has a story.',' ',h('em',null,'Write yours.')),
+          h('p',null,'Challenge your mind, sharpen your instincts, and find your next opponent. Your chess life starts here.'),
+          h('div',{class:'chess-hero-actions'},
+            h('a',{class:'chess-primary-cta',href:'#/chess-play'},'Choose a game ',h('span',null,'→')),
+            CHESS&&!gameOver(CHESS).over?h('button',{class:'chess-secondary-cta',onclick:resumeChess},'Resume game'):null),
+          h('div',{class:'chess-hero-foot'},h('span',null,'♙  Casual or rated'),h('span',null,'◷  Your pace, your game'))),
+        h('div',{class:'chess-hero-art','aria-hidden':'true'},
+          h('div',{class:'chess-orbit orbit-one'}),h('div',{class:'chess-orbit orbit-two'}),
+          h('div',{class:'chess-king'},'♞'),h('span',{class:'chess-art-caption'},'PLAN • CALCULATE • CONQUER'))),
+      h('section',{class:'chess-stats-row','aria-label':'Your chess overview'},
+        h('div',{class:'chess-stat'},h('span',null,'YOUR RATING'),h('b',null,String(R.rating)),h('small',null,'Current local rating')),
+        h('div',{class:'chess-stat'},h('span',null,'GAMES PLAYED'),h('b',null,String((R.w||0)+(R.d||0)+(R.l||0))),h('small',null,(R.w||0)+' wins · '+(R.d||0)+' draws · '+(R.l||0)+' losses')),
+        h('div',{class:'chess-stat'},h('span',null,'LEARNING PATH'),h('b',null,completed+'/'+(typeof CHESS_LEARN_UNITS!=='undefined'?CHESS_LEARN_UNITS.length:8)),h('small',null,'Lessons completed'))),
+      h('div',{class:'chess-section-heading'},h('div',null,h('span',{class:'chess-kicker'},'PICK YOUR NEXT MOVE'),h('h2',null,'What are we playing today?')),h('span',{class:'chess-section-note'},'Choose your path')),
+      h('section',{class:'chess-action-grid'},
+        action('PLAY ONLINE','Play online','Find a live opponent and get straight to the board.','#/chess-play','♟','chess-card-featured'),
+        action('YOUR PEOPLE','Challenge a friend','Search a Bablo username or join with a game code.','#/chess-play','♙'),
+        action('MEET YOUR OPPONENT','Play Dr ECG','Set your level and time control before the game.','#/chess-play','⚕'),
+        action('BUILD YOUR SKILL','Learn chess',completed?completed+' lessons completed':'Lessons, examples and quick checks.','#/chess-learn','✦'),
+        action('YOUR RECORD','Compete','Your chess journey, results and progress.','#/chess-compete','♜'),
+        action('PLAYER SPACE','My profile','Review your record and chess progress.','#/chess-profile','◉')),
+      h('section',{class:'chess-lower-grid'},
+        h('div',{class:'chess-lower-panel'},h('span',{class:'chess-kicker'},'LAST TIME ON THE BOARD'),h('h3',null,'Keep your momentum.'),h('p',null,last),top?h('p',{class:'chess-muted-line'},'Most-played opening: '+top[0].slice(0,2)+'–'+top[0].slice(2,4)):null,CHESS&&!gameOver(CHESS).over?h('button',{class:'chess-text-link',onclick:resumeChess},'Continue your game →'):h('a',{class:'chess-text-link',href:'#/chess-play'},'Set up a game →')),
+        h('div',{class:'chess-lower-panel chess-quote-panel'},h('span',{class:'chess-kicker'},'DR ECG REMINDER'),h('div',{class:'chess-quote-mark'},'“'),h('p',null,'Don’t just make a move. Know what it changes.'),h('span',null,'— Dr ECG, resident chess physician'))))));
+}
+function chessSectionView(section) {
+  const R=chessRec();
+  const isProfile=section==='profile';
+  mount(wrap(chessNav(section),h('main',{class:'chess-home chess-simple-page'},
+    h('span',{class:'chess-kicker'},isProfile?'PLAYER SPACE':'YOUR CHESS JOURNEY'),
+    h('h1',null,isProfile?'Your chess profile':'Compete & track your progress'),
+    h('p',{class:'chess-simple-intro'},isProfile?'Your current local record and learning progress.':'This is where your chess records, competition standings and milestones will live.'),
+    h('section',{class:'chess-stats-row'},
+      h('div',{class:'chess-stat'},h('span',null,'RATING'),h('b',null,String(R.rating)),h('small',null,'Current local rating')),
+      h('div',{class:'chess-stat'},h('span',null,'WINS'),h('b',null,String(R.w||0)),h('small',null,'Recorded wins')),
+      h('div',{class:'chess-stat'},h('span',null,'GAMES'),h('b',null,String((R.w||0)+(R.d||0)+(R.l||0)),),h('small',null,'Recorded games'))),
+    h('section',{class:'chess-lower-panel'},h('h2',null,isProfile?'Your record':'Competition centre'),h('p',null,'This first pass establishes the separate chess shell. Detailed competitive history and profile controls come after the home and play flow are verified.'),h('a',{class:'chess-primary-cta',href:'#/chess-play'},'Set up a game →')))));
+}
+function chessPlayView() {
   const R = chessRec(), S = chessSet(), top = Object.entries(R.openings).sort((a, b) => b[1] - a[1])[0];
   const last = R.last ? h('p', { class: 'small', style: { color: 'var(--gold)' } }, R.last.loser === 'draw' ? 'Last result: a draw.' : 'Last result: ' + R.last.winner + ' beat ' + R.last.loser + (R.last.online ? ' (online)' : '') + '.') : null;
   const seg = (items, cur, key) => h('div', { class: 'seg' }, items.map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(cur === v), onclick: () => { setChessSet({ [key]: v }); chessMenu(); } }, l)));
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Chess break'), h('p', { class: 'muted' }, 'Play the computer. Friendly games have take-backs and do not change your rating.')),
+  mount(wrap(chessNav('play'), back('#/chess', 'Chess home'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, 'Choose your game'), h('p', { class: 'muted' }, 'Choose your opponent and game settings here. Once a game starts, its controls stay on the board screen.')),
     h('section', { class: 'panel stack' }, h('div', { class: 'row between' }, h('span', null, h('b', null, 'Your rating'), h('div', { class: 'tiny muted' }, R.w + ' wins \u2022 ' + R.d + ' draws \u2022 ' + R.l + ' losses')), h('span', { class: 'chip gold' }, R.rating)),
       top ? h('p', { class: 'small muted' }, 'You open with ' + top[0].slice(0, 2) + '-' + top[0].slice(2, 4) + ' most often.') : null, last),
     h('section', { class: 'panel stack' }, h('h2', null, 'Learn chess'), h('p', { class: 'muted small' }, 'Build skills through guided lessons, tactics and quick checks. Progress saves on this device.'), h('a', { class: 'btn gold block', href: '#/chess-learn' }, 'Open Chess Learn →')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Game settings'),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Dr ECG & game setup'),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Game type'), seg([['friendly', 'Friendly (take-backs)'], ['ranked', 'Ranked (no take-backs)']], S.mode, 'mode')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Computer level'), seg([['auto', 'Matches me'], ['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']], S.level, 'level')),
       h('div', { class: 'stack' }, h('span', { class: 'small muted' }, 'Dr ECG temperament'), seg([['clinical', 'Clinical'], ['playful', 'Playful'], ['ruthless', 'Ruthless'], ['mentor', 'Mentor']], S.temperament || 'clinical', 'temperament')),
