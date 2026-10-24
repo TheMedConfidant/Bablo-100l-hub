@@ -742,6 +742,7 @@ let onlineIdentity = null;
 let activeOnlineId = null;
 let onlinePoll = null;
 let currentInviteCode = null;
+let currentInviteTargetId = null;
 let inviteOwner = false;
 let lastMessageGameId = null;
 let lastMessageSignature = '';
@@ -781,7 +782,7 @@ async function pollGame(gameId){
 function startPolling(gameId){
   stopPolling();
   if(activeOnlineId!==gameId){
-    lastMessageGameId=gameId;lastMessageSignature='';chatLastMessageCount=0;
+    lastMessageSignature='';chatLastMessageCount=0;
     if(chatUnread)chatUnread.hidden=true;
   }
   activeOnlineId=gameId;
@@ -806,7 +807,7 @@ document.addEventListener('click',async(event)=>{
    await currentIdentity();
    const result=await requireOnlineClient().createGame({timeControl:document.getElementById('onlineTime').value,rated:document.getElementById('onlineRated').checked,targetUniqueId});
    const g=result.game;if(!g?.id||!g?.code)throw new Error('The chess service returned an incomplete challenge.');
-   currentInviteCode=g.code;inviteOwner=true;
+   currentInviteCode=g.code;currentInviteTargetId=targetUniqueId||null;inviteOwner=true;
    document.getElementById('inviteCodePanel').hidden=false;
    document.getElementById('inviteCodeDisplay').textContent=g.code;
    document.getElementById('openOnlineGame').hidden=false;
@@ -826,7 +827,7 @@ document.addEventListener('click',async(event)=>{
   try{
    await currentIdentity();const result=await requireOnlineClient().acceptGame(code);
    if(!result.game?.id)throw new Error('The chess service returned an incomplete game.');
-   currentInviteCode=null;inviteOwner=false;
+   currentInviteCode=null;currentInviteTargetId=null;inviteOwner=false;
    window.babloChessFinishedNotified=false;window.babloChessApplyOnlineGame(result.game,onlineIdentity.player_id);
    statusText('joinStatus','Challenge accepted. Game started.');document.dispatchEvent(new Event('bablo-chess:show-play'));startPolling(result.game.id);
   }catch(e){statusText('joinStatus',e instanceof Error?e.message:'Could not accept challenge.',true)}
@@ -867,7 +868,7 @@ async function refreshMessages(gameId){
    else if(messages.length>chatLastMessageCount&&wasClosed)chatUnread.hidden=false;
    chatLastMessageCount=messages.length;
   }
-  const signature=messages.map(m=>[m.id,m.created_at,m.nick,m.body].join(':')).join('\u241f');
+  const signature=messages.map(m=>JSON.stringify([m.id,m.created_at,m.nick,m.body])).join('\u241f');
   if(lastMessageGameId!==gameId||signature!==lastMessageSignature){
    const wasNearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<72||box.childElementCount===0;
    box.replaceChildren();
@@ -889,7 +890,7 @@ async function refreshMessages(gameId){
 }
 document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
 localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;renderClocks();
-document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null;currentInviteCode=null;inviteOwner=false;lastMessageGameId=null;lastMessageSignature='';chatLastMessageCount=0;window.babloChessOnlineGameStatus=null});
+document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null;currentInviteCode=null;currentInviteTargetId=null;inviteOwner=false;lastMessageGameId=null;lastMessageSignature='';chatLastMessageCount=0;window.babloChessOnlineGameStatus=null});
 document.addEventListener('bablo-chess:page-shown',event=>{
  if(event.detail?.name!=='Friends')return;
  const panel=document.getElementById('inviteCodePanel');
@@ -898,7 +899,9 @@ document.addEventListener('bablo-chess:page-shown',event=>{
  const open=document.getElementById('openOnlineGame');
  if(inviteOwner&&currentInviteCode&&panel&&code){
   panel.hidden=false;code.textContent=currentInviteCode;
-  if(status)status.textContent=window.babloChessOnlineGameStatus==='active'?'Opponent joined. Game is live.':window.babloChessOnlineGameStatus==='finished'?'Game finished. This code is no longer active.':(document.getElementById('targetPlayerId')?.value?.trim()?'Waiting for the selected Bablo Hub account to accept.':'Waiting for opponent to accept.');
+  const targetInput=document.getElementById('targetPlayerId');
+  if(targetInput)targetInput.value=currentInviteTargetId||'';
+  if(status)status.textContent=window.babloChessOnlineGameStatus==='active'?'Opponent joined. Game is live.':window.babloChessOnlineGameStatus==='finished'?'Game finished. This code is no longer active.':(currentInviteTargetId?'Waiting for '+currentInviteTargetId+' to accept.':'Waiting for opponent to accept.');
  }
  if(open&&activeOnlineId){
   open.hidden=false;
