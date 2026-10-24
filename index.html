@@ -2402,7 +2402,10 @@ const CHESS_LESSONS=[
   {title:'Choose the English Opening',from:50,to:34,piece:'pawn',label:'Move the c-pawn from c2 to c4.',why:'The c-pawn controls d5 from the side and can support a flexible setup. This move is associated with the English Opening.',hint:'Select the pawn on c2, then select c4.'},
   {title:'Prepare a fianchetto',from:54,to:46,piece:'pawn',label:'Move the g-pawn from g2 to g3.',why:'The g-pawn move prepares Bg2, where the bishop can influence the long diagonal. It is a plan, not an immediate attack.',hint:'Select the pawn on g2, then select g3.'},
   {title:'Support the centre',from:52,to:44,piece:'pawn',label:'Move the king pawn from e2 to e3.',why:'A quieter e3 move supports d4 and opens a diagonal for the f1-bishop, though it claims less space than e4.',hint:'Select the pawn on e2, then select e3.'},
-  {title:'Recognise a king-safety trade-off',from:53,to:45,piece:'pawn',label:'Move the f-pawn from f2 to f3.',why:'This is a legal pawn move but not always a recommended opening choice: it weakens the king’s diagonal cover. Learn to compare the benefits and risks of pawn moves.',hint:'Select the pawn on f2, then select f3.'}
+  {title:'Recognise a king-safety trade-off',from:53,to:45,piece:'pawn',label:'Move the f-pawn from f2 to f3.',why:'This is a legal pawn move but not always a recommended opening choice: it weakens the king’s diagonal cover. Learn to compare the benefits and risks of pawn moves.',hint:'Select the pawn on f2, then select f3.'},
+  {title:'Castle to protect your king',fen:'4k3/8/8/8/8/8/8/4K2R',castling:'K',from:60,to:62,piece:'king',label:'Castle kingside: move the king from e1 to g1 in one move.',why:'Castling moves the king toward safety and develops the rook. It is legal here because the squares are clear and the king does not cross an attacked square.',hint:'Select the king on e1, then select g1. The rook will move automatically.'},
+  {title:'Capture a loose piece',fen:'7k/8/8/3n4/3R4/8/8/K7',castling:'-',from:35,to:27,piece:'rook',label:'Use the rook on d4 to capture the black knight on d5.',why:'Before capturing in a real game, check whether the target is defended and whether your own piece can be taken back. This exercise isolates the capture so you can practise reading the board.',hint:'Select the rook on d4, then select the knight on d5.'},
+  {title:'Escape a file check',fen:'4r1k1/8/8/8/8/8/8/4K3',castling:'-',from:60,to:61,piece:'king',label:'Your king on e1 is in check from the rook. Move it safely to f1.',why:'When in check, you must respond immediately: move the king, capture the checking piece, or block the line when legal. Here, moving to f1 is a legal escape.',hint:'The white king is in check. Select e1, then the highlighted safe square f1.'}
 ];
 let CHESS_LEARN=null;
 function chessLessonProgress() {
@@ -2423,8 +2426,9 @@ function chessLessonHint() {
 }
 function resetChessLesson(n) {
   const index=((n%CHESS_LESSONS.length)+CHESS_LESSONS.length)%CHESS_LESSONS.length;
-  const completed=!!chessLessonProgress()[String(index)];
-  CHESS_LEARN={index,state:Chess.initial(),selected:null,destinations:[],completed,feedback:completed?'Lesson already completed on this device. Review the explanation, or continue to the next lesson.':'Select the piece named in the instruction. Gold dots show its legal destinations.'};
+  const task=CHESS_LESSONS[index];
+  const state=task.fen?Chess.fromState(task.fen,'w',task.castling||'-',-1):Chess.initial();
+  CHESS_LEARN={index,state,selected:null,destinations:[],completed:false,feedback:'Select the piece named in the instruction. Gold dots show its legal destinations.'};
 }
 function chessLearnTap(ri) {
   const L=CHESS_LEARN;if(!L||L.completed)return;
