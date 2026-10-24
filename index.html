@@ -2208,8 +2208,8 @@ if(activeBot.id!=='ecg'){
       move:['That gives me something to calculate. Checks, captures, threats.','Open lines are invitations. I will check whether this one is safe.','You moved. Now calculate the forcing replies.'],
       check:['Check! Find the strongest legal defence, not just the first one.','Your king is under pressure. Calculate carefully.'],
       takeback:['Rewind accepted. Now find a move that survives the tactics.','Second chance. Watch every forcing reply.'],
-      win:['The tactic landed. Review the move that made it possible.','I found the sharp continuation this time. Rematch?'],
-      loss:['You defended the tactics well. That was a hard-fought game.','Nicely calculated. You found the forcing line before I did.'],
+      win:['You defended the tactics well. That was a hard-fought game.','Nicely calculated. You found the forcing line before I did.'],
+      loss:['The tactic landed. Review the move that made it possible.','I found the sharp continuation this time. Rematch?'],
       draw:['No breakthrough this time. We will find another attack.']
     },
     blitz:{
@@ -2217,15 +2217,15 @@ if(activeBot.id!=='ecg'){
       move:['Sharp. Keep the tempo.','No sleeping on the board—what is the next threat?','You have made your move. I am already looking ahead.'],
       check:['Check! Find a safe square quickly, but do not panic.','Clock pressure means nothing without a good move. Defend.'],
       takeback:['Quick rewind. Let’s keep the game moving.','Redo approved. Make this one count.'],
-      win:['That was quick! Another round?','Speed and accuracy today. Game over.'],
-      loss:['You got me this round. One more?','Nice finish. I will come back sharper.'],
+      win:['You got me this round. One more?','Nice finish. I will come back sharper.'],
+      loss:['That was quick! Another round?','Speed and accuracy today. Game over.'],
       draw:['Even game. Set another clock and try again.']
     }
   };
   const voice=voices[activeBot.id]||voices.professor;
   if(event==='result'){
     const result=gameOver(G).res;
-    return drEcgPick(result==='draw'?voice.draw:(result===G.color?voice.loss:voice.win));
+    return drEcgPick(result==='draw'?voice.draw:(result===G.color?voice.win:voice.loss));
   }
   if(event==='takeback')return drEcgPick(voice.takeback);
   if(event==='hello')return drEcgPick(voice.hello);
