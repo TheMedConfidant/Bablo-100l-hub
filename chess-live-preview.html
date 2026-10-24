@@ -742,6 +742,8 @@ let activeOnlineId = null;
 let onlinePoll = null;
 let currentInviteCode = null;
 let inviteOwner = false;
+let lastMessageGameId = null;
+let lastMessageSignature = '';
 const statusText = (id, text, bad=false) => {
   const el=document.getElementById(id);
   if(el){el.textContent=text;el.style.color=bad?'#ffb6a9':'var(--muted)';}
@@ -776,7 +778,12 @@ async function pollGame(gameId){
   finally{pollInFlight=false}
 }
 function startPolling(gameId){
-  stopPolling();activeOnlineId=gameId;
+  stopPolling();
+  if(activeOnlineId!==gameId){
+    lastMessageGameId=gameId;lastMessageSignature='';chatLastMessageCount=0;
+    if(chatUnread)chatUnread.hidden=true;
+  }
+  activeOnlineId=gameId;
   pollGame(gameId);onlinePoll=setInterval(()=>pollGame(gameId),1800);
 }
 window.babloChessApi={
@@ -847,22 +854,37 @@ async function refreshMessages(gameId){
  if(!onlineClient||!onlineIdentity)return;
  try{
   const result=await onlineClient.messages(gameId),box=document.getElementById('onlineChatMessages');
-  if(!box)return;box.replaceChildren();
+  if(!box)return;
   const messages=Array.isArray(result.messages)?result.messages:[];
-  if(chatUnread){const wasClosed=!chatBackdrop||chatBackdrop.hidden;if(messages.length>chatLastMessageCount&&wasClosed)chatUnread.hidden=false;chatLastMessageCount=messages.length;}
-  if(!messages.length){box.innerHTML='<div class="tiny">No messages yet. Say hello.</div>';return}
-  for(const message of messages){
-   const item=document.createElement('div');item.className='online-chat-bubble'+(message.nick===onlineIdentity.nickname?' mine':'');
-   const name=document.createElement('strong');name.textContent=message.nick||'Player';
-   const body=document.createElement('span');body.textContent=message.body||'';
-   item.append(name,body);box.append(item)
+  const wasClosed=!chatBackdrop||chatBackdrop.hidden;
+  if(chatUnread){
+   if(lastMessageGameId!==gameId){chatLastMessageCount=messages.length;chatUnread.hidden=true}
+   else if(messages.length>chatLastMessageCount&&wasClosed)chatUnread.hidden=false;
+   chatLastMessageCount=messages.length;
   }
-  box.scrollTop=box.scrollHeight;statusText('onlineChatStatus','Messages refresh during your game.');
+  const signature=messages.map(m=>[m.id,m.created_at,m.nick,m.body].join(':')).join('\u241f');
+  if(lastMessageGameId!==gameId||signature!==lastMessageSignature){
+   const wasNearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<72||box.childElementCount===0;
+   box.replaceChildren();
+   if(!messages.length){
+    const empty=document.createElement('div');empty.className='tiny';empty.textContent='No messages yet. Say hello.';box.append(empty);
+   }else{
+    for(const message of messages){
+     const item=document.createElement('div');item.className='online-chat-bubble'+(message.nick===onlineIdentity.nickname?' mine':'');
+     const name=document.createElement('strong');name.textContent=message.nick||'Player';
+     const body=document.createElement('span');body.textContent=message.body||'';
+     item.append(name,body);box.append(item);
+    }
+   }
+   lastMessageGameId=gameId;lastMessageSignature=signature;
+   if(wasNearBottom)box.scrollTop=box.scrollHeight;
+  }
+  statusText('onlineChatStatus','Messages refresh during your game.');
  }catch(error){statusText('onlineChatStatus',error instanceof Error?error.message:'Chat refresh failed.',true)}
 }
 document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
 localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;renderClocks();
-document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null;currentInviteCode=null;inviteOwner=false;window.babloChessOnlineGameStatus=null});
+document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null;currentInviteCode=null;inviteOwner=false;lastMessageGameId=null;lastMessageSignature='';chatLastMessageCount=0;window.babloChessOnlineGameStatus=null});
 document.addEventListener('bablo-chess:page-shown',event=>{
  if(event.detail?.name!=='Friends')return;
  const panel=document.getElementById('inviteCodePanel');
