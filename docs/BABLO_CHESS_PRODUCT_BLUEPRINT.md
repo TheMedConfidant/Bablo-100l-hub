@@ -1,4 +1,6 @@
 # Bablo Chess — Standalone Product & UI Blueprint
+
+**Cross-chat progress tracker:** [Bablo Chess Progress Hub](./BABLO_CHESS_PROGRESS_HUB.md)
 Status: design baseline for the isolated chess lab. Do not integrate into Bablo Hub until the screens and core flows are reviewed and tested.
 
 ## Non-negotiable product identity
