@@ -154,7 +154,7 @@
       <div class="underboard"><div class="tiny" id="boardInstruction">Select a white piece, then choose a highlighted legal square. Dr ECG replies automatically.</div><div class="move-controls"><button class="iconbtn" id="backMove" aria-label="Undo demo move">↶</button><button class="iconbtn" id="forwardMove" aria-label="Redo demo move">↷</button><button class="iconbtn" id="flipBoard" aria-label="Board orientation preview">⇅</button></div></div>
     </section>
     <aside class="side">
-      <section class="card">
+      <section class="card" id="botCommentaryCard">
         <div class="cardhead"><h2>Dr ECG is watching</h2><span class="tiny">TEXT ONLY</span></div>
         <div class="cardbody">
           <div class="engine-row engine-chat-row"><div class="engine-profile"><div class="ecg-orb">♞</div><div><div class="engine-name">Dr ECG</div><div class="engine-tag">YOUR OPPONENT</div></div></div><div class="speech" id="speech"><strong>Dr ECG</strong> · Welcome to the board. Show me something better than last-minute cramming. 😏</div></div>
@@ -165,7 +165,7 @@
         <div class="cardhead"><h2>Game activity</h2><span class="tiny" id="moveCount">0 moves</span></div>
         <div class="tabs"><button class="tab active" data-tab="moves">Moves</button><button class="tab" data-tab="details">Details</button></div>
         <div class="moves" id="movePanel"><div class="movegrid" id="moveGrid"><div class="num">—</div><div style="color:#7e8b98">No demo moves yet</div><div></div></div></div>
-        <div class="cardbody" id="detailsPanel" style="display:none"><div class="info-list"><div class="info-line"><span>Mode</span><b>Casual · local</b></div><div class="info-line"><span>Time control</span><b>5 + 0</b></div><div class="info-line"><span>Board orientation</span><b>Fixed by default</b></div><div class="info-line"><span>Server connection</span><b style="color:#e7bd69">Not connected</b></div></div></div>
+        <div class="cardbody" id="detailsPanel" style="display:none"><div class="info-list"><div class="info-line"><span>Mode</span><b id="gameModeDetails">Casual · local</b></div><div class="info-line"><span>Time control</span><b id="localClockDetails">5 + 0</b></div><div class="info-line"><span>Board orientation</span><b>Fixed by default</b></div><div class="info-line"><span>Server connection</span><b id="serverConnectionDetails" style="color:#e7bd69">Not connected</b></div></div></div>
       </section>
       <section class="card">
         <div class="cardhead"><h2>Game controls</h2><span class="tiny">PREVIEW</span></div>
@@ -274,8 +274,10 @@ function render(){
  }}
  if(onlineGame){const side=game.turn()==='w'?'White':'Black';const status=onlineGame.status==='waiting'?'Waiting for opponent':onlineGame.status==='finished'?'Game finished':game.turn()===onlineColor?'Your move':'Opponent to move';$('turnNote').textContent=status+' · '+side+' to move'+(game.in_check()?' · CHECK':'')+' · Server-validated'}else $('turnNote').textContent=(whiteTurn?'Your move · White':'Dr ECG to move · Black')+(game.in_check()?' · CHECK':'')+' · Legal moves highlighted';
  $('moveCount').textContent=history.length+' '+(history.length===1?'move':'moves');
- $('capturedTop').textContent=capturedB.map(p=>glyph[p]).join('');
- $('capturedBottom').textContent=capturedW.map(p=>glyph[p]).join('');
+ const topCaptured=onlineGame&&onlineColor==='b'?capturedB:capturedW;
+ const bottomCaptured=onlineGame&&onlineColor==='b'?capturedW:capturedB;
+ $('capturedTop').textContent=topCaptured.map(p=>glyph[p]).join('');
+ $('capturedBottom').textContent=bottomCaptured.map(p=>glyph[p]).join('');
  updateOnlinePlayerLabels();
  const g=$('moveGrid');g.innerHTML='';
  if(!history.length){g.innerHTML='<div class="num">—</div><div style="color:#7e8b98">No demo moves yet</div><div></div>'}
@@ -401,14 +403,43 @@ function playDrECGMove(){
 }
 function formatClock(seconds){const whole=Math.max(0,Math.ceil(seconds));return String(Math.floor(whole/60)).padStart(2,'0')+':'+String(whole%60).padStart(2,'0')}
 let clockWhite=300,clockBlack=300,lastClockTick=0;
+function renderGameDetails(){
+ const mode=$('gameModeDetails'),control=$('localClockDetails'),server=$('serverConnectionDetails');
+ if(mode)mode.textContent=onlineGame?(onlineGame.rated?'Online · rated':'Online · casual'):'Casual · local';
+ if(control)control.textContent=onlineGame?String(onlineGame.time_control||'Online')+' · clock not active in preview':localClockSeconds===0?'Untimed':Math.round(localClockSeconds/60)+' + 0';
+ if(server)server.textContent=onlineGame?'Connected · server verified':'Not connected';
+}
 function renderClocks(){
  const top=$('topClock'),bottom=$('bottomClock');if(!top||!bottom)return;
+ renderGameDetails();
+ if(onlineGame){
+  top.textContent='—:—';bottom.textContent='—:—';
+  top.title=bottom.title='Online clock is not server-authoritative in this preview.';
+  top.classList.remove('active');bottom.classList.remove('active');return;
+ }
+ top.title=bottom.title='';
  if(localClockSeconds===0){top.textContent='∞';bottom.textContent='∞';top.classList.remove('active');bottom.classList.remove('active');return}
  top.textContent=formatClock(clockBlack);bottom.textContent=formatClock(clockWhite);
  top.classList.toggle('active',clockStarted&&activeClockColor==='b'&&!clockExpired);
  bottom.classList.toggle('active',clockStarted&&activeClockColor==='w'&&!clockExpired);
 }
 function stopLocalClock(){if(clockInterval){clearInterval(clockInterval);clockInterval=null}}
+function expireLocalClock(){
+ if(clockExpired)return;
+ clockExpired=true;clockStarted=false;stopLocalClock();
+ if(botTimer!==null){clearTimeout(botTimer);botTimer=null}
+ const winner=clockWhite<=0?'Black':'White';
+ eventPopup(winner.toUpperCase()+' WINS ON TIME','mate');gameSound('mate');
+ renderClocks();
+ showModal('Time expired',winner+' wins on time. Start a new game to play again.',reset,'New game');
+}
+function chargeActiveClock(now=Date.now()){
+ if(!clockStarted||clockExpired||onlineGame||localClockSeconds===0)return !clockExpired;
+ const elapsed=Math.max(0,(now-lastClockTick)/1000);lastClockTick=now;
+ if(activeClockColor==='w')clockWhite=Math.max(0,clockWhite-elapsed);else clockBlack=Math.max(0,clockBlack-elapsed);
+ if(clockWhite<=0||clockBlack<=0){expireLocalClock();return false}
+ return true;
+}
 function startLocalClock(){
  if(onlineGame||localClockSeconds===0||clockStarted||clockExpired)return;
  if(!Number.isFinite(clockWhite)||clockWhite<=0)clockWhite=localClockSeconds;
@@ -416,19 +447,14 @@ function startLocalClock(){
  clockStarted=true;activeClockColor=game.turn();lastClockTick=Date.now();stopLocalClock();
  clockInterval=setInterval(()=>{
   if(!clockStarted||clockExpired||onlineGame||game.game_over()){stopLocalClock();return}
-  const now=Date.now(),elapsed=(now-lastClockTick)/1000;lastClockTick=now;
-  if(activeClockColor==='w')clockWhite=Math.max(0,clockWhite-elapsed);else clockBlack=Math.max(0,clockBlack-elapsed);
-  if(clockWhite<=0||clockBlack<=0){
-   clockExpired=true;clockStarted=false;stopLocalClock();
-   if(botTimer!==null){clearTimeout(botTimer);botTimer=null}
-   const winner=clockWhite<=0?'Black':'White';
-   eventPopup(winner.toUpperCase()+' WINS ON TIME','mate');gameSound('mate');
-   showModal('Time expired',winner+' wins on time. Start a new game to play again.',reset,'New game');
-  }
-  renderClocks();
- },200);
+  chargeActiveClock(Date.now());renderClocks();
+ },100);
 }
-function syncClockTurn(){if(!clockStarted||clockExpired||localClockSeconds===0||onlineGame)return;activeClockColor=game.turn();lastClockTick=Date.now();renderClocks()}
+function syncClockTurn(){
+ if(!clockStarted||clockExpired||localClockSeconds===0||onlineGame)return;
+ if(!chargeActiveClock(Date.now()))return;
+ activeClockColor=game.turn();lastClockTick=Date.now();renderClocks();
+}
 async function finishHumanMove(from,to,promotion){
  if(onlineGame){await submitOnlineMove(from,to,promotion);return}
  if(clockExpired||botThinking||game.turn()!=='w'){toast('Wait for the active turn, or start a new game if the clock has expired.');return}
@@ -485,18 +511,33 @@ function restoreMove(m,forward){
 }
 
 function updateOnlinePlayerLabels(){
- if(!onlineGame)return;
+ const commentary=$('botCommentaryCard');
+ if(commentary)commentary.hidden=!!onlineGame;
+ if(!onlineGame){
+  $('topPlayerName').innerHTML='Dr ECG <span style="color:#8c9b9d">· Bot preview</span>';
+  $('topPlayerSub').textContent='Bablo tactical menace';
+  $('bottomPlayerName').innerHTML='You <span style="color:#8c9b9d">· White</span>';
+  $('bottomPlayerSub').textContent='You play White · Dr ECG plays Black';
+  return;
+ }
  const whiteName=onlineGame.white_nick||'White player',blackName=onlineGame.black_nick||'Black player';
- $('topPlayerName').textContent=(onlineColor==='w'?whiteName:blackName);
- $('topPlayerSub').textContent=(onlineColor==='w'?'Opponent · White':'Opponent · Black');
- $('bottomPlayerName').textContent=(onlineColor==='w'?whiteName:blackName);
- $('bottomPlayerSub').textContent=(onlineColor==='w'?'You · White':'You · Black');
+ const topIsWhite=onlineColor==='b';
+ $('topPlayerName').textContent=topIsWhite?whiteName:blackName;
+ $('topPlayerSub').textContent=topIsWhite?'Opponent · White':'Opponent · Black';
+ $('bottomPlayerName').textContent=onlineColor==='w'?whiteName:blackName;
+ $('bottomPlayerSub').textContent=onlineColor==='w'?'You · White':'You · Black';
+ const topAvatar=$('topPlayerName').closest('.playerid')?.querySelector('.avatar');
+ const bottomAvatar=$('bottomPlayerName').closest('.playerid')?.querySelector('.avatar');
+ if(topAvatar){topAvatar.textContent=topIsWhite?'♙':'♟';topAvatar.classList.toggle('gold',topIsWhite)}
+ if(bottomAvatar){const isWhite=onlineColor==='w';bottomAvatar.textContent=isWhite?'♙':'♟';bottomAvatar.classList.toggle('gold',isWhite)}
  $('boardInstruction').textContent=onlineGame.status==='waiting'?'Waiting for your opponent to join.':onlineGame.status==='finished'?'Game finished · View the final position.':'Online game · Server validates every move. Board orientation stays fixed.';
+ renderGameDetails();
 }
 window.babloChessApplyOnlineGame=function(remoteGame,playerId){
  if(!remoteGame||!remoteGame.id)return;
  gameStarted=true;stopLocalClock();clockStarted=false;
  onlineGame=remoteGame;
+ renderClocks();
  // Keep challenge creation on the Friends page until the player explicitly opens the game.
  if(typeof pageHost!=='undefined'&&!pageHost.hidden){$('gameLayout').hidden=true;}
  else{showPlayMode('game');}
