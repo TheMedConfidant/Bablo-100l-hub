@@ -84,7 +84,7 @@
 }
 
 
-.bot-level-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.pregame{max-width:980px;margin:0 auto 22px}.setup-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.setup-card{min-width:0}.setup-card h2{margin-top:4px}.setup-card .online-input{margin-bottom:8px}.setup-card .online-label{display:block;margin-top:12px}.setup-card .tiny{line-height:1.5;margin:4px 0 12px}.setup-card .wide{margin-top:12px}@media(max-width:760px){.setup-grid{grid-template-columns:1fr}.pregame{margin-bottom:10px}.setup-card{padding:14px}}\n.bot-level-row{display:flex;align-items:center;gap:8px;margin-top:8px}
 .bot-level-row label{font-size:10px;color:var(--muted);white-space:nowrap}
 .bot-level-row select{min-width:0;flex:1;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:#0b1118;color:var(--text);font-size:11px}
 @media(min-width:761px){.bot-level-row{margin-top:7px}.side .card:first-child .cardbody>.tiny{margin-top:5px;line-height:1.35}}
@@ -99,7 +99,24 @@
 </header>
 <main class="wrap">
   <div class="crumb">Chess Hub <span>›</span> Play <span>›</span> <b>Live Game UI preview</b></div>
-  <div class="layout">
+  <section class="pregame pageview" id="preGameSetup">
+    <div class="pagehero"><div class="eyebrow">LOCAL PRACTICE · PRE-GAME SETUP</div><h1>Set up your match.</h1><p>Choose Dr ECG’s strength, commentary style and clock before the game begins. These settings stay locked while you play.</p></div>
+    <div class="setup-grid">
+      <section class="pagecard setup-card"><div class="cardicon">♞</div><h2>Opponent</h2>
+        <label class="online-label" for="botDifficulty">Playing level</label><select id="botDifficulty" class="online-input"><option value="warmup">Warm-up</option><option value="clinical" selected>Clinical</option><option value="registrar">Registrar</option><option value="consultant">Consultant</option></select><p class="tiny" id="difficultyDescription">Balanced replies with basic material and threat awareness.</p>
+        <label class="online-label" for="botRating">Approximate strength target</label><select id="botRating" class="online-input"><option value="600">600</option><option value="800">800</option><option value="1000" selected>1000</option><option value="1200">1200</option><option value="1400">1400</option><option value="1600">1600</option><option value="1800">1800</option><option value="2000">2000</option><option value="2200">2200</option></select><p class="tiny" id="ratingDescription">A local estimate, not an official Elo rating.</p>
+      </section>
+      <section class="pagecard setup-card"><div class="cardicon">💬</div><h2>Dr ECG’s commentary</h2>
+        <label class="online-label" for="botTemperament">Style</label><select id="botTemperament" class="online-input"><option value="clinical">Clinical</option><option value="playful" selected>Playful</option><option value="ruthless">Ruthless</option><option value="mentor">Mentor</option></select><p class="tiny" id="temperamentDescription">Style changes Dr ECG’s chat, not his chess rules.</p>
+        <label class="online-check"><input type="checkbox" id="setupSound" checked> Chess move sounds</label>
+      </section>
+      <section class="pagecard setup-card"><div class="cardicon">⏱</div><h2>Time control</h2>
+        <label class="online-label" for="localTimeControl">Clock</label><select id="localTimeControl" class="online-input"><option value="180">Blitz · 3 minutes</option><option value="300" selected>Rapid · 5 minutes</option><option value="600">Rapid · 10 minutes</option><option value="0">Untimed</option></select><p class="tiny">The clock starts when you enter the game, with White to move.</p>
+        <button class="primary wide" id="startLocalGame" type="button">Start game →</button>
+      </section>
+    </div>
+  </section>
+  <div class="layout" id="gameLayout" hidden>
     <section class="maincol">
       <div class="gamehead"><div><div class="eyebrow">Vs Dr ECG · Local practice</div><h1>Make your move.</h1></div><div class="headright"><button class="ghost" id="newGame">↻ New demo</button></div></div>
       <div class="playerbar">
@@ -121,7 +138,7 @@
         <div class="cardhead"><h2>Dr ECG is watching</h2><span class="tiny">TEXT ONLY</span></div>
         <div class="cardbody">
           <div class="engine-row engine-chat-row"><div class="engine-profile"><div class="ecg-orb">♞</div><div><div class="engine-name">Dr ECG</div><div class="engine-tag">YOUR OPPONENT</div></div></div><div class="speech" id="speech"><strong>Dr ECG</strong> · Welcome to the board. Show me something better than last-minute cramming. 😏</div></div>
-          <div class="reactionrow"><button class="reaction" data-reaction="😂" aria-label="Laugh reaction">😂</button><button class="reaction" data-reaction="😤" aria-label="Frustrated reaction">😤</button><button class="reaction" data-reaction="🧠" aria-label="Thinking reaction">🧠</button><button class="reaction" data-reaction="🔥" aria-label="Fire reaction">🔥</button></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="ghost" id="soundToggle" type="button" aria-pressed="true">🔊 Sounds on</button></div><div class="bot-level-row"><label for="botDifficulty">Bot level</label><select id="botDifficulty"><option value="warmup">Warm-up</option><option value="clinical" selected>Clinical</option><option value="registrar">Registrar</option><option value="consultant">Consultant</option></select></div><div class="tiny" id="difficultyDescription">Balanced replies with basic material and threat awareness.</div><div class="bot-level-row"><label for="botTemperament">Style</label><select id="botTemperament"><option value="clinical">Clinical</option><option value="playful" selected>Playful</option><option value="ruthless">Ruthless</option><option value="mentor">Mentor</option></select></div><div class="bot-level-row"><label for="botRating">Rating target</label><select id="botRating"><option value="600">600</option><option value="800">800</option><option value="1000" selected>1000</option><option value="1200">1200</option><option value="1400">1400</option><option value="1600">1600</option><option value="1800">1800</option><option value="2000">2000</option><option value="2200">2200</option></select></div><div class="tiny" id="ratingDescription">Approximate local strength target; not an official Elo rating.</div><div class="bot-level-row"><label for="localTimeControl">Clock</label><select id="localTimeControl"><option value="180">Blitz · 3 min</option><option value="300" selected>Rapid · 5 min</option><option value="600">Rapid · 10 min</option><option value="0">Untimed</option></select></div><div class="tiny" id="temperamentDescription">Playful banter with medical-school humour. Style changes Dr ECG’s chat; level changes his move selection.</div>
+          <div class="reactionrow"><button class="reaction" data-reaction="😂" aria-label="Laugh reaction">😂</button><button class="reaction" data-reaction="😤" aria-label="Frustrated reaction">😤</button><button class="reaction" data-reaction="🧠" aria-label="Thinking reaction">🧠</button><button class="reaction" data-reaction="🔥" aria-label="Fire reaction">🔥</button></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="ghost" id="soundToggle" type="button" aria-pressed="true">🔊 Sounds on</button></div>
         </div>
       </section>
       <section class="card">
@@ -168,7 +185,7 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', botRating=1000, onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', botRating=1000, gameStarted=false, onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){
@@ -279,9 +296,16 @@ function chooseDrECGMove(){
  const shortlist=scored.slice(0,Math.min(pool,scored.length));
  return shortlist[Math.floor(Math.random()*shortlist.length)].move;
 }
+function scheduleBotMove(){
+ if(botTimer||onlineGame||game.game_over()||game.turn()!=='b'||!gameStarted)return;
+ // One pending reply maximum; a deliberate think delay prevents rapid-fire moves.
+ const delay=850+Math.floor(Math.random()*451);
+ botTimer=setTimeout(playDrECGMove,delay);
+}
 function playDrECGMove(){
  botTimer=null;
  if(game.game_over()||game.turn()!=='b')return;
+ if(game.turn()!=='b'||game.game_over())return;
  const option=chooseDrECGMove();
  if(!option){announceGameState();return}
  const piece=board[sqCoords(option.from).r][sqCoords(option.from).c];
@@ -329,7 +353,9 @@ function renderClocks(){
 function stopLocalClock(){if(clockInterval){clearInterval(clockInterval);clockInterval=null}}
 function startLocalClock(){
  if(onlineGame||localClockSeconds===0||clockStarted||clockExpired)return;
- clockWhite=localClockSeconds;clockBlack=localClockSeconds;clockStarted=true;activeClockColor=game.turn();lastClockTick=Date.now();stopLocalClock();
+ if(!Number.isFinite(clockWhite)||clockWhite<=0)clockWhite=localClockSeconds;
+ if(!Number.isFinite(clockBlack)||clockBlack<=0)clockBlack=localClockSeconds;
+ clockStarted=true;activeClockColor=game.turn();lastClockTick=Date.now();stopLocalClock();
  clockInterval=setInterval(()=>{
   if(!clockStarted||clockExpired||onlineGame||game.game_over()){stopLocalClock();return}
   const now=Date.now(),elapsed=(now-lastClockTick)/1000;lastClockTick=now;
@@ -346,7 +372,7 @@ function startLocalClock(){
 function syncClockTurn(){if(!clockStarted||clockExpired||localClockSeconds===0||onlineGame)return;activeClockColor=game.turn();lastClockTick=Date.now();renderClocks()}
 async function finishHumanMove(from,to,promotion){
  if(onlineGame){await submitOnlineMove(from,to,promotion);return}
- startLocalClock();
+ if(!gameStarted){toast('Start a game from the pre-game setup first.');return}
  const startSquare=sqCoords(from),piece=board[startSquare.r][startSquare.c];
  const played=game.move({from,to,promotion:promotion||'q'});
  if(!played){toast('That move is not legal.');return}
@@ -355,7 +381,7 @@ async function finishHumanMove(from,to,promotion){
  if(game.game_over()){stopLocalClock();clockStarted=false;announceGameState();return}
  const lines=['You’ve made your choice. Now watch how the position changes.','Move played. Did you check the opponent’s threats first?','Interesting. Let’s see whether that idea holds up.','Your plan is on the board now—calculate the reply.','You committed to a line. Keep checking for tactics.','A move is only the start; what is the follow-up?','Board updated. Scan for checks, captures, and hanging pieces.','That’s your move. Can you explain the purpose behind it?','You’ve changed the position. Don’t forget the other side’s plan.','No move is isolated—think one reply ahead.'];
  if(Math.random()<.72)say(freshLine(lines,'human-move'));
- botTimer=setTimeout(playDrECGMove,520);
+ scheduleBotMove();
 }
 function askPromotion(onChoice){
  const box=$('modalText');box.textContent='Your pawn reached the final rank. Choose what it becomes.';
@@ -437,13 +463,14 @@ async function submitOnlineMove(from,to,promotion){
  }catch(error){toast(error instanceof Error?error.message:'Move could not be submitted.');if(window.babloChessApi&&onlineGame)try{const state=await window.babloChessApi.state(onlineGame.id);window.babloChessApplyOnlineGame(state.game,onlineIdentity?.player_id)}catch{}}
  finally{onlineMovePending=false;render()}
 }
-function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local game reset.')}
+function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';gameStarted=false;$('preGameSetup').hidden=false;$('gameLayout').hidden=true;game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local game reset.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
 $('newGame').onclick=reset;$('rematchBtn').onclick=reset;
+$('startLocalGame').onclick=()=>{botDifficulty=$('botDifficulty').value;botTemperament=$('botTemperament').value;botRating=Number($('botRating').value);soundOn=$('setupSound').checked;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));reset();gameStarted=true;$('preGameSetup').hidden=true;$('gameLayout').hidden=false;startLocalClock();renderClocks();say(freshLine(['Welcome to the board. Let’s see your style of play.','Ready when you are. Keep an eye on the whole position.','Board is set. Make the first move count.','Let’s play—calculation beats guessing.'],'opening'));toast('Game started. Settings are locked until the next game.');};
 $('backMove').onclick=()=>{if(botTimer){clearTimeout(botTimer);botTimer=null}if(!history.length){toast('No move to undo yet.');return}let undone=0;while(history.length){const m=history[history.length-1];redo.push(m);restoreMove(m,false);undone++;if(m.piece?.[0]==='w'||undone>=2)break}say('Takeback noted. Even the best students correct their work.');toast('Last turn taken back. You can try another line.')}
-$('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else botTimer=setTimeout(playDrECGMove,520)}}
+$('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else scheduleBotMove()}}
 $('flipBoard').onclick=()=>{if(onlineGame){toast('Online games keep the board orientation fixed.');return}flipped=!flipped;render();toast('Board orientation preview toggled.')}
 $('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
 $('drawBtn').onclick=()=>toast('Draw offers are outside this preview scope.');
@@ -456,7 +483,6 @@ const difficultyDescriptions={
  consultant:'Chooses the highest-scored move from this lightweight local evaluator. This is not a certified Elo rating or a full chess engine.'
 };
 $('botDifficulty').addEventListener('change',()=>{
- botDifficulty=$('botDifficulty').value;
  $('difficultyDescription').textContent=difficultyDescriptions[botDifficulty];
  const opening={warmup:'We’ll take it step by step. No panic. 😌',clinical:'Clinical mode. Show your working. 🧠',registrar:'Registrar mode. Expect fewer easy gifts.',consultant:'Consultant mode. I’ll take the strongest line this local evaluator finds. 😏'};
  say(opening[botDifficulty]);
@@ -464,17 +490,16 @@ $('botDifficulty').addEventListener('change',()=>{
 });
 const temperamentDescriptions={clinical:'Measured, precise medical-style observations.',playful:'Playful banter with medical-school humour.',ruthless:'Sharper, more competitive commentary.',mentor:'Coaching prompts that help you read the board.'};
 $('botTemperament').addEventListener('change',()=>{
- botTemperament=$('botTemperament').value;$('temperamentDescription').textContent=temperamentDescriptions[botTemperament];
+ $('temperamentDescription').textContent=temperamentDescriptions[botTemperament];
  const opening={clinical:'Clinical mode. Let’s keep the analysis precise.',playful:'You picked playful? Fine—show me a move worth teasing. 😂',ruthless:'Ruthless mode. I’ll take every loose piece you offer.',mentor:'Mentor mode. I’ll challenge your thinking, not just your moves.'};
  say(opening[botTemperament]);toast('Dr ECG style set to '+$('botTemperament').selectedOptions[0].textContent+'.');
 });
 $('botRating').addEventListener('change',()=>{
- botRating=Number($('botRating').value);
  $('ratingDescription').textContent='Approximate '+botRating+' strength target using the local move evaluator; not official Elo.';
  toast('Dr ECG target set to '+botRating+'.');
 });
 $('localTimeControl').addEventListener('change',()=>{
- stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl').value);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';renderClocks();
+ localClockSeconds=Number($('localTimeControl').value);
  toast(localClockSeconds?'Local clock set to '+Math.round(localClockSeconds/60)+' minutes.':'Local practice clock disabled.');
 });
 $('soundToggle').onclick=()=>{soundOn=!soundOn;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(soundOn)gameSound('move');toast(soundOn?'Chess sounds enabled.':'Chess sounds muted.')};
@@ -509,10 +534,10 @@ const friendChallengeMarkup=`
 <div class="page-actions"><button class="ghost" id="backToCompete" type="button">← Back to Compete</button><span class="statuschip">No password or session token is requested in these forms.</span></div>
 `;
 function card(c){return '<article class="pagecard"><div class="cardicon">'+c[0]+'</div><h2>'+c[1]+'</h2><p>'+c[2]+'</p><button class="ghost" data-page-action="'+c[4]+'">'+c[3]+' →</button></article>'}
-function showChessPage(name){const d=pageData[name]||pageData.Home;const activeNav=name==='Friends'?'Compete':name;navButtons.forEach(b=>b.classList.toggle('active',b.textContent.trim()===activeNav));crumb.innerHTML='Chess Hub <span>›</span> <b>'+name+'</b>';if(name==='Play'){pageHost.hidden=true;gameLayout.hidden=false;return}gameLayout.hidden=true;pageHost.hidden=false;let body='<div class="pagehero"><div class="eyebrow">'+d.eyebrow+'</div><h1>'+d.title+'</h1><p>'+d.desc+'</p><div class="page-actions"><span class="statuschip">♟ Bablo Chess · Development preview</span><span class="statuschip">Production unchanged</span></div></div>';if(d.stats)body+='<div class="metricgrid">'+d.stats.map(x=>'<div class="metric"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div>';if(name==='Friends')body+=friendChallengeMarkup;else body+='<div class="pagegrid">'+d.cards.map(card).join('')+'</div>';pageHost.innerHTML='<div class="pageview">'+body+'</div>';pageHost.querySelectorAll('[data-page-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.pageAction;if(['Play','Learn','Compete','Profile','Friends'].includes(a)){showChessPage(a);return}const msg={fundamentals:'Fundamentals lesson content is not yet built.',tactics:'Tactical puzzles need validated positions before scoring.',openings:'Opening explorer is not yet connected to a validated database.',endgames:'Endgame lesson content is not yet built.',puzzles:'Puzzle Rush needs validated puzzles and score persistence.',analysis:'Reliable engine analysis is a separate milestone.',ratings:'Ratings must come from server-verified games; demo ratings are not fabricated.',stats:'Profile statistics will populate from verified chess records.',history:'Game history needs the authenticated game API.',achievements:'Achievements will be connected after verified progress is available.',connection:'Account bridge is not integrated into this standalone preview. No token is read or stored here.'};toast(msg[a]||'This section is mapped, but not implemented yet.')}))}
+function showChessPage(name){const d=pageData[name]||pageData.Home;const activeNav=name==='Friends'?'Compete':name;navButtons.forEach(b=>b.classList.toggle('active',b.textContent.trim()===activeNav));crumb.innerHTML='Chess Hub <span>›</span> <b>'+name+'</b>';if(name==='Play'){pageHost.hidden=true;$('preGameSetup').hidden=gameStarted;gameLayout.hidden=!gameStarted;return}gameLayout.hidden=true;pageHost.hidden=false;let body='<div class="pagehero"><div class="eyebrow">'+d.eyebrow+'</div><h1>'+d.title+'</h1><p>'+d.desc+'</p><div class="page-actions"><span class="statuschip">♟ Bablo Chess · Development preview</span><span class="statuschip">Production unchanged</span></div></div>';if(d.stats)body+='<div class="metricgrid">'+d.stats.map(x=>'<div class="metric"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div>';if(name==='Friends')body+=friendChallengeMarkup;else body+='<div class="pagegrid">'+d.cards.map(card).join('')+'</div>';pageHost.innerHTML='<div class="pageview">'+body+'</div>';pageHost.querySelectorAll('[data-page-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.pageAction;if(['Play','Learn','Compete','Profile','Friends'].includes(a)){showChessPage(a);return}const msg={fundamentals:'Fundamentals lesson content is not yet built.',tactics:'Tactical puzzles need validated positions before scoring.',openings:'Opening explorer is not yet connected to a validated database.',endgames:'Endgame lesson content is not yet built.',puzzles:'Puzzle Rush needs validated puzzles and score persistence.',analysis:'Reliable engine analysis is a separate milestone.',ratings:'Ratings must come from server-verified games; demo ratings are not fabricated.',stats:'Profile statistics will populate from verified chess records.',history:'Game history needs the authenticated game API.',achievements:'Achievements will be connected after verified progress is available.',connection:'Account bridge is not integrated into this standalone preview. No token is read or stored here.'};toast(msg[a]||'This section is mapped, but not implemented yet.')}))}
 navButtons.forEach(b=>b.addEventListener('click',()=>showChessPage(b.textContent.trim())));document.addEventListener('bablo-chess:show-play',()=>showChessPage('Play'));document.addEventListener('bablo-chess:show-compete',()=>showChessPage('Compete'));document.addEventListener('bablo-chess:page-shown',e=>{});showChessPage('Play');
 
-syncBoardFromEngine();render();say(freshLine(['Welcome to the board. Let’s see your style of play.','Ready when you are. Keep an eye on the whole position.','Board is set. Make the first move count.','Let’s play—calculation beats guessing.'],'opening'));
+syncBoardFromEngine();render();renderClocks();
 </script>
 <script type="module">
 import { createChessApiClient } from './chess-api-client.js';
