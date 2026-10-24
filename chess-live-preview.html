@@ -213,7 +213,7 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, botThinking=false, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', botRating=1000, gameStarted=false, onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, botThinking=false, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', botRating=1000, gameStarted=false, onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null, chatLastMessageCount=0;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){
@@ -494,12 +494,12 @@ async function submitOnlineMove(from,to,promotion){
  }catch(error){toast(error instanceof Error?error.message:'Move could not be submitted.');if(window.babloChessApi&&onlineGame)try{const state=await window.babloChessApi.state(onlineGame.id);window.babloChessApplyOnlineGame(state.game,onlineIdentity?.player_id)}catch{}}
  finally{onlineMovePending=false;render()}
 }
-function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}botThinking=false;stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';gameStarted=false;playModeView='setup';$('playModeHub').hidden=true;$('preGameSetup').hidden=false;$('gameLayout').hidden=true;game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local setup reopened. Adjust options before starting again.')}
+function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}if(chatBackdrop&&!chatBackdrop.hidden)closeOnlineChat();if(chatOpenButton)chatOpenButton.hidden=true;if(chatUnread)chatUnread.hidden=true;chatLastMessageCount=0;onlineGame=null;onlineColor=null;botThinking=false;stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';gameStarted=false;playModeView='setup';$('playModeHub').hidden=true;$('preGameSetup').hidden=false;$('gameLayout').hidden=true;game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local setup reopened. Adjust options before starting again.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
 const chatBackdrop=$('onlineChatBackdrop'),chatOpenButton=$('onlineChatOpenBtn'),chatUnread=$('onlineChatUnread');
-function openOnlineChat(){if(!onlineGame)return;chatBackdrop.hidden=false;chatUnread.hidden=true;document.body.style.overflow='hidden';setTimeout(()=>$('onlineChatInput')?.focus(),30)}
+function openOnlineChat(){if(!onlineGame)return;chatBackdrop.hidden=false;chatUnread.hidden=true;chatLastMessageCount=$('onlineChatMessages')?.querySelectorAll('.online-chat-bubble').length||0;document.body.style.overflow='hidden';setTimeout(()=>$('onlineChatInput')?.focus(),30)}
 function closeOnlineChat(){chatBackdrop.hidden=true;document.body.style.overflow='';chatOpenButton?.focus()}
 chatOpenButton?.addEventListener('click',openOnlineChat);
 $('onlineChatCloseBtn')?.addEventListener('click',closeOnlineChat);
@@ -724,7 +724,7 @@ async function refreshMessages(gameId){
   const result=await onlineClient.messages(gameId),box=document.getElementById('onlineChatMessages');
   if(!box)return;box.replaceChildren();
   const messages=Array.isArray(result.messages)?result.messages:[];
-  if(chatUnread)chatUnread.hidden=chatBackdrop&&!chatBackdrop.hidden;
+  if(chatUnread){const wasClosed=!chatBackdrop||chatBackdrop.hidden;if(messages.length>chatLastMessageCount&&wasClosed)chatUnread.hidden=false;chatLastMessageCount=messages.length;}
   if(!messages.length){box.innerHTML='<div class="tiny">No messages yet. Say hello.</div>';return}
   for(const message of messages){
    const item=document.createElement('div');item.className='online-chat-bubble'+(message.nick===onlineIdentity.nickname?' mine':'');
