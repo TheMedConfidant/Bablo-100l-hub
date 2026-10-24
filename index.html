@@ -2894,8 +2894,13 @@ function statusText(G) {
 }
 function clockMs(G, side) {
   const c = G.clock; if (!c) return 0;
-  const live = !gameOver(G).over && c.side === side ? Date.now() - c.at : 0;
+  const waiting = G.mode === 'online' && G.online && G.online.status === 'waiting';
+  const live = !waiting && !gameOver(G).over && c.side === side ? Date.now() - c.at : 0;
   return Math.max(0, c[side] - live);
+}
+function onlineClockFields(G) {
+  if (!G || G.mode !== 'online' || !G.clock) return {};
+  return {clock_white_ms:Math.max(0,Math.round(clockMs(G,'w'))),clock_black_ms:Math.max(0,Math.round(clockMs(G,'b'))),clock_side:G.clock.side,clock_updated_at:new Date().toISOString(),clock_seconds:Math.max(0,Math.round(Math.max(G.clock.w,G.clock.b)/1000)),clock_increment_seconds:Math.max(0,Math.round((Number(G.clock.increment)||0)/1000))};
 }
 function fmtClock(ms) { const sec = Math.ceil(ms / 1000); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
 function clockSwitch(G, mover) {
@@ -2962,7 +2967,9 @@ function chessClocks() {
   const go = gameOver(G);
   if (!go.over && G.clock && (clockMs(G, 'w') <= 0 || clockMs(G, 'b') <= 0)) {
     const loser = clockMs(G, 'w') <= 0 ? 'w' : 'b';
-    G.endResult = loser === 'w' ? 'b' : 'w'; G.endText = loser === G.color ? 'Your time is up. The computer wins.' : 'The computer ran out of time. You win!';
+    G.endResult = loser === 'w' ? 'b' : 'w';
+    if(G.mode==='online'){G.endText=loser===G.color?'Your time is up. You lost on time.':'Your opponent ran out of time. You win!';onlineFinish(G.endResult);chessDraw();return;}
+    G.endText = loser === G.color ? 'Your time is up. The computer wins.' : 'The computer ran out of time. You win!';
     finishComputer(); chessDraw();
   }
 }
@@ -3166,6 +3173,7 @@ async function createOnline(targetUsername) {
   const state=onlineState('w',created.id,created.code,'waiting',created.white_nick||DB.profile.nick,'');
   state.online.targetUsername=created.target_username||'';
   state.online.targetUid=created.target_uid||null;
+  if(state.clock){const S=chessSet(),seconds=Math.max(0,Number(S.time)||0),increment=Math.max(0,Number(S.increment)||0);await sbFetchJson('chess_games?id=eq.'+state.online.id,{method:'PATCH',headers:sbHeaders({Prefer:'return=minimal'}),body:JSON.stringify({clock_seconds:seconds,clock_increment_seconds:increment,clock_white_ms:seconds*1000,clock_black_ms:seconds*1000,clock_side:'w',clock_updated_at:null})});}
   toast(requested?'Challenge created for @'+created.target_username+'.':'Open challenge created. Share the six-character code.');
   startOnline(state);
 }
@@ -3181,7 +3189,11 @@ async function joinOnline(raw) {
     body:JSON.stringify({p_token:DB.account.token,p_code:code,p_dev:DB.dev})
   });
   if(!joined||!joined.ok){toast(joined&&joined.error?joined.error:'That challenge is no longer available.');return;}
-  startOnline(onlineState('b',joined.id,joined.code,'active',joined.white_nick||'Opponent',joined.black_nick||DB.profile.nick));
+  const state=onlineState('b',joined.id,joined.code,'active',joined.white_nick||'Opponent',joined.black_nick||DB.profile.nick);
+  const shared=await sbFetchJson('chess_games?id=eq.'+joined.id+'&select=clock_seconds,clock_increment_seconds,clock_white_ms,clock_black_ms,clock_side');
+  const cfg=Array.isArray(shared)&&shared[0]?shared[0]:null;
+  if(cfg&&Number(cfg.clock_seconds)>0){const seconds=Number(cfg.clock_seconds)||0,increment=Number(cfg.clock_increment_seconds)||0;state.clock={w:Number.isFinite(Number(cfg.clock_white_ms))?Number(cfg.clock_white_ms):seconds*1000,b:Number.isFinite(Number(cfg.clock_black_ms))?Number(cfg.clock_black_ms):seconds*1000,side:cfg.clock_side==='b'?'b':'w',at:Date.now(),increment:increment*1000};await sbFetchJson('chess_games?id=eq.'+joined.id,{method:'PATCH',headers:sbHeaders({Prefer:'return=minimal'}),body:JSON.stringify(Object.assign({clock_updated_at:new Date().toISOString()},onlineClockFields(state)))});}
+  startOnline(state);
 }
 
 let ONLINE_POLL = null;
@@ -3195,13 +3207,22 @@ async function pollOnline() {
   try { await pollOnlineOnce(G); } finally { POLL_BUSY = false; }
 }
 async function pollOnlineOnce(G) {
-  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick');
+  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick,clock_seconds,clock_increment_seconds,clock_white_ms,clock_black_ms,clock_side,clock_updated_at');
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
   G.online.status = g.status;
   // Keep opponent names current while the game is active, not only after it ends.
   G.online.white = g.white_nick || G.online.white;
   G.online.black = g.black_nick || G.online.black;
+  const baseSeconds=Math.max(0,Number(g.clock_seconds)||0);
+  const whiteMs=Number.isFinite(Number(g.clock_white_ms))?Math.max(0,Number(g.clock_white_ms)):baseSeconds*1000;
+  const blackMs=Number.isFinite(Number(g.clock_black_ms))?Math.max(0,Number(g.clock_black_ms)):baseSeconds*1000;
+  if(baseSeconds>0){
+    const serverAt=Date.parse(g.clock_updated_at||''),side=g.clock_side==='b'?'b':'w';
+    const elapsed=g.status==='active'&&Number.isFinite(serverAt)?Math.max(0,Date.now()-serverAt):0;
+    G.clock={w:whiteMs-(side==='w'?elapsed:0),b:blackMs-(side==='b'?elapsed:0),side,at:Date.now(),increment:Math.max(0,Number(g.clock_increment_seconds)||0)*1000};
+    if(g.status==='active'&&!g.clock_updated_at){const stamp=new Date().toISOString();sbFetchJson('chess_games?id=eq.'+G.online.id,{method:'PATCH',headers:sbHeaders({Prefer:'return=minimal'}),body:JSON.stringify({clock_updated_at:stamp,clock_side:side,clock_white_ms:whiteMs,clock_black_ms:blackMs})});}
+  } else G.clock=null;
   const moves = g.moves ? g.moves.trim().split(/\s+/).filter(Boolean) : [];
   if (moves.length > G.moves.length) {
     const nextState = Chess.replay(moves);
@@ -3226,11 +3247,11 @@ function recordOnline(G, res) {
 }
 function onlineFinish(res) {
   const G = CHESS; recordOnline(G, res); stopOnlinePoll();
-  sbFetchJson('chess_games?id=eq.' + G.online.id, { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ status: 'finished', result: res, moves: G.moves.join(' '), updated_at: new Date().toISOString() }) });
+  clearChat(G); sbFetchJson('chess_games?id=eq.' + G.online.id, { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(Object.assign({ status: 'finished', result: res, moves: G.moves.join(' '), updated_at: new Date().toISOString() }, onlineClockFields(G))) });
 }
 function onlineAfterMove() {
   const G = CHESS; const st = Chess.status(G.s);
-  const fields = { moves: G.moves.join(' '), updated_at: new Date().toISOString() };
+  const fields = Object.assign({ moves: G.moves.join(' '), updated_at: new Date().toISOString() }, onlineClockFields(G));
   if (st.over) {
     const res = st.result === 'draw' ? 'draw' : (st.result === 'white' ? 'w' : 'b');
     G.endResult = res; G.endText = res === 'draw' ? 'Draw.' : (res === G.color ? 'Checkmate. You win!' : 'Checkmate. You lost this one.');
