@@ -3130,6 +3130,7 @@ async function loadOpenList() {
   if(!Array.isArray(rows)){box.replaceChildren(h('p',{class:'muted small'},'Could not load challenges.'));return;}
   const uid=String(DB.profile.uid||''),dev=String(DB.dev||'');
   const open=rows.filter(r=>
+    Date.now()-(Date.parse(r.created_at||'')||0)<24*60*60*1000&&
     r.white_dev!==dev&&r.white_uid!==uid&&
     (!r.target_uid||String(r.target_uid)===uid)&&
     (!r.target_dev||String(r.target_dev)===dev)
