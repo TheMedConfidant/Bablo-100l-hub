@@ -2328,7 +2328,9 @@ h('div',{class:'chess-bot-grid',role:'group','aria-label':'Choose a chess oppone
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked computer games change your rating after a result. Wins can raise it; losses can lower it. Friendly games do not affect your rating.' : 'Friendly games never change your rating, and you can take back your last move.')),
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
     h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Challenge friends'), h('p', { class: 'muted small' }, signedIn() ? 'Configure the clock above, then create a challenge and share its code, or join a friend who is waiting. Friend games use the selected time control and increment.' : 'Sign in from Me to challenge friends online. Configure the clock above before creating a challenge.'), !signedIn() ? h('a', { class: 'btn block', href: '#/me' }, 'Sign in / create account') : null,
-      h('button', { class: 'btn gold block', onclick: () => runOnlineAction(createOnline) }, 'Create a challenge'),
+      h('button',{class:'btn gold block',onclick:()=>runOnlineAction(()=>createOnline())},'Create an open challenge'),
+      h('label',{class:'stack small'},'Challenge a specific player by username',h('input',{type:'text',maxlength:'20',placeholder:'e.g. chessplayer_01',id:'challengeUsername',autocomplete:'off','aria-label':'Username to challenge'})),
+      h('button',{class:'btn block',onclick:()=>{const input=document.getElementById('challengeUsername');const name=input?input.value.trim():'';if(!name){toast('Enter the exact username of the player you want to challenge.');return;}runOnlineAction(()=>createOnline(name));}},'Challenge this player'),
       h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => runOnlineAction(() => joinOnline(document.getElementById('joinCode').value)) }, 'Join')),
       h('h3', null, 'Open challenges'), h('div', { id: 'openList', class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026')),
       h('button', { class: 'btn ghost block', onclick: loadOpenList }, 'Refresh list'))));
@@ -2901,13 +2903,24 @@ function requireCompetitionAccount(feature) {
   return false;
 }
 async function loadOpenList() {
-  const box = document.getElementById('openList'); if (!box) return;
-  if (!signedIn() || !DB.profile || !DB.profile.uid) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in from Me to browse and join online challenges.'), h('a', { class: 'btn sm', href: '#/me' }, 'Go to Me')); return; }
-  if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Online challenges turn on when the live database is connected.')); return; }
-  const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,created_at&order=created_at.desc&limit=20');
-  if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
-  const open = rows.filter(r => r.white_dev !== DB.dev);
-  box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => runOnlineAction(() => joinOnline(r.code)) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
+  const box=document.getElementById('openList');if(!box)return;
+  if(!signedIn()||!DB.profile||!DB.profile.uid){
+    box.replaceChildren(h('p',{class:'muted small'},'Sign in from Me to browse and join online challenges.'),h('a',{class:'btn sm',href:'#/me'},'Go to Me'));return;
+  }
+  if(!liveOn()){box.replaceChildren(h('p',{class:'muted small'},'Online challenges turn on when the live database is connected.'));return;}
+  const rows=await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,white_uid,target_uid,target_dev,created_at&order=created_at.desc&limit=40');
+  if(!Array.isArray(rows)){box.replaceChildren(h('p',{class:'muted small'},'Could not load challenges.'));return;}
+  const uid=String(DB.profile.uid||''),dev=String(DB.dev||'');
+  const open=rows.filter(r=>
+    r.white_dev!==dev&&r.white_uid!==uid&&
+    (!r.target_uid||String(r.target_uid)===uid)&&
+    (!r.target_dev||String(r.target_dev)===dev)
+  );
+  box.replaceChildren(...(open.length?open.map(r=>h('div',{class:'panel online-row'},
+    h('span',null,h('b',null,r.white_nick||'Player'),
+      h('div',{class:'tiny muted'},(r.target_uid?'Direct challenge for you':'Open challenge')+' · Code '+r.code+' · '+ago(r.created_at))),
+    h('button',{class:'btn sm primary',onclick:()=>runOnlineAction(()=>joinOnline(r.code))},'Join')
+  )):[h('p',{class:'muted small'},'No challenges are waiting for you. Create an open challenge or invite a player by username.')]));
 }
 function startOnline(state) { CHESS = state; if (location.hash !== '#/chess/game') { location.hash = '#/chess/game'; return; } chessView(); startOnlinePoll(); }
 function onlineState(color, id, code, status, white, black) {
@@ -2927,26 +2940,39 @@ async function runOnlineAction(action) {
     if (current) current.querySelectorAll('button').forEach(b => { b.disabled = false; });
   }
 }
-async function createOnline() {
-  if (!requireCompetitionAccount('online chess')) return;
-  if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
-  const code = rnd6();
-  const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, status: 'waiting', moves: '' }) });
-  if (!Array.isArray(row) || !row[0]) { toast('Could not create the challenge. Try again.'); return; }
-  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, ''));
+async function createOnline(targetUsername) {
+  if(!requireCompetitionAccount('online chess'))return;
+  if(!liveOn()){toast('Online challenges need the live connection.');return;}
+  if(!DB.account||!DB.account.token){toast('Your session is missing. Sign in again before creating a challenge.');return;}
+  const requested=String(targetUsername||'').trim().replace(/^@/,'').toLowerCase();
+  const code=rnd6();
+  const created=await sbFetchJson('rpc/hub_create_chess_challenge',{
+    method:'POST',
+    headers:sbHeaders(),
+    body:JSON.stringify({p_token:DB.account.token,p_code:code,p_dev:DB.dev,p_target_username:requested||null})
+  });
+  if(!created||!created.ok){toast(created&&created.error?created.error:'Could not create the challenge. Check your connection and try again.');return;}
+  const state=onlineState('w',created.id,created.code,'waiting',created.white_nick||DB.profile.nick,'');
+  state.online.targetUsername=created.target_username||'';
+  state.online.targetUid=created.target_uid||null;
+  toast(requested?'Challenge created for @'+created.target_username+'.':'Open challenge created. Share the six-character code.');
+  startOnline(state);
 }
 async function joinOnline(raw) {
-  if (!requireCompetitionAccount('online chess')) return;
-  const code = String(raw || '').trim().toUpperCase();
-  if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
-  if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
-  const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick');
-  if (!Array.isArray(found) || !found.length) { toast('No open challenge with that code.'); return; }
-  if (found[0].white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
-  const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
-  if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
-  startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick));
+  if(!requireCompetitionAccount('online chess'))return;
+  const code=String(raw||'').trim().toUpperCase();
+  if(code.length!==6){toast('Enter the 6-letter code.');return;}
+  if(!liveOn()){toast('Online challenges need the live connection.');return;}
+  if(!DB.account||!DB.account.token){toast('Your session is missing. Sign in again before joining.');return;}
+  const joined=await sbFetchJson('rpc/hub_join_chess_challenge',{
+    method:'POST',
+    headers:sbHeaders(),
+    body:JSON.stringify({p_token:DB.account.token,p_code:code,p_dev:DB.dev})
+  });
+  if(!joined||!joined.ok){toast(joined&&joined.error?joined.error:'That challenge is no longer available.');return;}
+  startOnline(onlineState('b',joined.id,joined.code,'active',joined.white_nick||'Opponent',joined.black_nick||DB.profile.nick));
 }
+
 let ONLINE_POLL = null;
 function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } stopChatPoll(); }
 let POLL_BUSY = false;
