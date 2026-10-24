@@ -2247,7 +2247,7 @@ function chessLearnView(topic){
  const progress=chessLearnProgress(), done=CHESS_LEARN_UNITS.filter(x=>progress[x.id]).length;
  const unit=CHESS_LEARN_UNITS.find(x=>x.id===topic);
  if(!unit){
-  mount(wrap(back('#/chess','Chess'),h('div',{class:'stack-l'},
+  mount(wrap(chessNav('learn'), back('#/chess','Chess home'),h('div',{class:'stack-l'},
    h('div',{class:'stack'},h('span',{class:'chip gold'},'BABLO CHESS ACADEMY'),h('h1',null,'Learn chess'),h('p',{class:'muted'},'Short lessons, clear examples and quick knowledge checks. Your progress is saved on this device.'),h('div',{class:'progress'},h('div',{style:{width:Math.round(done/CHESS_LEARN_UNITS.length*100)+'%'}})),h('p',{class:'tiny muted'},done+' of '+CHESS_LEARN_UNITS.length+' lessons completed')),
    h('section',{class:'grid two'},CHESS_LEARN_UNITS.map((x,i)=>h('a',{class:'tile',href:'#/chess-learn/'+x.id,style:{textDecoration:'none',color:'inherit'}},h('div',{class:'row between wrapr'},h('span',{class:'chip'},x.level),h('span',{class:'tiny muted'},progress[x.id]?'✓ Complete':x.time)),h('h2',null,(i+1)+'. '+x.title),h('p',{class:'small muted'},x.intro),h('span',{class:'btn sm '+(progress[x.id]?'ghost':'primary')},progress[x.id]?'Review lesson':'Start lesson')))),
    h('button',{class:'btn gold block',onclick:()=>{const next=CHESS_LEARN_UNITS.find(x=>!progress[x.id]);location.hash='#/chess-learn/'+(next||CHESS_LEARN_UNITS[0]).id;}},done===CHESS_LEARN_UNITS.length?'Review lessons':'Continue learning'))));
