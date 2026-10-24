@@ -1580,7 +1580,7 @@ function route() {
     else if (v === 'flashcards' || v === 'notes') pendingPage(v === 'flashcards' ? 'Flashcards' : 'Notes');
     else if (v === 'quiz200') pendingPage('Quizzes');
     else if (v === 'programmes') programmesView();
-    else if (v === 'chess') { chessView(); if (CHESS && CHESS.mode === 'online') startOnlinePoll(); }
+    else if (v === 'chess') { chessView(); if (CHESS && CHESS.mode === 'online' && chessCurrentPage() === 'game') startOnlinePoll(); }
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
     else homeView();
@@ -2166,7 +2166,8 @@ function selectedBot(){return CHESS_BOTS[0]}
 function botName(){return (CHESS_BOTS.find(b=>b.id===CHESS?.botId)||selectedBot()).name}
 function drEcgPick(lines){const last=window.__drEcgLastLine;let choices=lines.filter(x=>x!==last);if(!choices.length)choices=lines;const msg=choices[Math.floor(Math.random()*choices.length)];window.__drEcgLastLine=msg;return msg;}
 function botDialogue(G,event){
-const t=chessSet().temperament||'clinical';
+const picked=chessSet().level==='auto'?(Number(chessRec().rating)||1000):(botRating(chessSet().level)||1000);
+const t=picked<900?'playful':picked<1300?'mentor':picked<1800?'clinical':'ruthless';
 const lines={
 hello:{clinical:['Welcome to the clinic. Let’s examine your opening.','Dr ECG on duty. Let’s keep our development healthy.','Ready when you are. I’ll watch the position closely.'],playful:['Alright, doc is on the board 😏 Let’s make this interesting.','Stethoscope on, chess brain activated. Your move! ♟️','Welcome to the clinic! Avoid tactical emergencies 😂'],ruthless:['No mercy today. Every inaccuracy will be examined.','The board is set. I intend to punish loose moves.','Let’s get to work. Weak squares won’t protect themselves.'],mentor:['Welcome. We’ll learn from every position.','Take your time. Good chess starts with a clear plan.','Let’s focus on development and king safety.']},
 move:{clinical:['Interesting move. What does it attack, and what does it leave behind?','Recheck the loose pieces and weak squares.','Look for forcing moves: checks, captures, and threats.','The position is evolving. Recalculate before committing.','Keep an eye on the centre and piece coordination.'],playful:['Oho, I see you 👀','That move has entered the patient record. ♟️','Okayyy, that move has some sauce.','Plot twist on the board! What’s your follow-up?','Chess cells loading… keep them coming 😂','Bold choice! Let’s see if it survives the check-up.'],ruthless:['Noted. I’ll test that move for weaknesses.','Every move leaves a clue. I’m looking for yours.','One mistake can decide this. Calculate accurately.','You have made your choice. Now defend it.','No move gets a free pass in this clinic.'],mentor:['Before your next move, scan for checks, captures, and threats.','Ask yourself: what is my opponent threatening now?','Look at your least active piece. Could it improve?','After every move, check whether any piece is hanging.','Try to connect your pieces before launching an attack.']},
@@ -2641,7 +2642,7 @@ function chessView() {
   const clockTop=G.clock?h('div',{id:'clockTop',class:'clock'}):null;
   const clockBot=G.clock?h('div',{id:'clockBottom',class:'clock'}):null;
   const undo=h('button',{id:'chessUndo',class:'btn',disabled:!G.friendly,onclick:takeBack},'Take back');
-  const newGame=h('button',{class:'btn',onclick:()=>{stopChessTick();newChess();}},'New game');
+  const newGame=h('button',{class:'btn',disabled:G.mode==='online'&&!gameOver(G).over,title:G.mode==='online'&&!gameOver(G).over?'Finish or leave the online match before starting another game':'Start a new computer game',onclick:()=>{stopChessTick();newChess();}},'New game');
   const resignBtn=h('button',{class:'btn danger',onclick:resign},'Resign');
   const chosenBotRating=botRating(S.level==='auto'?'bot-'+(CHESS_BOTS.find(b=>b.id===G.botId)?.rating||selectedBot().rating):S.level);
   const level=chosenBotRating!==null?'rated about '+chosenBotRating:S.level==='auto'?'matches you ('+(computerSettings(chessRec().rating).depth===1?'easy':computerSettings(chessRec().rating).depth===2?'medium':'hard')+')':S.level;
@@ -2722,7 +2723,12 @@ async function loadOpenList() {
   const open = rows.filter(r => r.white_dev !== DB.dev);
   box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => runOnlineAction(() => joinOnline(r.code)) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
 }
-function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
+function startOnline(state) {
+  CHESS = state;
+  if (location.hash !== '#/chess/game') { location.hash = '#/chess/game'; return; }
+  chessView();
+  startOnlinePoll();
+}
 function onlineState(color, id, code, status, white, black) {
   const S=chessSet(); return { mode: 'online', online: { id, code, status, recorded: false, white: white || DB.profile.nick, black: black || '' }, color, friendly: true, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: S.time?{w:S.time*1000,b:S.time*1000,side:'w',at:Date.now(),increment:Number(S.increment||0)*1000}:null, captures:{w:[],b:[]}, recorded: false };
 }
