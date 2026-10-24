@@ -109,7 +109,7 @@ function terminalResult(chess: Chess): string | null {
   if (chess.isCheckmate()) return chess.turn() === "w" ? "0-1" : "1-0";
   return "1/2-1/2";
 }
-const GAME_SELECT = "id,code,white_player_id,black_player_id,white_nick,black_nick,status,moves,result,time_control,rated,updated_at";
+const GAME_SELECT = "id,code,white_player_id,black_player_id,white_nick,black_nick,status,moves,result,time_control,rated,target_dev,updated_at";
 async function getGame(id: string) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
   const q = new URLSearchParams({ select: GAME_SELECT, id: `eq.${id}`, limit: "1" });
@@ -148,12 +148,32 @@ Deno.serve(async (request: Request) => {
       const timeControl = String(body.time_control ?? "10+0");
       const allowed = ["1+0", "2+1", "3+0", "3+2", "5+0", "10+0", "10+5", "15+10", "unlimited"];
       if (!allowed.includes(timeControl)) return json({ ok: false, error: "Unsupported time control." }, 400, origin);
+      const targetUniqueId = String(body.target_unique_id ?? "").trim().toUpperCase();
+      let targetDev: string | null = null;
+      if (targetUniqueId) {
+        if (!/^[A-Z]{2,4}-[0-9]{4,6}$/.test(targetUniqueId)) {
+          return json({ ok: false, error: "Enter a valid Bablo Hub ID, such as COH-1234." }, 400, origin);
+        }
+        if (targetUniqueId === account.unique_id) {
+          return json({ ok: false, error: "You cannot challenge your own account." }, 409, origin);
+        }
+        const targetQuery = new URLSearchParams({
+          select: "unique_id,is_guest", unique_id: `eq.${targetUniqueId}`, limit: "1",
+        });
+        const targetRows = await db(`hub_accounts?${targetQuery}`);
+        const targetAccount = Array.isArray(targetRows) ? targetRows[0] : null;
+        if (!targetAccount || targetAccount.is_guest) {
+          return json({ ok: false, error: "That Bablo Hub ID does not match an active full account." }, 404, origin);
+        }
+        const targetPlayer = await playerFor({ unique_id: targetAccount.unique_id });
+        targetDev = ratingKey(targetPlayer.player_id);
+      }
       const rows = await db("chess_games", {
         method: "POST", headers: { Prefer: "return=representation" },
         body: JSON.stringify({
           code: crypto.randomUUID().replaceAll("-", "").slice(0, 6).toUpperCase(),
           white_nick: nick, white_dev: ratingKey(playerId), white_player_id: playerId,
-          black_player_id: null, status: "waiting", moves: "",
+          black_player_id: null, target_dev: targetDev, status: "waiting", moves: "",
           time_control: timeControl, rated: body.rated === true && timeControl !== "unlimited",
         }),
       });
@@ -168,6 +188,9 @@ Deno.serve(async (request: Request) => {
       const game = Array.isArray(waiting) ? waiting[0] : null;
       if (!game) return json({ ok: false, error: "Challenge is no longer available." }, 404, origin);
       if (game.white_player_id === playerId) return json({ ok: false, error: "You cannot accept your own challenge." }, 409, origin);
+      if (game.target_dev && game.target_dev !== ratingKey(playerId)) {
+        return json({ ok: false, error: "This challenge is restricted to another Bablo Hub account." }, 403, origin);
+      }
       const updateQ = new URLSearchParams({ id: `eq.${game.id}`, status: "eq.waiting", black_player_id: "is.null", select: GAME_SELECT });
       const changed = await db(`chess_games?${updateQ}`, {
         method: "PATCH", headers: { Prefer: "return=representation" },
