@@ -548,6 +548,44 @@ body.bablo-chess-mode input,body.bablo-chess-mode select{background:#11151a;colo
 @media(min-width:950px){body.bablo-chess-mode .wrap{padding-top:24px}.chess-learn-board{max-width:530px}}
 @media(prefers-reduced-motion:reduce){.chess-feature-card,.chess-page-nav a{transition:none}}
 
+
+/* Match screen: board-first on phones, board + persistent side rail on desktop */
+.chess-game-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+.chess-game-title{font:800 clamp(1.1rem,2vw,1.45rem)/1.2 var(--head);color:#f0d183}
+.chess-game-subtitle{font-size:.8rem;color:#aaa99f;margin-top:4px}
+.chess-play-layout{display:grid!important;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:17px!important;align-items:start!important;justify-content:stretch!important;flex-wrap:initial!important}
+.chess-board-panel{min-width:0;padding:clamp(10px,2vw,19px);border:1px solid rgba(234,193,91,.2);border-radius:22px;background:linear-gradient(145deg,rgba(26,30,36,.98),rgba(14,17,22,.98));box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.chess-player-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:46px;position:relative}
+.chess-player-identity{display:flex;align-items:center;gap:10px;min-width:0;font-weight:800}
+.chess-player-identity>span:last-child{min-width:0;overflow-wrap:anywhere}
+.chess-player-avatar{width:34px;height:34px;flex:0 0 34px;border-radius:12px;display:grid;place-items:center;border:1px solid rgba(234,193,91,.25);background:rgba(233,189,89,.1);color:#f3d17b;font-size:1.2rem}
+.chess-player-hint{display:block;font-size:.68rem;color:#aaa99f;font-weight:500;margin-top:2px}
+.chess-captured{min-height:43px;padding:5px 8px;border-radius:10px;background:rgba(255,255,255,.035);width:100%;margin:5px 0}
+.chess-board-holder{display:flex;justify-content:center;align-items:center;width:100%;padding:0}
+body.bablo-chess-mode .chess-board{width:min(100%,min(72vh,650px))!important;max-width:650px!important;border:2px solid #8b6e31!important;border-radius:8px!important;box-shadow:0 12px 34px rgba(0,0,0,.44)!important;aspect-ratio:1}
+body.bablo-chess-mode .chess-board .sq{aspect-ratio:1;font-size:clamp(25px,4.6vw,56px);transition:background-color .12s ease,box-shadow .12s ease}
+body.bablo-chess-mode .chess-board .sq.light{background:#e1dac7!important;color:#171b1a}
+body.bablo-chess-mode .chess-board .sq.dark{background:#66806c!important;color:#121c16}
+body.bablo-chess-mode .chess-board .sq.last{background-image:linear-gradient(rgba(239,194,83,.35),rgba(239,194,83,.35))}
+body.bablo-chess-mode .chess-board .sq.sel{box-shadow:inset 0 0 0 4px #f1cd70}
+.chess-board-coordinate{position:absolute;left:3px;bottom:2px;font:700 9px/1 system-ui;opacity:.72;pointer-events:none}
+body.bablo-chess-mode .chess-board .sq.light .chess-board-coordinate{color:#3a4036}
+body.bablo-chess-mode .chess-board .sq.dark .chess-board-coordinate{color:#e6e5d6}
+.chess-game-status{padding:10px 12px;border-radius:12px;background:rgba(233,189,89,.075);border:1px solid rgba(233,189,89,.16);color:#e6d4a5!important;font-weight:700;text-align:center;margin:12px 0 0!important;min-height:42px}
+.chess-game-sidebar{min-width:0;display:flex;flex-direction:column;gap:13px}
+.chess-game-sidebar .panel{margin:0}
+.chess-moves-list{max-height:340px;overflow:auto;padding-right:4px;scrollbar-color:#6e572b transparent}
+.chess-move-row{display:grid;grid-template-columns:32px minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center;padding:7px 8px;border-radius:8px;font-size:.82rem;font-variant-numeric:tabular-nums}
+.chess-move-row:nth-child(odd){background:rgba(255,255,255,.025)}
+.chess-move-row.current{background:rgba(233,189,89,.11);color:#f1d17d}
+.chess-move-number{color:#7f8079;font-size:.73rem}
+.chess-game-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.chess-game-actions .btn{width:100%;min-width:0}
+.chess-game-actions .btn.primary{grid-column:1/-1}
+.chess-game-rules{font-size:.78rem;color:#888980;line-height:1.55;margin:12px 2px}
+@media(max-width:800px){.chess-play-layout{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}.chess-board-panel{padding:9px;border-radius:17px}.chess-game-sidebar{gap:10px}.chess-moves-list{max-height:210px}body.bablo-chess-mode .chess-board{width:min(100%,calc(100vw - 44px))!important;max-width:560px!important}.chess-game-topbar{margin-bottom:12px}}
+@media(min-width:801px){.chess-board-panel{position:sticky;top:12px}.chess-move-row{padding:8px 10px}}
+
 </style>
 </head>
 <body>
@@ -2432,7 +2470,7 @@ function newChess() {
   chessView();
 }
 function boardEl(G, interactive) {
-  const flip = G.color === 'b';
+  const flip = false; // fixed orientation in every in-game mode
   const board = h('div', { class: 'chess-board', role: 'grid', 'aria-label': 'Chess board' });
   const real = i => (flip ? 63 - i : i);
   const st = Chess.status(G.s); const kingSq = G.s.board.indexOf(G.s.turn === 'w' ? 'K' : 'k');
@@ -2443,7 +2481,8 @@ function boardEl(G, interactive) {
     if (G.legal.includes(ri)) cls.push(G.s.board[ri] ? 'capt' : 'tgt');
     if (G.last && (G.last.from === ri || G.last.to === ri)) cls.push('last');
     if (st.check && kingSq === ri) cls.push('check');
-    board.append(h('button', { class: cls.join(' '), 'aria-label': (p || 'empty') + ' ' + Chess.sqName(ri), onclick: interactive ? () => tap(ri) : null }, p ? h('span', { class: p === p.toUpperCase() ? 'wp' : 'bp' }, PIECE[p]) : null));
+    const square=Chess.sqName(ri), coord=(c===0?String(8-r):'')+(r===7?'abcdefgh'[c]:'');
+    board.append(h('button', { class: cls.join(' '), 'aria-label': (p || 'empty') + ' ' + square, onclick: interactive ? () => tap(ri) : null }, p ? h('span', { class: p === p.toUpperCase() ? 'wp' : 'bp' }, PIECE[p]) : null,coord?h('span',{class:'chess-board-coordinate','aria-hidden':'true'},coord):null));
   }
   return board;
 }
@@ -2506,6 +2545,20 @@ function chessDraw() {
   const cap=(side)=>{const sym={p:'♟',n:'♞',b:'♝',r:'♜',q:'♛'};const pieces=G.captures&&Array.isArray(G.captures[side])?G.captures[side]:[];return pieces.length?pieces.map(p=>sym[String(p).toLowerCase()]||'♟').join('  '):'None yet'};
   const ct=document.getElementById('capturedTop'),cb=document.getElementById('capturedBottom');if(ct){ct.replaceChildren(h('span',{class:'tiny muted'},'OPPONENT CAPTURED'),h('span',{style:{fontSize:'1.35rem',letterSpacing:'2px',fontWeight:'700',display:'block',minHeight:'28px',color:'var(--text)'}},cap(G.color==='w'?'b':'w')));ct.style.padding='5px 8px';ct.style.borderRadius='10px';ct.style.background='var(--panel)';ct.style.width='100%';}if(cb){cb.replaceChildren(h('span',{class:'tiny muted'},'YOU CAPTURED'),h('span',{style:{fontSize:'1.35rem',letterSpacing:'2px',fontWeight:'700',display:'block',minHeight:'28px',color:'var(--text)'}},cap(G.color)));cb.style.padding='5px 8px';cb.style.borderRadius='10px';cb.style.background='var(--panel)';cb.style.width='100%';}
   if (undo) undo.disabled = !(G.friendly && G.hist.length && !G.busy && !gameOver(G).over);
+  const moveBox=document.getElementById('chessMoveList');
+  if(moveBox){
+    const all=Array.isArray(G.moves)?G.moves:[];
+    const coord=(m)=>String(m||'').length>=4?String(m).slice(0,2)+' → '+String(m).slice(2,4):String(m||'');
+    const rows=[];
+    for(let i=0;i<all.length;i+=2){
+      rows.push(h('div',{class:'chess-move-row'+(i>=all.length-2?' current':'')},
+        h('span',{class:'chess-move-number'},String(Math.floor(i/2)+1)+'.'),
+        h('span',null,coord(all[i])),
+        h('span',null,all[i+1]?coord(all[i+1]):'—')));
+    }
+    moveBox.replaceChildren(...(rows.length?rows:[h('p',{class:'muted small'},'Your move history will appear here.')]));
+    moveBox.scrollTop=moveBox.scrollHeight;
+  }
   chessClocks();
   if (gameOver(G).over && !G.popupShown && G.endResult !== undefined) setTimeout(() => resultPopup(G), 0);
 }
@@ -2579,27 +2632,73 @@ function resign() {
   finishComputer(); chessDraw();
 }
 function stopChessTick() { if (CHESS_TICK) { clearInterval(CHESS_TICK); CHESS_TICK = null; } }
+
 function chessView() {
   if (!CHESS || chessCurrentPage() !== 'game') return chessSectionView(chessCurrentPage());
-  const G = CHESS, S = chessSet();
-  const status = h('p', { id: 'chessStatus', style: { textAlign: 'center', fontWeight: '700', margin: '6px 0' }, role: 'status' });
-  const holder = h('div', { id: 'chessBoard', class: 'stack', style: { alignItems: 'center' } });
-  const clockTop = G.clock ? h('div', { id: 'clockTop', class: 'clock' }) : null, clockBot = G.clock ? h('div', { id: 'clockBottom', class: 'clock' }) : null;
-  const undo = h('button', { id: 'chessUndo', class: 'btn grow', disabled: !G.friendly, onclick: takeBack }, 'Take back');
-  const chosenBotRating = botRating(S.level === 'auto' ? 'bot-' + (CHESS_BOTS.find(b=>b.id===G.botId)?.rating || selectedBot().rating) : S.level);
-  const level = chosenBotRating !== null ? 'rated about ' + chosenBotRating : S.level === 'auto' ? 'matches you (' + (computerSettings(chessRec().rating).depth === 1 ? 'easy' : computerSettings(chessRec().rating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
-  mount(wrap(h('a', { class: 'back', href: '#/chess/home', onclick: () => { stopChessTick(); stopOnlinePoll(); } }, '\u2039 Home'),
-    h('div', { class: 'stack-l' },
-      h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts'))),
-      h('div', { class: 'chess-play-layout', style: { display:'flex', gap:'14px', alignItems:'flex-start', justifyContent:'center', flexWrap:'wrap' } },
-        h('div', { class: 'stack', style: { alignItems: 'center', flex:'1 1 320px', minWidth:'0', maxWidth:'620px' } }, h('div',{class:'row between',style:{width:'100%',alignItems:'center',gap:'8px',position:'relative'}},h('span',{class:'row',style:{alignItems:'center',gap:'8px',fontWeight:'700',position:'relative'}},G.mode==='online'?h('span',{style:{width:'34px',height:'34px',borderRadius:'50%',display:'grid',placeItems:'center',fontSize:'1.25rem',background:'var(--panel)',border:'1px solid var(--line)'},'aria-hidden':'true'},'♟️'):botAvatar(CHESS_BOTS.find(b=>b.id===G.botId)||selectedBot(),34),h('span',null,G.mode==='online'?(G.color==='w'?(G.online.black||'Opponent'):G.online.white):botName()),G.mode!=='online'?h('div',{id:'botChatBubble',class:'panel small',hidden:!G.botChat,style:{position:'absolute',left:'0',top:'42px',zIndex:'10',maxWidth:'min(270px,78vw)',width:'max-content',padding:'9px 12px',border:'1px solid var(--gold)',borderRadius:'14px',boxShadow:'0 8px 24px #0004',background:'var(--panel)',display:G.botChat?'block':'none',whiteSpace:'normal'}},G.botChat||''):null),clockTop), h('div',{id:'capturedTop',class:'tiny muted',style:{minHeight:'22px',alignSelf:'stretch',textAlign:'left'}},''), holder, h('div',{id:'capturedBottom',class:'tiny muted',style:{minHeight:'22px',alignSelf:'stretch',textAlign:'left'}},''), h('div',{class:'row between',style:{width:'100%',alignItems:'center',gap:'8px'}},h('span',{class:'row',style:{alignItems:'center',gap:'8px',fontWeight:'700'}},h('span',{style:{width:'34px',height:'34px',borderRadius:'50%',display:'grid',placeItems:'center',fontSize:'1.25rem',background:'var(--panel)',border:'1px solid var(--line)'},'aria-hidden':'true'},'🙂'),h('span',null,G.mode==='online'?(G.color==='w'?G.online.white:G.online.black):((DB.profile&&DB.profile.nick)||'You'))),clockBot), status),
-        G.mode!=='online'?h('div',{class:'tiny muted',style:{display:'flex',alignItems:'center',gap:'6px',flexWrap:'wrap',marginTop:'2px'}},h('label',{style:{display:'flex',alignItems:'center',gap:'5px'}},h('input',{type:'checkbox',checked:localStorage.getItem('babloChessSound')!=='off',onchange:e=>{localStorage.setItem('babloChessSound',e.target.checked?'on':'off');}}),' Sound on')):null),
-      h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
-      G.mode === 'online' && G.online ? chatPanel(G) : null,
-    h('p', { class: 'tiny muted' }, 'Full rules: castling, en passant and promotion. Tap a piece, then where it goes.'))));
+  const G=CHESS,S=chessSet();
+  const status=h('p',{id:'chessStatus',class:'chess-game-status',role:'status','aria-live':'polite'});
+  const holder=h('div',{id:'chessBoard',class:'chess-board-holder'});
+  const clockTop=G.clock?h('div',{id:'clockTop',class:'clock'}):null;
+  const clockBot=G.clock?h('div',{id:'clockBottom',class:'clock'}):null;
+  const undo=h('button',{id:'chessUndo',class:'btn',disabled:!G.friendly,onclick:takeBack},'Take back');
+  const newGame=h('button',{class:'btn',onclick:()=>{stopChessTick();newChess();}},'New game');
+  const resignBtn=h('button',{class:'btn danger',onclick:resign},'Resign');
+  const chosenBotRating=botRating(S.level==='auto'?'bot-'+(CHESS_BOTS.find(b=>b.id===G.botId)?.rating||selectedBot().rating):S.level);
+  const level=chosenBotRating!==null?'rated about '+chosenBotRating:S.level==='auto'?'matches you ('+(computerSettings(chessRec().rating).depth===1?'easy':computerSettings(chessRec().rating).depth===2?'medium':'hard')+')':S.level;
+  const topSide=G.color==='w'?'b':'w',bottomSide=G.color;
+  const sideName=(side)=>{
+    if(G.mode==='online'){
+      const actual=side==='w'?G.online.white:G.online.black;
+      return actual||(side===G.color?'You':'Waiting for opponent');
+    }
+    return side===G.color?((DB.profile&&DB.profile.nick)||'You'):botName();
+  };
+  const sideAvatar=(side)=>{
+    if(G.mode!=='online'&&side!==G.color)return botAvatar(CHESS_BOTS.find(b=>b.id===G.botId)||selectedBot(),34);
+    return h('span',{class:'chess-player-avatar','aria-hidden':'true'},side===G.color?'♙':'♟');
+  };
+  const topIdentity=h('span',{class:'chess-player-identity'},sideAvatar(topSide),
+    h('span',null,sideName(topSide),h('span',{class:'chess-player-hint'},G.mode==='online'?'Opponent':'Dr ECG · '+level)),
+    G.mode!=='online'?h('span',{id:'botChatBubble',class:'panel small',hidden:!G.botChat,style:{position:'absolute',left:'0',top:'42px',zIndex:'10',maxWidth:'min(270px,78vw)',width:'max-content',padding:'9px 12px',border:'1px solid var(--gold)',borderRadius:'14px',boxShadow:'0 8px 24px #0004',background:'var(--panel)',display:G.botChat?'block':'none',whiteSpace:'normal'},'aria-live':'polite'},G.botChat||''):null);
+  const bottomIdentity=h('span',{class:'chess-player-identity'},sideAvatar(bottomSide),
+    h('span',null,sideName(bottomSide),h('span',{class:'chess-player-hint'},G.mode==='online'?'You · '+(G.color==='w'?'White':'Black'):'Your side')));
+  const capturedTop=h('div',{id:'capturedTop',class:'chess-captured tiny muted'},'Captured pieces');
+  const capturedBottom=h('div',{id:'capturedBottom',class:'chess-captured tiny muted'},'Captured pieces');
+  const boardPanel=h('section',{class:'chess-board-panel'},
+    h('div',{class:'chess-player-bar'},topIdentity,clockTop),
+    capturedTop,holder,capturedBottom,
+    h('div',{class:'chess-player-bar'},bottomIdentity,clockBot),
+    status);
+  const moveList=h('div',{id:'chessMoveList',class:'chess-moves-list'},h('p',{class:'muted small'},'Moves appear here as the game progresses.'));
+  const movePanel=h('section',{class:'panel stack'},
+    h('div',{class:'row between'},h('h2',null,'Move history'),h('span',{class:'chip'},String(G.moves.length)+' plies')),
+    moveList,
+    h('p',{class:'tiny muted'},'Moves are shown in coordinate notation so you can follow the board position.'));
+  const soundControl=G.mode!=='online'?h('label',{class:'row',style:{gap:'8px',fontSize:'.84rem',color:'#aaa99f',marginTop:'4px'}},
+    h('input',{type:'checkbox',checked:localStorage.getItem('babloChessSound')!=='off',onchange:e=>{localStorage.setItem('babloChessSound',e.target.checked?'on':'off');}}),' Enable move sounds'):null;
+  const controlPanel=h('section',{class:'panel stack'},
+    h('div',{class:'row between'},h('h2',null,'Game controls'),h('span',{class:'chip gold'},G.friendly?'Friendly':'Ranked')),
+    h('div',{class:'chess-game-actions'},undo,resignBtn,newGame),
+    soundControl,
+    h('p',{class:'tiny muted'},G.friendly?'Take-backs are enabled for this match.':'This match counts toward your local ranked record.'));
+  const sideChildren=[
+    h('section',{class:'panel stack'},
+      h('div',{class:'chess-kicker'},G.mode==='online'?'Online match':'Opponent'),
+      h('div',{class:'row between'},h('span',null,h('b',null,sideName(topSide)),h('div',{class:'tiny muted'},G.mode==='online'?'Friend challenge':'Dr ECG · fixed identity')),h('span',{class:'chip gold'},G.mode==='online'?'LIVE':String(chosenBotRating||selectedBot().rating))),
+      G.mode==='online'&&G.online?h('p',{class:'tiny muted'},'Challenge code: '+G.online.code):h('p',{class:'tiny muted'},'Difficulty was set before the game. It cannot be changed mid-match.')),
+    movePanel,controlPanel
+  ];
+  if(G.mode==='online'&&G.online)sideChildren.push(chatPanel(G));
+  mount(wrap(
+    h('div',{class:'chess-game-topbar'},
+      h('div',null,h('div',{class:'chess-game-title'},G.mode==='online'?'Online match':(G.friendly?'Friendly match':'Ranked match')),
+        h('div',{class:'chess-game-subtitle'},G.mode==='online'&&G.online?'You: '+DB.profile.nick+' vs '+(G.color==='w'?(G.online.black||'waiting for a friend'):G.online.white)+' · code '+G.online.code:'You play '+(G.color==='w'?'White':'Black')+' · opponent '+level)),
+      h('a',{class:'btn',href:'#/chess/home',onclick:()=>{stopChessTick();stopOnlinePoll();},style:{textDecoration:'none',whiteSpace:'nowrap'}},'‹ Chess home')),
+    h('div',{class:'chess-play-layout'},boardPanel,h('aside',{class:'chess-game-sidebar'},sideChildren)),
+    h('p',{class:'chess-game-rules'},'Full chess rules are enabled, including castling, en passant, promotion, checkmate and stalemate. Select a piece, then choose a highlighted legal destination.')));
   chessDraw();
-  if (G.clock && !CHESS_TICK) CHESS_TICK = setInterval(() => { if (!location.hash.startsWith('#/chess')) { stopChessTick(); return; } const live=CHESS;if(live&&live.clock&&!gameOver(live).over){const now=Date.now();if(live.clock.side!==undefined&&live.clock.at&&now-live.clock.at>500){chessClocks();}} }, 100);
-  if (G.mode !== 'online' && G.s.turn !== G.color && !G.busy && !gameOver(G).over) computerTurn();
+  if(G.clock&&!CHESS_TICK)CHESS_TICK=setInterval(()=>{if(!location.hash.startsWith('#/chess')){stopChessTick();return;}const live=CHESS;if(live&&live.clock&&!gameOver(live).over){const now=Date.now();if(live.clock.side!==undefined&&live.clock.at&&now-live.clock.at>500)chessClocks();}},100);
+  if(G.mode!=='online'&&G.s.turn!==G.color&&!G.busy&&!gameOver(G).over)computerTurn();
 }
 
 /* ---------- online challenges (chess_games table) ---------- */
