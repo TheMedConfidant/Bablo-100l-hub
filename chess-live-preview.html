@@ -16,7 +16,7 @@
 
 /* Primary chess navigation pages */
 .pageview{animation:pageIn .22s ease both}.pagehero{padding:26px;border:1px solid #e8bb6233;border-radius:20px;background:radial-gradient(ellipse at 90% 0,#e8bb621b,transparent 48%),linear-gradient(145deg,#151e28,#0d1219);margin-bottom:18px}.pagehero h1{font-size:clamp(26px,4vw,40px);letter-spacing:-1.3px;margin:7px 0 8px}.pagehero p{max-width:680px;color:var(--muted);font-size:13px;line-height:1.7;margin:0}.pagegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.pagecard{border:1px solid var(--line);border-radius:16px;background:linear-gradient(155deg,#151e28,#0e141b);padding:18px;min-width:0}.pagecard .cardicon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#e8bb6217;border:1px solid #e8bb6230;font-size:21px;margin-bottom:15px}.pagecard h2{font-size:15px;margin:0 0 7px}.pagecard p{font-size:12px;line-height:1.65;color:var(--muted);margin:0 0 15px}.pagecard button{width:100%;text-align:center}.metricgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.metric{padding:16px;border:1px solid var(--line);border-radius:14px;background:#111821}.metric strong{display:block;font-size:23px;color:var(--gold2);letter-spacing:-.5px}.metric span{font-size:10px;color:var(--muted)}.statuschip{display:inline-flex;border-radius:99px;border:1px solid #e8bb6233;background:#e8bb6210;color:var(--gold2);padding:6px 9px;font-size:10px}.page-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}@keyframes pageIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}@media(max-width:760px){.pagegrid{grid-template-columns:1fr 1fr}.metricgrid{grid-template-columns:1fr 1fr}.pagehero{padding:20px}.pagecard{padding:15px}}@media(max-width:440px){.pagegrid{grid-template-columns:1fr}}
-.online-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}.online-card{display:block}.online-card .cardicon{margin-bottom:12px}.online-label{display:block;font-size:11px;color:var(--muted);margin:12px 0 7px}.online-input{display:block;width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#0b1118;color:var(--text);margin-bottom:12px}.online-check{display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:11px;line-height:1.5;margin:12px 0}.online-check input{margin-top:2px;accent-color:var(--gold)}.online-card button{margin-top:8px}.invite-code-panel{padding:15px;margin-top:14px;border:1px solid #e8bb6240;border-radius:13px;background:#e8bb620b}.invite-code{font:800 29px/1.3 ui-monospace,monospace;letter-spacing:7px;color:var(--gold2);margin:5px 0}.iconbtn:disabled{opacity:.4;cursor:not-allowed}@media(max-width:760px){.online-grid{grid-template-columns:1fr}}\n</style>
+.online-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}.online-card{display:block}.online-card .cardicon{margin-bottom:12px}.online-label{display:block;font-size:11px;color:var(--muted);margin:12px 0 7px}.online-input{display:block;width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#0b1118;color:var(--text);margin-bottom:12px}.online-check{display:flex;align-items:flex-start;gap:8px;color:var(--muted);font-size:11px;line-height:1.5;margin:12px 0}.online-check input{margin-top:2px;accent-color:var(--gold)}.online-card button{margin-top:8px}.invite-code-panel{padding:15px;margin-top:14px;border:1px solid #e8bb6240;border-radius:13px;background:#e8bb620b}.invite-code{font:800 29px/1.3 ui-monospace,monospace;letter-spacing:7px;color:var(--gold2);margin:5px 0}.iconbtn:disabled{opacity:.4;cursor:not-allowed}@media(max-width:760px){.online-grid{grid-template-columns:1fr}}\n.online-chat-messages{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto;margin-bottom:12px}.online-chat-bubble{align-self:flex-start;max-width:95%;padding:8px 10px;border-radius:10px;background:#e8bb6212;border:1px solid #e8bb6222;overflow-wrap:anywhere;font-size:12px}.online-chat-bubble.mine{align-self:flex-end;background:#7ad7a116;border-color:#7ad7a133}.online-chat-bubble strong{display:block;color:var(--gold2);font-size:10px;margin-bottom:3px}.online-chat-form{display:flex;gap:7px}.online-chat-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:10px;background:#0b1118;color:var(--text)}.online-chat-form button{padding:9px 12px}.online-chat-form button:disabled{opacity:.45}@media(max-width:760px){.online-chat-messages{max-height:170px}}\n</style>
 </head>
 <body>
 <header class="topbar">
@@ -63,6 +63,7 @@
         <div class="cardhead"><h2>Game controls</h2><span class="tiny">PREVIEW</span></div>
         <div class="cardbody"><div class="gameactions"><button class="ghost" id="resignBtn">⚑ Resign</button><button class="ghost" id="drawBtn">◇ Offer draw</button><button class="primary wide" id="rematchBtn">↻ Reset board</button></div></div>
       </section>
+      <section class="card" id="onlineChatCard"><div class="cardhead"><h2>Opponent chat</h2><span class="tiny">ONLINE</span></div><div class="cardbody"><div id="onlineChatMessages" class="online-chat-messages" aria-live="polite"><div class="tiny">Friend-game chat appears here after an online game starts.</div></div><form id="onlineChatForm" class="online-chat-form"><input id="onlineChatInput" maxlength="200" placeholder="Say good game…" autocomplete="off" aria-label="Chat message"><button class="primary" type="submit">Send</button></form><div class="tiny" id="onlineChatStatus">Keep messages respectful. Maximum 200 characters.</div></div></section>
       <section class="card" id="accountConnectionCard">
         <div class="cardhead"><h2>Account connection</h2><span class="tiny">STAGE 1</span></div>
         <div class="cardbody">
@@ -419,6 +420,7 @@ async function pollGame(gameId){
     const client=requireOnlineClient();
     const result=await client.state(gameId);
     if(result.game)window.babloChessApplyOnlineGame(result.game,onlineIdentity?.player_id);
+    await refreshMessages(gameId);
     const panel=document.getElementById('inviteStatusText');
     if(panel&&result.game?.status==='active')panel.textContent='Opponent joined. Game is live.';
     if(result.game?.status==='finished')stopPolling();
@@ -464,8 +466,40 @@ document.addEventListener('click',async(event)=>{
   try{await navigator.clipboard.writeText(code);statusText('inviteStatusText','Code copied. Share it privately with your intended opponent.')}catch{statusText('inviteStatusText','Your code is '+code+'. Copy it manually and share privately.')}
  }
  if(target.id==='openOnlineGame'&&activeOnlineId){document.dispatchEvent(new Event('bablo-chess:show-play'));startPolling(activeOnlineId)}
+ if(target.id==='resignBtn'&&activeOnlineId&&window.babloChessApi){
+  event.preventDefault();
+  if(!window.confirm('Resign this online game? This ends the game for both players.'))return;
+  target.disabled=true;
+  try{const result=await requireOnlineClient().resign(activeOnlineId);if(result.game)window.babloChessApplyOnlineGame(result.game,onlineIdentity?.player_id);statusText('onlineChatStatus','You resigned. Game finished.');stopPolling()}
+  catch(e){statusText('onlineChatStatus',e instanceof Error?e.message:'Could not resign.',true)}
+  finally{target.disabled=false}
+ }
  if(target.id==='backToCompete')document.dispatchEvent(new Event('bablo-chess:show-compete'));
 });
+document.getElementById('onlineChatForm')?.addEventListener('submit',async e=>{
+ e.preventDefault();const input=document.getElementById('onlineChatInput'),button=e.currentTarget.querySelector('button[type="submit"]'),clean=input.value.trim();
+ if(!clean)return;if(!activeOnlineId){statusText('onlineChatStatus','Start or join an online game before chatting.',true);return}
+ button.disabled=true;
+ try{await requireOnlineClient().sendMessage(activeOnlineId,clean);input.value='';await refreshMessages(activeOnlineId)}
+ catch(error){statusText('onlineChatStatus',error instanceof Error?error.message:'Message could not be sent.',true)}
+ finally{button.disabled=false}
+});
+async function refreshMessages(gameId){
+ if(!onlineClient||!onlineIdentity)return;
+ try{
+  const result=await onlineClient.messages(gameId),box=document.getElementById('onlineChatMessages');
+  if(!box)return;box.replaceChildren();
+  const messages=Array.isArray(result.messages)?result.messages:[];
+  if(!messages.length){box.innerHTML='<div class="tiny">No messages yet. Say hello.</div>';return}
+  for(const message of messages){
+   const item=document.createElement('div');item.className='online-chat-bubble'+(message.nick===onlineIdentity.nickname?' mine':'');
+   const name=document.createElement('strong');name.textContent=message.nick||'Player';
+   const body=document.createElement('span');body.textContent=message.body||'';
+   item.append(name,body);box.append(item)
+  }
+  box.scrollTop=box.scrollHeight;statusText('onlineChatStatus','Messages refresh during your game.');
+ }catch(error){statusText('onlineChatStatus',error instanceof Error?error.message:'Chat refresh failed.',true)}
+}
 document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeOnlineId)pollGame(activeOnlineId)});
 </script>
