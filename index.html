@@ -2373,6 +2373,7 @@ function chessHomePage() {
     h('div',{class:'chess-app-grid'},
       h('a',{class:'chess-feature-card',href:'#/chess/play'},h('span',{class:'chess-feature-icon'},'♟'),h('strong',null,'Play chess'),h('small',null,'Set your colour and clock, face Dr ECG, or create a friend challenge.')),
       h('a',{class:'chess-feature-card',href:'#/chess/learn'},h('span',{class:'chess-feature-icon'},'▦'),h('strong',null,'Learn by moving'),h('small',null,'Use the real board to practise opening moves and get immediate feedback.')),
+      h('a',{class:'chess-feature-card',href:'#/chess/puzzles'},h('span',{class:'chess-feature-icon'},'✦'),h('strong',null,'Daily puzzle'),h('small',null,'Solve a checked mate-in-one position on the board. The engine verifies the move.')),
       h('a',{class:'chess-feature-card',href:'#/chess/compete'},h('span',{class:'chess-feature-icon'},'♜'),h('strong',null,'Compete'),h('small',null,'Jump into ranked games or set up an online challenge with a friend.')),
       h('a',{class:'chess-feature-card',href:'#/chess/profile'},h('span',{class:'chess-feature-icon'},'◉'),h('strong',null,'Your profile'),h('small',null,'Review your recorded results, rating, recent games and favourite opening moves.')),
       h('div',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'✦'),h('strong',null,'Dr ECG'),h('small',null,'One fixed chess-doctor identity. Choose difficulty before a game; in-game personality controls stay out of the way.')),
@@ -2450,7 +2451,7 @@ function chessLearnPage() {
         h('p',{class:'muted small'},L.completed?task.why:'Complete the move to reveal the explanation.'),
         h('h3',null,'Lesson objective'),
         h('p',{class:'muted small'},'Identify the correct piece and destination, practise legal movement, and connect the move to a basic opening principle.'),
-        chessButton('Go to play','#/chess/play',true))),
+        chessButton('Go to play','#/chess/play',true),chessButton('Try a daily puzzle','#/chess/puzzles',false))),
     h('p',{class:'chess-page-footer'},'Lessons practise legal moves and opening principles; they do not claim to be a complete chess course.')));
 }
 
@@ -2534,9 +2535,113 @@ function chessProfilePage() {
     h('div',{class:'chess-home-actions'},chessButton('Play again','#/chess/play',true),chessButton('Return home','#/chess/home',false)),
     h('p',{class:'chess-page-footer'},'Bablo Chess · Player profile')));
 }
+
+const CHESS_PUZZLES=[
+  {id:'clinic-mate',title:'The closing diagnosis',fen:'7k/8/5KQ1/8/8/8/8/8',hint:'Find a queen move that checks the king and leaves no legal escape.',why:'The queen gives check while the white king protects the queen’s landing square. The black king cannot capture it, block the check, or escape to a safe square.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'},
+  {id:'back-rank',title:'Cut off the king',fen:'k1K5/2Q5/8/8/8/8/8/8',hint:'The king is boxed in near the corner. Look for a forcing queen move.',why:'The queen’s check controls the escape squares, and the white king covers the remaining flight square. Every legal reply is removed.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'},
+  {id:'queen-net',title:'Build the mating net',fen:'2K5/k7/2Q5/8/8/8/8/8',hint:'Use the queen to take away the king’s remaining escape squares.',why:'The queen delivers check while the white king supports the mating net. The black king has no legal reply.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'}
+];
+let CHESS_PUZZLE=null;
+function puzzleForToday(){
+  const now=new Date(),day=Math.floor(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())/86400000);
+  return CHESS_PUZZLES[((day%CHESS_PUZZLES.length)+CHESS_PUZZLES.length)%CHESS_PUZZLES.length];
+}
+function resetChessPuzzle(index){
+  const puzzle=CHESS_PUZZLES[(index+CHESS_PUZZLES.length)%CHESS_PUZZLES.length];
+  CHESS_PUZZLE={index:(index+CHESS_PUZZLES.length)%CHESS_PUZZLES.length,position:Chess.fromState(puzzle.fen,'w','-',-1),selected:null,destinations:[],solved:false,revealed:false,feedback:'White to move. Find checkmate in one. Select a piece to see its legal moves.'};
+  chessPuzzlePage();
+}
+function chessPuzzleIsMate(move,position){
+  const next=Chess.apply(position,move),result=Chess.status(next);
+  return result.over&&result.result==='white'&&result.reason==='checkmate';
+}
+function chessPuzzleTap(ri){
+  const P=CHESS_PUZZLE;if(!P||P.solved)return;
+  if(P.selected!==null&&P.destinations.includes(ri)){
+    const move=Chess.legalMoves(P.position).find(m=>m.from===P.selected&&m.to===ri);
+    if(move&&chessPuzzleIsMate(move,P.position)){
+      P.position=Chess.apply(P.position,move);P.solved=true;P.selected=null;P.destinations=[];
+      P.feedback='Checkmate! Correct. '+CHESS_PUZZLES[P.index].why;
+      const R=chessRec();R.puzzles=R.puzzles||{solved:[],streak:0,lastDate:''};
+      const dateKey=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0');
+      if(!R.puzzles.solved.includes(CHESS_PUZZLES[P.index].id))R.puzzles.solved.push(CHESS_PUZZLES[P.index].id);
+      if(R.puzzles.lastDate!==dateKey){R.puzzles.streak=R.puzzles.lastDate===new Date(Date.now()-86400000).getFullYear()+'-'+String(new Date(Date.now()-86400000).getMonth()+1).padStart(2,'0')+'-'+String(new Date(Date.now()-86400000).getDate()).padStart(2,'0')?(R.puzzles.streak||0)+1:1;R.puzzles.lastDate=dateKey;}
+      save();
+    }else{
+      P.feedback='That move is legal, but it is not checkmate. Reset the position and search for a move that checks the king while covering every escape.';
+      P.selected=null;P.destinations=[];
+    }
+  }else{
+    const piece=P.position.board[ri];
+    if(piece&&piece===piece.toUpperCase()){
+      P.selected=ri;P.destinations=Chess.legalMoves(P.position).filter(m=>m.from===ri).map(m=>m.to);
+      P.feedback=P.destinations.length?'Piece selected. Choose a highlighted legal destination.':'That piece has no legal move here.';
+    }else{
+      P.selected=null;P.destinations=[];
+      P.feedback='Select a white piece first. Legal destinations are highlighted.';
+    }
+  }
+  chessPuzzlePage();
+}
+function chessPuzzleBoard(){
+  const P=CHESS_PUZZLE,cells=[];
+  for(let ri=0;ri<64;ri++){
+    const row=Math.floor(ri/8),col=ri%8,p=P.position.board[ri],dark=(row+col)%2===1,square=Chess.sqName(ri);
+    const cls='chess-learn-square '+(dark?'dark':'light')+(P.selected===ri?' selected':'')+(P.destinations.includes(ri)?' destination':'');
+    const coord=(col===0?String(8-row):'')+(row===7?'abcdefgh'[col]:'');
+    cells.push(h('button',{class:cls,'aria-label':(p||'empty')+' '+square,onclick:()=>chessPuzzleTap(ri)},p?h('span',{class:p===p.toUpperCase()?'wp':'bp'},PIECE[p]):null,coord?h('span',{class:'learn-coord','aria-hidden':'true'},coord):null));
+  }
+  return h('div',{class:'chess-learn-board',role:'grid','aria-label':'Interactive mate-in-one puzzle board'},cells);
+}
+function chessPuzzlePage(){
+  if(!CHESS_PUZZLE){const daily=puzzleForToday();resetChessPuzzle(CHESS_PUZZLES.findIndex(p=>p.id===daily.id));return;}
+  const P=CHESS_PUZZLE,task=CHESS_PUZZLES[P.index],R=chessRec(),progress=R.puzzles||{solved:[],streak:0};
+  const target=Chess.fromState(task.fen,'w','-',-1);
+  const solution=Chess.legalMoves(target).find(m=>chessPuzzleIsMate(m,target));
+  const showHint=()=>{P.feedback=task.hint;chessPuzzlePage();};
+  const reveal=()=>{
+    const move=Chess.legalMoves(P.position).find(m=>chessPuzzleIsMate(m,P.position));
+    if(!move)return;
+    P.position=Chess.apply(P.position,move);P.solved=true;P.revealed=true;P.selected=null;P.destinations=[];
+    P.feedback='Solution revealed: '+Chess.sqName(move.from)+' to '+Chess.sqName(move.to)+'. '+task.why;chessPuzzlePage();
+  };
+  mount(wrap(chessHeader(),chessPageNav('learn'),
+    h('div',{class:'chess-kicker'},'Daily tactics'),
+    h('h1',{class:'chess-page-title'},'Puzzle of the day'),
+    h('p',{class:'muted'},'A real legal position with a checked solution. Find checkmate in one; the board verifies the result rather than accepting a guessed answer.'),
+    h('div',{class:'chess-stats-grid'},
+      h('div',{class:'chess-stat'},h('b',null,String(progress.solved?.length||0)),h('span',null,'Puzzles solved')),
+      h('div',{class:'chess-stat'},h('b',null,String(progress.streak||0)),h('span',null,'Day streak')),
+      h('div',{class:'chess-stat'},h('b',null,'#'+(P.index+1)),h('span',null,'Puzzle rotation')),
+      h('div',{class:'chess-stat'},h('b',null,'Mate'),h('span',null,'Objective'))),
+    h('div',{class:'chess-learn-layout',style:{marginTop:'16px'}},
+      h('section',{class:'panel stack',style:{padding:'clamp(10px,2vw,18px)'}},
+        chessPuzzleBoard(),
+        h('div',{class:'chess-feedback','aria-live':'polite',style:{marginTop:'12px'}},P.feedback),
+        h('div',{class:'row wrapr',style:{marginTop:'12px'}},
+          h('button',{class:'btn',onclick:()=>resetChessPuzzle(P.index)},'↺ Reset position'),
+          !P.solved?h('button',{class:'btn',onclick:showHint},'Show hint'):null,
+          !P.solved?h('button',{class:'btn ghost',onclick:reveal},'Reveal solution'):null,
+          P.solved?h('button',{class:'btn primary',onclick:()=>resetChessPuzzle((P.index+1)%CHESS_PUZZLES.length)},'Next puzzle'):null)),
+      h('section',{class:'panel stack'},
+        h('span',{class:'chip gold'},'TACTIC · MATE IN ONE'),
+        h('h2',null,task.title),
+        h('p',null,'White to move. Find a checkmate in one move.'),
+        h('p',{class:'chess-muted-note'},'Tip: check every possible king escape square. A checking move is not automatically mate.'),
+        h('h3',null,'Why the solution works'),
+        h('p',{class:'muted small'},P.solved?task.why:'Solve the position to reveal the explanation.'),
+        h('h3',null,'Position verification'),
+        h('p',{class:'muted small'},'The app checks the move with its legal-move engine and confirms checkmate with zero legal replies.'),
+        h('p',{class:'tiny muted'},task.source),
+        chessButton('Learn board fundamentals','#/chess/learn',false))),
+    h('p',{class:'chess-page-footer'},'Daily puzzle rotation uses three composed mate-in-one positions.')),
+    );
+}
+
 function chessSectionView(page) {
   if(page==='play') return chessMenu();
   if(page==='learn') return chessLearnPage();
+  if(page==='puzzles') { chessPuzzlePage(); return; }
   if(page==='compete') return chessCompetePage();
   if(page==='profile') return chessProfilePage();
   return chessHomePage();
