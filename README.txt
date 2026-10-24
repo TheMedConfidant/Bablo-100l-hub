@@ -15,3 +15,22 @@ HOW TO ADD IT TO THE BABLO HUB REPOSITORY
 Important:
 - This package does not replace index.html or change any existing app data.
 - Keep the existing filename/path exact so the link resolves.
+
+
+BABLO CHESS — GAME ANALYSIS PREVIEW
+====================================
+
+Included:
+- chess-analysis.html: standalone mobile-friendly PGN review screen.
+- Paste or load a PGN, replay moves, jump to a move, inspect captures/checks/checkmate,
+  track material balance, and copy or export the PGN.
+- Keyboard navigation: left/right arrows step through the move list when focus is not in a text field.
+
+Preview route when this branch is served by the project's preview host:
+  /chess-analysis.html
+
+Important:
+- This is a preview-only addition on preview/gold-heartbeat-cup-vote.
+- It does not replace index.html and has not been merged into main or production.
+- Material and move notes are heuristics; Stockfish-powered evaluation and blunder
+  detection are not implemented in this phase.
