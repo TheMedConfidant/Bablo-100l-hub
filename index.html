@@ -2304,7 +2304,7 @@ function recordComputerGame(G, res) {
   if(score===1)R.w++;else if(score===0.5)R.d++;else R.l++;
   const idx=G.color==='w'?0:1,first=G.moves[idx];
   if(first)R.openings[first]=(R.openings[first]||0)+1;
-  R.games=R.games.concat([{res,n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
+  R.games=R.games.concat([{res,outcome:score===1?'win':score===0.5?'draw':'loss',n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
   save();
 }
 
@@ -2415,12 +2415,21 @@ function chessLessonRecord(){
   R.lessons.current=Math.max(0,Math.min(CHESS_LESSONS.length-1,Number(R.lessons.current)||0));
   return R.lessons;
 }
+function chessLessonHint() {
+  const L=CHESS_LEARN;if(!L||L.completed)return;
+  const task=CHESS_LESSONS[L.index];
+  L.selected=task.from;L.destinations=[task.to];
+  L.feedback='Hint: select the highlighted piece at '+Chess.sqName(task.from)+', then move it to '+Chess.sqName(task.to)+'.';
+  chessLearnPage();
+}
 function resetChessLesson(n) {
   const index=((n%CHESS_LESSONS.length)+CHESS_LESSONS.length)%CHESS_LESSONS.length;
   const task=CHESS_LESSONS[index];
   const state=task.fen?Chess.fromState(task.fen,'w',task.castling||'-',-1):Chess.initial();
   const record=chessLessonRecord();record.current=index;save();
-  CHESS_LEARN={index,state,selected:null,destinations:[],completed:record.completed.includes(index),feedback:record.completed.includes(index)?'You have completed this lesson before. Practise the move again to refresh the idea.':'Select the piece named in the instruction. Gold dots show its legal destinations.'};
+  const completed=record.completed.includes(index);
+  if(completed){const move=Chess.legalMoves(state).find(m=>m.from===task.from&&m.to===task.to);if(move)state=Chess.apply(state,move);}
+  CHESS_LEARN={index,state,selected:null,destinations:[],completed,feedback:completed?'Lesson completed on this device. Review the explanation, or continue to the next lesson.':'Select the piece named in the instruction. Gold dots show its legal destinations.'};
 }
 function chessLearnTap(ri) {
   const L=CHESS_LEARN;if(!L||L.completed)return;
@@ -2469,6 +2478,7 @@ function chessLearnPage() {
         h('div',{class:'chess-feedback','aria-live':'polite',style:{marginTop:'12px'}},L.feedback),
         h('div',{class:'row wrapr',style:{marginTop:'12px'}},
           h('button',{class:'btn',onclick:()=>resetChessLesson(L.index)},'↺ Reset position'),
+          !L.completed?h('button',{class:'btn',onclick:chessLessonHint},'Show move hint'):null,
           L.completed?h('button',{class:'btn primary',onclick:()=>resetChessLesson((L.index+1)%CHESS_LESSONS.length)},L.index===CHESS_LESSONS.length-1?'Repeat lessons':'Next lesson'):null)),
       h('section',{class:'panel stack'},
         h('span',{class:'chip gold'},'LESSON '+(L.index+1)+' OF '+CHESS_LESSONS.length),
@@ -2624,6 +2634,7 @@ async function loadChessDeviceRating(box) {
   );
 }
 
+function chessGameOutcome(g) { return g.outcome || (g.res === 'draw' ? 'draw' : g.res === g.color ? 'win' : 'loss'); }
 function chessProfilePage() {
   const R=chessRec(),games=Array.isArray(R.games)?R.games:[],openings=Object.entries(R.openings||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent=games.slice(-12).reverse();
@@ -2641,13 +2652,6 @@ function chessProfilePage() {
       h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses'))),
     h('section',{class:'panel stack',style:{marginTop:'16px'}},
       h('div',{class:'row between wrapr'},
-        h('div',null,h('div',{class:'chess-kicker'},'Learning progress'),h('h2',null,'Your chess lessons')),
-        h('span',{class:'chip gold'},chessLessonRecord().completed.length+' / '+CHESS_LESSONS.length+' complete')),
-      h('div',{class:'chess-lesson-progress','aria-label':'Saved lesson progress'},CHESS_LESSONS.map((lesson,i)=>h('span',{class:chessLessonRecord().completed.includes(i)?'done':i===chessLessonRecord().current?'current':'','title':lesson.title}))),
-      h('p',{class:'muted small'},chessLessonRecord().completed.length===CHESS_LESSONS.length?'All current interactive lessons completed. Revisit any lesson to practise.': 'Last lesson: '+CHESS_LESSONS[chessLessonRecord().current].title+'. Completed lessons are saved on this profile.'),
-      h('div',{class:'row wrapr'},chessButton('Continue learning','#/chess/learn',true),chessButton('Open daily puzzles','#/chess/puzzles',false))),
-    h('section',{class:'panel stack',style:{marginTop:'16px'}},
-      h('div',{class:'row between wrapr'},
         h('div',null,h('div',{class:'chess-kicker'},'Server record'),h('h2',null,'Online chess rating')),
         h('button',{class:'btn',onclick:()=>loadChessDeviceRating(onlineRating)},'↻ Refresh')),
       h('p',{class:'muted small'},'Separate from your local computer rating. This rating is recorded by the online match database.'),
@@ -2661,7 +2665,7 @@ function chessProfilePage() {
       h('section',{class:'panel stack'},h('h2',null,'Recent games'),
         recent.length?recent.map((g,i)=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:i<recent.length-1?'1px solid rgba(234,193,91,.12)':'0'}},
           h('span',null,h('b',null,'Game '+(games.length-i)),h('div',{class:'tiny muted'},new Date(g.ts||Date.now()).toLocaleString())),
-          h('span',{class:'chip '+(g.res==='w'?'ok':g.res==='b'?'bad':'gold')},(g.res==='w'?'Win':g.res==='b'?'Loss':'Draw')+' · '+(g.n||0)+' plies'))):
+          h('span',{class:'chip '+(chessGameOutcome(g)==='win'?'ok':chessGameOutcome(g)==='loss'?'bad':'gold')},(chessGameOutcome(g)==='win'?'Win':chessGameOutcome(g)==='draw'?'Draw':'Loss')+' · '+(g.n||0)+' plies'))):
           h('p',{class:'muted small'},'No recorded games yet. Complete a game to start this list.')),
       h('section',{class:'panel stack'},h('h2',null,'Opening moves'),
         openings.length?openings.map(([move,count])=>h('div',{class:'row between',style:{padding:'8px 0',borderBottom:'1px solid rgba(234,193,91,.12)'}},
