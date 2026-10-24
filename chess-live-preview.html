@@ -246,6 +246,47 @@ function restoreMove(m,forward){
  }
  syncBoardFromEngine();selected=null;targets=[];render();
 }
+
+function updateOnlinePlayerLabels(){
+ if(!onlineGame)return;
+ const whiteName=onlineGame.white_nick||'White player',blackName=onlineGame.black_nick||'Black player';
+ $('topPlayerName').textContent=(onlineColor==='w'?whiteName:blackName);
+ $('topPlayerSub').textContent=(onlineColor==='w'?'Opponent · White':'Opponent · Black');
+ $('bottomPlayerName').textContent=(onlineColor==='w'?whiteName:blackName);
+ $('bottomPlayerSub').textContent=(onlineColor==='w'?'You · White':'You · Black');
+ $('boardInstruction').textContent=onlineGame.status==='waiting'?'Waiting for your opponent to join.':onlineGame.status==='finished'?'Game finished · View the final position.':'Online game · Server validates every move. Board orientation stays fixed.';
+}
+window.babloChessApplyOnlineGame=function(remoteGame,playerId){
+ if(!remoteGame||!remoteGame.id)return;
+ onlineGame=remoteGame;
+ onlineColor=remoteGame.white_player_id===playerId?'w':remoteGame.black_player_id===playerId?'b':null;
+ const oldMoves=game.history();
+ const newMoves=(remoteGame.moves||'').trim().split(/\s+/).filter(Boolean);
+ const same=oldMoves.length===newMoves.length&&oldMoves.every((m,i)=>m===newMoves[i]);
+ if(!same){
+  game.reset();history=[];redo=[];capturedW=[];capturedB=[];selected=null;targets=[];
+  for(const uci of newMoves){
+   const played=game.move({from:uci.slice(0,2),to:uci.slice(2,4),...(uci[4]?{promotion:uci[4]}:{})});
+   if(!played)break;
+   const from=uci.slice(0,2),to=uci.slice(2,4),a=sqCoords(from),z=sqCoords(to),capturedPiece=capturePieceCode(played);
+   if(capturedPiece)(capturedPiece[0]==='w'?capturedW:capturedB).push(capturedPiece);
+   history.push({fr:a.r,fc:a.c,tr:z.r,tc:z.c,piece:(played.color==='w'?'w':'b')+played.piece.toUpperCase(),captured:capturedPiece,text:played.san,from,to,promotion:played.promotion||'q',side:played.color});
+  }
+ }
+ syncBoardFromEngine();render();
+ if(remoteGame.status==='finished'&&!window.babloChessFinishedNotified){window.babloChessFinishedNotified=true;eventPopup('GAME FINISHED','check');say(remoteGame.result==='1-0'?'White wins. The final position has been verified.':remoteGame.result==='0-1'?'Black wins. The final position has been verified.':'Draw. The final position has been verified.')}
+};
+async function submitOnlineMove(from,to,promotion){
+ if(!window.babloChessApi||onlineMovePending)return;
+ onlineMovePending=true;render();
+ try{
+  const uci=from+to+(promotion||'');
+  const result=await window.babloChessApi.move(onlineGame.id,uci);
+  if(result.game)window.babloChessApplyOnlineGame(result.game,onlineIdentity?.player_id);
+  if(result.result){announceGameState();eventPopup(result.result==='1/2-1/2'?'DRAW':'♚ CHECKMATE','mate')}
+ }catch(error){toast(error instanceof Error?error.message:'Move could not be submitted.');if(window.babloChessApi&&onlineGame)try{const state=await window.babloChessApi.state(onlineGame.id);window.babloChessApplyOnlineGame(state.game,onlineIdentity?.player_id)}catch{}}
+ finally{onlineMovePending=false;render()}
+}
 function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Fresh diagnosis. Let’s see whether your opening survives peer review. 😌');render();gameSound('reset');toast('Local game reset.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
@@ -304,7 +345,7 @@ const friendChallengeMarkup=`
 `;
 function card(c){return '<article class="pagecard"><div class="cardicon">'+c[0]+'</div><h2>'+c[1]+'</h2><p>'+c[2]+'</p><button class="ghost" data-page-action="'+c[4]+'">'+c[3]+' →</button></article>'}
 function showChessPage(name){const d=pageData[name]||pageData.Home;const activeNav=name==='Friends'?'Compete':name;navButtons.forEach(b=>b.classList.toggle('active',b.textContent.trim()===activeNav));crumb.innerHTML='Chess Hub <span>›</span> <b>'+name+'</b>';if(name==='Play'){pageHost.hidden=true;gameLayout.hidden=false;return}gameLayout.hidden=true;pageHost.hidden=false;let body='<div class="pagehero"><div class="eyebrow">'+d.eyebrow+'</div><h1>'+d.title+'</h1><p>'+d.desc+'</p><div class="page-actions"><span class="statuschip">♟ Bablo Chess · Development preview</span><span class="statuschip">Production unchanged</span></div></div>';if(d.stats)body+='<div class="metricgrid">'+d.stats.map(x=>'<div class="metric"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div>';if(name==='Friends')body+=friendChallengeMarkup;else body+='<div class="pagegrid">'+d.cards.map(card).join('')+'</div>';pageHost.innerHTML='<div class="pageview">'+body+'</div>';pageHost.querySelectorAll('[data-page-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.pageAction;if(['Play','Learn','Compete','Profile','Friends'].includes(a)){showChessPage(a);return}const msg={fundamentals:'Fundamentals lesson content is not yet built.',tactics:'Tactical puzzles need validated positions before scoring.',openings:'Opening explorer is not yet connected to a validated database.',endgames:'Endgame lesson content is not yet built.',puzzles:'Puzzle Rush needs validated puzzles and score persistence.',analysis:'Reliable engine analysis is a separate milestone.',ratings:'Ratings must come from server-verified games; demo ratings are not fabricated.',stats:'Profile statistics will populate from verified chess records.',history:'Game history needs the authenticated game API.',achievements:'Achievements will be connected after verified progress is available.',connection:'Account bridge is not integrated into this standalone preview. No token is read or stored here.'};toast(msg[a]||'This section is mapped, but not implemented yet.')}))}
-navButtons.forEach(b=>b.addEventListener('click',()=>showChessPage(b.textContent.trim())));document.addEventListener('bablo-chess:show-play',()=>showChessPage('Play'));document.addEventListener('bablo-chess:page-shown',e=>{});showChessPage('Play');
+navButtons.forEach(b=>b.addEventListener('click',()=>showChessPage(b.textContent.trim())));document.addEventListener('bablo-chess:show-play',()=>showChessPage('Play'));document.addEventListener('bablo-chess:show-compete',()=>showChessPage('Compete'));document.addEventListener('bablo-chess:page-shown',e=>{});showChessPage('Play');
 
 syncBoardFromEngine();render();say('Welcome to the board. Show me something better than last-minute cramming. 😏');
 </script>
@@ -352,5 +393,80 @@ checkButton.addEventListener('click', async () => {
     checkButton.textContent = 'Check account connection';
   }
 });
+
+let onlineClient = null;
+let onlineIdentity = null;
+let activeOnlineId = null;
+let onlinePoll = null;
+const statusText = (id, text, bad=false) => {
+  const el=document.getElementById(id);
+  if(el){el.textContent=text;el.style.color=bad?'#ffb6a9':'var(--muted)';}
+};
+function requireOnlineClient(){
+  const provider=window.BABLO_HUB_SESSION_PROVIDER;
+  if(!provider||typeof provider.getSessionToken!=='function')throw new Error('Sign in to Bablo Hub from the integrated app before starting online chess.');
+  if(!onlineClient)onlineClient=createChessApiClient({endpoint:API_ENDPOINT,getSessionToken:()=>provider.getSessionToken()});
+  return onlineClient;
+}
+async function currentIdentity(){
+  const client=requireOnlineClient();
+  onlineIdentity=await client.identity();
+  return onlineIdentity;
+}
+function stopPolling(){if(onlinePoll){clearInterval(onlinePoll);onlinePoll=null}}
+async function pollGame(gameId){
+  try{
+    const client=requireOnlineClient();
+    const result=await client.state(gameId);
+    if(result.game)window.babloChessApplyOnlineGame(result.game,onlineIdentity?.player_id);
+    const panel=document.getElementById('inviteStatusText');
+    if(panel&&result.game?.status==='active')panel.textContent='Opponent joined. Game is live.';
+    if(result.game?.status==='finished')stopPolling();
+  }catch(e){statusText('onlineStatus',e instanceof Error?e.message:'Could not refresh game.',true)}
+}
+function startPolling(gameId){
+  stopPolling();activeOnlineId=gameId;
+  pollGame(gameId);onlinePoll=setInterval(()=>pollGame(gameId),1800);
+}
+window.babloChessApi={
+  move:(id,uci)=>requireOnlineClient().move(id,uci),
+  state:(id)=>requireOnlineClient().state(id)
+};
+document.addEventListener('click',async(event)=>{
+ const target=event.target.closest('button');if(!target)return;
+ if(target.id==='createOnlineGame'){
+  target.disabled=true;statusText('onlineStatus','Creating your challenge…');
+  try{
+   await currentIdentity();
+   const result=await requireOnlineClient().createGame({timeControl:document.getElementById('onlineTime').value,rated:document.getElementById('onlineRated').checked});
+   const g=result.game;if(!g?.id||!g?.code)throw new Error('The chess service returned an incomplete challenge.');
+   document.getElementById('inviteCodePanel').hidden=false;
+   document.getElementById('inviteCodeDisplay').textContent=g.code;
+   document.getElementById('openOnlineGame').hidden=false;
+   statusText('onlineStatus','Challenge created. Send this code privately to the friend you want to play.');
+   statusText('inviteStatusText','Waiting for opponent to accept.');
+   window.babloChessApplyOnlineGame(g,onlineIdentity.player_id);startPolling(g.id);
+  }catch(e){statusText('onlineStatus',e instanceof Error?e.message:'Could not create challenge.',true)}
+  finally{target.disabled=false}
+ }
+ if(target.id==='acceptOnlineGame'){
+  const code=(document.getElementById('joinCode').value||'').trim().toUpperCase();target.disabled=true;statusText('joinStatus','Checking challenge…');
+  try{
+   await currentIdentity();const result=await requireOnlineClient().acceptGame(code);
+   if(!result.game?.id)throw new Error('The chess service returned an incomplete game.');
+   window.babloChessFinishedNotified=false;window.babloChessApplyOnlineGame(result.game,onlineIdentity.player_id);
+   statusText('joinStatus','Challenge accepted. Game started.');document.dispatchEvent(new Event('bablo-chess:show-play'));startPolling(result.game.id);
+  }catch(e){statusText('joinStatus',e instanceof Error?e.message:'Could not accept challenge.',true)}
+  finally{target.disabled=false}
+ }
+ if(target.id==='copyInviteCode'){
+  const code=document.getElementById('inviteCodeDisplay').textContent;
+  try{await navigator.clipboard.writeText(code);statusText('inviteStatusText','Code copied. Share it privately with your intended opponent.')}catch{statusText('inviteStatusText','Your code is '+code+'. Copy it manually and share privately.')}
+ }
+ if(target.id==='openOnlineGame'&&activeOnlineId){document.dispatchEvent(new Event('bablo-chess:show-play'));startPolling(activeOnlineId)}
+ if(target.id==='backToCompete')document.dispatchEvent(new Event('bablo-chess:show-compete'));
+});
+document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeOnlineId)pollGame(activeOnlineId)});
 </script>
 </body></html>
