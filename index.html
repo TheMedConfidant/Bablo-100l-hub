@@ -1384,7 +1384,10 @@ async function hubCall(fn, body) {
   return r.json();
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
-function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+let CHESS_IDENTITY_BUSY = false;
+async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
+async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
 async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
   if (!f.nickname.trim()) throw new Error('Pick a nickname.');
@@ -2229,7 +2232,7 @@ function chessMenu() {
       h('p', { class: 'tiny muted' }, S.mode === 'ranked' ? 'Ranked games change your rating. Level "Matches me" moves with it.' : 'Friendly games never change your rating, and you can take back your last move.')),
     CHESS && !gameOver(CHESS).over ? h('button', { class: 'btn gold block', onclick: resumeChess }, 'Resume current game') : null,
     h('button', { class: 'btn primary block', onclick: () => newChess() }, 'Start game'),
-    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Online challenge'), h('p', { class: 'muted small' }, 'Play a friend online. Create a challenge and share the code, or join someone who is waiting.'),
+    h('section', { class: 'panel stack', id: 'onlinePanel' }, h('h2', null, 'Play a friend online'), h('p', { class: 'muted small' }, 'Find friends by their unique Bablo username. Challenges are tied to their account, not a device.'), h('label', { class: 'field' }, h('span', null, 'Search username'), h('input', { type: 'text', maxlength: '21', placeholder: '@username', id: 'chessUsernameSearch', autocapitalize: 'none', autocomplete: 'off', spellcheck: 'false' })), h('button', { class: 'btn primary block', onclick: () => searchChessUsername(document.getElementById('chessUsernameSearch').value, document.getElementById('chessUsernameResult')) }, 'Find player'), h('div', { id: 'chessUsernameResult', class: 'stack' }),
       h('button', { class: 'btn gold block', onclick: createOnline }, 'Create a challenge'),
       h('div', { class: 'row' }, h('input', { type: 'text', maxlength: '6', placeholder: 'Enter code', id: 'joinCode', style: { textTransform: 'uppercase' } }), h('button', { class: 'btn', onclick: () => joinOnline(document.getElementById('joinCode').value) }, 'Join')),
       h('h3', null, 'Saved friends'), h('p', { class: 'tiny muted' }, 'Saved on this device. Create a challenge and share its code with them.'), h('div', { id: 'chessFriendsList', class: 'stack' }, h('p', { class: 'muted small' }, 'No saved friends yet. Add someone after an online game.')),
@@ -2392,7 +2395,7 @@ function chessView() {
   const level = S.level === 'auto' ? 'matches you (' + (computerSettings(drRating).depth === 1 ? 'easy' : computerSettings(drRating).depth === 2 ? 'medium' : 'hard') + ')' : S.level;
   mount(wrap(h('a', { class: 'back', href: '#/chess', onclick: ev => { ev.preventDefault(); stopChessTick(); stopOnlinePoll(); stopChatPoll(); if (CHESS && CHESS.clock) { const side = CHESS.clock.side; CHESS.clock[side] = clockMs(CHESS, side); CHESS.clock.at = Date.now(); CHESS.clock.paused = true; } chessMenu(); } }, '\u2039 Chess settings'),
     h('div', { class: 'stack-l' },
-      h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: ' + DB.profile.nick + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts')), G.mode === 'online' ? h('p', { id: 'onlineRatingLine', class: 'muted tiny' }, 'Loading online ratings…') : null, G.mode === 'online' ? h('div', { id: 'onlineFriendAction', class: 'stack' }) : null),
+      h('div', { class: 'stack' }, h('h1', null, G.mode === 'online' ? 'Online game' : (G.friendly ? 'Friendly game' : 'Ranked game')), h('p', { class: 'muted small' }, G.mode === 'online' && G.online ? 'You: @' + (DB.profile.username || DB.profile.nick) + ' vs ' + (G.color === 'w' ? (G.online.black || 'waiting for a friend') : G.online.white) + ' \u2022 code ' + G.online.code : 'You play ' + (G.color === 'w' ? 'white' : 'black') + ' \u2022 computer ' + level + (G.friendly ? ' \u2022 take-backs on' : ' \u2022 rating counts')), G.mode === 'online' ? h('p', { id: 'onlineRatingLine', class: 'muted tiny' }, 'Loading online ratings…') : null, G.mode === 'online' ? h('div', { id: 'onlineFriendAction', class: 'stack' }) : null),
       G.mode !== 'online' ? h('section', { class: 'panel row', style: { alignItems: 'center', gap: '14px', padding: '14px', background: 'linear-gradient(135deg,rgba(212,175,55,.18),rgba(255,255,255,.035))', border: '1px solid rgba(212,175,55,.48)' } }, h('div', { style: { width: '76px', height: '76px', flex: '0 0 76px', borderRadius: '22px', display: 'grid', placeItems: 'center', fontSize: '44px', background: 'linear-gradient(145deg,#f8e5ad,#c99b27)', boxShadow: '0 8px 24px rgba(0,0,0,.2)', border: '2px solid rgba(255,255,255,.7)' }, role: 'img', 'aria-label': 'Dr ECG, Nigerian male medical doctor avatar' }, '🧑🏿‍⚕️'), h('div', { class: 'stack', style: { gap: '4px', minWidth: '0' } }, h('div', { class: 'row wrapr', style: { alignItems: 'center', gap: '7px' } }, h('h2', { style: { margin: '0' } }, 'Dr ECG'), h('span', { class: 'tiny', style: { borderRadius: '999px', padding: '3px 8px', background: 'rgba(212,175,55,.2)', color: 'var(--ink)', border: '1px solid rgba(212,175,55,.45)' } }, 'AI CHESS DOCTOR')), h('p', { class: 'muted small', style: { margin: '0' } }, 'Bablo Hub’s resident chess physician. Calm under pressure. Ruthless with tactics.'), h('p', { id: 'drEcgLine', class: 'tiny muted', style: { margin: '0', minHeight: '1.2em' } }, '“Let’s examine that move.”'))) : null,
       h('div', { class: 'stack', style: { alignItems: 'center' } }, clockTop, holder, clockBot, status),
       h('section', { class: 'panel row' }, undo, h('button', { class: 'btn danger grow', onclick: resign }, 'Resign'), h('button', { class: 'btn grow', onclick: () => { stopChessTick(); newChess(); } }, 'New game')),
@@ -2647,7 +2650,7 @@ function chatPanel(G) {
   const send = async (text) => {
     const t = String(text || '').trim(); if (!t || !G.online) return;
     input.value = '';
-    try { const resp = await fetch(LB.url + '/rest/v1/chess_messages', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ game_id: G.online.id, nick: DB.profile.nick.slice(0, 30), body: t.slice(0, 200) }) }); if (!resp.ok) throw new Error('send failed'); if (CHAT_EMOJI.includes(t)) popChessReaction(t); loadChat(G); }
+    try { const resp = await fetch(LB.url + '/rest/v1/chess_messages', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ game_id: G.online.id, nick: (DB.profile.username || DB.profile.nick).slice(0, 30), body: t.slice(0, 200) }) }); if (!resp.ok) throw new Error('send failed'); if (CHAT_EMOJI.includes(t)) popChessReaction(t); loadChat(G); }
     catch (e) { toast('Message not sent. Check your connection.'); }
   };
   input.addEventListener('keydown', e => { if (e.key === 'Enter') send(input.value); });
@@ -3031,9 +3034,8 @@ function showNewId(id) {
 function accountSection() {
   if (!authConfigured()) return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', { class: 'muted small' }, 'Accounts turn on when the live database is connected.'));
   if (signedIn() && DB.profile && DB.profile.uid) {
-    return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'),
-      h('p', null, h('b', null, 'Your ID: '), DB.profile.uid), h('p', { class: 'small muted' }, 'Keep your ID and password safe. You log in with them on any phone.'),
-      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out'));
+    ensureChessIdentity(); const usernameInput=h('input',{type:'text',maxlength:'20',placeholder:'your_username',value:DB.profile.username||'',autocapitalize:'none',autocomplete:'off',spellcheck:'false'}); const usernameError=h('p',{class:'small',style:{color:'var(--bad)'},role:'alert'});
+    return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')), h('label',{class:'field'},h('span',null,'Change username'),usernameInput), h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'), usernameError, h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'), h('p', null, h('b', null, 'Your ID: '), DB.profile.uid), h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'), h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
@@ -3656,6 +3658,55 @@ function practicalView(code, n) {
 </script>
 
 <script>
+
+/* Username-first online chess: stable account identity, not device identity. */
+async function searchChessUsername(raw,box){
+ const username=String(raw||'').trim().replace(/^@/,'').toLowerCase();
+ if(!username){box.replaceChildren(h('p',{class:'small muted'},'Enter a username first.'));return;}
+ if(!signedIn()){box.replaceChildren(h('p',{class:'small muted'},'Log in to search and challenge players.'));return;}
+ await ensureChessIdentity(); box.replaceChildren(h('p',{class:'small muted'},'Searching for @'+username+'…'));
+ try{const found=await hubCall('hub_find_chess_user',{p_token:DB.account.token,p_username:username});
+ if(!found||!found.ok){box.replaceChildren(h('p',{class:'small',style:{color:'var(--bad)'}},(found&&found.error)||'Search failed.'));return;}
+ box.replaceChildren(h('div',{class:'panel stack'},h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('b',null,'@'+found.username),h('span',{class:'tiny muted'},found.programme||'Bablo Hub player')),h('button',{class:'btn primary',onclick:()=>createOnline('',found.uniqueId,found.username)},'Challenge')),h('p',{class:'tiny muted'},'This invitation follows the account, so the player can accept on any device.')));
+ }catch(e){box.replaceChildren(h('p',{class:'small',style:{color:'var(--bad)'}},e.message||'Could not search right now.'));}
+}
+async function createOnline(targetDev,targetUid,targetUsername){
+ if(!signedIn()||!DB.profile||!DB.profile.uid){toast('Log in to challenge players by username.');return;}
+ await ensureChessIdentity(); if(!liveOn()){toast('Online challenges need the live connection.');return;}
+ const username=DB.profile.username||DB.profile.nick;if(targetUid&&targetUid===DB.profile.uid){toast('You cannot challenge your own account.');return;}
+ const code=rnd6();const row=await sbFetchJson('chess_games',{method:'POST',headers:sbHeaders({Prefer:'return=representation'}),body:JSON.stringify({code,white_nick:username.slice(0,30),white_dev:DB.dev,white_uid:DB.profile.uid,target_dev:targetDev||null,target_uid:targetUid||null,status:'waiting',moves:''})});
+ if(!Array.isArray(row)||!row[0]){toast('Could not create the challenge. Try again.');return;}
+ startOnline(onlineState('w',row[0].id,code,'waiting',username,'',DB.dev,'',targetDev||'',DB.profile.uid,'',targetUid||''));if(targetUid)toast('Challenge sent to @'+(targetUsername||'player')+'.');
+}
+async function joinOnline(raw){
+ const code=String(raw||'').trim().toUpperCase();if(!signedIn()||!DB.profile||!DB.profile.uid){toast('Log in before joining an online game.');return;}await ensureChessIdentity();
+ if(code.length!==6){toast('Enter the 6-letter code.');return;}if(!liveOn()){toast('Online challenges need the live connection.');return;}
+ const found=await sbFetchJson('chess_games?code=eq.'+code+'&status=eq.waiting&select=id,white_dev,white_nick,target_dev,white_uid,target_uid');
+ if(!Array.isArray(found)||!found.length){toast('No open challenge with that code.');return;}if(found[0].white_uid===DB.profile.uid||found[0].white_dev===DB.dev){toast('That is your own challenge. Share the code with a friend.');return;}
+ if(found[0].target_uid&&found[0].target_uid!==DB.profile.uid){toast('This challenge was sent to another username.');return;}
+ const username=DB.profile.username||DB.profile.nick;const joined=await sbFetchJson('chess_games?id=eq.'+found[0].id+'&status=eq.waiting',{method:'PATCH',headers:sbHeaders({Prefer:'return=representation'}),body:JSON.stringify({status:'active',black_nick:username.slice(0,30),black_dev:DB.dev,black_uid:DB.profile.uid,updated_at:new Date().toISOString()})});
+ if(!Array.isArray(joined)||!joined.length){toast('That challenge was just taken.');return;}
+ startOnline(onlineState('b',found[0].id,code,'active',found[0].white_nick,username,found[0].white_dev,DB.dev,'',found[0].white_uid||'',DB.profile.uid,found[0].target_uid||''));
+}
+function onlineState(color,id,code,status,white,black,whiteDev,blackDev,targetDev,whiteUid,blackUid,targetUid){
+ return {mode:'online',online:{id,code,status,recorded:false,ratingApplied:false,white:white||DB.profile.username||DB.profile.nick,black:black||'',whiteDev:whiteDev||'',blackDev:blackDev||'',targetDev:targetDev||'',whiteUid:whiteUid||'',blackUid:blackUid||'',targetUid:targetUid||''},color,friendly:false,s:Chess.initial(),sel:null,legal:[],last:null,busy:false,msg:'',resigned:false,resignText:'',endResult:null,endText:'',moves:[],hist:[],clock:null,recorded:false};
+}
+async function loadOpenList(){
+ const box=document.getElementById('openList');if(!box)return;if(!liveOn()){box.replaceChildren(h('p',{class:'muted small'},'Online challenges turn on when the live database is connected.'));return;}
+ const rows=await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,target_dev,white_uid,target_uid,created_at&order=created_at.desc&limit=20');
+ if(!Array.isArray(rows)){box.replaceChildren(h('p',{class:'muted small'},'Could not load challenges.'));return;}
+ const open=rows.filter(r=>r.white_uid!==DB.profile.uid&&(!r.target_uid||r.target_uid===DB.profile.uid)&&(!r.target_dev||r.target_dev===DB.dev));
+ box.replaceChildren(...(open.length?open.map(r=>h('div',{class:'panel online-row'},h('span',null,h('b',null,'@'+r.white_nick),h('div',{class:'tiny muted'},'Code '+r.code+' • '+ago(r.created_at))),h('button',{class:'btn sm primary',onclick:()=>joinOnline(r.code)},'Join'))):[h('p',{class:'muted small'},'No open challenges right now. Create one or search a username.')]));
+}
+async function pollIncomingChessChallenges(){
+ if(INCOMING_CHESS_BUSY||!liveOn()||!DB.profile||!DB.dev||!signedIn())return;if(CHESS&&CHESS.mode==='online'&&!gameOver(CHESS).over)return;INCOMING_CHESS_BUSY=true;
+ try{await ensureChessIdentity();const byAccount=DB.profile.uid?await sbFetchJson('chess_games?status=eq.waiting&target_uid=eq.'+encodeURIComponent(DB.profile.uid)+'&select=id,code,white_nick,white_dev,target_dev,white_uid,target_uid,created_at&order=created_at.desc&limit=5'):[];const byDevice=await sbFetchJson('chess_games?status=eq.waiting&target_dev=eq.'+encodeURIComponent(DB.dev)+'&select=id,code,white_nick,white_dev,target_dev,white_uid,target_uid,created_at&order=created_at.desc&limit=5');const rows=[...(Array.isArray(byAccount)?byAccount:[]),...(Array.isArray(byDevice)?byDevice:[])];if(!rows.length)return;
+ if(!Array.isArray(DB.seenChessInvites))DB.seenChessInvites=[];const fresh=rows.find(r=>r.id&&r.white_uid!==DB.profile.uid&&!DB.seenChessInvites.includes(r.id));if(!fresh)return;DB.seenChessInvites.push(fresh.id);DB.seenChessInvites=DB.seenChessInvites.slice(-60);save();playNoticeSound('chess');
+ try{if(DB.notify&&'Notification'in window&&Notification.permission==='granted')new Notification('Chess challenge received',{body:'@'+(fresh.white_nick||'a friend')+' challenged you. Open Bablo Hub to accept.'});}catch(e){}
+ const accept=await confirmBox({title:'♟ Chess challenge received',msg:'@'+(fresh.white_nick||'a friend')+' wants to play you online. Accept the challenge?',ok:'Accept',cancel:'Later'});if(accept)await joinOnline(fresh.code);else toast('Challenge saved under Chess → Open challenges.');
+ }catch(e){}finally{INCOMING_CHESS_BUSY=false;}
+}
+
 /* ---------- boot ---------- */
 applyTheme();
 loadHidden();
