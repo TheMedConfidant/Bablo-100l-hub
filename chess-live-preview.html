@@ -495,8 +495,12 @@ function updateOnlinePlayerLabels(){
 }
 window.babloChessApplyOnlineGame=function(remoteGame,playerId){
  if(!remoteGame||!remoteGame.id)return;
- gameStarted=true;$('preGameSetup').hidden=true;$('gameLayout').hidden=false;stopLocalClock();clockStarted=false;
+ gameStarted=true;stopLocalClock();clockStarted=false;
  onlineGame=remoteGame;
+ // Keep challenge creation on the Friends page until the player explicitly opens the game.
+ if(typeof pageHost!=='undefined'&&!pageHost.hidden){$('gameLayout').hidden=true;}
+ else{showPlayMode('game');}
+ $('playModeHub').hidden=true;$('preGameSetup').hidden=true;
  if(chatOpenButton)chatOpenButton.hidden=false;
  onlineColor=remoteGame.white_player_id===playerId?'w':remoteGame.black_player_id===playerId?'b':null;
  const oldMoves=game.history();
@@ -526,7 +530,7 @@ async function submitOnlineMove(from,to,promotion){
  }catch(error){toast(error instanceof Error?error.message:'Move could not be submitted.');if(window.babloChessApi&&onlineGame)try{const state=await window.babloChessApi.state(onlineGame.id);window.babloChessApplyOnlineGame(state.game,onlineIdentity?.player_id)}catch{}}
  finally{onlineMovePending=false;render()}
 }
-function reset(){if(botTimer!==null){clearTimeout(botTimer);botTimer=null}if(chatBackdrop&&!chatBackdrop.hidden)closeOnlineChat();if(chatOpenButton)chatOpenButton.hidden=true;if(chatUnread)chatUnread.hidden=true;chatLastMessageCount=0;onlineGame=null;onlineColor=null;botThinking=false;stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';gameStarted=false;playModeView='setup';$('playModeHub').hidden=true;$('preGameSetup').hidden=false;$('gameLayout').hidden=true;game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local setup reopened. Adjust options before starting again.')}
+function reset(){if(botTimer!==null){clearTimeout(botTimer);botTimer=null}if(chatBackdrop&&!chatBackdrop.hidden)closeOnlineChat();if(chatOpenButton)chatOpenButton.hidden=true;if(chatUnread)chatUnread.hidden=true;chatLastMessageCount=0;onlineGame=null;onlineColor=null;botThinking=false;stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';gameStarted=false;playModeView='setup';$('playModeHub').hidden=true;$('preGameSetup').hidden=false;$('gameLayout').hidden=true;game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');document.dispatchEvent(new Event('bablo-chess:reset'));toast('Local setup reopened. Adjust options before starting again.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
@@ -537,7 +541,14 @@ chatOpenButton?.addEventListener('click',openOnlineChat);
 $('onlineChatCloseBtn')?.addEventListener('click',closeOnlineChat);
 chatBackdrop?.addEventListener('click',e=>{if(e.target===chatBackdrop)closeOnlineChat()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&chatBackdrop&&!chatBackdrop.hidden)closeOnlineChat()});
-$('newGame').onclick=reset;$('rematchBtn').onclick=reset;
+const startNewGame=()=>{
+ if(onlineGame&&(onlineGame.status==='active'||onlineGame.status==='waiting')){
+  toast('Finish or resign the online match before starting another.');
+  return;
+ }
+ reset();
+};
+$('newGame').onclick=startNewGame;$('rematchBtn').onclick=startNewGame;
 $('openLocalSetup').onclick=()=>showPlayMode('setup');
 $('backToModeHub').onclick=()=>showPlayMode('hub');
 $('openOnlineMode').onclick=()=>showChessPage('Friends');
@@ -546,7 +557,10 @@ $('startLocalGame').onclick=()=>{botDifficulty=$('botDifficulty').value;botTempe
 $('backMove').onclick=()=>{if(botTimer!==null){clearTimeout(botTimer);botTimer=null}if(!history.length){toast('No move to undo yet.');return}let undone=0;while(history.length){const m=history[history.length-1];redo.push(m);restoreMove(m,false);undone++;if(m.piece?.[0]==='w'||undone>=2)break}say('Takeback noted. Even the best students correct their work.');toast('Last turn taken back. You can try another line.')}
 $('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else scheduleBotMove()}}
 $('flipBoard').onclick=()=>{if(onlineGame){toast('Online games keep the board orientation fixed.');return}flipped=!flipped;render();toast('Board orientation preview toggled.')}
-$('resignBtn').onclick=()=>showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
+$('resignBtn').onclick=()=>{
+ if(onlineGame)return;
+ showModal('Resign this demo?','This only ends the local preview state. It will not resign a real Bablo game.',()=>{reset();say('You resigned the demo. A wise clinical decision is knowing when to review the position.');toast('Demo reset after confirmation.')},'Resign demo');
+};
 $('drawBtn').onclick=()=>toast('Draw offers are outside this preview scope.');
 $('exitBtn').onclick=()=>showModal('Leave this preview?','You can return to the separate dashboard design preview. This does not affect your live account.',()=>{location.href='/chess-preview.html'},'Exit preview');
 document.querySelectorAll('[data-reaction]').forEach(b=>b.onclick=()=>{popReaction(b.dataset.reaction)});
@@ -658,7 +672,7 @@ checkButton.addEventListener('click', async () => {
     });
     const result = await client.identity();
     setStatus(apiStatus, 'Connected', 'var(--good)');
-    message.textContent = 'Authenticated successfully. ' + (result.player?.nickname ? 'Signed in as ' + result.player.nickname + '.' : 'Hub identity verified.');
+    message.textContent = 'Authenticated successfully. ' + (result.nickname ? 'Signed in as ' + result.nickname + '.' : 'Hub identity verified.');
   } catch (error) {
     setStatus(apiStatus, 'Connection failed', '#ffb6a9');
     message.textContent = error instanceof Error ? error.message : 'Could not verify the account connection.';
