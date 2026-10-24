@@ -35,8 +35,17 @@ export function createChessApiClient({ endpoint, getSessionToken, fetchImpl = fe
 
   return Object.freeze({
     identity: () => call("identity"),
-    createGame: ({ timeControl = "10+0", rated = false } = {}) =>
-      call("create_game", { time_control: timeControl, rated: Boolean(rated) }),
+    createGame: ({ timeControl = "10+0", rated = false, targetUniqueId = "" } = {}) => {
+      const target = typeof targetUniqueId === "string" ? targetUniqueId.trim().toUpperCase() : "";
+      if (target && !/^[A-Z]{2,4}-[0-9]{4,6}$/.test(target)) {
+        return Promise.reject(new Error("Enter a valid Bablo Hub ID, such as COH-1234."));
+      }
+      return call("create_game", {
+        time_control: timeControl,
+        rated: Boolean(rated),
+        ...(target ? { target_unique_id: target } : {}),
+      });
+    },
     acceptGame: (code) => call("accept_game", { code }),
     state: (gameId) => call("state", { game_id: gameId }),
     move: (gameId, uci) => {
