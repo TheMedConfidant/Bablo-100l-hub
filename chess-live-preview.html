@@ -123,6 +123,7 @@
         <button class="primary wide" id="startLocalGame" type="button">Start game →</button>
       </section>
     </div>
+    <div class="page-actions"><button class="ghost" id="backToModeHub" type="button">← Back to game modes</button><span class="statuschip">Settings apply to local Dr ECG practice only.</span></div>
   </section>
   <div class="layout" id="gameLayout" hidden>
     <section class="maincol">
@@ -477,6 +478,7 @@ $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalActio
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
 $('newGame').onclick=reset;$('rematchBtn').onclick=reset;
 $('openLocalSetup').onclick=()=>showPlayMode('setup');
+$('backToModeHub').onclick=()=>showPlayMode('hub');
 $('openOnlineMode').onclick=()=>showChessPage('Friends');
 $('openLearnMode').onclick=()=>showChessPage('Learn');
 $('startLocalGame').onclick=()=>{botDifficulty=$('botDifficulty').value;botTemperament=$('botTemperament').value;botRating=Number($('botRating').value);soundOn=$('setupSound').checked;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(botTimer){clearTimeout(botTimer);botTimer=null}stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl').value||0);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];gameStarted=true;showPlayMode('game');startLocalClock();renderClocks();render();say(freshLine(['Welcome to the board. Let’s see your style of play.','Ready when you are. Keep an eye on the whole position.','Board is set. Make the first move count.','Let’s play—calculation beats guessing.'],'opening'));toast('Game started. Settings are locked until you leave the game.');};
