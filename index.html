@@ -2433,6 +2433,9 @@ function chessLessonProgress() {
 }
 function chessCurrentLessonIndex(){
   const progress=chessLessonProgress();
+  let saved=-1;
+  try{saved=Number(localStorage.getItem('babloChessCurrentLesson'));}catch(e){}
+  if(Number.isInteger(saved)&&saved>=0&&saved<CHESS_LESSONS.length&&!progress[String(saved)])return saved;
   const next=CHESS_LESSONS.findIndex((lesson,i)=>!progress[String(i)]);
   return next>=0?next:Math.max(0,CHESS_LESSONS.length-1);
 }
@@ -2451,6 +2454,7 @@ function chessLessonHint() {
 }
 function resetChessLesson(n) {
   const index=((n%CHESS_LESSONS.length)+CHESS_LESSONS.length)%CHESS_LESSONS.length;
+  try{localStorage.setItem('babloChessCurrentLesson',String(index));}catch(e){}
   const task=CHESS_LESSONS[index];
   let state=task.fen?Chess.fromState(task.fen,'w',task.castling||'-',-1):Chess.initial();
   const completed=!!chessLessonProgress()[String(index)];
@@ -2492,7 +2496,7 @@ function chessLearnBoard() {
   return h('div',{class:'chess-learn-board',role:'grid','aria-label':'Interactive chess lesson board'},cells);
 }
 function chessLearnPage() {
-  if(!CHESS_LEARN)resetChessLesson(0);
+  if(!CHESS_LEARN)resetChessLesson(chessCurrentLessonIndex());
   const L=CHESS_LEARN,task=CHESS_LESSONS[L.index];
   mount(wrap(chessHeader(),chessPageNav('learn'),
     h('div',{class:'chess-kicker'},'Learn chess by doing'),
