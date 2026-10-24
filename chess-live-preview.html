@@ -121,7 +121,7 @@
         <div class="cardhead"><h2>Dr ECG is watching</h2><span class="tiny">TEXT ONLY</span></div>
         <div class="cardbody">
           <div class="engine-row engine-chat-row"><div class="engine-profile"><div class="ecg-orb">♞</div><div><div class="engine-name">Dr ECG</div><div class="engine-tag">YOUR OPPONENT</div></div></div><div class="speech" id="speech"><strong>Dr ECG</strong> · Welcome to the board. Show me something better than last-minute cramming. 😏</div></div>
-          <div class="reactionrow"><button class="reaction" data-reaction="😂" aria-label="Laugh reaction">😂</button><button class="reaction" data-reaction="😤" aria-label="Frustrated reaction">😤</button><button class="reaction" data-reaction="🧠" aria-label="Thinking reaction">🧠</button><button class="reaction" data-reaction="🔥" aria-label="Fire reaction">🔥</button></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="ghost" id="soundToggle" type="button" aria-pressed="true">🔊 Sounds on</button></div><div class="bot-level-row"><label for="botDifficulty">Bot level</label><select id="botDifficulty"><option value="warmup">Warm-up</option><option value="clinical" selected>Clinical</option><option value="registrar">Registrar</option><option value="consultant">Consultant</option></select></div><div class="tiny" id="difficultyDescription">Balanced replies with basic material and threat awareness.</div><div class="bot-level-row"><label for="botTemperament">Style</label><select id="botTemperament"><option value="clinical">Clinical</option><option value="playful" selected>Playful</option><option value="ruthless">Ruthless</option><option value="mentor">Mentor</option></select></div><div class="bot-level-row"><label for="localTimeControl">Clock</label><select id="localTimeControl"><option value="180">Blitz · 3 min</option><option value="300" selected>Rapid · 5 min</option><option value="600">Rapid · 10 min</option><option value="0">Untimed</option></select></div><div class="tiny" id="temperamentDescription">Playful banter with medical-school humour. Style changes Dr ECG’s chat; level changes his move selection.</div>
+          <div class="reactionrow"><button class="reaction" data-reaction="😂" aria-label="Laugh reaction">😂</button><button class="reaction" data-reaction="😤" aria-label="Frustrated reaction">😤</button><button class="reaction" data-reaction="🧠" aria-label="Thinking reaction">🧠</button><button class="reaction" data-reaction="🔥" aria-label="Fire reaction">🔥</button></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="ghost" id="soundToggle" type="button" aria-pressed="true">🔊 Sounds on</button></div><div class="bot-level-row"><label for="botDifficulty">Bot level</label><select id="botDifficulty"><option value="warmup">Warm-up</option><option value="clinical" selected>Clinical</option><option value="registrar">Registrar</option><option value="consultant">Consultant</option></select></div><div class="tiny" id="difficultyDescription">Balanced replies with basic material and threat awareness.</div><div class="bot-level-row"><label for="botTemperament">Style</label><select id="botTemperament"><option value="clinical">Clinical</option><option value="playful" selected>Playful</option><option value="ruthless">Ruthless</option><option value="mentor">Mentor</option></select></div><div class="bot-level-row"><label for="botRating">Rating target</label><select id="botRating"><option value="600">600</option><option value="800">800</option><option value="1000" selected>1000</option><option value="1200">1200</option><option value="1400">1400</option><option value="1600">1600</option><option value="1800">1800</option><option value="2000">2000</option><option value="2200">2200</option></select></div><div class="tiny" id="ratingDescription">Approximate local strength target; not an official Elo rating.</div><div class="bot-level-row"><label for="localTimeControl">Clock</label><select id="localTimeControl"><option value="180">Blitz · 3 min</option><option value="300" selected>Rapid · 5 min</option><option value="600">Rapid · 10 min</option><option value="0">Untimed</option></select></div><div class="tiny" id="temperamentDescription">Playful banter with medical-school humour. Style changes Dr ECG’s chat; level changes his move selection.</div>
         </div>
       </section>
       <section class="card">
@@ -168,7 +168,7 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', botRating=1000, onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){
@@ -273,7 +273,9 @@ function chooseDrECGMove(){
  }
  if(!scored.length)return null;
  scored.sort((a,b)=>b.score-a.score);
- const pool={warmup:8,clinical:4,registrar:2,consultant:1}[botDifficulty]||4;
+ const ratingPool=botRating<=600?8:botRating<=800?7:botRating<=1000?6:botRating<=1200?5:botRating<=1400?4:botRating<=1600?3:botRating<=1800?2:1;
+ const levelPool={warmup:Math.max(ratingPool,6),clinical:ratingPool,registrar:Math.min(ratingPool,2),consultant:1}[botDifficulty]||ratingPool;
+ const pool=levelPool;
  const shortlist=scored.slice(0,Math.min(pool,scored.length));
  return shortlist[Math.floor(Math.random()*shortlist.length)].move;
 }
@@ -392,7 +394,7 @@ function restoreMove(m,forward){
   if(m.captured)(m.captured[0]==='w'?capturedW:capturedB).pop();
   history.pop();
  }
- syncBoardFromEngine();selected=null;targets=[];render();
+ syncBoardFromEngine();selected=null;targets=[];render();syncClockTurn();
 }
 
 function updateOnlinePlayerLabels(){
@@ -465,6 +467,11 @@ $('botTemperament').addEventListener('change',()=>{
  botTemperament=$('botTemperament').value;$('temperamentDescription').textContent=temperamentDescriptions[botTemperament];
  const opening={clinical:'Clinical mode. Let’s keep the analysis precise.',playful:'You picked playful? Fine—show me a move worth teasing. 😂',ruthless:'Ruthless mode. I’ll take every loose piece you offer.',mentor:'Mentor mode. I’ll challenge your thinking, not just your moves.'};
  say(opening[botTemperament]);toast('Dr ECG style set to '+$('botTemperament').selectedOptions[0].textContent+'.');
+});
+$('botRating').addEventListener('change',()=>{
+ botRating=Number($('botRating').value);
+ $('ratingDescription').textContent='Approximate '+botRating+' strength target using the local move evaluator; not official Elo.';
+ toast('Dr ECG target set to '+botRating+'.');
 });
 $('localTimeControl').addEventListener('change',()=>{
  stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl').value);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';renderClocks();
