@@ -2334,25 +2334,60 @@ function chessLearnPage() {
         chessButton('Go to play','#/chess/play',true))),
     h('p',{class:'chess-page-footer'},'Lessons practise legal moves and opening principles; they do not claim to be a complete chess course.')));
 }
+
+async function loadChessLeaderboard(box) {
+  if (!box) return;
+  box.replaceChildren(h('p',{class:'muted small'},'Loading live ratings…'));
+  if (!liveOn()) {
+    box.replaceChildren(h('p',{class:'muted small'},'Live ratings are unavailable because the database connection is not active.'));
+    return;
+  }
+  const rows = await sbFetchJson('chess_ratings?select=nick,rating,wins,draws,losses,updated_at&order=rating.desc,wins.desc&limit=50');
+  if (!Array.isArray(rows)) {
+    box.replaceChildren(h('p',{class:'muted small'},'The live ratings ladder could not load. Check your connection and refresh.'));
+    return;
+  }
+  if (!rows.length) {
+    box.replaceChildren(h('p',{class:'muted small'},'No rated players have been recorded yet. Your name can be one of the first.'));
+    return;
+  }
+  const items = rows.map((r,i) => {
+    const rank = h('span',{style:{display:'grid',placeItems:'center',width:'32px',height:'32px',flex:'0 0 32px',borderRadius:'10px',background:i===0?'linear-gradient(145deg,#f3d783,#b78124)':'rgba(233,189,89,.1)',color:i===0?'#17140e':'#e9bd59',fontWeight:'800'}},String(i+1));
+    const detail = h('span',{style:{minWidth:'0'}},
+      h('b',{style:{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},r.nick||'Player'),
+      h('span',{class:'tiny muted'},(Number(r.wins)||0)+' W · '+(Number(r.draws)||0)+' D · '+(Number(r.losses)||0)+' L'));
+    const identity = h('span',{class:'row',style:{gap:'10px',minWidth:'0'}},rank,detail);
+    const score = h('span',{class:'chip gold',style:{fontSize:'.95rem',fontWeight:'800',fontVariantNumeric:'tabular-nums'}},String(Number(r.rating)||1000));
+    return h('div',{class:'row between',style:{gap:'10px',padding:'10px 0',borderBottom:i<rows.length-1?'1px solid rgba(234,193,91,.12)':'0'},'aria-label':'Rank '+(i+1)+', '+(r.nick||'Player')+', rating '+(Number(r.rating)||1000)},identity,score);
+  });
+  box.replaceChildren(...items);
+}
 function chessCompetePage() {
-  const R=chessRec(),games=Array.isArray(R.games)?R.games:[];
+  const R=chessRec(),games=Array.isArray(R.games)?R.games:[],leaderboard=h('div',{class:'stack'},h('p',{class:'muted small'},'Loading live ratings…'));
+  const rated=h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'♜'),h('strong',null,'Ranked practice'),h('small',null,'Choose Ranked in the Dr ECG setup before starting. Results are tracked in your chess record.'),chessButton('Set up ranked game','#/chess/play',true));
+  const friends=h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'♙'),h('strong',null,'Challenge a friend'),h('small',null,'Create a challenge code or join a friend with the code they share. Sign-in is required for online challenges.'),chessButton('Open challenge setup','#/chess/play',false));
+  const recent=h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'◷'),h('strong',null,'Recent match record'),h('small',null,games.length?games.length+' game records are saved in your current chess profile.':'No completed games are recorded here yet.'),chessButton('Review profile','#/chess/profile',false));
+  const stats=h('div',{class:'chess-stats-grid'},
+    h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Personal rating')),
+    h('div',{class:'chess-stat'},h('b',null,String(R.w||0)),h('span',null,'Wins recorded')),
+    h('div',{class:'chess-stat'},h('b',null,String(R.d||0)),h('span',null,'Draws recorded')),
+    h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses recorded')));
+  const cards=h('div',{class:'chess-app-grid'},rated,friends,recent);
+  const boardSection=h('section',{class:'panel stack',style:{marginTop:'16px'}},
+    h('div',{class:'row between wrapr'},
+      h('div',null,h('div',{class:'chess-kicker'},'Live data'),h('h2',null,'Rated-player leaderboard')),
+      h('button',{class:'btn',onclick:()=>loadChessLeaderboard(leaderboard)},'↻ Refresh')),
+    h('p',{class:'muted small'},'Sorted by server-recorded rating. Only public nicknames and rated results are shown.'),
+    leaderboard);
   mount(wrap(chessHeader(),chessPageNav('compete'),
     h('div',{class:'chess-kicker'},'The competitive room'),
     h('h1',{class:'chess-page-title'},'Earn the next result.'),
-    h('p',{class:'muted'},'Play ranked computer matches to track your personal rating, or use the existing online challenge flow to play a friend.'),
-    h('div',{class:'chess-stats-grid'},
-      h('div',{class:'chess-stat'},h('b',null,String(R.rating||1000)),h('span',null,'Personal rating')),
-      h('div',{class:'chess-stat'},h('b',null,String(R.w||0)),h('span',null,'Wins recorded')),
-      h('div',{class:'chess-stat'},h('b',null,String(R.d||0)),h('span',null,'Draws recorded')),
-      h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses recorded'))),
-    h('div',{class:'chess-app-grid'},
-      h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'♜'),h('strong',null,'Ranked practice'),h('small',null,'Choose Ranked in the Dr ECG setup before starting. Results update your personal chess record.'),chessButton('Set up ranked game','#/chess/play',true)),
-      h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'♙'),h('strong',null,'Challenge a friend'),h('small',null,'Create a challenge code or join a friend with the code they share. Sign-in is required for online challenges.'),chessButton('Open challenge setup','#/chess/play',false)),
-      h('section',{class:'chess-feature-card'},h('span',{class:'chess-feature-icon'},'◷'),h('strong',null,'Recent match record'),h('small',null,games.length?games.length+' game records are saved in your current chess profile.':'No completed games are recorded here yet.'),chessButton('Review profile','#/chess/profile',false))),
-    h('section',{class:'panel stack',style:{marginTop:'16px'}},h('h2',null,'Competition integrity'),
-      h('p',{class:'muted small'},'This page uses your current chess record. It does not display a global leaderboard or tournament standings unless verified server-backed data is available. Online friend challenges remain in Play.')),
-    h('p',{class:'chess-page-footer'},'Compete fairly. Review each result.')));
+    h('p',{class:'muted'},'Track your personal rating, compare against the live rated-player ladder, or create an online challenge with a friend.'),
+    stats,cards,boardSection,
+    h('p',{class:'chess-page-footer'},'Competition pages use recorded ratings; no sample leaderboard entries are fabricated.')));
+  loadChessLeaderboard(leaderboard);
 }
+
 function chessProfilePage() {
   const R=chessRec(),games=Array.isArray(R.games)?R.games:[],openings=Object.entries(R.openings||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent=games.slice(-12).reverse();
@@ -3644,4 +3679,3 @@ setTimeout(liveNotice, 1200);
 </script>
 </body>
 </html>
-<script async data-explicit-opt-in="true" data-deployment-id="dpl_BWLBPpqV4Bv4i9pDrX8vjfPs8wmb" src="https://vercel.live/_next-live/feedback/feedback.js"></script><script async data-explicit-opt-in="true" data-deployment-id="dpl_A1hqQBW5fvhMn4TJ6wzP747RSqHU" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
