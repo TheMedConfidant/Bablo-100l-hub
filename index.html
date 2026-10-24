@@ -2304,7 +2304,7 @@ function recordComputerGame(G, res) {
   if(score===1)R.w++;else if(score===0.5)R.d++;else R.l++;
   const idx=G.color==='w'?0:1,first=G.moves[idx];
   if(first)R.openings[first]=(R.openings[first]||0)+1;
-  R.games=R.games.concat([{res,n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
+  R.games=R.games.concat([{res,outcome:score===1?'win':score===0.5?'draw':'loss',n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
   save();
 }
 
@@ -2395,14 +2395,9 @@ function chessHomePage() {
     h('p',{class:'chess-page-footer'},'Bablo Chess · Gold glass · Built for thoughtful play')));
 }
 const CHESS_LESSONS=[
-  {title:'Claim the centre',from:52,to:36,piece:'pawn',label:'Move the pawn in front of your king from e2 to e4.',why:'The central pawn move contests e5 and d5, gains space, and opens lines for the bishop and queen.',hint:'Select the pawn on e2, then select e4.'},
-  {title:'Develop a knight',from:62,to:45,piece:'knight',label:'Move the knight from g1 to f3.',why:'Knights are usually developed toward central squares. From f3, this knight influences e5 and d4 and helps prepare castling.',hint:'Select the knight on g1, then select f3.'},
-  {title:'Open with the queen pawn',from:51,to:35,piece:'pawn',label:'Move the pawn in front of your queen from d2 to d4.',why:'The d-pawn contests the centre and opens a diagonal for the queen’s bishop. It is a common first move in queen-pawn openings.',hint:'Select the pawn on d2, then select d4.'},
-  {title:'Develop the other knight',from:57,to:42,piece:'knight',label:'Move the knight from b1 to c3.',why:'The c3-knight develops toward the centre, supports e4 and d5, and brings a piece into the game instead of moving the same piece repeatedly.',hint:'Select the knight on b1, then select c3.'},
-  {title:'Choose the English Opening',from:50,to:34,piece:'pawn',label:'Move the c-pawn from c2 to c4.',why:'The c-pawn controls d5 from the side and can support a flexible setup. This move is associated with the English Opening.',hint:'Select the pawn on c2, then select c4.'},
-  {title:'Prepare a fianchetto',from:54,to:46,piece:'pawn',label:'Move the g-pawn from g2 to g3.',why:'The g-pawn move prepares Bg2, where the bishop can influence the long diagonal. It is a plan, not an immediate attack.',hint:'Select the pawn on g2, then select g3.'},
-  {title:'Support the centre',from:52,to:44,piece:'pawn',label:'Move the king pawn from e2 to e3.',why:'A quieter e3 move supports d4 and opens a diagonal for the f1-bishop, though it claims less space than e4.',hint:'Select the pawn on e2, then select e3.'},
-  {title:'Recognise a king-safety trade-off',from:53,to:45,piece:'pawn',label:'Move the f-pawn from f2 to f3.',why:'This is a legal pawn move but not always a recommended opening choice: it weakens the king’s diagonal cover. Learn to compare the benefits and risks of pawn moves.',hint:'Select the pawn on f2, then select f3.'}
+  {title:'Claim the centre',from:52,to:36,piece:'pawn',label:'Move the pawn in front of your king from e2 to e4.',why:'The central pawn move controls useful central squares and opens lines for the bishop and queen.',hint:'Select the pawn on e2, then select e4.'},
+  {title:'Develop a knight',from:62,to:45,piece:'knight',label:'Move the knight from g1 to f3.',why:'Knights are usually developed toward central squares. From f3, this knight influences e5 and d4.',hint:'Select the knight on g1, then select f3.'},
+  {title:'Open with the queen pawn',from:51,to:35,piece:'pawn',label:'Move the pawn in front of your queen from d2 to d4.',why:'The d-pawn also contests the centre and can open a path for the dark-squared bishop.',hint:'Select the pawn on d2, then select d4.'}
 ];
 let CHESS_LEARN=null;
 function resetChessLesson(n) {
@@ -2610,6 +2605,7 @@ async function loadChessDeviceRating(box) {
   );
 }
 
+function chessGameOutcome(g) { return g.outcome || (g.res === 'draw' ? 'draw' : g.res === g.color ? 'win' : 'loss'); }
 function chessProfilePage() {
   const R=chessRec(),games=Array.isArray(R.games)?R.games:[],openings=Object.entries(R.openings||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent=games.slice(-12).reverse();
@@ -2640,7 +2636,7 @@ function chessProfilePage() {
       h('section',{class:'panel stack'},h('h2',null,'Recent games'),
         recent.length?recent.map((g,i)=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:i<recent.length-1?'1px solid rgba(234,193,91,.12)':'0'}},
           h('span',null,h('b',null,'Game '+(games.length-i)),h('div',{class:'tiny muted'},new Date(g.ts||Date.now()).toLocaleString())),
-          h('span',{class:'chip '+(g.res==='w'?'ok':g.res==='b'?'bad':'gold')},(g.res==='w'?'Win':g.res==='b'?'Loss':'Draw')+' · '+(g.n||0)+' plies'))):
+          h('span',{class:'chip '+(chessGameOutcome(g)==='win'?'ok':chessGameOutcome(g)==='loss'?'bad':'gold')},(chessGameOutcome(g)==='win'?'Win':chessGameOutcome(g)==='draw'?'Draw':'Loss')+' · '+(g.n||0)+' plies'))):
           h('p',{class:'muted small'},'No recorded games yet. Complete a game to start this list.')),
       h('section',{class:'panel stack'},h('h2',null,'Opening moves'),
         openings.length?openings.map(([move,count])=>h('div',{class:'row between',style:{padding:'8px 0',borderBottom:'1px solid rgba(234,193,91,.12)'}},
