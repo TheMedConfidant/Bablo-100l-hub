@@ -626,11 +626,6 @@ body.bablo-chess-mode .chess-board .sq.dark .chess-board-coordinate{color:#e6e5d
 .chess-opponent-quote{margin:16px 0 0;padding:12px 15px;border-left:3px solid #cba24d;border-radius:0 12px 12px 0;background:rgba(255,255,255,.035);color:#eee3c5;font-size:.95rem;line-height:1.55}
 @media(max-width:560px){.chess-opponent-hero{grid-template-columns:76px minmax(0,1fr);gap:13px;padding:16px;border-radius:19px}.chess-opponent-avatar{width:72px;height:72px;border-radius:18px}.chess-opponent-hero .chess-page-title{font-size:clamp(1.5rem,7vw,2rem)}.chess-opponent-style{font-size:.72rem;margin-bottom:8px}.chess-opponent-hero .chess-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.chess-opponent-quote{grid-column:1/-1;font-size:.86rem;margin-top:10px}}
 
-
-.chess-continue-card{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:17px 0 22px;padding:clamp(15px,2.5vw,22px);border:1px solid rgba(234,193,91,.3);border-radius:20px;background:linear-gradient(120deg,rgba(233,189,89,.12),rgba(24,28,34,.92) 58%);box-shadow:0 12px 32px rgba(0,0,0,.15)}
-.chess-continue-copy{min-width:0}.chess-continue-copy h2{font-size:clamp(1.05rem,2.4vw,1.35rem);margin:5px 0}.chess-continue-copy p{margin:0;line-height:1.5}
-@media(max-width:540px){.chess-continue-card{align-items:stretch;flex-direction:column;gap:12px}.chess-continue-card .btn{width:100%;justify-content:center}}
-
 </style>
 </head>
 <body>
@@ -2396,12 +2391,6 @@ function chessHomePage() {
       h('div',{class:'chess-stat'},h('b',null,String(R.w||0)),h('span',null,'Wins')),
       h('div',{class:'chess-stat'},h('b',null,String(R.d||0)),h('span',null,'Draws')),
       h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses'))),
-    h('section',{class:'chess-continue-card'},
-      h('div',{class:'chess-continue-copy'},
-        h('div',{class:'chess-kicker'},'Pick up where you left off'),
-        h('h2',null,CHESS_LESSONS[chessCurrentLessonIndex()].title),
-        h('p',{class:'muted small'},Object.values(chessLessonProgress()).filter(Boolean).length+' of '+CHESS_LESSONS.length+' board lessons completed. Your lesson position is saved on this device.')),
-      h('a',{class:'btn primary',href:'#/chess/learn',style:{textDecoration:'none',whiteSpace:'nowrap'}},'Continue learning')),
     h('div',{class:'chess-section-heading'},h('h2',null,'Choose your next move'),h('span',{class:'chess-muted-note'},'Five spaces. One chess identity.')),
     h('div',{class:'chess-app-grid'},
       h('a',{class:'chess-feature-card',href:'#/chess/play'},h('span',{class:'chess-feature-icon'},'♟'),h('strong',null,'Play chess'),h('small',null,'Set your colour and clock, face Dr ECG, or create a friend challenge.')),
@@ -2447,20 +2436,16 @@ function chessLessonHint() {
   L.feedback='Hint: select the highlighted piece at '+Chess.sqName(task.from)+', then move it to '+Chess.sqName(task.to)+'.';
   chessLearnPage();
 }
-function chessCurrentLessonIndex(){
-  const n=Number(localStorage.getItem('babloChessLessonCurrent'));
-  return Number.isInteger(n)&&n>=0&&n<CHESS_LESSONS.length?n:0;
-}
 function resetChessLesson(n) {
   const index=((n%CHESS_LESSONS.length)+CHESS_LESSONS.length)%CHESS_LESSONS.length;
   const task=CHESS_LESSONS[index];
-  const state=task.fen?Chess.fromState(task.fen,'w',task.castling||'-',-1):Chess.initial();
+  let state=task.fen?Chess.fromState(task.fen,'w',task.castling||'-',-1):Chess.initial();
   const completed=!!chessLessonProgress()[String(index)];
-  try{localStorage.setItem('babloChessLessonCurrent',String(index));}catch(e){}
-  CHESS_LEARN={index,state,selected:null,destinations:[],completed,feedback:completed?'Lesson completed before. Practise this move again or continue to the next lesson.':'Select the piece named in the instruction. Gold dots show its legal destinations.'};
+  if(completed){const move=Chess.legalMoves(state).find(m=>m.from===task.from&&m.to===task.to);if(move)state=Chess.apply(state,move);}
+  CHESS_LEARN={index,state,selected:null,destinations:[],completed,feedback:completed?'Lesson already completed on this device. Review the explanation, or continue to the next lesson.':'Select the piece named in the instruction. Gold dots show its legal destinations.'};
 }
 function chessLearnTap(ri) {
-  const L=CHESS_LEARN;if(!L)return;
+  const L=CHESS_LEARN;if(!L||L.completed)return;
   if(L.selected!==null&&L.destinations.includes(ri)){
     const move=Chess.legalMoves(L.state).find(m=>m.from===L.selected&&m.to===ri);
     const task=CHESS_LESSONS[L.index];
@@ -2494,7 +2479,7 @@ function chessLearnBoard() {
   return h('div',{class:'chess-learn-board',role:'grid','aria-label':'Interactive chess lesson board'},cells);
 }
 function chessLearnPage() {
-  if(!CHESS_LEARN)resetChessLesson(chessCurrentLessonIndex());
+  if(!CHESS_LEARN)resetChessLesson(0);
   const L=CHESS_LEARN,task=CHESS_LESSONS[L.index];
   mount(wrap(chessHeader(),chessPageNav('learn'),
     h('div',{class:'chess-kicker'},'Learn chess by doing'),
@@ -2680,13 +2665,6 @@ function chessProfilePage() {
       h('div',{class:'chess-stat'},h('b',null,String(R.l||0)),h('span',null,'Losses'))),
     h('section',{class:'panel stack',style:{marginTop:'16px'}},
       h('div',{class:'row between wrapr'},
-        h('div',null,h('div',{class:'chess-kicker'},'Learning progress'),h('h2',null,'Your chess lessons')),
-        h('span',{class:'chip gold'},Object.values(chessLessonProgress()).filter(Boolean).length+' / '+CHESS_LESSONS.length+' complete')),
-      h('div',{class:'chess-lesson-progress','aria-label':'Saved lesson progress'},CHESS_LESSONS.map((lesson,i)=>h('span',{class:chessLessonProgress()[String(i)]?'done':i===chessCurrentLessonIndex()?'current':'','title':lesson.title}))),
-      h('p',{class:'muted small'},'Last lesson: '+CHESS_LESSONS[chessCurrentLessonIndex()].title+'. Completed lessons can be replayed; progress stays on this device.'),
-      h('div',{class:'row wrapr'},chessButton('Continue learning','#/chess/learn',true),chessButton('Open daily puzzles','#/chess/puzzles',false))),
-    h('section',{class:'panel stack',style:{marginTop:'16px'}},
-      h('div',{class:'row between wrapr'},
         h('div',null,h('div',{class:'chess-kicker'},'Server record'),h('h2',null,'Online chess rating')),
         h('button',{class:'btn',onclick:()=>loadChessDeviceRating(onlineRating)},'↻ Refresh')),
       h('p',{class:'muted small'},'Separate from your local computer rating. This rating is recorded by the online match database.'),
@@ -2714,9 +2692,10 @@ function chessProfilePage() {
 }
 
 const CHESS_PUZZLES=[
-  {id:'clinic-mate',title:'The closing diagnosis',fen:'7k/8/5KQ1/8/8/8/8/8',hint:'Find a queen move that checks the king and leaves no legal escape.',why:'The queen gives check while the white king protects the queen’s landing square. The black king cannot capture it, block the check, or escape to a safe square.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'},
-  {id:'back-rank',title:'Cut off the king',fen:'k1K5/2Q5/8/8/8/8/8/8',hint:'The king is boxed in near the corner. Look for a forcing queen move.',why:'The queen’s check controls the escape squares, and the white king covers the remaining flight square. Every legal reply is removed.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'},
-  {id:'queen-net',title:'Build the mating net',fen:'2K5/k7/2Q5/8/8/8/8/8',hint:'Use the queen to take away the king’s remaining escape squares.',why:'The queen delivers check while the white king supports the mating net. The black king has no legal reply.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'}
+  {id:'clinic-mate',difficulty:'Beginner',title:'The closing diagnosis',fen:'7k/8/5KQ1/8/8/8/8/8',hint:'Find the queen move that checks the king and leaves no legal escape.',why:'The queen gives check while the white king protects the queen’s landing square. The black king cannot capture it, block the check, or escape to a safe square.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'},
+  {id:'rook-line',difficulty:'Intermediate',title:'Rook-line mate',fen:'8/5R2/8/8/7k/8/5K2/6Q1',hint:'Look for a rook move that gives check down the h-file while the queen and king cover escape squares.',why:'Rh7 is checkmate. The rook checks the king along the h-file, while the queen and king remove the remaining escape squares.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'},
+  {id:'coordinate-pieces',difficulty:'Advanced',title:'Coordinate the pieces',fen:'6k1/Q7/8/8/8/4B3/1R6/5K2',hint:'The rook can deliver a line check. Calculate whether the queen, bishop and king cover the black king’s escapes.',why:'Rb8 is checkmate. The rook checks across the eighth rank, and the queen, bishop and king support the mating net.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'},
+  {id:'full-board-diagnosis',difficulty:'Expert',title:'The full-board diagnosis',fen:'5k2/2Q4B/4R3/2N3K1/8/8/8/8',hint:'Several pieces can move. Find the forcing queen move that checks the king while leaving no legal reply.',why:'Qe7 is checkmate. The queen gives check on f8, the rook protects the queen, and the remaining pieces cover escape squares.',source:'Composed mate-in-one position; verified using the Bablo Chess legal-move engine.'}
 ];
 let CHESS_PUZZLE=null;
 function puzzleForToday(){
@@ -2801,7 +2780,7 @@ function chessPuzzlePage(){
           !P.solved?h('button',{class:'btn ghost',onclick:reveal},'Reveal solution'):null,
           P.solved?h('button',{class:'btn primary',onclick:()=>resetChessPuzzle((P.index+1)%CHESS_PUZZLES.length)},'Next puzzle'):null)),
       h('section',{class:'panel stack'},
-        h('span',{class:'chip gold'},'TACTIC · MATE IN ONE'),
+        h('span',{class:'chip gold'},'LEVEL '+(P.index+1)+' · '+(task.difficulty||'TACTIC').toUpperCase()),
         h('h2',null,task.title),
         h('p',null,'White to move. Find a checkmate in one move.'),
         h('p',{class:'chess-muted-note'},'Tip: check every possible king escape square. A checking move is not automatically mate.'),
@@ -2811,7 +2790,7 @@ function chessPuzzlePage(){
         h('p',{class:'muted small'},'The app checks the move with its legal-move engine and confirms checkmate with zero legal replies.'),
         h('p',{class:'tiny muted'},task.source),
         chessButton('Learn board fundamentals','#/chess/learn',false))),
-    h('p',{class:'chess-page-footer'},'Daily puzzle rotation uses three composed mate-in-one positions.')),
+    h('p',{class:'chess-page-footer'},'Four progressively more complex composed mate-in-one levels. Each answer is checked against legal moves and checkmate status.')),
     );
 }
 
