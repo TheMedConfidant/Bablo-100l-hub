@@ -434,6 +434,7 @@ function updateOnlinePlayerLabels(){
 }
 window.babloChessApplyOnlineGame=function(remoteGame,playerId){
  if(!remoteGame||!remoteGame.id)return;
+ gameStarted=true;$('preGameSetup').hidden=true;$('gameLayout').hidden=false;stopLocalClock();clockStarted=false;
  onlineGame=remoteGame;
  onlineColor=remoteGame.white_player_id===playerId?'w':remoteGame.black_player_id===playerId?'b':null;
  const oldMoves=game.history();
@@ -483,20 +484,21 @@ const difficultyDescriptions={
  consultant:'Chooses the highest-scored move from this lightweight local evaluator. This is not a certified Elo rating or a full chess engine.'
 };
 $('botDifficulty').addEventListener('change',()=>{
- $('difficultyDescription').textContent=difficultyDescriptions[botDifficulty];
+ const selectedDifficulty=$('botDifficulty').value;
+ $('difficultyDescription').textContent=difficultyDescriptions[selectedDifficulty];
  const opening={warmup:'We’ll take it step by step. No panic. 😌',clinical:'Clinical mode. Show your working. 🧠',registrar:'Registrar mode. Expect fewer easy gifts.',consultant:'Consultant mode. I’ll take the strongest line this local evaluator finds. 😏'};
- say(opening[botDifficulty]);
- toast('Dr ECG difficulty set to '+$('botDifficulty').selectedOptions[0].textContent+'.');
+ toast('Playing level selected: '+$('botDifficulty').selectedOptions[0].textContent+'. It applies when you start the game.');
 });
 const temperamentDescriptions={clinical:'Measured, precise medical-style observations.',playful:'Playful banter with medical-school humour.',ruthless:'Sharper, more competitive commentary.',mentor:'Coaching prompts that help you read the board.'};
 $('botTemperament').addEventListener('change',()=>{
- $('temperamentDescription').textContent=temperamentDescriptions[botTemperament];
+ const selectedTemperament=$('botTemperament').value;
+ $('temperamentDescription').textContent=temperamentDescriptions[selectedTemperament];
  const opening={clinical:'Clinical mode. Let’s keep the analysis precise.',playful:'You picked playful? Fine—show me a move worth teasing. 😂',ruthless:'Ruthless mode. I’ll take every loose piece you offer.',mentor:'Mentor mode. I’ll challenge your thinking, not just your moves.'};
- say(opening[botTemperament]);toast('Dr ECG style set to '+$('botTemperament').selectedOptions[0].textContent+'.');
+ toast('Commentary style selected: '+$('botTemperament').selectedOptions[0].textContent+'. It applies when you start the game.');
 });
 $('botRating').addEventListener('change',()=>{
- $('ratingDescription').textContent='Approximate '+botRating+' strength target using the local move evaluator; not official Elo.';
- toast('Dr ECG target set to '+botRating+'.');
+ $('ratingDescription').textContent='Approximate '+$('botRating').value+' strength target using the local move evaluator; not official Elo.';
+ toast('Strength target selected: '+$('botRating').value+'. It applies when you start the game.');
 });
 $('localTimeControl').addEventListener('change',()=>{
  localClockSeconds=Number($('localTimeControl').value);
