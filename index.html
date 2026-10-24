@@ -1386,7 +1386,7 @@ async function hubCall(fn, body) {
 function authConfigured() { return !!LB.url && !!LB.key; }
 function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
 let CHESS_IDENTITY_BUSY = false;
-async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
+async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
 async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
 async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
@@ -2552,10 +2552,10 @@ async function pollOnline() {
   try { await pollOnlineOnce(G); } finally { POLL_BUSY = false; }
 }
 async function pollOnlineOnce(G) {
-  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick,white_dev,black_dev');
+  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick,white_dev,black_dev,white_uid,black_uid,target_uid');
   if (!Array.isArray(rows) || !rows[0]) return;
   const g = rows[0];
-  G.online.status = g.status;
+  G.online.status = g.status; G.online.whiteUid = g.white_uid || G.online.whiteUid || ''; G.online.blackUid = g.black_uid || G.online.blackUid || ''; G.online.targetUid = g.target_uid || G.online.targetUid || '';
   const opponentJoined = !!g.black_dev && G.online.blackDev !== g.black_dev;
   G.online.white = g.white_nick || G.online.white; G.online.black = g.black_nick || G.online.black;
   G.online.whiteDev = g.white_dev || G.online.whiteDev; G.online.blackDev = g.black_dev || G.online.blackDev;
@@ -3705,6 +3705,24 @@ async function pollIncomingChessChallenges(){
  try{if(DB.notify&&'Notification'in window&&Notification.permission==='granted')new Notification('Chess challenge received',{body:'@'+(fresh.white_nick||'a friend')+' challenged you. Open Bablo Hub to accept.'});}catch(e){}
  const accept=await confirmBox({title:'♟ Chess challenge received',msg:'@'+(fresh.white_nick||'a friend')+' wants to play you online. Accept the challenge?',ok:'Accept',cancel:'Later'});if(accept)await joinOnline(fresh.code);else toast('Challenge saved under Chess → Open challenges.');
  }catch(e){}finally{INCOMING_CHESS_BUSY=false;}
+}
+
+
+function chessOpponent(G) {
+ if(!G||!G.online)return {dev:'',uid:'',username:'',nick:''};
+ return G.color==='w'?{dev:G.online.blackDev||'',uid:G.online.blackUid||'',username:G.online.black||'',nick:G.online.black||''}:{dev:G.online.whiteDev||'',uid:G.online.whiteUid||'',username:G.online.white||'',nick:G.online.white||''};
+}
+function renderOnlineFriendAction(G) {
+ const box=document.getElementById('onlineFriendAction');if(!box||!G||!G.online)return;
+ const op=chessOpponent(G),friends=savedChessFriends(),isFriend=(op.uid&&friends.some(f=>f.uid===op.uid))||(op.dev&&friends.some(f=>f.dev===op.dev));
+ const add=h('button',{class:'btn sm '+(isFriend?'ghost':'primary'),disabled:(!op.uid&&!op.dev)||!!isFriend,onclick:()=>{if(!op.uid&&!op.dev)return;friends.push({uid:op.uid||'',dev:op.dev||'',username:(op.username||op.nick||'chess_friend').slice(0,20),nick:(op.username||op.nick||'Chess friend').slice(0,30),rating:1000,addedAt:new Date().toISOString()});save();renderOnlineFriendAction(G);renderSavedChessFriends();toast('@'+(op.username||op.nick||'Friend')+' saved to your chess friends.');}},isFriend?'✓ Friend saved':((op.uid||op.dev)?'Add @'+(op.username||op.nick||'opponent'):'Waiting for opponent…'));
+ const actions=[add];if(G.online.status==='waiting'&&!G.online.targetUid&&!G.online.targetDev)actions.push(h('button',{class:'btn sm ghost',onclick:()=>shareOnlineChallenge(G)},'Share challenge code'));
+ box.replaceChildren(h('div',{class:'row wrapr'},...actions),h('p',{class:'tiny muted'},'Friends are saved by username and account. Online rating updates after a completed game.'));
+}
+function renderSavedChessFriends() {
+ const box=document.getElementById('chessFriendsList');if(!box)return;const friends=savedChessFriends();
+ if(!friends.length){box.replaceChildren(h('p',{class:'muted small'},'No saved friends yet. Search a username to start a challenge.'));return;}
+ box.replaceChildren(...friends.map(f=>h('div',{class:'panel row between wrapr'},h('div',{class:'stack',style:{gap:'2px',minWidth:'0'}},h('b',null,'@'+(f.username||f.nick)),h('span',{class:'tiny muted'},'Chess friend')),h('div',{class:'row wrapr'},h('button',{class:'btn sm primary',onclick:async()=>{await createOnline(f.dev||'',f.uid||'',f.username||f.nick);}},'Challenge'),h('button',{class:'btn sm ghost',onclick:()=>{DB.chessFriends=savedChessFriends().filter(x=>f.uid?x.uid!==f.uid:x.dev!==f.dev);save();renderSavedChessFriends();}},'Remove')))));
 }
 
 /* ---------- boot ---------- */
