@@ -549,7 +549,8 @@ window.babloChessApplyOnlineGame=function(remoteGame,playerId){
  if(typeof pageHost!=='undefined'&&!pageHost.hidden){$('gameLayout').hidden=true;}
  else{showPlayMode('game');}
  $('playModeHub').hidden=true;$('preGameSetup').hidden=true;
- if(chatOpenButton)chatOpenButton.hidden=false;
+ if(chatOpenButton)chatOpenButton.hidden=remoteGame.status==='waiting';
+ window.babloChessOnlineGameStatus=remoteGame.status;
  onlineColor=remoteGame.white_player_id===playerId?'w':remoteGame.black_player_id===playerId?'b':null;
  renderClocks();
  const oldMoves=game.history();
@@ -606,8 +607,8 @@ $('backToModeHub').onclick=()=>showPlayMode('hub');
 $('openOnlineMode').onclick=()=>showChessPage('Friends');
 $('openLearnMode').onclick=()=>showChessPage('Learn');
 $('startLocalGame').onclick=()=>{botDifficulty=$('botDifficulty').value;botTemperament=$('botTemperament').value;botRating=Number($('botRating').value);soundOn=$('setupSound').checked;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(botTimer!==null){clearTimeout(botTimer);botTimer=null}botThinking=false;stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl').value||0);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];gameStarted=true;showPlayMode('game');startLocalClock();renderClocks();render();say(freshLine(['Welcome to the board. Let’s see your style of play.','Ready when you are. Keep an eye on the whole position.','Board is set. Make the first move count.','Let’s play—calculation beats guessing.'],'opening'));toast('Game started. Settings are locked until you leave the game.');};
-$('backMove').onclick=()=>{if(botTimer!==null){clearTimeout(botTimer);botTimer=null}if(!history.length){toast('No move to undo yet.');return}let undone=0;while(history.length){const m=history[history.length-1];redo.push(m);restoreMove(m,false);undone++;if(m.piece?.[0]==='w'||undone>=2)break}say('Takeback noted. Even the best students correct their work.');toast('Last turn taken back. You can try another line.')}
-$('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else scheduleBotMove()}}
+$('backMove').onclick=()=>{if(onlineGame){toast('Online moves are server-verified and cannot be undone locally.');return}if(botTimer!==null){clearTimeout(botTimer);botTimer=null}if(!history.length){toast('No move to undo yet.');return}let undone=0;while(history.length){const m=history[history.length-1];redo.push(m);restoreMove(m,false);undone++;if(m.piece?.[0]==='w'||undone>=2)break}say('Takeback noted. Even the best students correct their work.');toast('Last turn taken back. You can try another line.')}
+$('forwardMove').onclick=()=>{if(onlineGame){toast('Online moves cannot be replayed locally.');return}if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else scheduleBotMove()}}
 $('flipBoard').onclick=()=>{if(onlineGame){toast('Online games keep the board orientation fixed.');return}flipped=!flipped;render();toast('Board orientation preview toggled.')}
 $('resignBtn').onclick=()=>{
  if(onlineGame)return;
@@ -783,6 +784,9 @@ window.babloChessApi={
 document.addEventListener('click',async(event)=>{
  const target=event.target.closest('button');if(!target)return;
  if(target.id==='createOnlineGame'){
+  if(activeOnlineId&&['waiting','active'].includes(window.babloChessOnlineGameStatus)){
+   statusText('onlineStatus','You already have a waiting or active match. Open or finish it before creating another.',true);return;
+  }
   target.disabled=true;statusText('onlineStatus','Creating your challenge…');
   try{
    await currentIdentity();
@@ -799,6 +803,9 @@ document.addEventListener('click',async(event)=>{
  }
  if(target.id==='acceptOnlineGame'){
   const code=(document.getElementById('joinCode').value||'').trim().toUpperCase();target.disabled=true;
+  if(activeOnlineId&&['waiting','active'].includes(window.babloChessOnlineGameStatus)){
+   statusText('joinStatus','Finish your current match before joining another challenge.',true);target.disabled=false;return;
+  }
   if(!/^[A-Z0-9]{6}$/.test(code)){statusText('joinStatus','Enter the six-character challenge code first.',true);target.disabled=false;return}
   statusText('joinStatus','Checking challenge…');
   try{
@@ -814,7 +821,7 @@ document.addEventListener('click',async(event)=>{
   try{await navigator.clipboard.writeText(code);statusText('inviteStatusText','Code copied. Share it privately with your intended opponent.')}catch{statusText('inviteStatusText','Your code is '+code+'. Copy it manually and share privately.')}
  }
  if(target.id==='openOnlineGame'&&activeOnlineId){document.dispatchEvent(new Event('bablo-chess:show-play'));startPolling(activeOnlineId)}
- if(target.id==='resignBtn'&&activeOnlineId&&window.babloChessApi){
+ if(target.id==='resignBtn'&&activeOnlineId&&window.babloChessApi&&window.babloChessOnlineGameStatus==='active'){
   event.preventDefault();
   if(!window.confirm('Resign this online game? This ends the game for both players.'))return;
   target.disabled=true;
@@ -851,7 +858,7 @@ async function refreshMessages(gameId){
 }
 document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
 localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;renderClocks();
-document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null});
+document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null;window.babloChessOnlineGameStatus=null});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeOnlineId)pollGame(activeOnlineId)});
 </script>
 </body></html>
