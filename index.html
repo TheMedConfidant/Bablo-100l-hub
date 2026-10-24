@@ -1590,6 +1590,7 @@ function renderNav(active) {
 }
 function route() {
   stopTimer();
+  if (!location.hash.startsWith('#/chess/game')) stopOnlinePoll();
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   trackEvent('page_view', { page: v });
