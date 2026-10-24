@@ -586,6 +586,15 @@ body.bablo-chess-mode .chess-board .sq.dark .chess-board-coordinate{color:#e6e5d
 @media(max-width:800px){.chess-play-layout{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}.chess-board-panel{padding:9px;border-radius:17px}.chess-game-sidebar{gap:10px}.chess-moves-list{max-height:210px}body.bablo-chess-mode .chess-board{width:min(100%,calc(100vw - 44px))!important;max-width:560px!important}.chess-game-topbar{margin-bottom:12px}}
 @media(min-width:801px){.chess-board-panel{position:sticky;top:12px}.chess-move-row{padding:8px 10px}}
 
+
+/* Online emoji reactions: transient overlay, not a chat message */
+.chess-reaction-overlay{position:fixed;right:14px;top:calc(env(safe-area-inset-top,0px) + 14px);z-index:160;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none}
+.chess-reaction-burst{display:flex;align-items:center;gap:9px;max-width:min(290px,80vw);padding:8px 12px 8px 9px;border:1px solid rgba(233,189,89,.45);border-radius:15px;background:rgba(20,23,29,.94);box-shadow:0 12px 32px rgba(0,0,0,.4);color:#f5edda;animation:chessReactionFloat 1.65s cubic-bezier(.18,.7,.25,1) both;backdrop-filter:blur(12px)}
+.chess-reaction-emoji{font-size:1.75rem;line-height:1}
+.chess-reaction-nick{font-size:.75rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
+@keyframes chessReactionFloat{0%{opacity:0;transform:translateY(18px) scale(.82)}18%{opacity:1;transform:translateY(0) scale(1)}72%{opacity:1;transform:translateY(-5px) scale(1)}100%{opacity:0;transform:translateY(-24px) scale(.94)}}
+@media(prefers-reduced-motion:reduce){.chess-reaction-burst{animation:none;opacity:1}}
+
 </style>
 </head>
 <body>
@@ -1580,7 +1589,7 @@ function route() {
     else if (v === 'flashcards' || v === 'notes') pendingPage(v === 'flashcards' ? 'Flashcards' : 'Notes');
     else if (v === 'quiz200') pendingPage('Quizzes');
     else if (v === 'programmes') programmesView();
-    else if (v === 'chess') { chessView(); if (CHESS && CHESS.mode === 'online' && chessCurrentPage() === 'game') startOnlinePoll(); }
+    else if (v === 'chess') { chessView(); if (CHESS && CHESS.mode === 'online') startOnlinePoll(); }
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
     else homeView();
@@ -2166,8 +2175,7 @@ function selectedBot(){return CHESS_BOTS[0]}
 function botName(){return (CHESS_BOTS.find(b=>b.id===CHESS?.botId)||selectedBot()).name}
 function drEcgPick(lines){const last=window.__drEcgLastLine;let choices=lines.filter(x=>x!==last);if(!choices.length)choices=lines;const msg=choices[Math.floor(Math.random()*choices.length)];window.__drEcgLastLine=msg;return msg;}
 function botDialogue(G,event){
-const picked=chessSet().level==='auto'?(Number(chessRec().rating)||1000):(botRating(chessSet().level)||1000);
-const t=picked<900?'playful':picked<1300?'mentor':picked<1800?'clinical':'ruthless';
+const t=chessSet().temperament||'clinical';
 const lines={
 hello:{clinical:['Welcome to the clinic. Let’s examine your opening.','Dr ECG on duty. Let’s keep our development healthy.','Ready when you are. I’ll watch the position closely.'],playful:['Alright, doc is on the board 😏 Let’s make this interesting.','Stethoscope on, chess brain activated. Your move! ♟️','Welcome to the clinic! Avoid tactical emergencies 😂'],ruthless:['No mercy today. Every inaccuracy will be examined.','The board is set. I intend to punish loose moves.','Let’s get to work. Weak squares won’t protect themselves.'],mentor:['Welcome. We’ll learn from every position.','Take your time. Good chess starts with a clear plan.','Let’s focus on development and king safety.']},
 move:{clinical:['Interesting move. What does it attack, and what does it leave behind?','Recheck the loose pieces and weak squares.','Look for forcing moves: checks, captures, and threats.','The position is evolving. Recalculate before committing.','Keep an eye on the centre and piece coordination.'],playful:['Oho, I see you 👀','That move has entered the patient record. ♟️','Okayyy, that move has some sauce.','Plot twist on the board! What’s your follow-up?','Chess cells loading… keep them coming 😂','Bold choice! Let’s see if it survives the check-up.'],ruthless:['Noted. I’ll test that move for weaknesses.','Every move leaves a clue. I’m looking for yours.','One mistake can decide this. Calculate accurately.','You have made your choice. Now defend it.','No move gets a free pass in this clinic.'],mentor:['Before your next move, scan for checks, captures, and threats.','Ask yourself: what is my opponent threatening now?','Look at your least active piece. Could it improve?','After every move, check whether any piece is hanging.','Try to connect your pieces before launching an attack.']},
@@ -2642,7 +2650,7 @@ function chessView() {
   const clockTop=G.clock?h('div',{id:'clockTop',class:'clock'}):null;
   const clockBot=G.clock?h('div',{id:'clockBottom',class:'clock'}):null;
   const undo=h('button',{id:'chessUndo',class:'btn',disabled:!G.friendly,onclick:takeBack},'Take back');
-  const newGame=h('button',{class:'btn',disabled:G.mode==='online'&&!gameOver(G).over,title:G.mode==='online'&&!gameOver(G).over?'Finish or leave the online match before starting another game':'Start a new computer game',onclick:()=>{stopChessTick();newChess();}},'New game');
+  const newGame=h('button',{class:'btn',onclick:()=>{stopChessTick();newChess();}},'New game');
   const resignBtn=h('button',{class:'btn danger',onclick:resign},'Resign');
   const chosenBotRating=botRating(S.level==='auto'?'bot-'+(CHESS_BOTS.find(b=>b.id===G.botId)?.rating||selectedBot().rating):S.level);
   const level=chosenBotRating!==null?'rated about '+chosenBotRating:S.level==='auto'?'matches you ('+(computerSettings(chessRec().rating).depth===1?'easy':computerSettings(chessRec().rating).depth===2?'medium':'hard')+')':S.level;
@@ -2696,7 +2704,8 @@ function chessView() {
         h('div',{class:'chess-game-subtitle'},G.mode==='online'&&G.online?'You: '+DB.profile.nick+' vs '+(G.color==='w'?(G.online.black||'waiting for a friend'):G.online.white)+' · code '+G.online.code:'You play '+(G.color==='w'?'White':'Black')+' · opponent '+level)),
       h('a',{class:'btn',href:'#/chess/home',onclick:()=>{stopChessTick();stopOnlinePoll();},style:{textDecoration:'none',whiteSpace:'nowrap'}},'‹ Chess home')),
     h('div',{class:'chess-play-layout'},boardPanel,h('aside',{class:'chess-game-sidebar'},sideChildren)),
-    h('p',{class:'chess-game-rules'},'Full chess rules are enabled, including castling, en passant, promotion, checkmate and stalemate. Select a piece, then choose a highlighted legal destination.')));
+    h('p',{class:'chess-game-rules'},'Full chess rules are enabled, including castling, en passant, promotion, checkmate and stalemate. Select a piece, then choose a highlighted legal destination.'),
+    h('div',{id:'chessReactionOverlay',class:'chess-reaction-overlay','aria-live':'off','aria-label':'Live chess reactions'})));
   chessDraw();
   if(G.clock&&!CHESS_TICK)CHESS_TICK=setInterval(()=>{if(!location.hash.startsWith('#/chess')){stopChessTick();return;}const live=CHESS;if(live&&live.clock&&!gameOver(live).over){const now=Date.now();if(live.clock.side!==undefined&&live.clock.at&&now-live.clock.at>500)chessClocks();}},100);
   if(G.mode!=='online'&&G.s.turn!==G.color&&!G.busy&&!gameOver(G).over)computerTurn();
@@ -2723,12 +2732,7 @@ async function loadOpenList() {
   const open = rows.filter(r => r.white_dev !== DB.dev);
   box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => runOnlineAction(() => joinOnline(r.code)) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
 }
-function startOnline(state) {
-  CHESS = state;
-  if (location.hash !== '#/chess/game') { location.hash = '#/chess/game'; return; }
-  chessView();
-  startOnlinePoll();
-}
+function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
 function onlineState(color, id, code, status, white, black) {
   const S=chessSet(); return { mode: 'online', online: { id, code, status, recorded: false, white: white || DB.profile.nick, black: black || '' }, color, friendly: true, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: S.time?{w:S.time*1000,b:S.time*1000,side:'w',at:Date.now(),increment:Number(S.increment||0)*1000}:null, captures:{w:[],b:[]}, recorded: false };
 }
@@ -2825,28 +2829,73 @@ function onlineAfterMove() {
 /* ---------- chess chat (friend games only; cleared when the game ends) ---------- */
 let CHAT_POLL = null;
 const CHAT_EMOJI = ['\u{1F44D}', '\u{1F602}', '\u{1F525}', '\u{1F62E}', '\u{1F622}', '\u{1F64F}', '\u{1F3AF}', '\u{1F9E0}'];
+
+const CHESS_REACTION_PREFIX='[[BHC_REACTION]]';
+const CHESS_REACTION_CURSOR=Object.create(null);
+const CHESS_LOCAL_REACTIONS=[];
+function showChessReaction(emoji,nick,local) {
+  const host=document.getElementById('chessReactionOverlay');
+  if(!host)return;
+  if(local)CHESS_LOCAL_REACTIONS.push({emoji,nick,at:Date.now()});
+  const item=h('div',{class:'chess-reaction-burst','aria-hidden':'true'},
+    h('span',{class:'chess-reaction-emoji'},emoji),
+    h('span',{class:'chess-reaction-nick'},nick||'Opponent'));
+  host.append(item);
+  setTimeout(()=>{if(item.isConnected)item.remove();},1750);
+}
+function consumeChessReaction(row) {
+  const emoji=String(row.body||'').slice(CHESS_REACTION_PREFIX.length);
+  if(!emoji)return;
+  const stamp=Date.parse(row.created_at||'')||Date.now();
+  const duplicate=CHESS_LOCAL_REACTIONS.findIndex(x=>x.emoji===emoji&&x.nick===row.nick&&Math.abs(stamp-x.at)<6000);
+  if(duplicate>=0){CHESS_LOCAL_REACTIONS.splice(duplicate,1);return;}
+  if(Date.now()-stamp<12000)showChessReaction(emoji,row.nick,false);
+}
 function chatPanel(G) {
-  const list = h('div', { id: 'chatList', class: 'stack', style: { maxHeight: '180px', overflowY: 'auto', fontSize: '.9rem' } }, h('p', { class: 'tiny muted' }, 'Chat clears when the game ends.'));
-  const input = h('input', { type: 'text', maxlength: '200', placeholder: 'Say something', 'aria-label': 'Chat message' });
-  const send = async (text) => {
-    const t = String(text || '').trim(); if (!t || !G.online) return;
-    input.value = '';
-    try { await fetch(LB.url + '/rest/v1/chess_messages', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ game_id: G.online.id, nick: DB.profile.nick.slice(0, 30), body: t.slice(0, 200) }) }); loadChat(G); }
-    catch (e) { toast('Message not sent. Check your connection.'); }
+  const list=h('div',{id:'chatList',class:'stack',style:{maxHeight:'180px',overflowY:'auto',fontSize:'.9rem'}},h('p',{class:'tiny muted'},'Chat clears when the game ends.'));
+  const input=h('input',{type:'text',maxlength:'200',placeholder:'Say something','aria-label':'Chat message'});
+  const send=async(text)=>{
+    const t=String(text||'').trim();if(!t||!G.online)return;
+    input.value='';
+    try{
+      const r=await fetch(LB.url+'/rest/v1/chess_messages',{method:'POST',headers:sbHeaders({Prefer:'return=minimal'}),body:JSON.stringify({game_id:G.online.id,nick:DB.profile.nick.slice(0,30),body:t.slice(0,200)})});
+      if(!r.ok)throw new Error('not sent');
+      loadChat(G);
+    }catch(e){toast('Message not sent. Check your connection.');}
   };
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') send(input.value); });
-  return h('section', { class: 'panel stack' }, h('h2', null, 'Chat'), list,
-    h('div', { class: 'row wrapr' }, CHAT_EMOJI.map(em => h('button', { class: 'btn sm ghost', onclick: () => send(em), 'aria-label': 'Send ' + em }, em))),
-    h('div', { class: 'row' }, input, h('button', { class: 'btn primary', onclick: () => send(input.value) }, 'Send')));
+  const sendReaction=async(emoji)=>{
+    if(!G.online||!G.online.id)return;
+    try{
+      const r=await fetch(LB.url+'/rest/v1/chess_messages',{method:'POST',headers:sbHeaders({Prefer:'return=minimal'}),body:JSON.stringify({game_id:G.online.id,nick:DB.profile.nick.slice(0,30),body:CHESS_REACTION_PREFIX+emoji})});
+      if(!r.ok)throw new Error('not sent');
+      showChessReaction(emoji,DB.profile.nick,true);
+    }catch(e){toast('Reaction not sent. Check your connection.');}
+  };
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')send(input.value);});
+  return h('section',{class:'panel stack'},h('h2',null,'Chat'),list,
+    h('div',{class:'row wrapr'},CHAT_EMOJI.map(em=>h('button',{class:'btn sm ghost',onclick:()=>sendReaction(em),'aria-label':'React with '+em,title:'Send '+em+' reaction'},em))),
+    h('div',{class:'row'},input,h('button',{class:'btn primary',onclick:()=>send(input.value)},'Send')));
 }
 async function loadChat(G) {
-  if (!G || !G.online || !document.getElementById('chatList')) return;
-  const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=nick,body,created_at&order=created_at.asc&limit=100');
-  const list = document.getElementById('chatList'); if (!list || !Array.isArray(rows)) return;
-  list.replaceChildren(...(rows.length ? rows.map(m => h('div', null, h('b', null, m.nick + ': '), m.body)) : [h('p', { class: 'tiny muted' }, 'No messages yet. Say hello.')]));
-  list.scrollTop = list.scrollHeight;
+  if(!G||!G.online||!document.getElementById('chatList'))return;
+  const rows=await sbGet('chess_messages?game_id=eq.'+G.online.id+'&select=id,nick,body,created_at&order=created_at.asc&limit=100');
+  const list=document.getElementById('chatList');if(!list||!Array.isArray(rows))return;
+  const gameId=String(G.online.id);
+  const reactions=rows.filter(m=>String(m.body||'').startsWith(CHESS_REACTION_PREFIX));
+  const maxSeen=rows.reduce((max,m)=>Math.max(max,Number(m.id)||0),0);
+  if(CHESS_REACTION_CURSOR[gameId]===undefined){
+    CHESS_REACTION_CURSOR[gameId]=maxSeen;
+  }else{
+    const cursor=CHESS_REACTION_CURSOR[gameId];
+    reactions.filter(m=>(Number(m.id)||0)>cursor).forEach(consumeChessReaction);
+    if(reactions.length)CHESS_REACTION_CURSOR[gameId]=Math.max(cursor,...reactions.map(m=>Number(m.id)||0));
+  }
+  const messages=rows.filter(m=>!String(m.body||'').startsWith(CHESS_REACTION_PREFIX));
+  list.replaceChildren(...(messages.length?messages.map(m=>h('div',{class:'chess-chat-message'},h('b',null,m.nick+': '),m.body)):[h('p',{class:'tiny muted'},'No messages yet. Say hello.')]));
+  list.scrollTop=list.scrollHeight;
 }
-function startChatPoll(G) { if (CHAT_POLL) clearInterval(CHAT_POLL); CHAT_POLL = setInterval(() => loadChat(CHAT_G_REF()), 3000); }
+
+function startChatPoll(G) { if (CHAT_POLL) clearInterval(CHAT_POLL); CHAT_POLL = setInterval(() => loadChat(CHAT_G_REF()), 1400); }
 function CHAT_G_REF() { return CHESS; }
 function stopChatPoll() { if (CHAT_POLL) { clearInterval(CHAT_POLL); CHAT_POLL = null; } }
 async function clearChat(G) {
