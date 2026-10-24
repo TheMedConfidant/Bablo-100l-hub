@@ -2519,6 +2519,58 @@ function chessCompetePage() {
 }
 
 
+
+async function loadChessIdentity(box) {
+  if(!box)return;
+  if(!signedIn()||!DB.account||!DB.account.token){
+    box.replaceChildren(
+      h('p',{class:'muted small'},'Sign in to claim a unique chess username. Your friends use it to challenge the correct player.'),
+      h('a',{class:'btn',href:'#/me',style:{textDecoration:'none'}},'Sign in / create account')
+    );
+    return;
+  }
+  box.replaceChildren(h('p',{class:'muted small'},'Loading username…'));
+  const token=DB.account.token;
+  const identity=await sbFetchJson('rpc/hub_chess_identity',{
+    method:'POST',headers:sbHeaders(),body:JSON.stringify({p_token:token})
+  });
+  if(!identity||!identity.ok){
+    box.replaceChildren(h('p',{class:'muted small'},identity&&identity.error||'Could not load your chess username. Refresh and try again.'));
+    return;
+  }
+  const field=h('input',{type:'text',maxlength:'20',minlength:'3',autocapitalize:'none',autocomplete:'username',spellcheck:'false',placeholder:'e.g. moses_chess',value:identity.username||'','aria-label':'Your unique chess username'});
+  const help=h('p',{class:'tiny muted'},'3–20 characters. Use lowercase letters, numbers, or underscores. Your username must be unique.');
+  const error=h('p',{class:'small',role:'alert',style:{color:'var(--bad)',margin:'0'}});
+  const saveBtn=h('button',{class:'btn primary',type:'button',onclick:saveUsername},identity.username?'Update username':'Claim username');
+  const current=h('p',{class:'small muted'},identity.username?'Current username: @'+identity.username:'You have not claimed a username yet.');
+  async function saveUsername(){
+    error.textContent='';
+    const username=String(field.value||'').trim().toLowerCase();
+    if(!/^[a-z0-9_]{3,20}$/.test(username)){
+      error.textContent='Use 3–20 characters: lowercase letters, numbers or underscores.';
+      field.focus();return;
+    }
+    saveBtn.disabled=true;saveBtn.textContent='Saving…';
+    const answer=await sbFetchJson('rpc/hub_set_chess_username',{
+      method:'POST',headers:sbHeaders(),body:JSON.stringify({p_token:token,p_username:username})
+    });
+    if(!answer||!answer.ok){
+      error.textContent=answer&&answer.error||'Could not save the username. Check your connection and try again.';
+      saveBtn.disabled=false;saveBtn.textContent=identity.username?'Update username':'Claim username';return;
+    }
+    identity.username=answer.username||username;
+    field.value=identity.username;
+    current.textContent='Current username: @'+identity.username;
+    saveBtn.textContent='Saved ✓';toast('Chess username saved: @'+identity.username);
+    setTimeout(()=>{if(saveBtn.isConnected)saveBtn.textContent='Update username';},1400);
+  }
+  box.replaceChildren(current,
+    h('label',{class:'stack small'},'Unique chess username',field),
+    help,error,
+    h('div',{class:'row wrapr'},saveBtn)
+  );
+}
+
 async function loadChessDeviceRating(box) {
   if(!box)return;
   if(!liveOn()){
@@ -2557,6 +2609,7 @@ function chessProfilePage() {
   const R=chessRec(),games=Array.isArray(R.games)?R.games:[],openings=Object.entries(R.openings||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent=games.slice(-12).reverse();
   const total=(R.w||0)+(R.d||0)+(R.l||0);
+  const chessIdentity=h('div',{id:'chessIdentityBox',class:'stack'},h('p',{class:'muted small'},'Loading username…'));
   const onlineRating=h('div',{id:'chessDeviceRating',class:'stack'},h('p',{class:'muted small'},'Loading online rating…'));
   mount(wrap(chessHeader(),chessPageNav('profile'),
     h('div',{class:'chess-kicker'},'Player profile'),
@@ -2573,6 +2626,11 @@ function chessProfilePage() {
         h('button',{class:'btn',onclick:()=>loadChessDeviceRating(onlineRating)},'↻ Refresh')),
       h('p',{class:'muted small'},'Separate from your local computer rating. This rating is recorded by the online match database.'),
       onlineRating),
+    h('section',{class:'panel stack',style:{marginTop:'16px'}},
+      h('div',{class:'chess-kicker'},'Player identity'),
+      h('h2',null,'Your chess username'),
+      h('p',{class:'muted small'},'Set a unique username so friends can target challenges directly.'),
+      chessIdentity),
     h('div',{class:'chess-learn-layout',style:{marginTop:'17px'}},
       h('section',{class:'panel stack'},h('h2',null,'Recent games'),
         recent.length?recent.map((g,i)=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:i<recent.length-1?'1px solid rgba(234,193,91,.12)':'0'}},
@@ -2587,6 +2645,7 @@ function chessProfilePage() {
     h('div',{class:'chess-home-actions'},chessButton('Play again','#/chess/play',true),chessButton('Return home','#/chess/home',false)),
     h('p',{class:'chess-page-footer'},'Bablo Chess · Player profile')));
   loadChessDeviceRating(onlineRating);
+  loadChessIdentity(chessIdentity);
 }
 
 const CHESS_PUZZLES=[
