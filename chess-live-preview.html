@@ -353,20 +353,26 @@ function chooseDrECGMove(){
 }
 function scheduleBotMove(){
  if(botTimer!==null||botThinking||onlineGame||game.game_over()||game.turn()!=='b'||!gameStarted||clockExpired)return;
- // A single pending reply is bound to the exact position that scheduled it.
+ // Only schedule one reply to a completed White move. Never chain bot moves.
+ if(!history.length||history[history.length-1].side!=='w')return;
  const scheduledFen=game.fen();
- const delay=2400+Math.floor(Math.random()*1401); // One deliberate, human-paced reply per verified White move.
+ const delay=2400+Math.floor(Math.random()*1401);
  botTimer=window.setTimeout(()=>{
   botTimer=null;
+  // Revalidate the exact position after the human-paced delay.
   if(!gameStarted||onlineGame||clockExpired||game.game_over()||game.turn()!=='b'||game.fen()!==scheduledFen)return;
-  playDrECGMove();
+  playDrECGMove(scheduledFen);
  },delay);
 }
-function playDrECGMove(){
+function playDrECGMove(expectedFen=null){
  botTimer=null;
  if(botThinking||!gameStarted||onlineGame||clockExpired||game.game_over()||game.turn()!=='b')return;
+ if(expectedFen&&game.fen()!==expectedFen)return;
+ if(!history.length||history[history.length-1].side!=='w')return;
+ // Lock before evaluating candidates; a failed evaluation must not freeze the game.
  botThinking=true;
- const option=chooseDrECGMove();
+ let option;
+ try{option=chooseDrECGMove()}catch(error){botThinking=false;toast('Dr ECG could not evaluate this position. Please reset the local game.');return}
  if(!option){botThinking=false;announceGameState();return}
  const piece=board[sqCoords(option.from).r][sqCoords(option.from).c];
  const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
