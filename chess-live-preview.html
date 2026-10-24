@@ -518,6 +518,11 @@ function updateOnlinePlayerLabels(){
   $('topPlayerSub').textContent='Bablo tactical menace';
   $('bottomPlayerName').innerHTML='You <span style="color:#8c9b9d">· White</span>';
   $('bottomPlayerSub').textContent='You play White · Dr ECG plays Black';
+  const topAvatar=$('topPlayerName').closest('.playerid')?.querySelector('.avatar');
+  const bottomAvatar=$('bottomPlayerName').closest('.playerid')?.querySelector('.avatar');
+  if(topAvatar){topAvatar.textContent='♟';topAvatar.classList.remove('gold')}
+  if(bottomAvatar){bottomAvatar.textContent='♙';bottomAvatar.classList.add('gold')}
+  renderGameDetails();
   return;
  }
  const whiteName=onlineGame.white_nick||'White player',blackName=onlineGame.black_nick||'Black player';
@@ -535,18 +540,23 @@ function updateOnlinePlayerLabels(){
 }
 window.babloChessApplyOnlineGame=function(remoteGame,playerId){
  if(!remoteGame||!remoteGame.id)return;
+ const previousGameId=onlineGame?.id||null;
+ const previousStatus=onlineGame?.status||null;
+ const previousResult=onlineGame?.result||null;
  gameStarted=true;stopLocalClock();clockStarted=false;
  onlineGame=remoteGame;
- renderClocks();
  // Keep challenge creation on the Friends page until the player explicitly opens the game.
  if(typeof pageHost!=='undefined'&&!pageHost.hidden){$('gameLayout').hidden=true;}
  else{showPlayMode('game');}
  $('playModeHub').hidden=true;$('preGameSetup').hidden=true;
  if(chatOpenButton)chatOpenButton.hidden=false;
  onlineColor=remoteGame.white_player_id===playerId?'w':remoteGame.black_player_id===playerId?'b':null;
+ renderClocks();
  const oldMoves=game.history();
  const newMoves=(remoteGame.moves||'').trim().split(/\s+/).filter(Boolean);
- const same=oldMoves.length===newMoves.length&&oldMoves.every((m,i)=>m===newMoves[i]);
+ const same=previousGameId===remoteGame.id&&oldMoves.length===newMoves.length&&oldMoves.every((m,i)=>m===newMoves[i]);
+ const metadataChanged=previousGameId!==remoteGame.id||previousStatus!==remoteGame.status||previousResult!==remoteGame.result||!same;
+ if(previousGameId!==remoteGame.id)window.babloChessFinishedNotified=false;
  if(!same){
   game.reset();history=[];redo=[];capturedW=[];capturedB=[];selected=null;targets=[];
   for(const uci of newMoves){
@@ -557,7 +567,8 @@ window.babloChessApplyOnlineGame=function(remoteGame,playerId){
    history.push({fr:a.r,fc:a.c,tr:z.r,tc:z.c,piece:(played.color==='w'?'w':'b')+played.piece.toUpperCase(),captured:capturedPiece,text:played.san,from,to,promotion:played.promotion||'q',side:played.color});
   }
  }
- syncBoardFromEngine();render();
+ if(metadataChanged){syncBoardFromEngine();render();}
+ else{updateOnlinePlayerLabels();renderClocks();}
  if(remoteGame.status==='finished'&&!window.babloChessFinishedNotified){window.babloChessFinishedNotified=true;eventPopup('GAME FINISHED','check');say(remoteGame.result==='1-0'?'White wins. The final position has been verified.':remoteGame.result==='0-1'?'Black wins. The final position has been verified.':'Draw. The final position has been verified.')}
 };
 async function submitOnlineMove(from,to,promotion){
@@ -630,6 +641,7 @@ $('botRating').addEventListener('change',()=>{
 });
 $('localTimeControl').addEventListener('change',()=>{
  localClockSeconds=Number($('localTimeControl').value);
+ renderClocks();
  toast(localClockSeconds?'Local clock set to '+Math.round(localClockSeconds/60)+' minutes.':'Local practice clock disabled.');
 });
 $('soundToggle').onclick=()=>{soundOn=!soundOn;$('setupSound').checked=soundOn;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(soundOn)gameSound('move');toast(soundOn?'Chess sounds enabled.':'Chess sounds muted.')};
