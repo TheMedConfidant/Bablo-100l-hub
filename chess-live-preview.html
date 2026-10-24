@@ -686,7 +686,7 @@ function showPlayMode(view){
  const crumbLabel=view==='hub'?'Choose a mode':view==='setup'?'Local practice setup':'Live game';
  crumb.innerHTML='Chess Hub <span>›</span> Play <span>›</span> <b>'+crumbLabel+'</b>';
 }
-function showChessPage(name){const d=pageData[name]||pageData.Home;const activeNav=name==='Friends'?'Compete':name;navButtons.forEach(b=>b.classList.toggle('active',b.textContent.trim()===activeNav));crumb.innerHTML='Chess Hub <span>›</span> <b>'+name+'</b>';if(name==='Play'){showPlayMode(gameStarted?'game':playModeView);return}gameLayout.hidden=true;$('playModeHub').hidden=true;$('preGameSetup').hidden=true;pageHost.hidden=false;let body='<div class="pagehero"><div class="eyebrow">'+d.eyebrow+'</div><h1>'+d.title+'</h1><p>'+d.desc+'</p><div class="page-actions"><span class="statuschip">♟ Bablo Chess · Development preview</span><span class="statuschip">Production unchanged</span></div></div>';if(d.stats)body+='<div class="metricgrid">'+d.stats.map(x=>'<div class="metric"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div>';if(name==='Friends')body+=friendChallengeMarkup;else body+='<div class="pagegrid">'+d.cards.map(card).join('')+'</div>';pageHost.innerHTML='<div class="pageview">'+body+'</div>';pageHost.querySelectorAll('[data-page-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.pageAction;if(['Play','Learn','Compete','Profile','Friends'].includes(a)){showChessPage(a);return}const msg={fundamentals:'Fundamentals lesson content is not yet built.',tactics:'Tactical puzzles need validated positions before scoring.',openings:'Opening explorer is not yet connected to a validated database.',endgames:'Endgame lesson content is not yet built.',puzzles:'Puzzle Rush needs validated puzzles and score persistence.',analysis:'Reliable engine analysis is a separate milestone.',ratings:'Ratings must come from server-verified games; demo ratings are not fabricated.',stats:'Profile statistics will populate from verified chess records.',history:'Game history needs the authenticated game API.',achievements:'Achievements will be connected after verified progress is available.',connection:'Account bridge is not integrated into this standalone preview. No token is read or stored here.'};toast(msg[a]||'This section is mapped, but not implemented yet.')}))}
+function showChessPage(name){const d=pageData[name]||pageData.Home;const activeNav=name==='Friends'?'Compete':name;navButtons.forEach(b=>b.classList.toggle('active',b.textContent.trim()===activeNav));crumb.innerHTML='Chess Hub <span>›</span> <b>'+name+'</b>';if(name==='Play'){showPlayMode(gameStarted?'game':playModeView);return}gameLayout.hidden=true;$('playModeHub').hidden=true;$('preGameSetup').hidden=true;pageHost.hidden=false;let body='<div class="pagehero"><div class="eyebrow">'+d.eyebrow+'</div><h1>'+d.title+'</h1><p>'+d.desc+'</p><div class="page-actions"><span class="statuschip">♟ Bablo Chess · Development preview</span><span class="statuschip">Production unchanged</span></div></div>';if(d.stats)body+='<div class="metricgrid">'+d.stats.map(x=>'<div class="metric"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div>';if(name==='Friends')body+=friendChallengeMarkup;else body+='<div class="pagegrid">'+d.cards.map(card).join('')+'</div>';pageHost.innerHTML='<div class="pageview">'+body+'</div>';pageHost.querySelectorAll('[data-page-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.pageAction;if(['Play','Learn','Compete','Profile','Friends'].includes(a)){showChessPage(a);return}const msg={fundamentals:'Fundamentals lesson content is not yet built.',tactics:'Tactical puzzles need validated positions before scoring.',openings:'Opening explorer is not yet connected to a validated database.',endgames:'Endgame lesson content is not yet built.',puzzles:'Puzzle Rush needs validated puzzles and score persistence.',analysis:'Reliable engine analysis is a separate milestone.',ratings:'Ratings must come from server-verified games; demo ratings are not fabricated.',stats:'Profile statistics will populate from verified chess records.',history:'Game history needs the authenticated game API.',achievements:'Achievements will be connected after verified progress is available.',connection:'Account bridge is not integrated into this standalone preview. No token is read or stored here.'};toast(msg[a]||'This section is mapped, but not implemented yet.')}));document.dispatchEvent(new CustomEvent('bablo-chess:page-shown',{detail:{name}}))}
 navButtons.forEach(b=>b.addEventListener('click',()=>showChessPage(b.textContent.trim())));document.addEventListener('bablo-chess:show-play',()=>showChessPage('Play'));document.addEventListener('bablo-chess:show-compete',()=>showChessPage('Compete'));document.addEventListener('bablo-chess:page-shown',e=>{});showChessPage('Play');
 
 syncBoardFromEngine();render();renderClocks();
@@ -740,6 +740,8 @@ let onlineClient = null;
 let onlineIdentity = null;
 let activeOnlineId = null;
 let onlinePoll = null;
+let currentInviteCode = null;
+let inviteOwner = false;
 const statusText = (id, text, bad=false) => {
   const el=document.getElementById(id);
   if(el){el.textContent=text;el.style.color=bad?'#ffb6a9':'var(--muted)';}
@@ -792,6 +794,7 @@ document.addEventListener('click',async(event)=>{
    await currentIdentity();
    const result=await requireOnlineClient().createGame({timeControl:document.getElementById('onlineTime').value,rated:document.getElementById('onlineRated').checked});
    const g=result.game;if(!g?.id||!g?.code)throw new Error('The chess service returned an incomplete challenge.');
+   currentInviteCode=g.code;inviteOwner=true;
    document.getElementById('inviteCodePanel').hidden=false;
    document.getElementById('inviteCodeDisplay').textContent=g.code;
    document.getElementById('openOnlineGame').hidden=false;
@@ -811,6 +814,7 @@ document.addEventListener('click',async(event)=>{
   try{
    await currentIdentity();const result=await requireOnlineClient().acceptGame(code);
    if(!result.game?.id)throw new Error('The chess service returned an incomplete game.');
+   currentInviteCode=null;inviteOwner=false;
    window.babloChessFinishedNotified=false;window.babloChessApplyOnlineGame(result.game,onlineIdentity.player_id);
    statusText('joinStatus','Challenge accepted. Game started.');document.dispatchEvent(new Event('bablo-chess:show-play'));startPolling(result.game.id);
   }catch(e){statusText('joinStatus',e instanceof Error?e.message:'Could not accept challenge.',true)}
@@ -858,7 +862,22 @@ async function refreshMessages(gameId){
 }
 document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
 localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;renderClocks();
-document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null;window.babloChessOnlineGameStatus=null});
+document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null;currentInviteCode=null;inviteOwner=false;window.babloChessOnlineGameStatus=null});
+document.addEventListener('bablo-chess:page-shown',event=>{
+ if(event.detail?.name!=='Friends')return;
+ const panel=document.getElementById('inviteCodePanel');
+ const code=document.getElementById('inviteCodeDisplay');
+ const status=document.getElementById('inviteStatusText');
+ const open=document.getElementById('openOnlineGame');
+ if(inviteOwner&&currentInviteCode&&panel&&code){
+  panel.hidden=false;code.textContent=currentInviteCode;
+  if(status)status.textContent=window.babloChessOnlineGameStatus==='active'?'Opponent joined. Game is live.':window.babloChessOnlineGameStatus==='finished'?'Game finished. This code is no longer active.':'Waiting for opponent to accept.';
+ }
+ if(open&&activeOnlineId){
+  open.hidden=false;
+  open.textContent=window.babloChessOnlineGameStatus==='finished'?'Review finished game →':'Open active game →';
+ }
+});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeOnlineId)pollGame(activeOnlineId)});
 </script>
 </body></html>
