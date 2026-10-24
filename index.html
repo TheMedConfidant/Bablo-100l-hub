@@ -2931,6 +2931,26 @@ function resign() {
 }
 function stopChessTick() { if (CHESS_TICK) { clearInterval(CHESS_TICK); CHESS_TICK = null; } }
 
+async function shareChessChallenge(G) {
+  if(!G||!G.online||!G.online.code){toast('No challenge code is available.');return;}
+  const code=String(G.online.code).toUpperCase();
+  const invite='Join my Bablo Chess game with code '+code+'. Open Bablo Hub, go to Chess → Play → Join, and enter this code.';
+  try{
+    if(navigator.share){
+      await navigator.share({title:'Bablo Chess challenge',text:invite,url:location.origin+'/#/chess/play'});
+      return;
+    }
+  }catch(e){if(e&&e.name==='AbortError')return;}
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(invite);
+      toast('Challenge invite copied. Send it to your friend.');
+      return;
+    }
+  }catch(e){}
+  prompt('Copy this challenge invite and send it to your friend:',invite);
+}
+
 function chessView() {
   if (!CHESS || chessCurrentPage() !== 'game') return chessSectionView(chessCurrentPage());
   const G=CHESS,S=chessSet();
@@ -2983,7 +3003,7 @@ function chessView() {
     h('section',{class:'panel stack'},
       h('div',{class:'chess-kicker'},G.mode==='online'?'Online match':'Opponent'),
       h('div',{class:'row between'},h('span',null,h('b',null,sideName(topSide)),h('div',{class:'tiny muted'},G.mode==='online'?'Friend challenge':botName()+' · fixed identity')),h('span',{class:'chip gold'},G.mode==='online'?'LIVE':String(chosenBotRating||selectedBot().rating))),
-      G.mode==='online'&&G.online?h('p',{class:'tiny muted'},'Challenge code: '+G.online.code):h('p',{class:'tiny muted'},'Difficulty was set before the game. It cannot be changed mid-match.')),
+      G.mode==='online'&&G.online?h('div',{class:'stack'},h('p',{class:'tiny muted'},'Challenge code: '+G.online.code),h('button',{class:'btn gold block',onclick:()=>shareChessChallenge(G)},'↗ Share challenge invite')):h('p',{class:'tiny muted'},'Difficulty was set before the game. It cannot be changed mid-match.')),
     movePanel,controlPanel
   ];
   if(G.mode==='online'&&G.online)sideChildren.push(chatPanel(G));
