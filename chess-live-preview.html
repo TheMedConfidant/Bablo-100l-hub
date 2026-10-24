@@ -702,16 +702,22 @@ async function currentIdentity(){
   return onlineIdentity;
 }
 function stopPolling(){if(onlinePoll){clearInterval(onlinePoll);onlinePoll=null}}
+let pollInFlight=false;
 async function pollGame(gameId){
+  if(pollInFlight||activeOnlineId!==gameId)return;
+  pollInFlight=true;
   try{
     const client=requireOnlineClient();
     const result=await client.state(gameId);
+    if(activeOnlineId!==gameId)return;
     if(result.game)window.babloChessApplyOnlineGame(result.game,onlineIdentity?.player_id);
     await refreshMessages(gameId);
+    if(activeOnlineId!==gameId)return;
     const panel=document.getElementById('inviteStatusText');
     if(panel&&result.game?.status==='active')panel.textContent='Opponent joined. Game is live.';
     if(result.game?.status==='finished')stopPolling();
-  }catch(e){statusText('onlineStatus',e instanceof Error?e.message:'Could not refresh game.',true)}
+  }catch(e){if(activeOnlineId===gameId)statusText('onlineStatus',e instanceof Error?e.message:'Could not refresh game.',true)}
+  finally{pollInFlight=false}
 }
 function startPolling(gameId){
   stopPolling();activeOnlineId=gameId;
@@ -739,7 +745,9 @@ document.addEventListener('click',async(event)=>{
   finally{target.disabled=false}
  }
  if(target.id==='acceptOnlineGame'){
-  const code=(document.getElementById('joinCode').value||'').trim().toUpperCase();target.disabled=true;statusText('joinStatus','Checking challenge…');
+  const code=(document.getElementById('joinCode').value||'').trim().toUpperCase();target.disabled=true;
+  if(!/^[A-Z0-9]{6}$/.test(code)){statusText('joinStatus','Enter the six-character challenge code first.',true);target.disabled=false;return}
+  statusText('joinStatus','Checking challenge…');
   try{
    await currentIdentity();const result=await requireOnlineClient().acceptGame(code);
    if(!result.game?.id)throw new Error('The chess service returned an incomplete game.');
@@ -790,6 +798,7 @@ async function refreshMessages(gameId){
 }
 document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
 localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;renderClocks();
+document.addEventListener('bablo-chess:reset',()=>{stopPolling();activeOnlineId=null;onlineClient=null;onlineIdentity=null});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeOnlineId)pollGame(activeOnlineId)});
 </script>
 </body></html>
