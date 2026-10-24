@@ -121,7 +121,7 @@
         <div class="cardhead"><h2>Dr ECG is watching</h2><span class="tiny">TEXT ONLY</span></div>
         <div class="cardbody">
           <div class="engine-row engine-chat-row"><div class="engine-profile"><div class="ecg-orb">♞</div><div><div class="engine-name">Dr ECG</div><div class="engine-tag">YOUR OPPONENT</div></div></div><div class="speech" id="speech"><strong>Dr ECG</strong> · Welcome to the board. Show me something better than last-minute cramming. 😏</div></div>
-          <div class="reactionrow"><button class="reaction" data-reaction="😂" aria-label="Laugh reaction">😂</button><button class="reaction" data-reaction="😤" aria-label="Frustrated reaction">😤</button><button class="reaction" data-reaction="🧠" aria-label="Thinking reaction">🧠</button><button class="reaction" data-reaction="🔥" aria-label="Fire reaction">🔥</button></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="ghost" id="soundToggle" type="button" aria-pressed="true">🔊 Sounds on</button></div><div class="bot-level-row"><label for="botDifficulty">Bot level</label><select id="botDifficulty"><option value="warmup">Warm-up</option><option value="clinical" selected>Clinical</option><option value="registrar">Registrar</option><option value="consultant">Consultant</option></select></div><div class="tiny" id="difficultyDescription">Balanced replies with basic material and threat awareness.</div>
+          <div class="reactionrow"><button class="reaction" data-reaction="😂" aria-label="Laugh reaction">😂</button><button class="reaction" data-reaction="😤" aria-label="Frustrated reaction">😤</button><button class="reaction" data-reaction="🧠" aria-label="Thinking reaction">🧠</button><button class="reaction" data-reaction="🔥" aria-label="Fire reaction">🔥</button></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="ghost" id="soundToggle" type="button" aria-pressed="true">🔊 Sounds on</button></div><div class="bot-level-row"><label for="botDifficulty">Bot level</label><select id="botDifficulty"><option value="warmup">Warm-up</option><option value="clinical" selected>Clinical</option><option value="registrar">Registrar</option><option value="consultant">Consultant</option></select></div><div class="tiny" id="difficultyDescription">Balanced replies with basic material and threat awareness.</div><div class="bot-level-row"><label for="botTemperament">Style</label><select id="botTemperament"><option value="clinical">Clinical</option><option value="playful" selected>Playful</option><option value="ruthless">Ruthless</option><option value="mentor">Mentor</option></select></div><div class="bot-level-row"><label for="localTimeControl">Clock</label><select id="localTimeControl"><option value="180">Blitz · 3 min</option><option value="300" selected>Rapid · 5 min</option><option value="600">Rapid · 10 min</option><option value="0">Untimed</option></select></div><div class="tiny" id="temperamentDescription">Playful banter with medical-school humour. Style changes Dr ECG’s chat; level changes his move selection.</div>
         </div>
       </section>
       <section class="card">
@@ -168,7 +168,7 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, soundOn=true, audioContext=null, botDifficulty='clinical', onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){
@@ -186,14 +186,18 @@ function announceGameState(){
 const $=id=>document.getElementById(id);
 function sqName(r,c){return 'abcdefgh'[c]+(8-r)}
 const speechMemory={recent:[],used:new Set()};
+function temperMessage(msg){
+ const tones={clinical:['Clinical note: ','Assessment: ','Let’s be precise — '],playful:['😂 ','Okay, okay — ','You saw that coming? 😏 '],ruthless:['No mercy: ','I’m not giving that square away. ','You’ll have to earn this one. '],mentor:['Pause and read the position: ','Think it through — ','What does the board tell you? ']};
+ const choices=tones[botTemperament]||tones.playful;
+ return choices[Math.floor(Math.random()*choices.length)]+msg;
+}
 function say(msg){
- const el=$('speech');
- if(!el)return;
+ const el=$('speech');if(!el)return;
  el.style.display='block';
  const label=document.createElement('strong');label.textContent='Dr ECG';
- el.replaceChildren(label,document.createTextNode(' · '+msg));
+ el.replaceChildren(label,document.createTextNode(' · '+temperMessage(msg)));
  clearTimeout(speechTimer);
- speechTimer=setTimeout(()=>{el.replaceChildren();el.style.display='none'},2600);
+ speechTimer=setTimeout(()=>{el.replaceChildren();el.style.display='none'},2000);
 }
 function freshLine(lines,key='general'){
  if(!lines?.length)return '';
@@ -282,6 +286,8 @@ function playDrECGMove(){
  const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
  if(!played)return;
  commitMove(played,option.from,option.to,piece);
+ syncClockTurn();
+ if(game.game_over()){stopLocalClock();clockStarted=false;announceGameState();return}
  const lines={
   warmup:{
    capture:['A piece donated to the cause? I’ll accept, but you can still recover. 😂','That capture was available. Check the board before your next practical.','I spotted an unattended piece. Let’s work on board awareness.'],
@@ -309,13 +315,42 @@ function playDrECGMove(){
  else if(Math.random()<.82)say(freshLine(lines[botDifficulty]?.normal||lines.clinical.normal,'bot-normal'));
  announceGameState();
 }
+function formatClock(seconds){const whole=Math.max(0,Math.ceil(seconds));return String(Math.floor(whole/60)).padStart(2,'0')+':'+String(whole%60).padStart(2,'0')}
+let clockWhite=300,clockBlack=300,lastClockTick=0;
+function renderClocks(){
+ const top=$('topClock'),bottom=$('bottomClock');if(!top||!bottom)return;
+ if(localClockSeconds===0){top.textContent='∞';bottom.textContent='∞';top.classList.remove('active');bottom.classList.remove('active');return}
+ top.textContent=formatClock(clockBlack);bottom.textContent=formatClock(clockWhite);
+ top.classList.toggle('active',clockStarted&&activeClockColor==='b'&&!clockExpired);
+ bottom.classList.toggle('active',clockStarted&&activeClockColor==='w'&&!clockExpired);
+}
+function stopLocalClock(){if(clockInterval){clearInterval(clockInterval);clockInterval=null}}
+function startLocalClock(){
+ if(onlineGame||localClockSeconds===0||clockStarted||clockExpired)return;
+ clockWhite=localClockSeconds;clockBlack=localClockSeconds;clockStarted=true;activeClockColor=game.turn();lastClockTick=Date.now();stopLocalClock();
+ clockInterval=setInterval(()=>{
+  if(!clockStarted||clockExpired||onlineGame||game.game_over()){stopLocalClock();return}
+  const now=Date.now(),elapsed=(now-lastClockTick)/1000;lastClockTick=now;
+  if(activeClockColor==='w')clockWhite=Math.max(0,clockWhite-elapsed);else clockBlack=Math.max(0,clockBlack-elapsed);
+  if(clockWhite<=0||clockBlack<=0){
+   clockExpired=true;clockStarted=false;stopLocalClock();
+   const winner=clockWhite<=0?'Black':'White';
+   eventPopup(winner.toUpperCase()+' WINS ON TIME','mate');gameSound('mate');
+   showModal('Time expired',winner+' wins on time. Start a new game to play again.',reset,'New game');
+  }
+  renderClocks();
+ },200);
+}
+function syncClockTurn(){if(!clockStarted||clockExpired||localClockSeconds===0||onlineGame)return;activeClockColor=game.turn();lastClockTick=Date.now();renderClocks()}
 async function finishHumanMove(from,to,promotion){
  if(onlineGame){await submitOnlineMove(from,to,promotion);return}
+ startLocalClock();
  const startSquare=sqCoords(from),piece=board[startSquare.r][startSquare.c];
  const played=game.move({from,to,promotion:promotion||'q'});
  if(!played){toast('That move is not legal.');return}
  commitMove(played,from,to,piece);
- if(game.game_over()){announceGameState();return}
+ syncClockTurn();
+ if(game.game_over()){stopLocalClock();clockStarted=false;announceGameState();return}
  const lines=['You’ve made your choice. Now watch how the position changes.','Move played. Did you check the opponent’s threats first?','Interesting. Let’s see whether that idea holds up.','Your plan is on the board now—calculate the reply.','You committed to a line. Keep checking for tactics.','A move is only the start; what is the follow-up?','Board updated. Scan for checks, captures, and hanging pieces.','That’s your move. Can you explain the purpose behind it?','You’ve changed the position. Don’t forget the other side’s plan.','No move is isolated—think one reply ahead.'];
  if(Math.random()<.72)say(freshLine(lines,'human-move'));
  botTimer=setTimeout(playDrECGMove,520);
@@ -400,7 +435,7 @@ async function submitOnlineMove(from,to,promotion){
  }catch(error){toast(error instanceof Error?error.message:'Move could not be submitted.');if(window.babloChessApi&&onlineGame)try{const state=await window.babloChessApi.state(onlineGame.id);window.babloChessApplyOnlineGame(state.game,onlineIdentity?.player_id)}catch{}}
  finally{onlineMovePending=false;render()}
 }
-function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local game reset.')}
+function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local game reset.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
@@ -424,6 +459,16 @@ $('botDifficulty').addEventListener('change',()=>{
  const opening={warmup:'We’ll take it step by step. No panic. 😌',clinical:'Clinical mode. Show your working. 🧠',registrar:'Registrar mode. Expect fewer easy gifts.',consultant:'Consultant mode. I’ll take the strongest line this local evaluator finds. 😏'};
  say(opening[botDifficulty]);
  toast('Dr ECG difficulty set to '+$('botDifficulty').selectedOptions[0].textContent+'.');
+});
+const temperamentDescriptions={clinical:'Measured, precise medical-style observations.',playful:'Playful banter with medical-school humour.',ruthless:'Sharper, more competitive commentary.',mentor:'Coaching prompts that help you read the board.'};
+$('botTemperament').addEventListener('change',()=>{
+ botTemperament=$('botTemperament').value;$('temperamentDescription').textContent=temperamentDescriptions[botTemperament];
+ const opening={clinical:'Clinical mode. Let’s keep the analysis precise.',playful:'You picked playful? Fine—show me a move worth teasing. 😂',ruthless:'Ruthless mode. I’ll take every loose piece you offer.',mentor:'Mentor mode. I’ll challenge your thinking, not just your moves.'};
+ say(opening[botTemperament]);toast('Dr ECG style set to '+$('botTemperament').selectedOptions[0].textContent+'.');
+});
+$('localTimeControl').addEventListener('change',()=>{
+ stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl').value);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';renderClocks();
+ toast(localClockSeconds?'Local clock set to '+Math.round(localClockSeconds/60)+' minutes.':'Local practice clock disabled.');
 });
 $('soundToggle').onclick=()=>{soundOn=!soundOn;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(soundOn)gameSound('move');toast(soundOn?'Chess sounds enabled.':'Chess sounds muted.')};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const details=b.dataset.tab==='details';$('movePanel').style.display=details?'none':'block';$('detailsPanel').style.display=details?'block':'none'});
@@ -613,6 +658,7 @@ async function refreshMessages(gameId){
  }catch(error){statusText('onlineChatStatus',error instanceof Error?error.message:'Chat refresh failed.',true)}
 }
 document.getElementById('joinCode')?.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
+localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;renderClocks();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&activeOnlineId)pollGame(activeOnlineId)});
 </script>
 </body></html>
