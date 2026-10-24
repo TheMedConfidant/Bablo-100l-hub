@@ -3194,20 +3194,22 @@ async function loadChat(G) {
   const rows=await sbGet('chess_messages?game_id=eq.'+G.online.id+'&select=id,nick,body,created_at&order=created_at.asc&limit=100');
   const list=document.getElementById('chatList');if(!list||!Array.isArray(rows))return;
   const gameId=String(G.online.id);
+  const keyOf=m=>String(m.created_at||'')+'|'+String(m.id||'');
   const reactions=rows.filter(m=>String(m.body||'').startsWith(CHESS_REACTION_PREFIX));
-  const maxSeen=rows.reduce((max,m)=>Math.max(max,Number(m.id)||0),0);
+  const keys=rows.map(keyOf).sort();
+  const latestKey=keys.length?keys[keys.length-1]:'';
   if(CHESS_REACTION_CURSOR[gameId]===undefined){
-    CHESS_REACTION_CURSOR[gameId]=maxSeen;
+    // Ignore old reactions when a player first opens a match; only animate new ones.
+    CHESS_REACTION_CURSOR[gameId]=latestKey;
   }else{
-    const cursor=CHESS_REACTION_CURSOR[gameId];
-    reactions.filter(m=>(Number(m.id)||0)>cursor).forEach(consumeChessReaction);
-    if(reactions.length)CHESS_REACTION_CURSOR[gameId]=Math.max(cursor,...reactions.map(m=>Number(m.id)||0));
+    const cursor=String(CHESS_REACTION_CURSOR[gameId]||'');
+    reactions.filter(m=>keyOf(m)>cursor).sort((a,b)=>keyOf(a).localeCompare(keyOf(b))).forEach(consumeChessReaction);
+    if(latestKey>cursor)CHESS_REACTION_CURSOR[gameId]=latestKey;
   }
   const messages=rows.filter(m=>!String(m.body||'').startsWith(CHESS_REACTION_PREFIX));
   list.replaceChildren(...(messages.length?messages.map(m=>h('div',{class:'chess-chat-message'},h('b',null,m.nick+': '),m.body)):[h('p',{class:'tiny muted'},'No messages yet. Say hello.')]));
   list.scrollTop=list.scrollHeight;
 }
-
 function startChatPoll(G) { if (CHAT_POLL) clearInterval(CHAT_POLL); CHAT_POLL = setInterval(() => loadChat(CHAT_G_REF()), 1400); }
 function CHAT_G_REF() { return CHESS; }
 function stopChatPoll() { if (CHAT_POLL) { clearInterval(CHAT_POLL); CHAT_POLL = null; } }
