@@ -2304,7 +2304,7 @@ function recordComputerGame(G, res) {
   if(score===1)R.w++;else if(score===0.5)R.d++;else R.l++;
   const idx=G.color==='w'?0:1,first=G.moves[idx];
   if(first)R.openings[first]=(R.openings[first]||0)+1;
-  R.games=R.games.concat([{res,n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
+  R.games=R.games.concat([{res,outcome:score===1?'win':score===0.5?'draw':'loss',n:G.moves.length,ts:Date.now(),color:G.color,bot:G.botId,opponentRating}]).slice(-30);
   save();
 }
 
@@ -2629,6 +2629,7 @@ async function loadChessDeviceRating(box) {
   );
 }
 
+function chessGameOutcome(g) { return g.outcome || (g.res === 'draw' ? 'draw' : g.res === g.color ? 'win' : 'loss'); }
 function chessProfilePage() {
   const R=chessRec(),games=Array.isArray(R.games)?R.games:[],openings=Object.entries(R.openings||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent=games.slice(-12).reverse();
@@ -2659,7 +2660,7 @@ function chessProfilePage() {
       h('section',{class:'panel stack'},h('h2',null,'Recent games'),
         recent.length?recent.map((g,i)=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:i<recent.length-1?'1px solid rgba(234,193,91,.12)':'0'}},
           h('span',null,h('b',null,'Game '+(games.length-i)),h('div',{class:'tiny muted'},new Date(g.ts||Date.now()).toLocaleString())),
-          h('span',{class:'chip '+(g.res==='w'?'ok':g.res==='b'?'bad':'gold')},(g.res==='w'?'Win':g.res==='b'?'Loss':'Draw')+' · '+(g.n||0)+' plies'))):
+          h('span',{class:'chip '+(chessGameOutcome(g)==='win'?'ok':chessGameOutcome(g)==='loss'?'bad':'gold')},(chessGameOutcome(g)==='win'?'Win':chessGameOutcome(g)==='draw'?'Draw':'Loss')+' · '+(g.n||0)+' plies'))):
           h('p',{class:'muted small'},'No recorded games yet. Complete a game to start this list.')),
       h('section',{class:'panel stack'},h('h2',null,'Opening moves'),
         openings.length?openings.map(([move,count])=>h('div',{class:'row between',style:{padding:'8px 0',borderBottom:'1px solid rgba(234,193,91,.12)'}},
