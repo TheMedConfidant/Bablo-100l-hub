@@ -171,10 +171,40 @@ const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'
 let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, soundOn=true, audioContext=null, botDifficulty='clinical', onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
-function announceGameState(){if(game.in_checkmate()){say('Checkmate. That position has a diagnosis—and it is not good news for the mated side. 🩺');eventPopup('♚ CHECKMATE', 'mate');showModal('Checkmate!', 'The legal-move engine confirms checkmate. Reset the local board to play again.', reset, 'New game')}else if(game.in_draw()){say('The position is drawn. No winner today; review the decisions that got us here.');eventPopup('DRAW', 'check')}else if(game.in_check()){say('Check. Your king needs urgent attention.');eventPopup('⚠ CHECK!', 'check')}}
+function announceGameState(){
+ if(game.in_checkmate()){
+  say(freshLine(['That is checkmate. No ward round can save this position. 🩺','Mate confirmed. You left the king with no viable treatment plan.','Game over: the king has run out of legal options. Review the whole line.','Checkmate. A decisive result—let’s see if you can reverse it next game.'],'mate'));
+  eventPopup('♚ CHECKMATE','mate');showModal('Checkmate!','The legal-move engine confirms checkmate. Reset the local board to play again.',reset,'New game');
+ }else if(game.in_draw()){
+  say(freshLine(['Draw agreed by the position. Neither side found the breakthrough.','A draw. Nobody gets to write a victory note today.','Stalemate or repetition: the board has called it even.'],'draw'));
+  eventPopup('DRAW','check');
+ }else if(game.in_check()){
+  say(freshLine(['Check! Your king needs an immediate plan.','Your king is under pressure—one move at a time.','Check. That threat needs a response, not a prayer.','King in check. Let’s see how you manage the crisis.'],'check'));
+  eventPopup('⚠ CHECK!','check');
+ }
+}
 const $=id=>document.getElementById(id);
 function sqName(r,c){return 'abcdefgh'[c]+(8-r)}
-function say(msg){const el=$('speech');el.style.display='block';el.innerHTML='<strong>Dr ECG:</strong> '+msg;clearTimeout(speechTimer);speechTimer=setTimeout(()=>{el.innerHTML='';el.style.display='none'},1800)}
+const speechMemory={recent:[],used:new Set()};
+function say(msg){
+ const el=$('speech');
+ if(!el)return;
+ el.style.display='block';
+ const label=document.createElement('strong');label.textContent='Dr ECG';
+ el.replaceChildren(label,document.createTextNode(' · '+msg));
+ clearTimeout(speechTimer);
+ speechTimer=setTimeout(()=>{el.replaceChildren();el.style.display='none'},2600);
+}
+function freshLine(lines,key='general'){
+ if(!lines?.length)return '';
+ const recent=speechMemory.recent;
+ let pool=lines.filter(line=>!recent.includes(line));
+ if(!pool.length){recent.splice(0,Math.max(1,recent.length-Math.min(3,lines.length)));pool=lines.filter(line=>!recent.includes(line))}
+ const line=pool[Math.floor(Math.random()*pool.length)];
+ recent.push(line);if(recent.length>8)recent.shift();
+ speechMemory.used.add(key+'|'+line);
+ return line;
+}
 function gameSound(kind='move'){if(!soundOn)return;try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;audioContext=audioContext||new Ctx();if(audioContext.state==='suspended')audioContext.resume();const osc=audioContext.createOscillator(),gain=audioContext.createGain(),now=audioContext.currentTime;const tones={move:[520,.055],capture:[330,.10],check:[740,.12],mate:[880,.22],reset:[440,.07],reaction:[620,.06]};const t=tones[kind]||tones.move;osc.type='sine';osc.frequency.setValueAtTime(t[0],now);if(kind==='mate')osc.frequency.exponentialRampToValueAtTime(440,now+.2);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+t[1]);osc.connect(gain);gain.connect(audioContext.destination);osc.start(now);osc.stop(now+t[1]+.015)}catch(e){/* Audio is optional; chess play must still work. */}}
 function eventPopup(text,kind='move'){const el=$('eventPop');el.textContent=text;el.classList.add('show');clearTimeout(eventTimer);eventTimer=setTimeout(()=>el.classList.remove('show'),1800);gameSound(kind)}
 function popReaction(emoji){const el=$('reactionFloat');el.hidden=false;el.textContent=emoji;el.style.animation='none';void el.offsetWidth;el.style.animation='reactionPop 1.8s ease forwards';clearTimeout(reactionTimer);reactionTimer=setTimeout(()=>{el.hidden=true;el.style.animation=''},1800);gameSound('reaction')}
@@ -252,20 +282,31 @@ function playDrECGMove(){
  const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
  if(!played)return;
  commitMove(played,option.from,option.to,piece);
- if(played.captured){
-  const captureLines={warmup:'A donated piece? That is a preventable complication. 😂',clinical:'You left material unattended. I have documented the finding. 🩺',registrar:'That capture changes the differential. Recalculate your plan. 🧠',consultant:'Material advantage secured. Show me the recovery plan. 😏'};
-  say(captureLines[botDifficulty]||captureLines.clinical);
- }else if(game.in_check())say('Check. The king’s vitals are unstable. Please review the position. 🩺');
- else {
-  const linesForLevel={
-   warmup:['Easy does it. Even Anatomy starts with orientation. 😌','A move at a time—no need to cram the whole board.','Your turn again. Look for safe squares first.'],
-   clinical:['I’ve responded. Did you calculate the next two moves, or just the first? 😏','That move needs a differential diagnosis. What is your next line? 🧠','No panic—this is chess, not a surprise practical.'],
-   registrar:['Your plan has a complication. Reassess before the next move. 🩺','A decent line—but I can see the weakness you left behind.','Treat every loose piece like an abnormal result: investigate.'],
-   consultant:['Calculated, not crammed. Your move. 😏','I have a response for that line. Please present your next argument.','Position reviewed. Your strategy is due for a second opinion. 🧠']
-  };
-  const lines=linesForLevel[botDifficulty]||linesForLevel.clinical;
-  say(lines[(history.length-1)%lines.length]);
- }
+ const lines={
+  warmup:{
+   capture:['A piece donated to the cause? I’ll accept, but you can still recover. 😂','That capture was available. Check the board before your next practical.','I spotted an unattended piece. Let’s work on board awareness.'],
+   normal:['I’ve made my move. What changed across the whole board?','Your turn. Find a plan, not just a square.','Small reminder: every move changes more than one thing.','Let’s see your next idea—look for checks, captures, and threats.','I moved. Take a breath and scan for loose pieces.'],
+   check:['Check! Your king needs a safe response.','Your king is under pressure—what is the calmest defence?']
+  },
+  clinical:{
+   capture:['Material secured. Did you account for that piece being loose? 🩺','I took the piece you left undefended. Recalculate your material balance.','That capture changes the position. What is your compensation?'],
+   normal:['I’ve answered. Did you calculate the reply before moving? 😏','Your plan has changed; reassess the threats on both sides.','There’s more than one candidate move here. Which did you miss?','I’ve played my part. Now check every forcing move. 🧠','That line is developing—show me what comes next.','Before you move again, identify your opponent’s threat.'],
+   check:['Check. Your king needs a proper defensive plan. 🩺','Your king is in check. Find the legal replies first.']
+  },
+  registrar:{
+   capture:['That loose piece was a finding waiting to be documented.','I took the material; now show me a concrete recovery plan.','You left a tactical detail untreated. Reassess the position.'],
+   normal:['A move has consequences beyond the destination square. Recalculate.','Your structure has a weakness. Can you identify it?','I see a candidate plan. Do you have a stronger one?','Don’t play on autopilot—look for forcing moves.','The position is sharper now. Your next move matters.','Review the threats before committing to a plan.'],
+   check:['Check. Calculate the forcing replies accurately.','Your king is exposed; prioritise legal defences.']
+  },
+  consultant:{
+   capture:['Material advantage secured. Show me your best practical defence. 😏','A tactical detail decided that exchange. Can you create counterplay?','I converted the loose piece. Now the position asks a harder question.'],
+   normal:['I’ve chosen my line. Challenge the idea, not just the move.','The position has shifted. Find the strongest candidate, not the prettiest one.','Your move—look for the resource that changes the evaluation.','Calculation first; confidence second. What is your continuation?','I’m testing your position, not your nerve. Find the critical move.','A quiet move can hide a threat. What needs attention?'],
+   check:['Check. Calculate every forcing reply before choosing.','Your king is under attack. Find the most resilient defence.']
+  }
+ };
+ if(game.in_check())say(freshLine(lines[botDifficulty]?.check||lines.clinical.check,'bot-check'));
+ else if(played.captured)say(freshLine(lines[botDifficulty]?.capture||lines.clinical.capture,'bot-capture'));
+ else if(Math.random()<.82)say(freshLine(lines[botDifficulty]?.normal||lines.clinical.normal,'bot-normal'));
  announceGameState();
 }
 async function finishHumanMove(from,to,promotion){
@@ -275,8 +316,8 @@ async function finishHumanMove(from,to,promotion){
  if(!played){toast('That move is not legal.');return}
  commitMove(played,from,to,piece);
  if(game.game_over()){announceGameState();return}
- const lines=['Good. Now calculate the response before celebrating. 😏','A legal move. Progress. Let’s see how you handle the reply.','You moved with confidence. The position will give the verdict. 🧠','No panic—calculate before you donate another piece.','A bold choice. Bowen exam week has trained your nerves.'];
- say(lines[(history.length-1)%lines.length]);
+ const lines=['You’ve made your choice. Now watch how the position changes.','Move played. Did you check the opponent’s threats first?','Interesting. Let’s see whether that idea holds up.','Your plan is on the board now—calculate the reply.','You committed to a line. Keep checking for tactics.','A move is only the start; what is the follow-up?','Board updated. Scan for checks, captures, and hanging pieces.','That’s your move. Can you explain the purpose behind it?','You’ve changed the position. Don’t forget the other side’s plan.','No move is isolated—think one reply ahead.'];
+ if(Math.random()<.72)say(freshLine(lines,'human-move'));
  botTimer=setTimeout(playDrECGMove,520);
 }
 function askPromotion(onChoice){
@@ -359,7 +400,7 @@ async function submitOnlineMove(from,to,promotion){
  }catch(error){toast(error instanceof Error?error.message:'Move could not be submitted.');if(window.babloChessApi&&onlineGame)try{const state=await window.babloChessApi.state(onlineGame.id);window.babloChessApplyOnlineGame(state.game,onlineIdentity?.player_id)}catch{}}
  finally{onlineMovePending=false;render()}
 }
-function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say('Fresh board. Fresh diagnosis. Let’s see whether your opening survives peer review. 😌');render();gameSound('reset');toast('Local game reset.')}
+function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];$('topClock').textContent='05:00';$('bottomClock').textContent='05:00';say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local game reset.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
@@ -419,7 +460,7 @@ function card(c){return '<article class="pagecard"><div class="cardicon">'+c[0]+
 function showChessPage(name){const d=pageData[name]||pageData.Home;const activeNav=name==='Friends'?'Compete':name;navButtons.forEach(b=>b.classList.toggle('active',b.textContent.trim()===activeNav));crumb.innerHTML='Chess Hub <span>›</span> <b>'+name+'</b>';if(name==='Play'){pageHost.hidden=true;gameLayout.hidden=false;return}gameLayout.hidden=true;pageHost.hidden=false;let body='<div class="pagehero"><div class="eyebrow">'+d.eyebrow+'</div><h1>'+d.title+'</h1><p>'+d.desc+'</p><div class="page-actions"><span class="statuschip">♟ Bablo Chess · Development preview</span><span class="statuschip">Production unchanged</span></div></div>';if(d.stats)body+='<div class="metricgrid">'+d.stats.map(x=>'<div class="metric"><strong>'+x[0]+'</strong><span>'+x[1]+'</span></div>').join('')+'</div>';if(name==='Friends')body+=friendChallengeMarkup;else body+='<div class="pagegrid">'+d.cards.map(card).join('')+'</div>';pageHost.innerHTML='<div class="pageview">'+body+'</div>';pageHost.querySelectorAll('[data-page-action]').forEach(btn=>btn.addEventListener('click',()=>{const a=btn.dataset.pageAction;if(['Play','Learn','Compete','Profile','Friends'].includes(a)){showChessPage(a);return}const msg={fundamentals:'Fundamentals lesson content is not yet built.',tactics:'Tactical puzzles need validated positions before scoring.',openings:'Opening explorer is not yet connected to a validated database.',endgames:'Endgame lesson content is not yet built.',puzzles:'Puzzle Rush needs validated puzzles and score persistence.',analysis:'Reliable engine analysis is a separate milestone.',ratings:'Ratings must come from server-verified games; demo ratings are not fabricated.',stats:'Profile statistics will populate from verified chess records.',history:'Game history needs the authenticated game API.',achievements:'Achievements will be connected after verified progress is available.',connection:'Account bridge is not integrated into this standalone preview. No token is read or stored here.'};toast(msg[a]||'This section is mapped, but not implemented yet.')}))}
 navButtons.forEach(b=>b.addEventListener('click',()=>showChessPage(b.textContent.trim())));document.addEventListener('bablo-chess:show-play',()=>showChessPage('Play'));document.addEventListener('bablo-chess:show-compete',()=>showChessPage('Compete'));document.addEventListener('bablo-chess:page-shown',e=>{});showChessPage('Play');
 
-syncBoardFromEngine();render();say('Welcome to the board. Show me something better than last-minute cramming. 😏');
+syncBoardFromEngine();render();say(freshLine(['Welcome to the board. Let’s see your style of play.','Ready when you are. Keep an eye on the whole position.','Board is set. Make the first move count.','Let’s play—calculation beats guessing.'],'opening'));
 </script>
 <script type="module">
 import { createChessApiClient } from './chess-api-client.js';
