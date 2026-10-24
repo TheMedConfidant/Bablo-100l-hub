@@ -2935,22 +2935,11 @@ async function shareChessChallenge(G) {
   if(!G||!G.online||!G.online.code){toast('No challenge code is available.');return;}
   const code=String(G.online.code).toUpperCase();
   const invite='Join my Bablo Chess game with code '+code+'. Open Bablo Hub, go to Chess → Play → Join, and enter this code.';
-  try{
-    if(navigator.share){
-      await navigator.share({title:'Bablo Chess challenge',text:invite,url:location.origin+'/#/chess/play'});
-      return;
-    }
-  }catch(e){if(e&&e.name==='AbortError')return;}
-  try{
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      await navigator.clipboard.writeText(invite);
-      toast('Challenge invite copied. Send it to your friend.');
-      return;
-    }
-  }catch(e){}
+  try{if(navigator.share){await navigator.share({title:'Bablo Chess challenge',text:invite,url:location.origin+'/#/chess/play'});return;}}
+  catch(e){if(e&&e.name==='AbortError')return;}
+  try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(invite);toast('Challenge invite copied. Send it to your friend.');return;}}catch(e){}
   prompt('Copy this challenge invite and send it to your friend:',invite);
 }
-
 function chessView() {
   if (!CHESS || chessCurrentPage() !== 'game') return chessSectionView(chessCurrentPage());
   const G=CHESS,S=chessSet();
@@ -2992,8 +2981,8 @@ function chessView() {
     h('div',{class:'row between'},h('h2',null,'Move history'),h('span',{class:'chip'},String(G.moves.length)+' plies')),
     moveList,
     h('p',{class:'tiny muted'},'Moves are shown in coordinate notation so you can follow the board position.'));
-  const soundControl=G.mode!=='online'?h('label',{class:'row',style:{gap:'8px',fontSize:'.84rem',color:'#aaa99f',marginTop:'4px'}},
-    h('input',{type:'checkbox',checked:localStorage.getItem('babloChessSound')!=='off',onchange:e=>{localStorage.setItem('babloChessSound',e.target.checked?'on':'off');}}),' Enable move sounds'):null;
+  const soundControl=h('label',{class:'row',style:{gap:'8px',fontSize:'.84rem',color:'#aaa99f',marginTop:'4px'}},
+    h('input',{type:'checkbox',checked:localStorage.getItem('babloChessSound')!=='off',onchange:e=>{localStorage.setItem('babloChessSound',e.target.checked?'on':'off');}}),' Enable move sounds');
   const controlPanel=h('section',{class:'panel stack'},
     h('div',{class:'row between'},h('h2',null,'Game controls'),h('span',{class:'chip gold'},G.friendly?'Friendly':'Ranked')),
     h('div',{class:'chess-game-actions'},undo,resignBtn,newGame),
@@ -3129,6 +3118,7 @@ async function pollOnlineOnce(G) {
       const prev = Chess.replay(moves.slice(0, -1));
       const lm = prev && Chess.fromUci(prev, moves[moves.length - 1]);
       G.last = lm ? { from: lm.from, to: lm.to } : null;
+      if(lm){const st=Chess.status(nextState);chessSound(st.check?'check':lm.capture?'capture':'move');}
       G.sel = null; G.legal = [];
     }
   }
