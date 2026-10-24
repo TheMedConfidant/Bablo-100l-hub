@@ -194,7 +194,7 @@ const start = [
 ['wP','wP','wP','wP','wP','wP','wP','wP'],
 ['wR','wN','wB','wQ','wK','wB','wN','wR']];
 const glyph={wK:'♔',wQ:'♕',wR:'♖',wB:'♗',wN:'♘',wP:'♙',bK:'♚',bQ:'♛',bR:'♜',bB:'♝',bN:'♞',bP:'♟'};
-let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', botRating=1000, gameStarted=false, onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
+let game=new Chess(), board=start.map(r=>r.slice()), selected=null, targets=[], history=[], redo=[], flipped=false, whiteTurn=true, capturedW=[], capturedB=[], modalAction=null, toastTimer, eventTimer, reactionTimer, speechTimer, botTimer=null, botThinking=false, clockInterval=null, clockStarted=false, clockExpired=false, localClockSeconds=300, activeClockColor='w', soundOn=true, audioContext=null, botDifficulty='clinical', botTemperament='playful', botRating=1000, gameStarted=false, onlineGame=null, onlineClient=null, onlineIdentity=null, onlineColor=null, onlinePollTimer=null, onlineMovePending=false, lastLoadedOnlineMoves=null;
 function syncBoardFromEngine(){const rows=game.board();board=rows.map(row=>row.map(p=>p?(p.color==='w'?'w':'b')+p.type.toUpperCase():''));whiteTurn=game.turn()==='w'}
 function sqCoords(name){return {r:8-Number(name[1]),c:'abcdefgh'.indexOf(name[0])}}
 function announceGameState(){
@@ -306,22 +306,24 @@ function chooseDrECGMove(){
  return shortlist[Math.floor(Math.random()*shortlist.length)].move;
 }
 function scheduleBotMove(){
- if(botTimer!==null||onlineGame||game.game_over()||game.turn()!=='b'||!gameStarted)return;
- // Exactly one reply is queued per completed human move; do not chain bot turns.
- const delay=1100+Math.floor(Math.random()*601);
+ if(botTimer!==null||botThinking||onlineGame||game.game_over()||game.turn()!=='b'||!gameStarted)return;
+ // One response per completed human move, with a deliberate human-readable think pause.
+ const delay=1800+Math.floor(Math.random()*1001);
  botTimer=setTimeout(playDrECGMove,delay);
 }
 function playDrECGMove(){
  botTimer=null;
- if(!gameStarted||onlineGame||game.game_over()||game.turn()!=='b')return;
+ if(botThinking||!gameStarted||onlineGame||game.game_over()||game.turn()!=='b')return;
+ botThinking=true;
  const option=chooseDrECGMove();
- if(!option){announceGameState();return}
+ if(!option){botThinking=false;announceGameState();return}
  const piece=board[sqCoords(option.from).r][sqCoords(option.from).c];
  const played=game.move({from:option.from,to:option.to,promotion:option.promotion||'q'});
- if(!played)return;
+ if(!played){botThinking=false;return}
  commitMove(played,option.from,option.to,piece);
  syncClockTurn();
- if(game.game_over()){stopLocalClock();clockStarted=false;announceGameState();return}
+ if(game.game_over()){stopLocalClock();clockStarted=false;botThinking=false;announceGameState();return}
+ botThinking=false;
  const lines={
   warmup:{
    capture:['A piece donated to the cause? I’ll accept, but you can still recover. 😂','That capture was available. Check the board before your next practical.','I spotted an unattended piece. Let’s work on board awareness.'],
@@ -472,7 +474,7 @@ async function submitOnlineMove(from,to,promotion){
  }catch(error){toast(error instanceof Error?error.message:'Move could not be submitted.');if(window.babloChessApi&&onlineGame)try{const state=await window.babloChessApi.state(onlineGame.id);window.babloChessApplyOnlineGame(state.game,onlineIdentity?.player_id)}catch{}}
  finally{onlineMovePending=false;render()}
 }
-function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';gameStarted=false;playModeView='setup';$('playModeHub').hidden=true;$('preGameSetup').hidden=false;$('gameLayout').hidden=true;game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local setup reopened. Adjust options before starting again.')}
+function reset(){if(botTimer){clearTimeout(botTimer);botTimer=null}botThinking=false;stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl')?.value??300);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';gameStarted=false;playModeView='setup';$('playModeHub').hidden=true;$('preGameSetup').hidden=false;$('gameLayout').hidden=true;game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];renderClocks();say(freshLine(['New game. Let’s see a different opening this time.','Fresh board. Try a plan you can explain.','Reset complete. I’m curious what you’ll try next.','Back to move one. Look for space and development.'],'reset'));render();gameSound('reset');toast('Local setup reopened. Adjust options before starting again.')}
 function showModal(title,body,action,label='Confirm'){ $('modalTitle').textContent=title;$('modalText').textContent=body;$('confirmModal').textContent=label;modalAction=action;$('modalback').classList.add('show')}
 $('cancelModal').onclick=()=>{$('modalback').classList.remove('show');modalAction=null};
 $('confirmModal').onclick=()=>{ $('modalback').classList.remove('show');if(modalAction)modalAction();modalAction=null};
@@ -481,7 +483,7 @@ $('openLocalSetup').onclick=()=>showPlayMode('setup');
 $('backToModeHub').onclick=()=>showPlayMode('hub');
 $('openOnlineMode').onclick=()=>showChessPage('Friends');
 $('openLearnMode').onclick=()=>showChessPage('Learn');
-$('startLocalGame').onclick=()=>{botDifficulty=$('botDifficulty').value;botTemperament=$('botTemperament').value;botRating=Number($('botRating').value);soundOn=$('setupSound').checked;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(botTimer){clearTimeout(botTimer);botTimer=null}stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl').value||0);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];gameStarted=true;showPlayMode('game');startLocalClock();renderClocks();render();say(freshLine(['Welcome to the board. Let’s see your style of play.','Ready when you are. Keep an eye on the whole position.','Board is set. Make the first move count.','Let’s play—calculation beats guessing.'],'opening'));toast('Game started. Settings are locked until you leave the game.');};
+$('startLocalGame').onclick=()=>{botDifficulty=$('botDifficulty').value;botTemperament=$('botTemperament').value;botRating=Number($('botRating').value);soundOn=$('setupSound').checked;$('soundToggle').textContent=soundOn?'🔊 Sounds on':'🔇 Sounds off';$('soundToggle').setAttribute('aria-pressed',String(soundOn));if(botTimer){clearTimeout(botTimer);botTimer=null}botThinking=false;stopLocalClock();clockStarted=false;clockExpired=false;localClockSeconds=Number($('localTimeControl').value||0);clockWhite=localClockSeconds||300;clockBlack=localClockSeconds||300;activeClockColor='w';game.reset();board=start.map(r=>r.slice());selected=null;targets=[];history=[];redo=[];whiteTurn=true;capturedW=[];capturedB=[];gameStarted=true;showPlayMode('game');startLocalClock();renderClocks();render();say(freshLine(['Welcome to the board. Let’s see your style of play.','Ready when you are. Keep an eye on the whole position.','Board is set. Make the first move count.','Let’s play—calculation beats guessing.'],'opening'));toast('Game started. Settings are locked until you leave the game.');};
 $('backMove').onclick=()=>{if(botTimer){clearTimeout(botTimer);botTimer=null}if(!history.length){toast('No move to undo yet.');return}let undone=0;while(history.length){const m=history[history.length-1];redo.push(m);restoreMove(m,false);undone++;if(m.piece?.[0]==='w'||undone>=2)break}say('Takeback noted. Even the best students correct their work.');toast('Last turn taken back. You can try another line.')}
 $('forwardMove').onclick=()=>{if(!redo.length){toast('No demo move to redo.');return}const m=redo.pop();restoreMove(m,true);if(m.piece?.[0]==='w'&&!game.game_over()&&game.turn()==='b'){if(redo.length&&redo[redo.length-1].piece?.[0]==='b')restoreMove(redo.pop(),true);else scheduleBotMove()}}
 $('flipBoard').onclick=()=>{if(onlineGame){toast('Online games keep the board orientation fixed.');return}flipped=!flipped;render();toast('Board orientation preview toggled.')}
