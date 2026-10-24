@@ -354,7 +354,7 @@ function scheduleBotMove(){
  if(botTimer!==null||botThinking||onlineGame||game.game_over()||game.turn()!=='b'||!gameStarted||clockExpired)return;
  // A single pending reply is bound to the exact position that scheduled it.
  const scheduledFen=game.fen();
- const delay=1800+Math.floor(Math.random()*1001);
+ const delay=2400+Math.floor(Math.random()*1401); // One deliberate, human-paced reply per verified White move.
  botTimer=window.setTimeout(()=>{
   botTimer=null;
   if(!gameStarted||onlineGame||clockExpired||game.game_over()||game.turn()!=='b'||game.fen()!==scheduledFen)return;
