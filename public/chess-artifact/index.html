@@ -531,16 +531,13 @@ async function bootChess(){
     paint('playerCaptures',captured.player);paint('botCaptures',captured.bot);
   }
   function describeMove(move,fromBot){
-    if(move.san.includes('#'))return fromBot?'“Checkmate. The diagnosis is conclusive, doctor.”':'“Checkmate! You found the correct treatment plan.”';
-    if(move.san.includes('+'))return fromBot?'“Check. Your king’s vitals need immediate attention.”':'“Check. You made Dr ECG answer a direct question.”';
-    if(move.captured)return fromBot?'“I’ve taken that piece. Even a good diagnosis has a difficult prognosis.”':'“Good capture. You spotted a weakness rather than moving without a plan.”';
     const playerName=localStorage.getItem('babloChessUsername')||'';
     const programme=localStorage.getItem('babloChessProgramme')||'';
     const courseCombo=localStorage.getItem('babloChessCourseCombo')||'';
     const address=playerName?'@'+playerName:'doctor';
     const context=courseCombo||programme||'Bowen campus';
     if(move.san==='O-O'||move.san==='O-O-O')return fromBot?'“Even the king knows when to leave the centre, '+address+'. Consider that a clinical decision.”':'“Castled. King safety first — even during Bowen timetable wahala.”';
-    if(move.promotion)return fromBot?'“A pawn has been promoted, '+address+'. That is a career progression I respect.”':'“Promotion! Small beginnings, big endgame energy.”';
+    if(move.promotion)return fromBot?'“A pawn has been promoted, '+address+'. That is career progression I respect.”':'“Promotion! Small beginnings, big endgame energy.”';
     if(move.flags&&move.flags.includes('e'))return fromBot?'“En passant? Okay, '+address+', you came prepared. '+context+' has clearly taught you something.”':'“En passant! You caught the pawn before it could settle.”';
     if(move.san.includes('#'))return fromBot?'“Checkmate. The diagnosis is conclusive, '+address+'. No resit.”':'“Checkmate! You found the correct treatment plan.”';
     if(move.san.includes('+'))return fromBot?'“Check. Your king’s vitals need attention, '+address+'. Review the whole board.”':'“Check. You made Dr ECG answer a direct question.”';
@@ -559,8 +556,7 @@ async function bootChess(){
       '“One move at a time, '+address+'. Keep your king safe.”',
       '“You have a plan. Now verify it against the opponent’s strongest reply.”'
     ];
-    const offset=(match.history().length+(fromBot?level:0))%lines.length;
-    return lines[offset];
+    return lines[(match.history().length+(fromBot?level:0))%lines.length];
   }
   function materialScore(game,color){let total=0;game.board().forEach(row=>row.forEach(p=>{if(p)total+=(p.color===color?1:-1)*VALUES[p.type]}));return total}
   function chooseBotMove(){
