@@ -180,7 +180,7 @@ body.setup-open{overflow:hidden}
     </aside>
   </div>
 </div></section>
-<section class="page" id="page-learn"><div class="twocol"><div class="card"><div class="eyebrow">BABLO CHESS ACADEMY</div><h2 style="margin:8px 0">Learn on the board</h2><p class="sub">No lecture-only lessons. Try the move, see what changes, and learn why it matters.</p><div class="lessonitem"><div class="lessonbadge">♙</div><div><strong>1. Develop your pieces</strong><small>Beginner · 3 guided steps</small></div><button class="goldbtn" id="startLesson">Start</button></div><div class="lessonitem"><div class="lessonbadge">✳</div><div><strong>2. Spot the knight fork</strong><small>Tactics · Find the attacking square</small></div><button class="secondary" id="startFork">Try</button></div><div class="lessonitem"><div class="lessonbadge">♔</div><div><strong>3. Checkmate basics</strong><small>Foundations · King and queen</small></div><button class="secondary" id="lockedLesson">Preview</button></div><p class="muted" style="font-size:11px;margin-top:15px">Guided positions use legal-move validation. Lesson completion is a local preview and is not synced to an account.</p></div><div class="card"><div class="minihead"><h3 id="lessonTitle">Lesson board</h3><span class="tag" id="lessonTag">Guided practice</span></div><div class="boardwrap"><div class="board" id="lessonBoard"></div><div class="boardnote"><span id="lessonTurn">White to move</span><span id="lessonStep">Step 1 of 3</span></div></div><div class="info"><div class="stepnum" id="lessonObjective">OBJECTIVE · DEVELOP A KNIGHT</div><p id="lessonExplanation">Move the kingside knight toward the centre.</p></div><div class="movebar"><button class="secondary" id="lessonHint">Hint</button><button class="secondary" id="lessonReset">Restart</button><button class="goldbtn" id="lessonNext">Next step →</button></div><p class="muted" id="lessonFeedback" style="font-size:12px;margin:12px 0 0">Select a piece and tap its destination.</p></div></div></section>
+<section class="page" id="page-learn"><div class="twocol"><div class="card"><div class="eyebrow">BABLO CHESS ACADEMY</div><h2 style="margin:8px 0">Learn on the board</h2><p class="sub">No lecture-only lessons. Try the move, see what changes, and learn why it matters.</p><div class="lessonitem"><div class="lessonbadge">♙</div><div><strong>1. Develop your pieces</strong><small>Beginner · 4 guided steps</small></div><button class="goldbtn" id="startLesson">Start</button></div><div class="lessonitem"><div class="lessonbadge">✳</div><div><strong>2. Spot the knight fork</strong><small>Tactics · Find the attacking square</small></div><button class="secondary" id="startFork">Try</button></div><div class="lessonitem"><div class="lessonbadge">♔</div><div><strong>3. Checkmate in one</strong><small>Foundations · Find the forced mate</small></div><button class="secondary" id="lockedLesson">Start</button></div><p class="muted" style="font-size:11px;margin-top:15px">Guided positions use legal-move validation. Lesson completion is a local preview and is not synced to an account.</p></div><div class="card"><div class="minihead"><h3 id="lessonTitle">Lesson board</h3><span class="tag" id="lessonTag">Guided practice</span></div><div class="boardwrap"><div class="board" id="lessonBoard"></div><div class="boardnote"><span id="lessonTurn">White to move</span><span id="lessonStep">Step 1 of 3</span></div></div><div class="info"><div class="stepnum" id="lessonObjective">OBJECTIVE · DEVELOP A KNIGHT</div><p id="lessonExplanation">Move the kingside knight toward the centre.</p></div><div class="movebar"><button class="secondary" id="lessonHint">Hint</button><button class="secondary" id="lessonReset">Restart</button><button class="goldbtn" id="lessonNext">Next step →</button></div><p class="muted" id="lessonFeedback" style="font-size:12px;margin:12px 0 0">Select a piece and tap its destination.</p></div></div></section>
 <section class="page" id="page-puzzle"><div class="twocol"><div class="card"><div class="eyebrow">DAILY TACTIC · DEMO POSITION</div><div class="minihead" style="margin-top:8px"><h2 style="margin:0">Find the knight fork</h2><span class="tag">Intermediate</span></div><p class="sub">White to move. Find a knight move that attacks two valuable targets at once.</p><div class="statrow"><div class="stat"><small>DATE</small><strong id="puzzleDate">—</strong></div><div class="stat"><small>STREAK</small><strong>3 days</strong></div><div class="stat"><small>ATTEMPTS</small><strong id="attemptCount">0</strong></div></div><div class="info"><strong>Your objective</strong><p>Choose the candidate move that creates a fork. This constructed practice position has a checked solution. The daily puzzle feed and saved streaks are not connected yet.</p></div><div class="actions"><button class="secondary" id="puzzleHint">Show hint 1</button><button class="secondary" id="puzzleReveal">Reveal solution</button><button class="goldbtn" id="puzzleReset">Reset puzzle</button></div><p id="puzzleFeedback" class="muted" style="font-size:13px;margin:13px 0 0">Make your choice on the board.</p></div><div class="card"><div class="minihead"><h3>Puzzle board</h3><span class="tag">Interactive demo</span></div><div class="boardwrap"><div class="board" id="puzzleBoard"></div><div class="boardnote"><span>White to move</span><span>Find the fork</span></div></div><div class="info"><strong>What to look for</strong><p>A knight attacks in an L shape. Look for a move that checks the king while threatening another valuable piece.</p></div></div></div></section>
 <section class="page" id="page-compete"><div class="twocol"><div class="card"><div class="minihead"><div><div class="eyebrow">CAMPUS & FRIENDS</div><h2 style="margin:7px 0 0">Leaderboard</h2></div><span class="tag">Sample data</span></div><p class="sub">These are illustrative demo entries, not live Bablo accounts or connected standings.</p><div class="tabs" id="leaderTabs"><button class="active">Overall</button><button>Friends</button><button>Weekly</button></div><div id="leaderRows"></div><div class="info"><strong>Trustworthy rankings</strong><p>Chess rating and puzzle streak are separate. Live standings need authenticated records and a defined rating service.</p></div></div><div class="card"><div class="eyebrow">TODAY'S OBJECTIVE</div><h2 style="margin:9px 0">Daily puzzle</h2><p class="sub">One position. One idea to discover. Your streak tracks puzzle completion, not chess rating.</p><button class="goldbtn" data-go="puzzle">Open daily puzzle →</button><div class="sectionhead"><div><h2>Challenge ladder</h2><p>A route from fundamentals to tougher tactics.</p></div></div><div class="progress"><i style="width:28%"></i></div><p class="muted" style="font-size:11px">1 of 6 demo stages complete</p><button class="secondary" data-go="learn">Train for the next stage</button></div></div></section>
 <section class="page" id="page-analysis">
@@ -231,10 +231,12 @@ async function bootChess(){
   const TIERS=['Student','Intern','House Officer','Registrar','Consultant','Professor'];
   const FILES='abcdefgh';
   const FORK_FEN='2q3k1/8/2N5/8/8/8/8/4K3 w - - 0 1';
+  const MATE_FEN='7k/8/5KQ1/8/8/8/8/8 w - - 0 1';
   const DEV_STEPS=[
     {from:'e2',to:'e4',objective:'CLAIM THE CENTRE',text:'The e-pawn takes central space and opens lines for the queen and bishop.',hint:'Move the pawn in front of your king two squares: e2 to e4.',reply:{from:'e7',to:'e5'}},
     {from:'g1',to:'f3',objective:'DEVELOP WITH TEMPO',text:'The knight develops toward the centre and attacks Black’s e5-pawn.',hint:'Move your kingside knight from g1 to f3.',reply:{from:'b8',to:'c6'}},
-    {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'c5'}}
+    {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'c5'}},
+    {from:'e1',to:'g1',objective:'CASTLE TO SAFETY',text:'Kingside castling moves your king away from the centre and brings the rook toward the middle. Both the king and rook must be eligible, and the squares between them must be clear and safe.',hint:'Your king starts on e1. Since the knight and bishop have moved, select the king and move it two squares to g1.',reply:null}
   ];
   let match=null,matchSelected=null,lastMatchMove=null,matchMode='Quick Match',strength='Registrar',playerColor='w';
   let analysisMoves=[],analysisPly=0,analysisBaseFen=null;
@@ -752,15 +754,20 @@ async function bootChess(){
 
   function resetLesson(kind='develop'){
     lessonKind=kind;lessonSelected=null;lessonStep=0;lessonWaiting=false;lessonFree=false;lessonHistory=[];
-    lessonGame=kind==='fork'?new Chess(FORK_FEN):new Chess();
-    $('lessonTitle').textContent=kind==='fork'?'Knight fork':'Lesson board';
-    $('lessonTag').textContent=kind==='fork'?'Tactical lesson':'Guided practice';
-    $('lessonNext').textContent=kind==='fork'?'Restart tactic':'Next step →';
+    lessonGame=kind==='fork'?new Chess(FORK_FEN):kind==='mate'?new Chess(MATE_FEN):new Chess();
+    $('lessonTitle').textContent=kind==='fork'?'Knight fork':kind==='mate'?'Checkmate in one':'Develop and castle';
+    $('lessonTag').textContent=kind==='fork'?'Tactical lesson':kind==='mate'?'Mate pattern':'Guided practice';
+    $('lessonNext').textContent=kind==='fork'?'Restart tactic':kind==='mate'?'Restart mate':'Next step →';
     $('lessonNext').disabled=false;
     if(kind==='fork'){
       $('lessonObjective').textContent='OBJECTIVE · FORK THE KING AND QUEEN';
       $('lessonExplanation').textContent='White to move. Ne7+ checks the king on g8 while attacking the queen on c8.';
       $('lessonFeedback').textContent='Select the knight on c6, then choose a legal destination.';
+    }else if(kind==='mate'){
+      $('lessonStep').textContent='One move to mate';
+      $('lessonObjective').textContent='OBJECTIVE · CHECKMATE THE KING';
+      $('lessonExplanation').textContent='White to move. Find the queen move that gives checkmate. Check every escape square before committing.';
+      $('lessonFeedback').textContent='Look for a queen move that is protected by your king and covers the black king’s escape squares.';
     }else{
       $('lessonFeedback').textContent='Play the guided move directly on the board.';
       updateLessonCopy();
@@ -772,7 +779,7 @@ async function bootChess(){
     if(lessonStep>=DEV_STEPS.length){
       $('lessonStep').textContent='Lesson complete';
       $('lessonObjective').textContent='OBJECTIVE · COMPLETE';
-      $('lessonExplanation').textContent='You practised central control, knight development and bishop development. Restart to practise the line again.';
+      $('lessonExplanation').textContent='You practised central control, knight development, bishop development and kingside castling. Restart to practise the line again.';
       $('lessonFeedback').textContent='Completed locally. Progress is not synced to an account.';
       $('lessonNext').textContent='Restart lesson';$('lessonNext').disabled=false;return;
     }
@@ -804,6 +811,14 @@ async function bootChess(){
     }
     lessonHistory.push({fen:lessonGame.fen(),step:lessonStep,waiting:lessonWaiting,free:lessonFree,kind:lessonKind});
     const from=lessonSelected;lessonSelected=null;const move=lessonGame.move({from,to:sq,promotion:'q'});
+    if(lessonKind==='mate'){
+      if(move.from==='g6'&&move.to==='g7'&&lessonGame.isCheckmate()){
+        lessonWaiting=true;$('lessonFeedback').textContent='Checkmate! Qg7# is protected by your king and covers the black king’s escape squares.';$('lessonFeedback').style.color='var(--green)';$('lessonNext').textContent='Restart mate';
+      }else{
+        lessonFree=true;$('lessonFeedback').textContent=lessonGame.isCheck()?'That gives check, but it is not checkmate. Check every legal escape square.':'That move is legal, but the king can still escape. Look for a forcing queen move.';$('lessonFeedback').style.color='var(--gold2)';
+      }
+      renderLessonBoard();return;
+    }
     if(lessonKind==='fork'){
       if(move.from==='c6'&&move.to==='e7'&&lessonGame.isCheck()){
         lessonWaiting=true;$('lessonFeedback').textContent='Correct: Ne7+ checks the king and attacks the queen. That is a knight fork.';$('lessonFeedback').style.color='var(--green)';$('lessonNext').textContent='Restart tactic';
@@ -838,14 +853,16 @@ async function bootChess(){
   $('lessonBack').addEventListener('click',stepBackLesson);
   $('startLesson').addEventListener('click',()=>{resetLesson('develop');toast('Guided opening lesson ready.')});
   $('startFork').addEventListener('click',()=>{resetLesson('fork');toast('Knight-fork tactic ready.')});
-  $('lockedLesson').addEventListener('click',()=>toast('King safety and mating nets remain planned lessons; they are not playable yet.'));
+  $('lockedLesson').addEventListener('click',()=>{resetLesson('mate');toast('Checkmate-in-one lesson ready.');});
   $('lessonHint').addEventListener('click',()=>{
-    if(lessonKind==='fork')$('lessonFeedback').textContent=lessonStep===0?'Hint: from c6, check which square lets the knight attack both the king and queen.':'The fork is shown on the board.';
+    if(lessonKind==='mate')$('lessonFeedback').textContent='Hint: test Qg7+. The queen must be protected, and the king must have no legal escape square.';
+    else if(lessonKind==='fork')$('lessonFeedback').textContent=lessonStep===0?'Hint: from c6, check which square lets the knight attack both the king and queen.':'The fork is shown on the board.';
     else $('lessonFeedback').textContent=lessonFree?'You are in free play. Restart to return to the guided line.':lessonStep>=DEV_STEPS.length?'Lesson complete. Restart to practise again.':DEV_STEPS[lessonStep].hint;
   });
   $('lessonReset').addEventListener('click',()=>{resetLesson(lessonKind);toast('Lesson restarted.')});
   $('lessonNext').addEventListener('click',()=>{
     if(lessonKind==='fork'){resetLesson('fork');toast('Tactic restarted.');return}
+    if(lessonKind==='mate'){resetLesson('mate');toast('Checkmate lesson restarted.');return}
     if(lessonStep>=DEV_STEPS.length){resetLesson('develop');return}
     if(lessonFree){resetLesson('develop');toast('Guided line restarted.');return}
     if(!lessonWaiting){toast('Play the guided move before going to the next step.');return}
