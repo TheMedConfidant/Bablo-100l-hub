@@ -258,7 +258,6 @@ async function bootChess(){
     if(resultLayer)resultLayer.remove();
     resultLayer=document.createElement('div');resultLayer.className='result-layer';resultLayer.setAttribute('role','dialog');resultLayer.setAttribute('aria-modal','true');resultLayer.setAttribute('aria-labelledby','resultTitle');
     resultLayer.innerHTML='<div class="result-card"><div class="result-stamp">Match complete · unranked</div><h2 id="resultTitle"></h2><p id="resultDetail"></p><div class="info"><strong>Move record</strong><p id="resultMoves" style="overflow-wrap:anywhere"></p></div><div class="actions"><button class="goldbtn" id="resultReview">Review board</button><button class="secondary" id="resultRematch">Rematch</button><button class="secondary" id="resultHome">Home</button></div></div>';
-    $('resultTitle')?.remove?.();
     document.body.appendChild(resultLayer);
     resultLayer.querySelector('#resultTitle').textContent=title;
     resultLayer.querySelector('#resultDetail').textContent=detail;
