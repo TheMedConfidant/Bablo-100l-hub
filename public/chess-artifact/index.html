@@ -775,7 +775,7 @@ async function bootChess(){
     renderLessonBoard();
   }
   function updateLessonCopy(){
-    if(lessonKind==='fork')return;
+    if(lessonKind==='fork'||lessonKind==='mate')return;
     if(lessonStep>=DEV_STEPS.length){
       $('lessonStep').textContent='Lesson complete';
       $('lessonObjective').textContent='OBJECTIVE · COMPLETE';
