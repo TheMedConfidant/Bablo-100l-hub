@@ -37,6 +37,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 <section class="page" id="page-compete"><div class="twocol"><div class="card"><div class="minihead"><div><div class="eyebrow">CAMPUS & FRIENDS</div><h2 style="margin:7px 0 0">Leaderboard</h2></div><span class="tag">Sample data</span></div><p class="sub">These are illustrative demo entries, not live Bablo accounts or connected standings.</p><div class="tabs" id="leaderTabs"><button class="active">Overall</button><button>Friends</button><button>Weekly</button></div><div id="leaderRows"></div><div class="info"><strong>Trustworthy rankings</strong><p>Chess rating and puzzle streak are separate. Live standings need authenticated records and a defined rating service.</p></div></div><div class="card"><div class="eyebrow">TODAY'S OBJECTIVE</div><h2 style="margin:9px 0">Daily puzzle</h2><p class="sub">One position. One idea to discover. Your streak tracks puzzle completion, not chess rating.</p><button class="goldbtn" data-go="puzzle">Open daily puzzle →</button><div class="sectionhead"><div><h2>Challenge ladder</h2><p>A route from fundamentals to tougher tactics.</p></div></div><div class="progress"><i style="width:28%"></i></div><p class="muted" style="font-size:11px">1 of 6 demo stages complete</p><button class="secondary" data-go="learn">Train for the next stage</button></div></div></section>
 <section class="page" id="page-profile"><div class="card"><div class="profilehead"><div class="bigavatar">P</div><div><div class="eyebrow">PLAYER PROFILE</div><h2 style="margin:5px 0">Player One</h2><p class="sub" style="margin:0">Bablo Chess learner · Demo profile</p></div></div><div class="statrow"><div class="stat"><small>CHESS RATING</small><strong>842</strong></div><div class="stat"><small>GAMES PLAYED</small><strong>18</strong></div><div class="stat"><small>WIN RATE</small><strong>56%</strong></div></div></div><div class="three" style="margin-top:16px"><div class="card"><div class="eyebrow">HABIT</div><h2 style="font-size:28px;margin:8px 0">3 days</h2><p class="sub">Puzzle streak · Sample data</p></div><div class="card"><div class="eyebrow">ACADEMY</div><h2 style="font-size:28px;margin:8px 0">4 / 12</h2><p class="sub">Lessons completed · Sample data</p></div><div class="card"><div class="eyebrow">ACHIEVEMENT</div><h2 style="font-size:28px;margin:8px 0">First fork</h2><p class="sub">Illustrative badge · Not synced</p></div></div><div class="card" style="margin-top:16px"><h3>Prototype data notice</h3><p class="sub">Profile stats, rankings and progress are demonstration values. They do not change your production Bablo Hub account.</p></div></section>
 </main></div><nav class="mobilebar" id="mobilebar"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav><div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- Rule validation uses chess.js 1.4.0 (BSD-2-Clause) as an ESM dependency. -->
 <script type="module">
 const titles={home:['THE BOARD IS YOURS','Good evening, player.'],play:['MATCHMAKING','Choose your game.'],learn:['BABLO CHESS ACADEMY','Learn by making moves.'],puzzle:['DAILY TACTIC','Find the knight fork.'],compete:['CAMPUS & FRIENDS','Compete with purpose.'],profile:['YOUR CHESS JOURNEY','Your progress.']};
 function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));if(titles[p]){document.getElementById('eyebrow').textContent=titles[p][0];document.getElementById('pagetitle').textContent=titles[p][1]}window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
@@ -120,7 +121,7 @@ async function bootChess(){
     clockInterval=setInterval(()=>{
       if(!match||matchOver||!matchStarted)return;
       const side=match.turn();clocks[side]=Math.max(0,clocks[side]-1);updateClocks();
-      if(clocks[side]<=0){const winner=side===playerColor?'Dr ECG':'You';finishByResult(winner+' win on time',side===playerColor?'Your clock ran out. This local game does not change a rating.':'Dr ECG ran out of time. This local result is not rated.');}
+      if(clocks[side]<=0){const winner=side===playerColor?'Dr ECG':'You';const title=winner==='You'?'You win on time':'Dr ECG wins on time';finishByResult(title,side===playerColor?'Your clock ran out. This local game does not change a rating.':'Dr ECG ran out of time. This local result is not rated.');}
     },1000);
   }
   function currentStrength(){return document.querySelector('#strengthTabs .active')?.textContent.trim()||'Registrar'}
@@ -303,7 +304,7 @@ async function bootChess(){
   });
   $('resetBoard').addEventListener('click',()=>{startMatch();toast('New local game started.')});
   $('finishMatch').addEventListener('click',()=>{if(!match||matchOver)return;if(confirm('Resign this unranked local game?'))finishByResult(playerColor==='w'?'Dr ECG wins on resignation':'Dr ECG wins on resignation','You resigned. No rating or online result will be submitted.')});
-  $('drawOffer').addEventListener('click',()=>{if(!match||matchOver)return;if(match.isDraw())settleGame();else toast('Draw negotiation is not part of this offline preview. No result was changed.')});
+  $('drawOffer').addEventListener('click',()=>{if(!match||matchOver||botThinking)return;if(match.isDraw()){settleGame();return}const balance=materialScore(match,'w');if(match.history().length>=30&&Math.abs(balance)<=0.5){finishByResult('Draw agreed','Dr ECG accepted the draw after a balanced, extended game. This local result is not rated.')}else{$('botLine').textContent='“A draw? Not yet, doctor. The position still has unresolved business.”';toast('Dr ECG declines the draw for now.')}});
 
   function resetLesson(kind='develop'){
     lessonKind=kind;lessonSelected=null;lessonStep=0;lessonWaiting=false;lessonFree=false;lessonHistory=[];
@@ -360,12 +361,12 @@ async function bootChess(){
     lessonHistory.push({fen:lessonGame.fen(),step:lessonStep,waiting:lessonWaiting,free:lessonFree,kind:lessonKind});
     const from=lessonSelected;lessonSelected=null;const move=lessonGame.move({from,to:sq,promotion:'q'});
     if(lessonKind==='fork'){
-      renderLessonBoard();
       if(move.from==='c6'&&move.to==='e7'&&lessonGame.isCheck()){
         lessonWaiting=true;$('lessonFeedback').textContent='Correct: Ne7+ checks the king and attacks the queen. That is a knight fork.';$('lessonFeedback').style.color='var(--green)';$('lessonNext').textContent='Restart tactic';
       }else{
         lessonFree=true;$('lessonFeedback').textContent='Legal move, but it missed the fork. Restart and look for a move that checks the king while attacking the queen.';$('lessonFeedback').style.color='var(--gold2)';
       }
+      renderLessonBoard();
       return;
     }
     if(!lessonFree&&lessonStep<DEV_STEPS.length){
