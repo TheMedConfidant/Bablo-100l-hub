@@ -385,7 +385,7 @@ async function bootChess(){
     resultLayer.innerHTML='<div class="result-card"><div class="result-stamp">Match complete · unranked</div><h2 id="resultTitle"></h2><p id="resultDetail"></p><div class="info"><strong>Move record</strong><p id="resultMoves" style="overflow-wrap:anywhere"></p></div><div class="actions"><button class="goldbtn" id="resultReview">Review board</button><button class="secondary" id="resultRematch">Rematch</button><button class="secondary" id="resultHome">Home</button></div></div>';
     document.body.appendChild(resultLayer);
     const analyzeButton=document.createElement('button');analyzeButton.className='secondary';analyzeButton.textContent='Review this game';analyzeButton.style.marginTop='10px';analyzeButton.style.width='100%';analyzeButton.addEventListener('click',()=>{if(resultLayer){resultLayer.remove();resultLayer=null}loadAnalysis()});
-    resultLayer.querySelector('.result-content')?.appendChild(analyzeButton);
+    resultLayer.querySelector('.result-card .actions')?.appendChild(analyzeButton);
     resultLayer.querySelector('#resultTitle').textContent=title;
     resultLayer.querySelector('#resultDetail').textContent=detail;
     resultLayer.querySelector('#resultMoves').textContent=match?match.pgn().replace(/\[.*?\]\s*/g,'').trim()||'No moves recorded.':'No moves recorded.';
