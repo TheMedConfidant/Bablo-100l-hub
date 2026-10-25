@@ -1,6 +1,6 @@
 /* Bablo 100L Hub service worker: lets the app open offline. Live data (Supabase) is never cached. */
-const VERSION = 'bablo-shell-v4-chess-username';
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const VERSION = 'bablo-shell-v5-mls101';
+const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './mls101-data.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
