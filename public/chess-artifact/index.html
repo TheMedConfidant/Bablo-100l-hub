@@ -236,7 +236,7 @@ async function bootChess(){
   const DEV_STEPS=[
     {from:'e2',to:'e4',objective:'CLAIM THE CENTRE',text:'The e-pawn takes central space and opens lines for the queen and bishop.',hint:'Move the pawn in front of your king two squares: e2 to e4.',reply:{from:'e7',to:'e5'}},
     {from:'g1',to:'f3',objective:'DEVELOP WITH TEMPO',text:'The knight develops toward the centre and attacks Black’s e5-pawn.',hint:'Move your kingside knight from g1 to f3.',reply:{from:'b8',to:'c6'}},
-    {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'c5'}},
+    {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'e7'}},
     {from:'e1',to:'g1',objective:'CASTLE TO SAFETY',text:'Kingside castling moves your king away from the centre and brings the rook toward the middle. Both the king and rook must be eligible, and the squares between them must be clear and safe.',hint:'Your king starts on e1. Since the knight and bishop have moved, select the king and move it two squares to g1.',reply:null}
   ];
   let match=null,matchSelected=null,lastMatchMove=null,matchMode='Quick Match',strength='Registrar',playerColor='w';
@@ -876,7 +876,7 @@ async function bootChess(){
   $('startFork').addEventListener('click',()=>{resetLesson('fork');toast('Knight-fork tactic ready.')});
   $('lockedLesson').addEventListener('click',()=>{resetLesson('mate');toast('Checkmate-in-one lesson ready.');});
   $('lessonHint').addEventListener('click',()=>{
-    if(lessonKind==='mate')$('lessonFeedback').textContent='Hint: test Qg7+. The queen must be protected, and the king must have no legal escape square.';
+    if(lessonKind==='mate')$('lessonFeedback').textContent='Hint: play Qg7#. Your king protects the queen, and the queen controls the black king’s escape squares.';
     else if(lessonKind==='fork')$('lessonFeedback').textContent=lessonStep===0?'Hint: from c6, check which square lets the knight attack both the king and queen.':'The fork is shown on the board.';
     else $('lessonFeedback').textContent=lessonFree?'You are in free play. Restart to return to the guided line.':lessonStep>=DEV_STEPS.length?'Lesson complete. Restart to practise again.':DEV_STEPS[lessonStep].hint;
   });
