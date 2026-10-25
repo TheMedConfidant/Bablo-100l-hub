@@ -271,7 +271,7 @@ async function bootChess(){
     if(!result){setEngineStatus('Engine analysis timed out. Try selecting the position again.');return}
     const info=result.info;
     if(info){
-      ev.textContent=info.kind==='mate'?'Mate in '+info.value:(info.value/100>0?'+':'')+(info.value/100).toFixed(2);
+      const whiteScore=fen.split(' ')[1]==='b'?-info.value:info.value;ev.textContent=info.kind==='mate'?'Mate in '+(fen.split(' ')[1]==='b'?-info.value:info.value):(whiteScore/100>0?'+':'')+(whiteScore/100).toFixed(2);
       dep.textContent=String(info.depth||'—');pv.textContent=info.pv?' · '+info.pv.split(' ').slice(0,5).join(' '):'';
     }else{ev.textContent='Score unavailable';dep.textContent='—';pv.textContent=''}
     best.textContent=uciToSan(fen,result.bestmove);
