@@ -27,6 +27,7 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 .result-card h2{font-size:clamp(26px,5vw,36px);margin:10px 0}
 .result-card p{color:#b8bfba;line-height:1.6}
 .result-stamp{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--gold2);text-transform:uppercase}
+.analysis-moves{display:flex;flex-wrap:wrap;gap:7px;max-height:300px;overflow:auto;padding:8px 0}.analysis-move{border:1px solid var(--line);background:#101314;color:var(--text);border-radius:8px;padding:7px 9px;font-size:12px;cursor:pointer}.analysis-move.active{border-color:var(--gold);background:#2b2414;color:var(--gold2)}
 .capture-tray{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
 .capture-box{min-width:0;border:1px solid var(--line);border-radius:10px;background:#101314;padding:10px}
 .capture-box small{display:block;color:var(--muted);font-size:10px;letter-spacing:.05em;text-transform:uppercase}
@@ -35,17 +36,43 @@ button:disabled{opacity:.42;cursor:not-allowed;transform:none}
 
 @media(max-width:480px){.clockchip{padding:8px}.clockchip strong{font-size:14px}.sq.capture-target:after{border-width:3px}}
 
-</style></head><body><div class="shell"><aside class="side"><div class="brand"><div class="crest">♞</div><div><strong>BABLO CHESS</strong><small>THINK ONE MOVE AHEAD</small></div></div><div><div class="navlabel">Workspace</div><nav class="nav" id="sidenav"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play chess</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="puzzle"><span>✳</span>Daily puzzle</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav></div><div class="sidefoot"><small>YOUR CHESS JOURNEY</small><strong>Build the habit. Read the board.</strong><div class="progress"><i></i></div><small>3 day streak · Demo progress</small></div></aside><main class="main"><header class="top"><div><div class="eyebrow" id="eyebrow">THE BOARD IS YOURS</div><h1 id="pagetitle">Good evening, player.</h1></div><div class="topright"><div class="pill">♨ 3 day streak</div><div class="avatar">P</div></div></header>
+</style></head><body><div class="shell"><aside class="side"><div class="brand"><div class="crest">♞</div><div><strong>BABLO CHESS</strong><small>THINK ONE MOVE AHEAD</small></div></div><div><div class="navlabel">Workspace</div><nav class="nav" id="sidenav"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play chess</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="puzzle"><span>✳</span>Daily puzzle</button><button data-page="analysis"><span>⌕</span>Game analysis</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav></div><div class="sidefoot"><small>YOUR CHESS JOURNEY</small><strong>Build the habit. Read the board.</strong><div class="progress"><i></i></div><small>3 day streak · Demo progress</small></div></aside><main class="main"><header class="top"><div><div class="eyebrow" id="eyebrow">THE BOARD IS YOURS</div><h1 id="pagetitle">Good evening, player.</h1></div><div class="topright"><div class="pill">♨ 3 day streak</div><div class="avatar">P</div></div></header>
 <section class="page active" id="page-home"><div class="hero"><div class="card heroCopy"><div class="eyebrow">YOUR NEXT MOVE STARTS HERE</div><h2>Play with purpose.<br><span style="color:var(--gold2)">Think like a strategist.</span></h2><p>Face Dr ECG, sharpen your tactics on the board, or take on today's challenge. One move at a time.</p><div class="actions"><button class="goldbtn" data-go="play">♟ &nbsp; Play a match</button><button class="secondary" data-go="learn">Continue learning ↗</button></div><div class="statrow"><div class="stat"><small>CHESS RATING</small><strong>842</strong></div><div class="stat"><small>PUZZLE STREAK</small><strong>3 days</strong></div><div class="stat"><small>LESSONS</small><strong>4 / 12</strong></div></div><p class="muted preview-note">Illustrative preview data only — no live rating, account progress or saved streak is connected.</p></div><div class="card"><div class="minihead"><h3>Your signature opponent</h3><span class="tag">Training bot</span></div><div class="botbox"><div class="botface">♞</div><div><strong>Dr ECG</strong><small>Professor of painful blunders</small><div style="margin-top:6px;color:var(--gold2);font-size:12px">★★★★★ <span class="muted">Strength tier: Registrar</span></div></div></div><div class="quote">“You can’t diagnose a position by staring at it. Make your move, doctor.”</div><div class="sectionhead"><div><h2 style="font-size:15px">Choose your session</h2><p>Strength and clock are set before play.</p></div></div><button class="goldbtn" style="width:100%" data-go="play">Set up match →</button></div></div><div class="sectionhead"><div><h2>Pick up where you left off</h2><p>Short sessions, deliberate progress.</p></div><button class="textlink" data-go="learn">All lessons ↗</button></div><div class="three"><div class="card mode" data-go="learn"><div class="modeicon">♙</div><h3>Board-side learning</h3><p>Learn by making moves on an interactive board.</p><button class="textlink">Resume lesson →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Daily puzzle</h3><p>Find the winning tactic. Hints are available if you get stuck.</p><button class="textlink">Solve today's puzzle →</button></div><div class="card mode" data-go="compete"><div class="modeicon">♜</div><h3>Leaderboard</h3><p>Compare demo rankings and see how competition works.</p><button class="textlink">View standings →</button></div></div></section>
 <section class="page" id="page-play"><div class="card"><div class="eyebrow">MATCHMAKING</div><h2 style="margin:8px 0">What kind of game?</h2><p class="sub">Pick the purpose first. Configure the clock and Dr ECG's strength before the board opens.</p><div class="three" style="margin-top:20px"><div class="card mode" data-format="Quick Match"><div class="modeicon">⚡</div><h3>Quick match</h3><p>Get to the board quickly. A straightforward practice game.</p><button class="goldbtn">Choose →</button></div><div class="card mode" data-format="Timed Match"><div class="modeicon">◷</div><h3>Timed match</h3><p>Bullet, blitz, rapid, classical or a custom clock.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Training Match"><div class="modeicon">♧</div><h3>Training match</h3><p>Unranked practice with optional hints and take-backs.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Challenge Ladder"><div class="modeicon">↗</div><h3>Challenge ladder</h3><p>Climb through progressively tougher challenges.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Tactical rounds</h3><p>Solve positions against a move limit and objective.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="learn"><div class="modeicon">⌘</div><h3>Opening lab</h3><p>Study an opening line, then try it on the board.</p><button class="secondary">Explore →</button></div></div></div><div class="card" id="setup" hidden style="margin-top:16px"><div class="minihead"><h3 id="setupTitle">Match setup</h3><span class="tag">Before the game</span></div><div class="twocol"><div><label class="muted">DR ECG STRENGTH</label><div class="tabs" id="strengthTabs"><button>Student</button><button>Intern</button><button>House Officer</button><button class="active">Registrar</button><button>Consultant</button><button>Professor</button></div><label class="muted">TIME CONTROL</label><div class="tabs" id="clockTabs"><button>Unlimited</button><button>3 + 2</button><button class="active">10 + 0</button><button>15 + 10</button></div><label class="muted">PLAYING SIDE</label><div class="tabs" id="sideTabs"><button class="active">White</button><button>Black</button></div></div><div class="info"><strong>Practice match</strong><p>Legal moves, check and game endings are validated in this preview. Dr ECG uses a basic local move policy, not a calibrated chess engine. Online play and ratings are not connected.</p><div class="actions"><button class="goldbtn" id="startMatch">Open board →</button></div></div></div></div><div class="card" id="matchCard" hidden style="margin-top:16px"><div class="minihead"><h3 id="matchName">Practice match</h3><span class="tag">Legal-move prototype</span></div><div class="boardlayout"><div><div class="boardwrap"><div class="board" id="matchBoard"></div><div class="boardnote"><span id="turnLabel">White to move</span><span>Legal moves active · unranked preview</span></div></div><div class="movebar"><button class="secondary" id="gameSound" type="button" aria-pressed="true">♫ Sound on</button><button class="secondary" id="undoMove">↶ Undo</button><button class="secondary" id="resetBoard">Restart board</button><button class="secondary" id="finishMatch">End demo</button></div></div><div><div class="botbox"><div class="botface" style="width:44px;height:44px">♞</div><div><strong>Dr ECG</strong><small id="matchStrength">Registrar · Practice</small></div></div><div class="capture-tray" aria-label="Captured pieces"><div class="capture-box"><small>You captured</small><div class="capture-pieces" id="playerCaptures"><span class="empty">None yet</span></div></div><div class="capture-box"><small>Dr ECG captured</small><div class="capture-pieces" id="botCaptures"><span class="empty">None yet</span></div></div></div><div class="info"><strong>Dr ECG says</strong><p id="botLine">“Develop your pieces before you start prescribing attacks.”</p></div><div class="info"><strong>Move log</strong><p id="moveLog">Select a piece, then a destination square.</p></div></div></div></div></section>
 <section class="page" id="page-learn"><div class="twocol"><div class="card"><div class="eyebrow">BABLO CHESS ACADEMY</div><h2 style="margin:8px 0">Learn on the board</h2><p class="sub">No lecture-only lessons. Try the move, see what changes, and learn why it matters.</p><div class="lessonitem"><div class="lessonbadge">♙</div><div><strong>1. Develop your pieces</strong><small>Beginner · 3 guided steps</small></div><button class="goldbtn" id="startLesson">Start</button></div><div class="lessonitem"><div class="lessonbadge">✳</div><div><strong>2. Spot the knight fork</strong><small>Tactics · Find the attacking square</small></div><button class="secondary" id="startFork">Try</button></div><div class="lessonitem"><div class="lessonbadge">♔</div><div><strong>3. Checkmate basics</strong><small>Foundations · King and queen</small></div><button class="secondary" id="lockedLesson">Preview</button></div><p class="muted" style="font-size:11px;margin-top:15px">Guided positions use legal-move validation. Lesson completion is a local preview and is not synced to an account.</p></div><div class="card"><div class="minihead"><h3 id="lessonTitle">Lesson board</h3><span class="tag" id="lessonTag">Guided practice</span></div><div class="boardwrap"><div class="board" id="lessonBoard"></div><div class="boardnote"><span id="lessonTurn">White to move</span><span id="lessonStep">Step 1 of 3</span></div></div><div class="info"><div class="stepnum" id="lessonObjective">OBJECTIVE · DEVELOP A KNIGHT</div><p id="lessonExplanation">Move the kingside knight toward the centre.</p></div><div class="movebar"><button class="secondary" id="lessonHint">Hint</button><button class="secondary" id="lessonReset">Restart</button><button class="goldbtn" id="lessonNext">Next step →</button></div><p class="muted" id="lessonFeedback" style="font-size:12px;margin:12px 0 0">Select a piece and tap its destination.</p></div></div></section>
 <section class="page" id="page-puzzle"><div class="twocol"><div class="card"><div class="eyebrow">DAILY TACTIC · DEMO POSITION</div><div class="minihead" style="margin-top:8px"><h2 style="margin:0">Find the knight fork</h2><span class="tag">Intermediate</span></div><p class="sub">White to move. Find a knight move that attacks two valuable targets at once.</p><div class="statrow"><div class="stat"><small>DATE</small><strong id="puzzleDate">—</strong></div><div class="stat"><small>STREAK</small><strong>3 days</strong></div><div class="stat"><small>ATTEMPTS</small><strong id="attemptCount">0</strong></div></div><div class="info"><strong>Your objective</strong><p>Choose the candidate move that creates a fork. This constructed practice position has a checked solution. The daily puzzle feed and saved streaks are not connected yet.</p></div><div class="actions"><button class="secondary" id="puzzleHint">Show hint 1</button><button class="secondary" id="puzzleReveal">Reveal solution</button><button class="goldbtn" id="puzzleReset">Reset puzzle</button></div><p id="puzzleFeedback" class="muted" style="font-size:13px;margin:13px 0 0">Make your choice on the board.</p></div><div class="card"><div class="minihead"><h3>Puzzle board</h3><span class="tag">Interactive demo</span></div><div class="boardwrap"><div class="board" id="puzzleBoard"></div><div class="boardnote"><span>White to move</span><span>Find the fork</span></div></div><div class="info"><strong>What to look for</strong><p>A knight attacks in an L shape. Look for a move that checks the king while threatening another valuable piece.</p></div></div></div></section>
 <section class="page" id="page-compete"><div class="twocol"><div class="card"><div class="minihead"><div><div class="eyebrow">CAMPUS & FRIENDS</div><h2 style="margin:7px 0 0">Leaderboard</h2></div><span class="tag">Sample data</span></div><p class="sub">These are illustrative demo entries, not live Bablo accounts or connected standings.</p><div class="tabs" id="leaderTabs"><button class="active">Overall</button><button>Friends</button><button>Weekly</button></div><div id="leaderRows"></div><div class="info"><strong>Trustworthy rankings</strong><p>Chess rating and puzzle streak are separate. Live standings need authenticated records and a defined rating service.</p></div></div><div class="card"><div class="eyebrow">TODAY'S OBJECTIVE</div><h2 style="margin:9px 0">Daily puzzle</h2><p class="sub">One position. One idea to discover. Your streak tracks puzzle completion, not chess rating.</p><button class="goldbtn" data-go="puzzle">Open daily puzzle →</button><div class="sectionhead"><div><h2>Challenge ladder</h2><p>A route from fundamentals to tougher tactics.</p></div></div><div class="progress"><i style="width:28%"></i></div><p class="muted" style="font-size:11px">1 of 6 demo stages complete</p><button class="secondary" data-go="learn">Train for the next stage</button></div></div></section>
+<section class="page" id="page-analysis">
+  <div class="card">
+    <div class="eyebrow">MOVE-BY-MOVE REVIEW</div>
+    <h2 style="margin:8px 0">Game analysis</h2>
+    <p class="sub">Replay a game from the current browser session, inspect legal positions and review checks and captures. This first version does not claim engine evaluations or blunder detection.</p>
+    <div class="statrow" style="margin-top:16px">
+      <div class="stat"><small>MOVE</small><strong id="analysisPly">0 / 0</strong></div>
+      <div class="stat"><small>MATERIAL BALANCE</small><strong id="analysisMaterial">0.0</strong></div>
+      <div class="stat"><small>POSITION</small><strong id="analysisState">No game loaded</strong></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:8px">Material balance is a simple piece-count estimate from White's perspective, not a chess-engine evaluation or a measure of who is winning.</p>
+  </div>
+  <div class="boardlayout" style="margin-top:16px">
+    <div class="card">
+      <div class="boardwrap"><div class="board" id="analysisBoard"></div><div class="boardnote"><span id="analysisTurn">Load a game to begin.</span><span>Replay board</span></div></div>
+      <div class="movebar"><button class="secondary" id="analysisStart">|‹ Start</button><button class="secondary" id="analysisPrev">‹ Previous</button><button class="goldbtn" id="analysisNext">Next ›</button><button class="secondary" id="analysisEnd">End ›|</button></div>
+      <div class="info" style="margin-top:12px"><strong id="analysisMoveTitle">Move details</strong><p id="analysisMoveDetail">Finish or make moves in a local match, then open Game analysis.</p></div>
+    </div>
+    <div class="card">
+      <div class="minihead"><h3>Move list</h3><span class="tag" id="analysisCount">0 plies</span></div>
+      <div id="analysisMoveList" class="analysis-moves"><p class="muted">No moves to review yet.</p></div>
+      <div class="info" style="margin-top:14px"><strong>Coming in the engine phase</strong><p>Stockfish-backed position scores, best-move suggestions, missed tactics and blunder classification. Those will be labelled as engine analysis only after the engine is actually connected.</p></div>
+      <button class="secondary" style="width:100%;margin-top:12px" data-go="play">Start a practice game →</button>
+    </div>
+  </div>
+</section>
 <section class="page" id="page-profile"><div class="card"><div class="profilehead"><div class="bigavatar">P</div><div><div class="eyebrow">PLAYER PROFILE</div><h2 style="margin:5px 0">Player One</h2><p class="sub" style="margin:0">Bablo Chess learner · Demo profile</p></div></div><div class="statrow"><div class="stat"><small>CHESS RATING</small><strong>842</strong></div><div class="stat"><small>GAMES PLAYED</small><strong>18</strong></div><div class="stat"><small>WIN RATE</small><strong>56%</strong></div></div></div><div class="three" style="margin-top:16px"><div class="card"><div class="eyebrow">HABIT</div><h2 style="font-size:28px;margin:8px 0">3 days</h2><p class="sub">Puzzle streak · Sample data</p></div><div class="card"><div class="eyebrow">ACADEMY</div><h2 style="font-size:28px;margin:8px 0">4 / 12</h2><p class="sub">Lessons completed · Sample data</p></div><div class="card"><div class="eyebrow">ACHIEVEMENT</div><h2 style="font-size:28px;margin:8px 0">First fork</h2><p class="sub">Illustrative badge · Not synced</p></div></div><div class="card" style="margin-top:16px"><h3>Prototype data notice</h3><p class="sub">Profile stats, rankings and progress are demonstration values. They do not change your production Bablo Hub account.</p></div></section>
 </main></div><nav class="mobilebar" id="mobilebar"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav><div class="toast" id="toast" role="status" aria-live="polite"></div>
 <!-- Rule validation uses chess.js 1.4.0 (BSD-2-Clause) as an ESM dependency. -->
 <script type="module">
-const titles={home:['THE BOARD IS YOURS','Good evening, player.'],play:['MATCHMAKING','Choose your game.'],learn:['BABLO CHESS ACADEMY','Learn by making moves.'],puzzle:['DAILY TACTIC','Find the knight fork.'],compete:['CAMPUS & FRIENDS','Compete with purpose.'],profile:['YOUR CHESS JOURNEY','Your progress.']};
+const titles={home:['THE BOARD IS YOURS','Good evening, player.'],play:['MATCHMAKING','Choose your game.'],learn:['BABLO CHESS ACADEMY','Learn by making moves.'],puzzle:['DAILY TACTIC','Find the knight fork.'],analysis:['REVIEW THE POSITION','Understand the game.'],compete:['CAMPUS & FRIENDS','Compete with purpose.'],profile:['YOUR CHESS JOURNEY','Your progress.']};
 function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));if(titles[p]){document.getElementById('eyebrow').textContent=titles[p][0];document.getElementById('pagetitle').textContent=titles[p][1]}window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
@@ -68,6 +95,7 @@ async function bootChess(){
     {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'c5'}}
   ];
   let match=null,matchSelected=null,lastMatchMove=null,matchMode='Quick Match',strength='Registrar',playerColor='w';
+  let analysisMoves=[],analysisPly=0,analysisBaseFen=null;
   let audioContext=null,soundEnabled=true;
   let botThinking=false,botTimer=null,clockInterval=null,clockBase=600,clockIncrement=0,clocks={w:600,b:600},clockEnabled=true;
   let resultLayer=null,matchStarted=false,matchOver=false;
@@ -171,6 +199,59 @@ async function bootChess(){
     const undo=$('undoMove');if(undo)undo.disabled=false;
     drawMatch();startClock();$('matchCard').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
     if(playerColor==='b')scheduleBot();
+  }
+
+  function materialBalance(game){
+    let score=0;
+    game.board().forEach(row=>row.forEach(piece=>{if(piece)score+=(piece.color==='w'?1:-1)*VALUES[piece.type]}));
+    return score;
+  }
+  function loadAnalysis(){
+    if(!match||!match.history().length){toast('Play at least one move in a local match before reviewing it.');go('play');return}
+    analysisBaseFen=new Chess().fen();
+    analysisMoves=match.history({verbose:true}).map(move=>({...move}));
+    analysisPly=analysisMoves.length;
+    go('analysis');renderAnalysis();
+  }
+  function renderAnalysis(){
+    if(!analysisBaseFen)analysisBaseFen=new Chess().fen();
+    const game=new Chess(analysisBaseFen);
+    for(let i=0;i<analysisPly;i++){
+      const m=analysisMoves[i];
+      const applied=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});
+      if(!applied)break;
+    }
+    drawBoard('analysisBoard',game,()=>{}, {lastMove:analysisPly? [analysisMoves[analysisPly-1].from,analysisMoves[analysisPly-1].to]:null,orientation:'w'});
+    $('analysisPly').textContent=analysisPly+' / '+analysisMoves.length;
+    const balance=materialBalance(game);
+    $('analysisMaterial').textContent=(balance>0?'+':'')+balance.toFixed(1);
+    $('analysisState').textContent=game.isCheckmate()?'Checkmate':game.isCheck()?'Check':game.isDraw()?'Draw':'In play';
+    $('analysisTurn').textContent=game.isCheckmate()?'Checkmate':(game.turn()==='w'?'White':'Black')+' to move';
+    if(analysisPly===0){
+      $('analysisMoveTitle').textContent='Starting position';
+      $('analysisMoveDetail').textContent='No move played yet. Use Next to step through the game.';
+    }else{
+      const m=analysisMoves[analysisPly-1];
+      const flags=[];
+      if(m.captured)flags.push('capture');
+      if(m.san.includes('+'))flags.push('check');
+      if(m.san.includes('#'))flags.push('checkmate');
+      $('analysisMoveTitle').textContent='Ply '+analysisPly+' · '+(m.color==='w'?'White':'Black')+' played '+m.san;
+      $('analysisMoveDetail').textContent=flags.length?'Move features: '+flags.join(', ')+'.':'Legal move replayed. No check or capture on this move.';
+    }
+    $('analysisCount').textContent=analysisMoves.length+' plies';
+    const list=$('analysisMoveList');list.textContent='';
+    if(!analysisMoves.length){const p=document.createElement('p');p.className='muted';p.textContent='No moves to review yet.';list.appendChild(p)}
+    analysisMoves.forEach((m,index)=>{
+      const button=document.createElement('button');button.className='analysis-move'+(index+1===analysisPly?' active':'');
+      button.textContent=(m.color==='w'?Math.floor(index/2)+1+'. ':'')+m.san;
+      button.addEventListener('click',()=>{analysisPly=index+1;renderAnalysis()});
+      list.appendChild(button);
+    });
+    $('analysisStart').disabled=analysisPly===0;
+    $('analysisPrev').disabled=analysisPly===0;
+    $('analysisNext').disabled=analysisPly>=analysisMoves.length;
+    $('analysisEnd').disabled=analysisPly>=analysisMoves.length;
   }
   function drawMatch(){drawBoard('matchBoard',match,matchClick,{selected:matchSelected,lastMove:lastMatchMove,orientation:playerColor}) ;updateClocks();updateTurn();updateCapturedPieces()}
   function updateTurn(){
@@ -303,6 +384,8 @@ async function bootChess(){
     resultLayer=document.createElement('div');resultLayer.className='result-layer';resultLayer.setAttribute('role','dialog');resultLayer.setAttribute('aria-modal','true');resultLayer.setAttribute('aria-labelledby','resultTitle');
     resultLayer.innerHTML='<div class="result-card"><div class="result-stamp">Match complete · unranked</div><h2 id="resultTitle"></h2><p id="resultDetail"></p><div class="info"><strong>Move record</strong><p id="resultMoves" style="overflow-wrap:anywhere"></p></div><div class="actions"><button class="goldbtn" id="resultReview">Review board</button><button class="secondary" id="resultRematch">Rematch</button><button class="secondary" id="resultHome">Home</button></div></div>';
     document.body.appendChild(resultLayer);
+    const analyzeButton=document.createElement('button');analyzeButton.className='secondary';analyzeButton.textContent='Review this game';analyzeButton.style.marginTop='10px';analyzeButton.style.width='100%';analyzeButton.addEventListener('click',()=>{if(resultLayer){resultLayer.remove();resultLayer=null}loadAnalysis()});
+    resultLayer.querySelector('.result-content')?.appendChild(analyzeButton);
     resultLayer.querySelector('#resultTitle').textContent=title;
     resultLayer.querySelector('#resultDetail').textContent=detail;
     resultLayer.querySelector('#resultMoves').textContent=match?match.pgn().replace(/\[.*?\]\s*/g,'').trim()||'No moves recorded.':'No moves recorded.';
@@ -341,6 +424,14 @@ async function bootChess(){
     if(soundEnabled){ensureAudio();playChessSound('move')}
     toast(soundEnabled?'Move sounds enabled.':'Move sounds muted.');
   });
+  ['analysisStart','analysisPrev','analysisNext','analysisEnd'].forEach(id=>$(id).addEventListener('click',()=>{
+    if(id==='analysisStart')analysisPly=0;
+    if(id==='analysisPrev')analysisPly=Math.max(0,analysisPly-1);
+    if(id==='analysisNext')analysisPly=Math.min(analysisMoves.length,analysisPly+1);
+    if(id==='analysisEnd')analysisPly=analysisMoves.length;
+    renderAnalysis();
+  }));
+  document.querySelectorAll('[data-page="analysis"]').forEach(button=>button.addEventListener('click',loadAnalysis));
   $('startMatch').addEventListener('click',startMatch);
   $('undoMove').addEventListener('click',()=>{
     if(!match||botThinking||match.history().length===0){toast('There is no completed move to take back.');return}
