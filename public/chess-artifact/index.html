@@ -61,7 +61,7 @@ async function bootChess(){
     {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'c5'}}
   ];
   let match=null,matchSelected=null,lastMatchMove=null,matchMode='Quick Match',strength='Registrar',playerColor='w';
-  let botThinking=false,clockInterval=null,clockBase=600,clockIncrement=0,clocks={w:600,b:600},clockEnabled=true;
+  let botThinking=false,botTimer=null,clockInterval=null,clockBase=600,clockIncrement=0,clocks={w:600,b:600},clockEnabled=true;
   let resultLayer=null,matchStarted=false,matchOver=false;
   let lessonGame=null,lessonSelected=null,lessonKind='develop',lessonStep=0,lessonWaiting=false,lessonFree=false,lessonHistory=[];
   let puzzleGame=null,puzzleSelected=null,puzzleAttempts=0,puzzleHints=0,puzzleSolved=false;
@@ -128,7 +128,7 @@ async function bootChess(){
   function currentSide(){return document.querySelector('#sideTabs .active')?.textContent.trim()||'White'}
   function parseClock(text){if(text==='Unlimited')return {base:Infinity,inc:0,enabled:false};const nums=text.match(/\d+/g)||['10','0'];return {base:Number(nums[0])*60,inc:Number(nums[1]||0),enabled:true}}
   function startMatch(){
-    stopClock();matchMode=matchMode||'Quick Match';strength=currentStrength();playerColor=currentSide()==='Black'?'b':'w';
+    clearTimeout(botTimer);botTimer=null;stopClock();matchMode=matchMode||'Quick Match';strength=currentStrength();playerColor=currentSide()==='Black'?'b':'w';
     const clock=parseClock(currentClock());clockBase=clock.base;clockIncrement=clock.inc;clockEnabled=clock.enabled;
     clocks={w:clockBase,b:clockBase};match=new Chess();matchSelected=null;lastMatchMove=null;botThinking=false;matchStarted=true;matchOver=false;
     if(resultLayer){resultLayer.remove();resultLayer=null}
@@ -196,7 +196,8 @@ async function bootChess(){
   function scheduleBot(){
     if(!match||matchOver||match.turn()===playerColor)return;
     botThinking=true;matchSelected=null;updateTurn();drawMatch();
-    setTimeout(()=>{
+    clearTimeout(botTimer);botTimer=setTimeout(()=>{
+      botTimer=null;
       if(!match||matchOver)return;
       const move=chooseBotMove();botThinking=false;
       if(!move){settleGame();return}
@@ -239,7 +240,7 @@ async function bootChess(){
     ['q','r','b','n'].forEach(piece=>{const b=document.createElement('button');b.className=piece==='q'?'goldbtn':'secondary';b.type='button';b.textContent=symbols[piece]+' '+({q:'Queen',r:'Rook',b:'Bishop',n:'Knight'}[piece]);b.addEventListener('click',()=>{layer.remove();callback(piece)});$('promotionOptions').appendChild(b)});
   }
   function finishByResult(title,detail){
-    if(matchOver)return;matchOver=true;matchStarted=false;botThinking=false;stopClock();matchSelected=null;drawMatch();showResult(title,detail);
+    if(matchOver)return;matchOver=true;matchStarted=false;botThinking=false;clearTimeout(botTimer);botTimer=null;stopClock();matchSelected=null;drawMatch();showResult(title,detail);
   }
   function settleGame(){
     if(!match)return;
@@ -267,6 +268,7 @@ async function bootChess(){
     resultLayer.querySelector('#resultReview').focus();
   }
 
+  addClockMarkup();
   document.querySelectorAll('[data-format]').forEach(card=>card.addEventListener('click',()=>{
     const next=card.dataset.format;
     if(!['Quick Match','Timed Match','Training Match'].includes(next)){toast(next+' is planned, but not playable in this prototype yet. Quick, Timed and Training Match are active.');return}
@@ -293,8 +295,8 @@ async function bootChess(){
     if(!match||botThinking||match.history().length===0){toast('There is no completed move to take back.');return}
     if(resultLayer){resultLayer.remove();resultLayer=null;matchOver=false;matchStarted=true;startClock()}
     stopClock();let removed=0;
-    if(match.history().length){match.undo();removed++}
-    if(match.history().length&&match.turn()===playerColor){match.undo();removed++}
+    const before=match.history({verbose:true});
+    if(before.length){const last=before[before.length-1];match.undo();removed++;if(last.color!==playerColor){const prior=match.history({verbose:true});if(prior.length&&prior[prior.length-1].color===playerColor){match.undo();removed++}}}
     if(matchOver)matchOver=false;matchStarted=true;matchSelected=null;lastMatchMove=null;
     if(match.history().length){const history=match.history({verbose:true});const last=history[history.length-1];lastMatchMove=last?[last.from,last.to]:null}
     redrawMoveLog();drawMatch();startClock();toast(removed>1?'Last exchange taken back.':'Last move taken back.');
@@ -453,7 +455,6 @@ async function bootChess(){
   // Validate that the lesson and puzzle both use a real legal tactic line.
   const puzzleCheck=new Chess(FORK_FEN);const forkMove=puzzleCheck.move({from:'c6',to:'e7'});
   if(!forkMove||!puzzleCheck.isCheck())throw new Error('The configured knight-fork position did not validate.');
-  addClockMarkup();
 }
 bootChess().catch(error=>{
   console.error('Bablo Chess initialization failed:',error);
