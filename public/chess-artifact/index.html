@@ -1,22 +1,462 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bablo Chess — Prototype Lab</title><style>
 :root{--bg:#0b0d0f;--panel:#15191b;--line:#303537;--gold:#d9b35d;--gold2:#f1d995;--muted:#9ca4a4;--text:#f3f0e7;--green:#83c9a6}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 70% -15%,#483614 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}button{font:inherit;cursor:pointer;border:0}button:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}.side{padding:24px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:30px;background:#0d0f10d9}.brand{display:flex;gap:10px;align-items:center;padding:0 7px}.crest{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(140deg,#f0d58b,#a87927);color:#17140c;font-size:23px}.brand strong{display:block;letter-spacing:.05em}.brand small{display:block;font-size:10px;color:var(--muted);letter-spacing:.14em}.navlabel,.eyebrow{font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;font-weight:800}.navlabel{color:#6f7779;padding:0 12px;margin-bottom:8px}.nav{display:grid;gap:5px}.nav button{padding:12px;border-radius:10px;background:transparent;color:#aeb5b5;text-align:left}.nav button span{display:inline-block;width:27px;font-size:17px}.nav button.active,.nav button:hover{color:var(--gold2);background:#d8b14d12;box-shadow:inset 2px 0 var(--gold)}.sidefoot{margin-top:auto;border:1px solid var(--line);border-radius:14px;padding:14px;background:#15191a}.sidefoot small,.sub,.muted{color:var(--muted)}.sidefoot strong{display:block;margin:7px 0}.progress{height:5px;background:#303536;border-radius:9px;overflow:hidden;margin:12px 0}.progress i{display:block;height:100%;width:42%;background:var(--gold)}.main{padding:25px clamp(15px,3vw,42px) 90px;max-width:1600px;width:100%;margin:auto;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}.top h1{font-size:clamp(25px,3vw,35px);margin:4px 0 0;letter-spacing:-.04em}.topright{display:flex;align-items:center;gap:10px}.pill,.tag{border:1px solid var(--line);background:#171b1d;border-radius:999px;padding:8px 12px;font-size:11px;color:#d4d7d3}.avatar{width:37px;height:37px;border-radius:50%;display:grid;place-items:center;background:#342914;color:var(--gold2);border:1px solid #8b6e32}.page{display:none;animation:fade .18s}.page.active{display:block}@keyframes fade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}.card{border:1px solid var(--line);border-radius:18px;background:linear-gradient(140deg,#1b2021ee,#111516f5);padding:21px;min-width:0;box-shadow:0 12px 35px #0002}.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.heroCopy{padding:clamp(23px,3vw,37px);min-height:290px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;background:radial-gradient(circle at 90% 5%,#b58c3027,transparent 35%),linear-gradient(135deg,#242117,#141718 70%)}h2,h3,p{margin-top:0}.hero h2{font-size:clamp(29px,4vw,44px);line-height:1.05;letter-spacing:-.05em;margin:13px 0}.hero p,.sub{color:#adb4b2;max-width:520px}.goldbtn{background:linear-gradient(135deg,#f2d78e,#c59a3e);color:#19150b;font-weight:800;border-radius:10px;padding:12px 16px}.secondary{background:#24292b;border:1px solid #373e40;color:#eee;border-radius:10px;padding:11px 14px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px;width:100%}.stat{padding:12px;border-radius:11px;background:#ffffff05;border:1px solid #ffffff0c}.stat small{display:block;color:var(--muted);font-size:10px}.stat strong{font-size:20px;display:block;margin-top:4px}.minihead,.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px}.minihead h3{margin:0;font-size:16px}.tag{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold2);border-color:#66532c;background:#d7ac4512}.botbox{display:flex;gap:13px;align-items:center;margin:20px 0}.botface{width:57px;height:57px;border-radius:16px;background:linear-gradient(145deg,#e8ca7b,#8d6325);display:grid;place-items:center;color:#17140e;font-size:28px}.botbox strong{display:block;font-size:18px}.botbox small{color:var(--muted)}.quote,.info{border-left:2px solid var(--gold);padding:12px 14px;background:#ffffff04;border-radius:0 10px 10px 0;color:#c5c9c4;font-size:13px}.info{border:1px solid var(--line);border-radius:13px;margin-top:13px}.info p{margin:7px 0 0;color:#b2b9b7}.sectionhead{margin:26px 0 14px}.sectionhead h2{font-size:21px;margin:0}.sectionhead p{font-size:12px;margin:4px 0 0;color:var(--muted)}.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.mode{padding:18px;cursor:pointer;transition:.15s}.mode:hover{border-color:#806a37;transform:translateY(-2px)}.modeicon{font-size:24px;margin-bottom:13px}.mode h3{font-size:15px;margin-bottom:6px}.mode p{font-size:12px;color:var(--muted);min-height:35px}.textlink{color:var(--gold2);font-size:12px;background:none;padding:0}.twocol{display:grid;grid-template-columns:1fr .9fr;gap:16px}.boardlayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.65fr);gap:18px}.boardwrap{max-width:620px;width:100%;margin:auto}.board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;aspect-ratio:1;border:4px solid #2a2925;border-radius:6px;overflow:hidden;box-shadow:0 15px 45px #0007}.sq{position:relative;display:grid;place-items:center;padding:0;font-size:clamp(23px,4vw,45px);line-height:1;background:#d6c8a9;color:#17201b;user-select:none}.sq.dark{background:#6a7a6e}.sq.selected{box-shadow:inset 0 0 0 4px #e8bd54}.sq.target:after{content:"";position:absolute;width:23%;height:23%;border-radius:50%;background:#1e241b88}.coords{position:absolute;left:3px;top:2px;font-size:9px;font-weight:700;opacity:.7}.boardnote{display:flex;justify-content:space-between;margin-top:9px;color:var(--muted);font-size:10px}.movebar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.stepnum{color:var(--gold);font-size:10px;letter-spacing:.12em}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}.tabs button{background:#171b1d;color:#b3bab7;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11px}.tabs button.active{color:var(--gold2);border-color:#80652f;background:#d7ac4512}.lessonitem{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #ffffff0b}.lessonbadge{width:42px;height:42px;border-radius:12px;background:#d9b35d12;border:1px solid #d9b35d33;display:grid;place-items:center;color:var(--gold2);font-size:19px}.lessonitem strong{display:block;font-size:13px}.lessonitem small{color:var(--muted);font-size:11px}.lessonitem button{margin-left:auto;white-space:nowrap}.leaderrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:13px 3px;border-bottom:1px solid #ffffff0b}.person{display:flex;gap:9px;align-items:center;min-width:0}.personicon{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#252c2c;color:var(--gold2)}.person strong{display:block;font-size:12px}.person small{display:block;color:var(--muted);font-size:10px}.rating{font-size:12px;font-weight:800}.trend{color:var(--green);font-size:10px}.profilehead{display:flex;align-items:center;gap:17px}.bigavatar{width:74px;height:74px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(145deg,#e9d08a,#896122);color:#17140c;font-size:28px;font-weight:900}.mobilebar{display:none}.toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#252a2a;border:1px solid #6b592f;color:#f5e2a9;border-radius:12px;padding:12px 17px;z-index:10;transition:.2s;box-shadow:0 10px 40px #0009;font-size:13px}.toast.show{opacity:1;transform:translate(-50%,0)}
 @media(max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.main{padding:18px 14px 100px}.hero,.twocol,.boardlayout{grid-template-columns:1fr}.three{grid-template-columns:repeat(2,minmax(0,1fr))}.mobilebar{display:grid;position:fixed;bottom:0;left:0;right:0;grid-template-columns:repeat(5,1fr);background:#0d0f10f2;backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:5}.mobilebar button{background:none;color:#929b9c;font-size:10px;padding:4px}.mobilebar button span{display:block;font-size:18px;margin-bottom:3px}.mobilebar button.active{color:var(--gold2)}.top{margin-bottom:20px}.topright .pill{display:none}}@media(max-width:480px){.three{grid-template-columns:1fr}.card{padding:15px}.heroCopy{padding:23px}.stat{padding:9px}.stat strong{font-size:17px}.board{border-width:3px}.sq{font-size:clamp(24px,8vw,37px)}.sectionhead{align-items:flex-start}}
+
+/* Interaction and accessibility refinements */
+button{transition:background .16s ease,border-color .16s ease,transform .16s ease}
+button:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.sq{touch-action:manipulation}
+.sq.dark{background:#6e7e70}
+.sq.light{background:#e6dcc5}
+.sq.last{box-shadow:inset 0 0 0 100vmax #e5bc5140}
+.sq.selected{box-shadow:inset 0 0 0 4px #f2d78e!important;z-index:1}
+.sq.target:after{content:"";position:absolute;width:23%;height:23%;border-radius:50%;background:#1e241b99;pointer-events:none}
+.sq.capture-target:after{content:"";position:absolute;width:70%;height:70%;border-radius:50%;border:4px solid #24281f;background:transparent;pointer-events:none}
+.sq.check{background:#a64e45!important;box-shadow:inset 0 0 0 3px #ffd1c4}
+.sq .coords{pointer-events:none;font-size:10px}
+.sq .filecoords{position:absolute;right:3px;bottom:2px;font-size:9px;font-weight:800;opacity:.72;pointer-events:none}
+.piece{position:relative;z-index:1;filter:drop-shadow(0 1px 1px #0005)}
+.clockrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.clockchip{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#101314;color:#aeb6b3;font-size:10px}
+.clockchip strong{font-variant-numeric:tabular-nums;font-size:16px;color:#f3f0e7;letter-spacing:.04em}
+.clockchip.active{border-color:#937535;background:#c9a34016}
+.clockchip.active strong{color:var(--gold2)}
+.preview-note{font-size:11px;margin-top:10px}
+.result-layer{position:fixed;inset:0;background:#050606c9;backdrop-filter:blur(10px);display:grid;place-items:center;padding:18px;z-index:30}
+.result-card{width:min(100%,440px);border:1px solid #6f592c;border-radius:20px;background:linear-gradient(145deg,#202321,#111415);padding:clamp(22px,4vw,34px);box-shadow:0 28px 90px #000b}
+.result-card h2{font-size:clamp(26px,5vw,36px);margin:10px 0}
+.result-card p{color:#b8bfba;line-height:1.6}
+.result-stamp{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--gold2);text-transform:uppercase}
+@media(max-width:480px){.clockchip{padding:8px}.clockchip strong{font-size:14px}.sq.capture-target:after{border-width:3px}}
+
 </style></head><body><div class="shell"><aside class="side"><div class="brand"><div class="crest">♞</div><div><strong>BABLO CHESS</strong><small>THINK ONE MOVE AHEAD</small></div></div><div><div class="navlabel">Workspace</div><nav class="nav" id="sidenav"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play chess</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="puzzle"><span>✳</span>Daily puzzle</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav></div><div class="sidefoot"><small>YOUR CHESS JOURNEY</small><strong>Build the habit. Read the board.</strong><div class="progress"><i></i></div><small>3 day streak · Demo progress</small></div></aside><main class="main"><header class="top"><div><div class="eyebrow" id="eyebrow">THE BOARD IS YOURS</div><h1 id="pagetitle">Good evening, player.</h1></div><div class="topright"><div class="pill">♨ 3 day streak</div><div class="avatar">P</div></div></header>
-<section class="page active" id="page-home"><div class="hero"><div class="card heroCopy"><div class="eyebrow">YOUR NEXT MOVE STARTS HERE</div><h2>Play with purpose.<br><span style="color:var(--gold2)">Think like a strategist.</span></h2><p>Face Dr ECG, sharpen your tactics on the board, or take on today's challenge. One move at a time.</p><div class="actions"><button class="goldbtn" data-go="play">♟ &nbsp; Play a match</button><button class="secondary" data-go="learn">Continue learning ↗</button></div><div class="statrow"><div class="stat"><small>CHESS RATING</small><strong>842</strong></div><div class="stat"><small>PUZZLE STREAK</small><strong>3 days</strong></div><div class="stat"><small>LESSONS</small><strong>4 / 12</strong></div></div></div><div class="card"><div class="minihead"><h3>Your signature opponent</h3><span class="tag">Training bot</span></div><div class="botbox"><div class="botface">♞</div><div><strong>Dr ECG</strong><small>Professor of painful blunders</small><div style="margin-top:6px;color:var(--gold2);font-size:12px">★★★★★ <span class="muted">Strength tier: Registrar</span></div></div></div><div class="quote">“You can’t diagnose a position by staring at it. Make your move, doctor.”</div><div class="sectionhead"><div><h2 style="font-size:15px">Choose your session</h2><p>Strength and clock are set before play.</p></div></div><button class="goldbtn" style="width:100%" data-go="play">Set up match →</button></div></div><div class="sectionhead"><div><h2>Pick up where you left off</h2><p>Short sessions, deliberate progress.</p></div><button class="textlink" data-go="learn">All lessons ↗</button></div><div class="three"><div class="card mode" data-go="learn"><div class="modeicon">♙</div><h3>Board-side learning</h3><p>Learn by making moves on an interactive board.</p><button class="textlink">Resume lesson →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Daily puzzle</h3><p>Find the winning tactic. Hints are available if you get stuck.</p><button class="textlink">Solve today's puzzle →</button></div><div class="card mode" data-go="compete"><div class="modeicon">♜</div><h3>Leaderboard</h3><p>Compare demo rankings and see how competition works.</p><button class="textlink">View standings →</button></div></div></section>
-<section class="page" id="page-play"><div class="card"><div class="eyebrow">MATCHMAKING</div><h2 style="margin:8px 0">What kind of game?</h2><p class="sub">Pick the purpose first. Configure the clock and Dr ECG's strength before the board opens.</p><div class="three" style="margin-top:20px"><div class="card mode" data-format="Quick Match"><div class="modeicon">⚡</div><h3>Quick match</h3><p>Get to the board quickly. A straightforward practice game.</p><button class="goldbtn">Choose →</button></div><div class="card mode" data-format="Timed Match"><div class="modeicon">◷</div><h3>Timed match</h3><p>Bullet, blitz, rapid, classical or a custom clock.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Training Match"><div class="modeicon">♧</div><h3>Training match</h3><p>Unranked practice with optional hints and take-backs.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Challenge Ladder"><div class="modeicon">↗</div><h3>Challenge ladder</h3><p>Climb through progressively tougher challenges.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Tactical rounds</h3><p>Solve positions against a move limit and objective.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="learn"><div class="modeicon">⌘</div><h3>Opening lab</h3><p>Study an opening line, then try it on the board.</p><button class="secondary">Explore →</button></div></div></div><div class="card" id="setup" hidden style="margin-top:16px"><div class="minihead"><h3 id="setupTitle">Match setup</h3><span class="tag">Before the game</span></div><div class="twocol"><div><label class="muted">DR ECG STRENGTH</label><div class="tabs" id="strengthTabs"><button>Student</button><button>Intern</button><button>House Officer</button><button class="active">Registrar</button><button>Consultant</button><button>Professor</button></div><label class="muted">TIME CONTROL</label><div class="tabs" id="clockTabs"><button>Unlimited</button><button>3 + 2</button><button class="active">10 + 0</button><button>15 + 10</button></div><label class="muted">PLAYING SIDE</label><div class="tabs" id="sideTabs"><button class="active">White</button><button>Black</button></div></div><div class="info"><strong>Practice match</strong><p>This prototype demonstrates setup and board interaction. The opponent does not run a real chess engine, and no rating is submitted.</p><div class="actions"><button class="goldbtn" id="startMatch">Open board →</button></div></div></div></div><div class="card" id="matchCard" hidden style="margin-top:16px"><div class="minihead"><h3 id="matchName">Practice match</h3><span class="tag">Interactive demo board</span></div><div class="boardlayout"><div><div class="boardwrap"><div class="board" id="matchBoard"></div><div class="boardnote"><span id="turnLabel">White to move</span><span>Demo mode · moves aren't engine-validated</span></div></div><div class="movebar"><button class="secondary" id="undoMove">↶ Undo</button><button class="secondary" id="resetBoard">Restart board</button><button class="secondary" id="finishMatch">End demo</button></div></div><div><div class="botbox"><div class="botface" style="width:44px;height:44px">♞</div><div><strong>Dr ECG</strong><small id="matchStrength">Registrar · Practice</small></div></div><div class="info"><strong>Dr ECG says</strong><p id="botLine">“Develop your pieces before you start prescribing attacks.”</p></div><div class="info"><strong>Move log</strong><p id="moveLog">Select a piece, then a destination square.</p></div></div></div></div></section>
-<section class="page" id="page-learn"><div class="twocol"><div class="card"><div class="eyebrow">BABLO CHESS ACADEMY</div><h2 style="margin:8px 0">Learn on the board</h2><p class="sub">No lecture-only lessons. Try the move, see what changes, and learn why it matters.</p><div class="lessonitem"><div class="lessonbadge">♙</div><div><strong>1. Develop your pieces</strong><small>Beginner · 3 guided steps</small></div><button class="goldbtn" id="startLesson">Start</button></div><div class="lessonitem"><div class="lessonbadge">✳</div><div><strong>2. Spot the knight fork</strong><small>Tactics · Find the attacking square</small></div><button class="secondary" id="startFork">Try</button></div><div class="lessonitem"><div class="lessonbadge">♔</div><div><strong>3. Checkmate basics</strong><small>Foundations · King and queen</small></div><button class="secondary" id="lockedLesson">Preview</button></div><p class="muted" style="font-size:11px;margin-top:15px">Guided demo positions. Full legal-move validation requires chess-engine integration.</p></div><div class="card"><div class="minihead"><h3 id="lessonTitle">Lesson board</h3><span class="tag" id="lessonTag">Guided practice</span></div><div class="boardwrap"><div class="board" id="lessonBoard"></div><div class="boardnote"><span id="lessonTurn">White to move</span><span id="lessonStep">Step 1 of 3</span></div></div><div class="info"><div class="stepnum" id="lessonObjective">OBJECTIVE · DEVELOP A KNIGHT</div><p id="lessonExplanation">Move the kingside knight toward the centre.</p></div><div class="movebar"><button class="secondary" id="lessonHint">Hint</button><button class="secondary" id="lessonReset">Restart</button><button class="goldbtn" id="lessonNext">Next step →</button></div><p class="muted" id="lessonFeedback" style="font-size:12px;margin:12px 0 0">Select a piece and tap its destination.</p></div></div></section>
-<section class="page" id="page-puzzle"><div class="twocol"><div class="card"><div class="eyebrow">DAILY TACTIC · DEMO POSITION</div><div class="minihead" style="margin-top:8px"><h2 style="margin:0">Find the fork</h2><span class="tag">Intermediate</span></div><p class="sub">White to move. Find a knight move that attacks two valuable targets at once.</p><div class="statrow"><div class="stat"><small>DATE</small><strong>OCT 25</strong></div><div class="stat"><small>STREAK</small><strong>3 days</strong></div><div class="stat"><small>ATTEMPTS</small><strong id="attemptCount">0</strong></div></div><div class="info"><strong>Your objective</strong><p>Choose the candidate move that creates a fork. This simplified teaching position is not a verified daily puzzle feed.</p></div><div class="actions"><button class="secondary" id="puzzleHint">Show hint 1</button><button class="secondary" id="puzzleReveal">Reveal solution</button><button class="goldbtn" id="puzzleReset">Reset puzzle</button></div><p id="puzzleFeedback" class="muted" style="font-size:13px;margin:13px 0 0">Make your choice on the board.</p></div><div class="card"><div class="minihead"><h3>Puzzle board</h3><span class="tag">Interactive demo</span></div><div class="boardwrap"><div class="board" id="puzzleBoard"></div><div class="boardnote"><span>White to move</span><span>Find the fork</span></div></div><div class="info"><strong>What to look for</strong><p>A knight attacks in an L shape. Look for a move that checks the king while threatening another valuable piece.</p></div></div></div></section>
+<section class="page active" id="page-home"><div class="hero"><div class="card heroCopy"><div class="eyebrow">YOUR NEXT MOVE STARTS HERE</div><h2>Play with purpose.<br><span style="color:var(--gold2)">Think like a strategist.</span></h2><p>Face Dr ECG, sharpen your tactics on the board, or take on today's challenge. One move at a time.</p><div class="actions"><button class="goldbtn" data-go="play">♟ &nbsp; Play a match</button><button class="secondary" data-go="learn">Continue learning ↗</button></div><div class="statrow"><div class="stat"><small>CHESS RATING</small><strong>842</strong></div><div class="stat"><small>PUZZLE STREAK</small><strong>3 days</strong></div><div class="stat"><small>LESSONS</small><strong>4 / 12</strong></div></div><p class="muted preview-note">Illustrative preview data only — no live rating, account progress or saved streak is connected.</p></div><div class="card"><div class="minihead"><h3>Your signature opponent</h3><span class="tag">Training bot</span></div><div class="botbox"><div class="botface">♞</div><div><strong>Dr ECG</strong><small>Professor of painful blunders</small><div style="margin-top:6px;color:var(--gold2);font-size:12px">★★★★★ <span class="muted">Strength tier: Registrar</span></div></div></div><div class="quote">“You can’t diagnose a position by staring at it. Make your move, doctor.”</div><div class="sectionhead"><div><h2 style="font-size:15px">Choose your session</h2><p>Strength and clock are set before play.</p></div></div><button class="goldbtn" style="width:100%" data-go="play">Set up match →</button></div></div><div class="sectionhead"><div><h2>Pick up where you left off</h2><p>Short sessions, deliberate progress.</p></div><button class="textlink" data-go="learn">All lessons ↗</button></div><div class="three"><div class="card mode" data-go="learn"><div class="modeicon">♙</div><h3>Board-side learning</h3><p>Learn by making moves on an interactive board.</p><button class="textlink">Resume lesson →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Daily puzzle</h3><p>Find the winning tactic. Hints are available if you get stuck.</p><button class="textlink">Solve today's puzzle →</button></div><div class="card mode" data-go="compete"><div class="modeicon">♜</div><h3>Leaderboard</h3><p>Compare demo rankings and see how competition works.</p><button class="textlink">View standings →</button></div></div></section>
+<section class="page" id="page-play"><div class="card"><div class="eyebrow">MATCHMAKING</div><h2 style="margin:8px 0">What kind of game?</h2><p class="sub">Pick the purpose first. Configure the clock and Dr ECG's strength before the board opens.</p><div class="three" style="margin-top:20px"><div class="card mode" data-format="Quick Match"><div class="modeicon">⚡</div><h3>Quick match</h3><p>Get to the board quickly. A straightforward practice game.</p><button class="goldbtn">Choose →</button></div><div class="card mode" data-format="Timed Match"><div class="modeicon">◷</div><h3>Timed match</h3><p>Bullet, blitz, rapid, classical or a custom clock.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Training Match"><div class="modeicon">♧</div><h3>Training match</h3><p>Unranked practice with optional hints and take-backs.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Challenge Ladder"><div class="modeicon">↗</div><h3>Challenge ladder</h3><p>Climb through progressively tougher challenges.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Tactical rounds</h3><p>Solve positions against a move limit and objective.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="learn"><div class="modeicon">⌘</div><h3>Opening lab</h3><p>Study an opening line, then try it on the board.</p><button class="secondary">Explore →</button></div></div></div><div class="card" id="setup" hidden style="margin-top:16px"><div class="minihead"><h3 id="setupTitle">Match setup</h3><span class="tag">Before the game</span></div><div class="twocol"><div><label class="muted">DR ECG STRENGTH</label><div class="tabs" id="strengthTabs"><button>Student</button><button>Intern</button><button>House Officer</button><button class="active">Registrar</button><button>Consultant</button><button>Professor</button></div><label class="muted">TIME CONTROL</label><div class="tabs" id="clockTabs"><button>Unlimited</button><button>3 + 2</button><button class="active">10 + 0</button><button>15 + 10</button></div><label class="muted">PLAYING SIDE</label><div class="tabs" id="sideTabs"><button class="active">White</button><button>Black</button></div></div><div class="info"><strong>Practice match</strong><p>Legal moves, check and game endings are validated in this preview. Dr ECG uses a basic local move policy, not a calibrated chess engine. Online play and ratings are not connected.</p><div class="actions"><button class="goldbtn" id="startMatch">Open board →</button></div></div></div></div><div class="card" id="matchCard" hidden style="margin-top:16px"><div class="minihead"><h3 id="matchName">Practice match</h3><span class="tag">Legal-move prototype</span></div><div class="boardlayout"><div><div class="boardwrap"><div class="board" id="matchBoard"></div><div class="boardnote"><span id="turnLabel">White to move</span><span>Legal moves active · unranked preview</span></div></div><div class="movebar"><button class="secondary" id="undoMove">↶ Undo</button><button class="secondary" id="resetBoard">Restart board</button><button class="secondary" id="finishMatch">End demo</button></div></div><div><div class="botbox"><div class="botface" style="width:44px;height:44px">♞</div><div><strong>Dr ECG</strong><small id="matchStrength">Registrar · Practice</small></div></div><div class="info"><strong>Dr ECG says</strong><p id="botLine">“Develop your pieces before you start prescribing attacks.”</p></div><div class="info"><strong>Move log</strong><p id="moveLog">Select a piece, then a destination square.</p></div></div></div></div></section>
+<section class="page" id="page-learn"><div class="twocol"><div class="card"><div class="eyebrow">BABLO CHESS ACADEMY</div><h2 style="margin:8px 0">Learn on the board</h2><p class="sub">No lecture-only lessons. Try the move, see what changes, and learn why it matters.</p><div class="lessonitem"><div class="lessonbadge">♙</div><div><strong>1. Develop your pieces</strong><small>Beginner · 3 guided steps</small></div><button class="goldbtn" id="startLesson">Start</button></div><div class="lessonitem"><div class="lessonbadge">✳</div><div><strong>2. Spot the knight fork</strong><small>Tactics · Find the attacking square</small></div><button class="secondary" id="startFork">Try</button></div><div class="lessonitem"><div class="lessonbadge">♔</div><div><strong>3. Checkmate basics</strong><small>Foundations · King and queen</small></div><button class="secondary" id="lockedLesson">Preview</button></div><p class="muted" style="font-size:11px;margin-top:15px">Guided positions use legal-move validation. Lesson completion is a local preview and is not synced to an account.</p></div><div class="card"><div class="minihead"><h3 id="lessonTitle">Lesson board</h3><span class="tag" id="lessonTag">Guided practice</span></div><div class="boardwrap"><div class="board" id="lessonBoard"></div><div class="boardnote"><span id="lessonTurn">White to move</span><span id="lessonStep">Step 1 of 3</span></div></div><div class="info"><div class="stepnum" id="lessonObjective">OBJECTIVE · DEVELOP A KNIGHT</div><p id="lessonExplanation">Move the kingside knight toward the centre.</p></div><div class="movebar"><button class="secondary" id="lessonHint">Hint</button><button class="secondary" id="lessonReset">Restart</button><button class="goldbtn" id="lessonNext">Next step →</button></div><p class="muted" id="lessonFeedback" style="font-size:12px;margin:12px 0 0">Select a piece and tap its destination.</p></div></div></section>
+<section class="page" id="page-puzzle"><div class="twocol"><div class="card"><div class="eyebrow">DAILY TACTIC · DEMO POSITION</div><div class="minihead" style="margin-top:8px"><h2 style="margin:0">Find the knight fork</h2><span class="tag">Intermediate</span></div><p class="sub">White to move. Find a knight move that attacks two valuable targets at once.</p><div class="statrow"><div class="stat"><small>DATE</small><strong id="puzzleDate">—</strong></div><div class="stat"><small>STREAK</small><strong>3 days</strong></div><div class="stat"><small>ATTEMPTS</small><strong id="attemptCount">0</strong></div></div><div class="info"><strong>Your objective</strong><p>Choose the candidate move that creates a fork. This constructed practice position has a checked solution. The daily puzzle feed and saved streaks are not connected yet.</p></div><div class="actions"><button class="secondary" id="puzzleHint">Show hint 1</button><button class="secondary" id="puzzleReveal">Reveal solution</button><button class="goldbtn" id="puzzleReset">Reset puzzle</button></div><p id="puzzleFeedback" class="muted" style="font-size:13px;margin:13px 0 0">Make your choice on the board.</p></div><div class="card"><div class="minihead"><h3>Puzzle board</h3><span class="tag">Interactive demo</span></div><div class="boardwrap"><div class="board" id="puzzleBoard"></div><div class="boardnote"><span>White to move</span><span>Find the fork</span></div></div><div class="info"><strong>What to look for</strong><p>A knight attacks in an L shape. Look for a move that checks the king while threatening another valuable piece.</p></div></div></div></section>
 <section class="page" id="page-compete"><div class="twocol"><div class="card"><div class="minihead"><div><div class="eyebrow">CAMPUS & FRIENDS</div><h2 style="margin:7px 0 0">Leaderboard</h2></div><span class="tag">Sample data</span></div><p class="sub">These are illustrative demo entries, not live Bablo accounts or connected standings.</p><div class="tabs" id="leaderTabs"><button class="active">Overall</button><button>Friends</button><button>Weekly</button></div><div id="leaderRows"></div><div class="info"><strong>Trustworthy rankings</strong><p>Chess rating and puzzle streak are separate. Live standings need authenticated records and a defined rating service.</p></div></div><div class="card"><div class="eyebrow">TODAY'S OBJECTIVE</div><h2 style="margin:9px 0">Daily puzzle</h2><p class="sub">One position. One idea to discover. Your streak tracks puzzle completion, not chess rating.</p><button class="goldbtn" data-go="puzzle">Open daily puzzle →</button><div class="sectionhead"><div><h2>Challenge ladder</h2><p>A route from fundamentals to tougher tactics.</p></div></div><div class="progress"><i style="width:28%"></i></div><p class="muted" style="font-size:11px">1 of 6 demo stages complete</p><button class="secondary" data-go="learn">Train for the next stage</button></div></div></section>
 <section class="page" id="page-profile"><div class="card"><div class="profilehead"><div class="bigavatar">P</div><div><div class="eyebrow">PLAYER PROFILE</div><h2 style="margin:5px 0">Player One</h2><p class="sub" style="margin:0">Bablo Chess learner · Demo profile</p></div></div><div class="statrow"><div class="stat"><small>CHESS RATING</small><strong>842</strong></div><div class="stat"><small>GAMES PLAYED</small><strong>18</strong></div><div class="stat"><small>WIN RATE</small><strong>56%</strong></div></div></div><div class="three" style="margin-top:16px"><div class="card"><div class="eyebrow">HABIT</div><h2 style="font-size:28px;margin:8px 0">3 days</h2><p class="sub">Puzzle streak · Sample data</p></div><div class="card"><div class="eyebrow">ACADEMY</div><h2 style="font-size:28px;margin:8px 0">4 / 12</h2><p class="sub">Lessons completed · Sample data</p></div><div class="card"><div class="eyebrow">ACHIEVEMENT</div><h2 style="font-size:28px;margin:8px 0">First fork</h2><p class="sub">Illustrative badge · Not synced</p></div></div><div class="card" style="margin-top:16px"><h3>Prototype data notice</h3><p class="sub">Profile stats, rankings and progress are demonstration values. They do not change your production Bablo Hub account.</p></div></section>
 </main></div><nav class="mobilebar" id="mobilebar"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav><div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script>
-const titles={home:['THE BOARD IS YOURS','Good evening, player.'],play:['MATCHMAKING','Choose your game.'],learn:['BABLO CHESS ACADEMY','Learn by making moves.'],puzzle:['DAILY TACTIC','Find the fork.'],compete:['CAMPUS & FRIENDS','Compete with purpose.'],profile:['YOUR CHESS JOURNEY','Your progress.']};function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));document.getElementById('eyebrow').textContent=titles[p][0];document.getElementById('pagetitle').textContent=titles[p][1];window.scrollTo({top:0,behavior:'smooth'})}document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));let toastTimer;function toast(t){let e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),2300)}
-const clean=Array(64).fill('');['♜','♞','♝','♛','♚','♝','♞','♜'].forEach((p,i)=>clean[i]=p);for(let i=8;i<16;i++)clean[i]='♟';for(let i=48;i<56;i++)clean[i]='♙';['♖','♘','♗','♕','♔','♗','♘','♖'].forEach((p,i)=>clean[56+i]=p);let boardState=clean.slice(),selected=-1,moveCount=0,undoState=null;
-function draw(id,state,click){const root=document.getElementById(id);if(!root)return;root.innerHTML='';for(let i=0;i<64;i++){let r=i>>3,c=i%8,s=document.createElement('button');s.className='sq '+((r+c)%2?'dark':'light');s.setAttribute('aria-label','Square '+'abcdefgh'[c]+(8-r)+(state[i]?' occupied':' empty'));if(id==='matchBoard'&&selected===i)s.classList.add('selected');if(id==='matchBoard'&&selected>=0&&i!==selected&&Math.abs((selected>>3)-r)<=2&&Math.abs((selected%8)-c)<=2)s.classList.add('target');if(c===0||r===7){let co=document.createElement('span');co.className='coords';co.textContent=c===0?8-r:'abcdefgh'[c];s.append(co)}if(state[i]){let pc=document.createElement('span');pc.textContent=state[i];pc.style.color='♙♖♘♗♕♔'.includes(state[i])?'#fff8e6':'#17201c';pc.style.textShadow='0 1px 2px #0009';s.append(pc)}s.onclick=()=>click(i);root.append(s)}}
-function matchClick(i){if(selected<0){if(!boardState[i])return toast('Select a piece first.');selected=i;draw('matchBoard',boardState,matchClick);return}if(selected===i){selected=-1;draw('matchBoard',boardState,matchClick);return}undoState=boardState.slice();boardState[i]=boardState[selected];boardState[selected]='';selected=-1;moveCount++;draw('matchBoard',boardState,matchClick);document.getElementById('turnLabel').textContent=moveCount%2?'Black to move':'White to move';document.getElementById('moveLog').textContent='Demo move '+moveCount+'. Chess legality is not validated.';document.getElementById('botLine').textContent=['“Now tell me what that move threatens.”','“A move is not a plan. What is your next idea?”','“Look for checks, captures and threats.”','“Your pieces need coordination, not motivation.”'][moveCount%4]}
-document.getElementById('undoMove').onclick=()=>{selected=-1;if(undoState){boardState=undoState;undoState=null;moveCount=Math.max(0,moveCount-1)}draw('matchBoard',boardState,matchClick);toast('Last demo move reverted where available.')};document.getElementById('resetBoard').onclick=()=>{boardState=clean.slice();selected=-1;moveCount=0;draw('matchBoard',boardState,matchClick);document.getElementById('moveLog').textContent='No moves yet. Select a piece, then a destination.'};document.getElementById('finishMatch').onclick=()=>{document.getElementById('matchCard').hidden=true;toast('Demo ended. No rating changed.')};
-let fmt='Quick Match';document.querySelectorAll('[data-format]').forEach(b=>b.onclick=()=>{fmt=b.dataset.format;document.getElementById('setupTitle').textContent=fmt+' setup';document.getElementById('setup').hidden=false;document.getElementById('setup').scrollIntoView({behavior:'smooth'})});['strengthTabs','clockTabs','sideTabs','leaderTabs'].forEach(id=>document.getElementById(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{document.getElementById(id).querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');if(id==='leaderTabs')renderLeaders(b.textContent)}));document.getElementById('startMatch').onclick=()=>{document.getElementById('setup').hidden=true;document.getElementById('matchCard').hidden=false;document.getElementById('matchName').textContent=fmt+' · Demo';document.getElementById('matchStrength').textContent=document.querySelector('#strengthTabs .active').textContent+' · Unranked';boardState=clean.slice();selected=-1;moveCount=0;draw('matchBoard',boardState,matchClick);document.getElementById('matchCard').scrollIntoView({behavior:'smooth'})};
-let lesson=0,kind='develop',ls=clean.slice();const steps=[{from:6,to:21,obj:'DEVELOP THE KNIGHT',txt:'Move the kingside knight from g8 toward the centre: f6 is a natural developing square.',hint:'Select the knight on g8, then tap f6.'},{from:52,to:36,obj:'DEVELOP A PAWN',txt:'Claim central space. Moving the e-pawn opens lines for your bishop and queen.',hint:'Select the pawn on e2, then tap e4.'},{from:61,to:34,obj:'DEVELOP THE BISHOP',txt:'Develop another minor piece rather than moving the same piece repeatedly.',hint:'The bishop can develop from f1 toward c4.'}];function loadLesson(){ls=clean.slice();if(lesson>=1){ls[6]='';ls[21]='♞';ls[52]='';ls[36]='♙'}if(lesson>=2){ls[61]='';ls[34]='♗'}draw('lessonBoard',ls,lessonClick);document.getElementById('lessonStep').textContent='Step '+(lesson+1)+' of 3';document.getElementById('lessonObjective').textContent='OBJECTIVE · '+steps[lesson].obj;document.getElementById('lessonExplanation').textContent=steps[lesson].txt;document.getElementById('lessonFeedback').textContent='Try the move on the board.'}function lessonClick(i){let st=steps[lesson];if(selected<0){selected=i;draw('lessonBoard',ls,lessonClick);return}if(selected===st.from&&i===st.to){ls[i]=ls[selected];ls[selected]='';selected=-1;draw('lessonBoard',ls,lessonClick);document.getElementById('lessonFeedback').textContent='Good move. Notice the squares your piece now influences.';document.getElementById('lessonFeedback').style.color='var(--green)'}else{selected=-1;draw('lessonBoard',ls,lessonClick);document.getElementById('lessonFeedback').textContent='Not quite. Try the indicated piece and destination.';document.getElementById('lessonFeedback').style.color='var(--gold2)'}}document.getElementById('startLesson').onclick=()=>{kind='develop';lesson=0;selected=-1;document.getElementById('lessonTitle').textContent='Lesson board';document.getElementById('lessonTag').textContent='Guided practice';loadLesson();toast('Guided lesson ready.')};document.getElementById('startFork').onclick=()=>{kind='fork';lesson=0;selected=-1;ls=clean.slice();ls[6]='';ls[21]='♘';draw('lessonBoard',ls,lessonClick);document.getElementById('lessonTitle').textContent='Knight fork';document.getElementById('lessonTag').textContent='Tactical lesson';document.getElementById('lessonObjective').textContent='OBJECTIVE · FIND THE FORK';document.getElementById('lessonExplanation').textContent='A fork attacks two targets at once. Explore knight moves and notice the squares it attacks.';document.getElementById('lessonFeedback').textContent='Select the knight, then explore a destination.'};document.getElementById('lessonHint').onclick=()=>document.getElementById('lessonFeedback').textContent=kind==='fork'?'Hint: knights attack in an L shape. Look for a move threatening two targets.':steps[lesson].hint;document.getElementById('lessonReset').onclick=()=>{selected=-1;loadLesson()};document.getElementById('lessonNext').onclick=()=>{if(lesson<2)lesson++;else{lesson=0;toast('Lesson demo completed.')}kind='develop';selected=-1;loadLesson()};document.getElementById('lockedLesson').onclick=()=>toast('Preview: king safety, mating nets, and guided checkmate practice.');
-const ps=clean.slice();ps[6]='';ps[21]='♘';ps[4]='♚';ps[0]='♜';ps[7]='';ps[60]='♔';ps[56]='♖';let psel=-1,attempts=0,hints=0;function puzzleClick(i){if(psel<0){psel=i;draw('puzzleBoard',ps,puzzleClick);return}attempts++;document.getElementById('attemptCount').textContent=attempts;document.getElementById('puzzleFeedback').textContent=psel===21&&[11,27,38].includes(i)?'That illustrates the fork idea. This is a teaching demo, not an engine-validated puzzle.':'Look for a knight move that creates two threats. This sample is not a verified puzzle.';document.getElementById('puzzleFeedback').style.color=psel===21&&[11,27,38].includes(i)?'var(--green)':'var(--gold2)';psel=-1;draw('puzzleBoard',ps,puzzleClick)}document.getElementById('puzzleHint').onclick=()=>{hints++;document.getElementById('puzzleHint').textContent='Show hint '+(hints+1);document.getElementById('puzzleFeedback').textContent=hints===1?'Hint 1: consider the knight’s L-shaped attack.':'Hint 2: find a square that attacks two targets at once.'};document.getElementById('puzzleReveal').onclick=()=>{document.getElementById('puzzleFeedback').textContent='Solution is illustrative only; this sample position is not validated as a complete legal puzzle.'};document.getElementById('puzzleReset').onclick=()=>{attempts=0;hints=0;psel=-1;document.getElementById('attemptCount').textContent='0';document.getElementById('puzzleHint').textContent='Show hint 1';document.getElementById('puzzleFeedback').textContent='Make your choice on the board.';draw('puzzleBoard',ps,puzzleClick)};
-const leaders=[['1','AdaKnight','1,284','↑ 24'],['2','BishopMode','1,190','↑ 12'],['3','CampusRook','1,104','↑ 8'],['4','Player One','842','—'],['5','QuietStorm','811','↑ 5'],['6','EndgameAce','790','↓ 2']];function renderLeaders(filter){let arr=filter==='Friends'?[leaders[3],leaders[0],leaders[4]]:filter==='Weekly'?[leaders[0],leaders[2],leaders[3],leaders[5]]:leaders;document.getElementById('leaderRows').innerHTML=arr.map(r=>'<div class="leaderrow"><span class="muted">#'+r[0]+'</span><div class="person"><div class="personicon">'+r[1][0]+'</div><div><strong>'+r[1]+(r[1]==='Player One'?' · You':'')+'</strong><small>Demo player</small></div></div><span class="rating">'+r[2]+'</span><span class="trend">'+r[3]+'</span></div>').join('')}renderLeaders('Overall');loadLesson();draw('puzzleBoard',ps,puzzleClick);
+<script type="module">
+const titles={home:['THE BOARD IS YOURS','Good evening, player.'],play:['MATCHMAKING','Choose your game.'],learn:['BABLO CHESS ACADEMY','Learn by making moves.'],puzzle:['DAILY TACTIC','Find the knight fork.'],compete:['CAMPUS & FRIENDS','Compete with purpose.'],profile:['YOUR CHESS JOURNEY','Your progress.']};
+function go(p){document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));if(titles[p]){document.getElementById('eyebrow').textContent=titles[p][0];document.getElementById('pagetitle').textContent=titles[p][1]}window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+let toastTimer;
+function toast(t){const e=document.getElementById('toast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),2500)}
+async function bootChess(){
+  let mod;
+  try{mod=await import('https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm')}catch(e){mod=await import('https://esm.sh/chess.js@1.4.0')}
+  const Chess=mod.Chess;
+  if(!Chess)throw new Error('Chess rules module did not export Chess');
+  const $=id=>document.getElementById(id);
+  const PIECE={w:{k:'♔',q:'♕',r:'♖',b:'♗',n:'♘',p:'♙'},b:{k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'}};
+  const VALUES={p:1,n:3,b:3.2,r:5,q:9,k:0};
+  const TIERS=['Student','Intern','House Officer','Registrar','Consultant','Professor'];
+  const FILES='abcdefgh';
+  const FORK_FEN='2q3k1/8/2N5/8/8/8/8/4K3 w - - 0 1';
+  const DEV_STEPS=[
+    {from:'e2',to:'e4',objective:'CLAIM THE CENTRE',text:'The e-pawn takes central space and opens lines for the queen and bishop.',hint:'Move the pawn in front of your king two squares: e2 to e4.',reply:{from:'e7',to:'e5'}},
+    {from:'g1',to:'f3',objective:'DEVELOP WITH TEMPO',text:'The knight develops toward the centre and attacks Black’s e5-pawn.',hint:'Move your kingside knight from g1 to f3.',reply:{from:'b8',to:'c6'}},
+    {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'c5'}}
+  ];
+  let match=null,matchSelected=null,lastMatchMove=null,matchMode='Quick Match',strength='Registrar',playerColor='w';
+  let botThinking=false,clockInterval=null,clockBase=600,clockIncrement=0,clocks={w:600,b:600},clockEnabled=true;
+  let resultLayer=null,matchStarted=false,matchOver=false;
+  let lessonGame=null,lessonSelected=null,lessonKind='develop',lessonStep=0,lessonWaiting=false,lessonFree=false,lessonHistory=[];
+  let puzzleGame=null,puzzleSelected=null,puzzleAttempts=0,puzzleHints=0,puzzleSolved=false;
+
+  function updatePuzzleDate(){const d=new Date();const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];if($('puzzleDate'))$('puzzleDate').textContent=months[d.getMonth()]+' '+d.getDate()}
+  updatePuzzleDate();
+
+  function isDarkSquare(sq){return (FILES.indexOf(sq[0])+Number(sq[1]))%2===1}
+  function kingSquare(game,color){for(let rank=8;rank>=1;rank--){for(let fi=0;fi<8;fi++){const sq=FILES[fi]+rank,p=game.get(sq);if(p&&p.type==='k'&&p.color===color)return sq}}return null}
+  function drawBoard(id,game,click,opts={}){
+    const root=$(id);if(!root||!game)return;
+    root.innerHTML='';root.setAttribute('role','grid');root.setAttribute('aria-label','Chessboard');
+    const orientation=opts.orientation||'w';
+    const ranks=orientation==='b'?[1,2,3,4,5,6,7,8]:[8,7,6,5,4,3,2,1];
+    const files=orientation==='b'?['h','g','f','e','d','c','b','a']:[...'abcdefgh'];
+    const selected=opts.selected||null;
+    const last=opts.lastMove||null;
+    const targets=selected?game.moves({square:selected,verbose:true}).map(m=>m.to):[];
+    const check=game.isCheck()?kingSquare(game,game.turn()):null;
+    ranks.forEach((rank,row)=>files.forEach((file,col)=>{
+      const sq=file+rank,p=game.get(sq),cell=document.createElement('button');
+      cell.type='button';cell.className='sq '+(isDarkSquare(sq)?'dark':'light');
+      if(selected===sq)cell.classList.add('selected');
+      if(targets.includes(sq))cell.classList.add(p?'capture-target':'target');
+      if(last&&last.includes(sq))cell.classList.add('last');
+      if(check===sq)cell.classList.add('check');
+      let label=sq;
+      if(p)label=(p.color==='w'?'white ':'black ')+({k:'king',q:'queen',r:'rook',b:'bishop',n:'knight',p:'pawn'}[p.type])+' on '+sq;
+      cell.setAttribute('aria-label',label);cell.setAttribute('role','gridcell');
+      if(col===0){const c=document.createElement('span');c.className='coords';c.textContent=String(rank);cell.appendChild(c)}
+      if(row===7){const c=document.createElement('span');c.className='filecoords';c.textContent=file;cell.appendChild(c)}
+      if(p){const piece=document.createElement('span');piece.className='piece';piece.textContent=PIECE[p.color][p.type];piece.style.color=p.color==='w'?'#fff9e8':'#19211c';piece.style.textShadow=p.color==='w'?'0 1px 2px #0008':'0 1px 1px #fff3';cell.appendChild(piece)}
+      cell.addEventListener('click',()=>click(sq));root.appendChild(cell);
+    }));
+  }
+  function addClockMarkup(){
+    const board=$('matchBoard');if(board&&!$('matchClocks'))board.insertAdjacentHTML('beforebegin','<div id="matchClocks" class="clockrow"><div class="clockchip" id="clockBlackWrap"><span id="blackClockName">Dr ECG · Black</span><strong id="clockBlack">10:00</strong></div><div class="clockchip active" id="clockWhiteWrap"><span id="whiteClockName">You · White</span><strong id="clockWhite">10:00</strong></div></div>');
+    const finish=$('finishMatch');if(finish){finish.textContent='Resign';finish.title='End this unranked game by resignation'}
+    const note=$('matchBoard')?.parentElement?.querySelector('.boardnote span:last-child');if(note)note.textContent='Legal moves active · unranked preview';
+    const tag=$('matchCard')?.querySelector('.minihead .tag');if(tag)tag.textContent='Local rules enabled';
+    const log=$('moveLog');if(log)log.setAttribute('aria-live','polite');
+    const turn=$('turnLabel');if(turn)turn.setAttribute('aria-live','polite');
+    if($('matchBoard')&&!$('drawOffer'))$('finishMatch').insertAdjacentHTML('beforebegin','<button class="secondary" id="drawOffer" type="button">Offer draw</button>');
+    if($('matchBoard')&&!$('matchStatus'))$('matchBoard').insertAdjacentHTML('afterend','<div class="muted" id="matchStatus" role="status" style="font-size:11px;margin-top:8px">Unranked local game. Engine-calibrated strength and online play are not connected.</div>');
+  }
+  function formatTime(seconds){if(!Number.isFinite(seconds))return '∞';seconds=Math.max(0,Math.floor(seconds));return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
+  function updateClocks(){
+    if(!$('clockWhite'))return;
+    $('clockWhite').textContent=clockEnabled?formatTime(clocks.w):'∞';$('clockBlack').textContent=clockEnabled?formatTime(clocks.b):'∞';
+    $('clockWhiteWrap').classList.toggle('active',!!match&&match.turn()==='w'&&!matchOver);$('clockBlackWrap').classList.toggle('active',!!match&&match.turn()==='b'&&!matchOver);
+    $('whiteClockName').textContent=(playerColor==='w'?'You':'Dr ECG')+' · White';$('blackClockName').textContent=(playerColor==='b'?'You':'Dr ECG')+' · Black';
+  }
+  function stopClock(){if(clockInterval!==null){clearInterval(clockInterval);clockInterval=null}}
+  function startClock(){
+    stopClock();updateClocks();if(!clockEnabled)return;
+    clockInterval=setInterval(()=>{
+      if(!match||matchOver||!matchStarted)return;
+      const side=match.turn();clocks[side]=Math.max(0,clocks[side]-1);updateClocks();
+      if(clocks[side]<=0){const winner=side===playerColor?'Dr ECG':'You';finishByResult(winner+' win on time',side===playerColor?'Your clock ran out. This local game does not change a rating.':'Dr ECG ran out of time. This local result is not rated.');}
+    },1000);
+  }
+  function currentStrength(){return document.querySelector('#strengthTabs .active')?.textContent.trim()||'Registrar'}
+  function currentClock(){return document.querySelector('#clockTabs .active')?.textContent.trim()||'10 + 0'}
+  function currentSide(){return document.querySelector('#sideTabs .active')?.textContent.trim()||'White'}
+  function parseClock(text){if(text==='Unlimited')return {base:Infinity,inc:0,enabled:false};const nums=text.match(/\d+/g)||['10','0'];return {base:Number(nums[0])*60,inc:Number(nums[1]||0),enabled:true}}
+  function startMatch(){
+    stopClock();matchMode=matchMode||'Quick Match';strength=currentStrength();playerColor=currentSide()==='Black'?'b':'w';
+    const clock=parseClock(currentClock());clockBase=clock.base;clockIncrement=clock.inc;clockEnabled=clock.enabled;
+    clocks={w:clockBase,b:clockBase};match=new Chess();matchSelected=null;lastMatchMove=null;botThinking=false;matchStarted=true;matchOver=false;
+    if(resultLayer){resultLayer.remove();resultLayer=null}
+    $('setup').hidden=true;$('matchCard').hidden=false;
+    $('matchName').textContent=matchMode+' · Local unranked';
+    $('matchStrength').textContent=strength+' · Uncalibrated local bot';
+    $('botLine').textContent='“Read the whole board, doctor. Symptoms are pieces; threats are the diagnosis.”';
+    $('moveLog').textContent='No moves yet. Select a piece, then a highlighted legal destination.';
+    $('turnLabel').textContent=playerColor==='w'?'White to move':'Dr ECG to move';
+    if($('matchStatus'))$('matchStatus').textContent='Legal chess rules are active. This local bot uses a basic tactical policy; ratings are not saved.';
+    const undo=$('undoMove');if(undo)undo.disabled=false;
+    drawMatch();startClock();$('matchCard').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+    if(playerColor==='b')scheduleBot();
+  }
+  function drawMatch(){drawBoard('matchBoard',match,matchClick,{selected:matchSelected,lastMove:lastMatchMove,orientation:playerColor}) ;updateClocks();updateTurn()}
+  function updateTurn(){
+    if(!match||!$('turnLabel'))return;
+    if(matchOver){$('turnLabel').textContent='Game complete';return}
+    if(botThinking){$('turnLabel').textContent='Dr ECG is thinking…';return}
+    let text=(match.turn()==='w'?'White':'Black')+' to move';
+    if(match.turn()===playerColor)text='Your move · '+(playerColor==='w'?'White':'Black');
+    else text='Dr ECG to move';
+    if(match.isCheck())text+=' · CHECK';
+    $('turnLabel').textContent=text;
+  }
+  function redrawMoveLog(){
+    const hist=match.history();let text='';
+    hist.forEach((san,i)=>{if(i%2===0)text+=(Math.floor(i/2)+1)+'. ';text+=san+' '});
+    $('moveLog').textContent=text.trim()||'No moves yet. Select a piece, then a highlighted legal destination.';
+  }
+  function describeMove(move,fromBot){
+    if(move.san.includes('#'))return fromBot?'“Checkmate. The diagnosis is conclusive, doctor.”':'“Checkmate! You found the correct treatment plan.”';
+    if(move.san.includes('+'))return fromBot?'“Check. Your king’s vitals need immediate attention.”':'“Check. You made Dr ECG answer a direct question.”';
+    if(move.captured)return fromBot?'“I’ve taken that piece. Even a good diagnosis has a difficult prognosis.”':'“Good capture. You spotted a weakness rather than moving without a plan.”';
+    const lines=fromBot?[
+      '“A legal move is the beginning. Now tell me what it threatens.”',
+      '“Look at checks, captures and threats before you prescribe the next move.”',
+      '“Your pieces need coordination, doctor. This is not a group assignment.”',
+      '“I have made my move. Read the position before you react.”'
+    ]:[
+      '“Interesting. Can you explain what that move improves?”',
+      '“Your move changes the position. Now scan for checks, captures and threats.”',
+      '“One move at a time, doctor. Keep your king safe.”'
+    ];
+    return lines[(match.history().length+(fromBot?1:0))%lines.length];
+  }
+  function materialScore(game,color){let total=0;game.board().forEach(row=>row.forEach(p=>{if(p)total+=(p.color===color?1:-1)*VALUES[p.type]}));return total}
+  function chooseBotMove(){
+    const moves=match.moves({verbose:true});if(!moves.length)return null;
+    const botColor=match.turn();
+    const scored=moves.map(m=>{
+      const test=new Chess(match.fen());const played=test.move({from:m.from,to:m.to,promotion:m.promotion||'q'});
+      let score=materialScore(test,botColor);
+      if(test.isCheckmate())score+=10000;
+      else if(test.isCheck())score+=0.65;
+      if(m.captured)score+=VALUES[m.captured]*0.15;
+      if(m.promotion)score+=VALUES[m.promotion]||8;
+      if(m.san.includes('+'))score+=0.1;
+      return {move:m,score};
+    }).sort((a,b)=>b.score-a.score);
+    const idx=Math.max(0,TIERS.indexOf(strength));const proportions=[1,.72,.48,.3,.16,.06];
+    const pool=Math.max(1,Math.ceil(scored.length*proportions[idx]));
+    return scored[Math.floor(Math.random()*pool)].move;
+  }
+  function scheduleBot(){
+    if(!match||matchOver||match.turn()===playerColor)return;
+    botThinking=true;matchSelected=null;updateTurn();drawMatch();
+    setTimeout(()=>{
+      if(!match||matchOver)return;
+      const move=chooseBotMove();botThinking=false;
+      if(!move){settleGame();return}
+      commitMove(move.from,move.to,move.promotion||'q',true);
+    },450+Math.random()*450);
+  }
+  function commitMove(from,to,promotion,fromBot){
+    if(!match||matchOver)return;
+    const movingColor=match.turn();let move;
+    try{move=match.move({from,to,promotion:promotion||'q'})}catch(e){move=null}
+    if(!move){toast('That move is not legal in this position.');matchSelected=null;drawMatch();return}
+    if(clockEnabled&&Number.isFinite(clocks[movingColor]))clocks[movingColor]+=clockIncrement;
+    lastMatchMove=[move.from,move.to];matchSelected=null;redrawMoveLog();$('botLine').textContent=describeMove(move,fromBot);
+    drawMatch();
+    if(match.isGameOver()){settleGame();return}
+    if(match.turn()!==playerColor)scheduleBot();
+  }
+  function matchClick(sq){
+    if(!match||matchOver||botThinking||match.turn()!==playerColor)return;
+    const p=match.get(sq);
+    if(!matchSelected){
+      if(!p||p.color!==playerColor){toast('Select one of your own pieces first.');return}
+      matchSelected=sq;drawMatch();return;
+    }
+    if(matchSelected===sq){matchSelected=null;drawMatch();return}
+    const move=match.moves({square:matchSelected,verbose:true}).find(m=>m.to===sq);
+    if(!move){
+      if(p&&p.color===playerColor){matchSelected=sq;drawMatch();return}
+      toast('That destination is not legal. Choose a highlighted square.');return;
+    }
+    const from=matchSelected;matchSelected=null;
+    if(move.promotion){showPromotionPicker(from,sq,playerColor,piece=>commitMove(from,sq,piece,false))}
+    else commitMove(from,sq,'q',false);
+  }
+  function showPromotionPicker(from,to,color,callback){
+    const old=document.getElementById('promotionLayer');if(old)old.remove();
+    const symbols=PIECE[color];const layer=document.createElement('div');layer.className='result-layer';layer.id='promotionLayer';layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');
+    layer.innerHTML='<div class="result-card"><div class="result-stamp">Pawn promotion</div><h2>Choose your piece</h2><p>Promote this pawn. Queen is the usual choice, but the other legal options remain available.</p><div class="actions" id="promotionOptions"></div></div>';
+    document.body.appendChild(layer);
+    ['q','r','b','n'].forEach(piece=>{const b=document.createElement('button');b.className=piece==='q'?'goldbtn':'secondary';b.type='button';b.textContent=symbols[piece]+' '+({q:'Queen',r:'Rook',b:'Bishop',n:'Knight'}[piece]);b.addEventListener('click',()=>{layer.remove();callback(piece)});$('promotionOptions').appendChild(b)});
+  }
+  function finishByResult(title,detail){
+    if(matchOver)return;matchOver=true;matchStarted=false;botThinking=false;stopClock();matchSelected=null;drawMatch();showResult(title,detail);
+  }
+  function settleGame(){
+    if(!match)return;
+    if(match.isCheckmate()){
+      const winner=match.turn()==='w'?'Black':'White';
+      const headline=(winner===playerColor?'You win':'Dr ECG wins')+' · Checkmate';
+      finishByResult(headline,'Checkmate has been verified from the legal position. This game is unranked and does not change a stored rating.');
+    }else if(match.isStalemate())finishByResult('Draw · Stalemate','The side to move has no legal move and is not in check.');
+    else if(match.isThreefoldRepetition())finishByResult('Draw · Repetition','The position has repeated three times.');
+    else if(match.isInsufficientMaterial())finishByResult('Draw · Insufficient material','Neither side has enough material to force checkmate.');
+    else if(match.isDraw())finishByResult('Draw','The rules position is drawn.');
+  }
+  function showResult(title,detail){
+    if(resultLayer)resultLayer.remove();
+    resultLayer=document.createElement('div');resultLayer.className='result-layer';resultLayer.setAttribute('role','dialog');resultLayer.setAttribute('aria-modal','true');resultLayer.setAttribute('aria-labelledby','resultTitle');
+    resultLayer.innerHTML='<div class="result-card"><div class="result-stamp">Match complete · unranked</div><h2 id="resultTitle"></h2><p id="resultDetail"></p><div class="info"><strong>Move record</strong><p id="resultMoves" style="overflow-wrap:anywhere"></p></div><div class="actions"><button class="goldbtn" id="resultReview">Review board</button><button class="secondary" id="resultRematch">Rematch</button><button class="secondary" id="resultHome">Home</button></div></div>';
+    $('resultTitle')?.remove?.();
+    document.body.appendChild(resultLayer);
+    resultLayer.querySelector('#resultTitle').textContent=title;
+    resultLayer.querySelector('#resultDetail').textContent=detail;
+    resultLayer.querySelector('#resultMoves').textContent=match?match.pgn().replace(/\[.*?\]\s*/g,'').trim()||'No moves recorded.':'No moves recorded.';
+    resultLayer.querySelector('#resultReview').addEventListener('click',()=>{resultLayer.remove();resultLayer=null;go('play');$('matchCard').hidden=false;$('matchCard').scrollIntoView({behavior:'smooth',block:'start'});toast('Final position and move record are shown. The game cannot continue.')});
+    resultLayer.querySelector('#resultRematch').addEventListener('click',()=>startMatch());
+    resultLayer.querySelector('#resultHome').addEventListener('click',()=>{resultLayer.remove();resultLayer=null;$('matchCard').hidden=true;go('home')});
+    resultLayer.querySelector('#resultReview').focus();
+  }
+
+  document.querySelectorAll('[data-format]').forEach(card=>card.addEventListener('click',()=>{
+    const next=card.dataset.format;
+    if(!['Quick Match','Timed Match','Training Match'].includes(next)){toast(next+' is planned, but not playable in this prototype yet. Quick, Timed and Training Match are active.');return}
+    matchMode=next;$('setupTitle').textContent=next+' setup';$('setup').hidden=false;$('setup').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+  document.querySelectorAll('#page-play .mode:not([data-format])').forEach(card=>card.addEventListener('click',()=>toast('This format is in the product plan but is not yet playable in this preview.')));
+  ['strengthTabs','clockTabs','sideTabs','leaderTabs'].forEach(id=>{
+    const root=$(id);if(!root)return;
+    root.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      root.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+      if(id==='leaderTabs')renderLeaders(b.textContent.trim());
+    }));
+  });
+  function renderLeaders(filter){
+    const leaders=[['1','AdaKnight','1,284','↑ 24'],['2','BishopMode','1,190','↑ 12'],['3','CampusRook','1,104','↑ 8'],['4','Player One','842','—'],['5','QuietStorm','811','↑ 5'],['6','EndgameAce','790','↓ 2']];
+    const arr=filter==='Friends'?[leaders[3],leaders[0],leaders[4]]:filter==='Weekly'?[leaders[0],leaders[2],leaders[3],leaders[5]]:leaders;
+    $('leaderRows').innerHTML=arr.map((r,i)=>'<div class="leaderrow"><span class="muted">#'+(i+1)+'</span><div class="person"><div class="personicon">'+r[1][0]+'</div><div><strong>'+r[1]+(r[1]==='Player One'?' · Preview profile':'')+'</strong><small>Illustrative player</small></div></div><span class="rating">'+r[2]+'</span><span class="trend">'+r[3]+'</span></div>').join('');
+  }
+  renderLeaders('Overall');
+  if($('leaderRows')&&!$('leaderPreviewNote'))$('leaderRows').insertAdjacentHTML('beforebegin','<p class="muted preview-note" id="leaderPreviewNote">Illustrative preview data only — this is not a live or ranked leaderboard.</p>');
+
+  $('startMatch').addEventListener('click',startMatch);
+  $('undoMove').addEventListener('click',()=>{
+    if(!match||botThinking||match.history().length===0){toast('There is no completed move to take back.');return}
+    if(resultLayer){resultLayer.remove();resultLayer=null;matchOver=false;matchStarted=true;startClock()}
+    stopClock();let removed=0;
+    if(match.history().length){match.undo();removed++}
+    if(match.history().length&&match.turn()===playerColor){match.undo();removed++}
+    if(matchOver)matchOver=false;matchStarted=true;matchSelected=null;lastMatchMove=null;
+    if(match.history().length){const history=match.history({verbose:true});const last=history[history.length-1];lastMatchMove=last?[last.from,last.to]:null}
+    redrawMoveLog();drawMatch();startClock();toast(removed>1?'Last exchange taken back.':'Last move taken back.');
+  });
+  $('resetBoard').addEventListener('click',()=>{startMatch();toast('New local game started.')});
+  $('finishMatch').addEventListener('click',()=>{if(!match||matchOver)return;if(confirm('Resign this unranked local game?'))finishByResult(playerColor==='w'?'Dr ECG wins on resignation':'Dr ECG wins on resignation','You resigned. No rating or online result will be submitted.')});
+  $('drawOffer').addEventListener('click',()=>{if(!match||matchOver)return;if(match.isDraw())settleGame();else toast('Draw negotiation is not part of this offline preview. No result was changed.')});
+
+  function resetLesson(kind='develop'){
+    lessonKind=kind;lessonSelected=null;lessonStep=0;lessonWaiting=false;lessonFree=false;lessonHistory=[];
+    lessonGame=kind==='fork'?new Chess(FORK_FEN):new Chess();
+    $('lessonTitle').textContent=kind==='fork'?'Knight fork':'Lesson board';
+    $('lessonTag').textContent=kind==='fork'?'Tactical lesson':'Guided practice';
+    $('lessonNext').textContent=kind==='fork'?'Restart tactic':'Next step →';
+    $('lessonNext').disabled=false;
+    if(kind==='fork'){
+      $('lessonObjective').textContent='OBJECTIVE · FORK THE KING AND QUEEN';
+      $('lessonExplanation').textContent='White to move. Ne7+ checks the king on g8 while attacking the queen on c8.';
+      $('lessonFeedback').textContent='Select the knight on c6, then choose a legal destination.';
+    }else{
+      $('lessonFeedback').textContent='Play the guided move directly on the board.';
+      updateLessonCopy();
+    }
+    renderLessonBoard();
+  }
+  function updateLessonCopy(){
+    if(lessonKind==='fork')return;
+    if(lessonStep>=DEV_STEPS.length){
+      $('lessonStep').textContent='Lesson complete';
+      $('lessonObjective').textContent='OBJECTIVE · COMPLETE';
+      $('lessonExplanation').textContent='You practised central control, knight development and bishop development. Restart to practise the line again.';
+      $('lessonFeedback').textContent='Completed locally. Progress is not synced to an account.';
+      $('lessonNext').textContent='Restart lesson';$('lessonNext').disabled=false;return;
+    }
+    const st=DEV_STEPS[lessonStep];
+    $('lessonStep').textContent='Step '+(lessonStep+1)+' of '+DEV_STEPS.length;
+    $('lessonObjective').textContent='OBJECTIVE · '+st.objective;
+    $('lessonExplanation').textContent=st.text;
+    $('lessonNext').textContent='Next step →';$('lessonNext').disabled=!lessonWaiting;
+  }
+  function renderLessonBoard(){
+    drawBoard('lessonBoard',lessonGame,lessonClick,{selected:lessonSelected,lastMove:null,orientation:'w'});
+    const t=lessonGame.turn()==='w'?'White to move':'Black to move';
+    $('lessonTurn').textContent=lessonWaiting?'Move complete · continue when ready':(lessonFree?'Free play · '+t:t);
+    updateLessonCopy();
+  }
+  function lessonClick(sq){
+    if(!lessonGame||lessonWaiting&&lessonKind==='develop'&&!lessonFree)return;
+    const p=lessonGame.get(sq);
+    if(!lessonSelected){
+      if(!p||p.color!==lessonGame.turn()){toast('Select a piece belonging to the side to move.');return}
+      lessonSelected=sq;renderLessonBoard();return;
+    }
+    if(lessonSelected===sq){lessonSelected=null;renderLessonBoard();return}
+    const available=lessonGame.moves({square:lessonSelected,verbose:true});
+    const found=available.find(m=>m.to===sq);
+    if(!found){
+      if(p&&p.color===lessonGame.turn()){lessonSelected=sq;renderLessonBoard();return}
+      $('lessonFeedback').textContent='That is not a legal move. Choose one of the highlighted destinations.';return;
+    }
+    lessonHistory.push({fen:lessonGame.fen(),step:lessonStep,waiting:lessonWaiting,free:lessonFree,kind:lessonKind});
+    const from=lessonSelected;lessonSelected=null;const move=lessonGame.move({from,to:sq,promotion:'q'});
+    if(lessonKind==='fork'){
+      renderLessonBoard();
+      if(move.from==='c6'&&move.to==='e7'&&lessonGame.isCheck()){
+        lessonWaiting=true;$('lessonFeedback').textContent='Correct: Ne7+ checks the king and attacks the queen. That is a knight fork.';$('lessonFeedback').style.color='var(--green)';$('lessonNext').textContent='Restart tactic';
+      }else{
+        lessonFree=true;$('lessonFeedback').textContent='Legal move, but it missed the fork. Restart and look for a move that checks the king while attacking the queen.';$('lessonFeedback').style.color='var(--gold2)';
+      }
+      return;
+    }
+    if(!lessonFree&&lessonStep<DEV_STEPS.length){
+      const st=DEV_STEPS[lessonStep];
+      if(move.from===st.from&&move.to===st.to){
+        const reply=st.reply;
+        if(reply){try{lessonGame.move({from:reply.from,to:reply.to})}catch(e){}}
+        lessonWaiting=true;
+        $('lessonFeedback').textContent='Good move. '+st.text+' Tap Next step to continue.';$('lessonFeedback').style.color='var(--green)';
+      }else{
+        lessonFree=true;lessonWaiting=false;$('lessonFeedback').textContent='That move is legal, but it leaves the guided line. Keep exploring with legal moves or restart the lesson.';$('lessonFeedback').style.color='var(--gold2)';
+      }
+    }else{
+      $('lessonFeedback').textContent='Legal move played. Notice how the position changes.';$('lessonFeedback').style.color='var(--green)';
+    }
+    renderLessonBoard();
+  }
+  function stepBackLesson(){
+    const prev=lessonHistory.pop();if(!prev){toast('You are at the start of this lesson.');return}
+    lessonGame.load(prev.fen);lessonStep=prev.step;lessonWaiting=prev.waiting;lessonFree=prev.free;lessonKind=prev.kind;lessonSelected=null;
+    $('lessonFeedback').textContent='Previous position restored.';$('lessonFeedback').style.color='var(--gold2)';renderLessonBoard();
+  }
+  const lessonControls=$('lessonHint')?.parentElement;
+  if(lessonControls&&!$('lessonBack'))lessonControls.insertAdjacentHTML('afterbegin','<button class="secondary" id="lessonBack">← Back</button>');
+  $('lessonBack').addEventListener('click',stepBackLesson);
+  $('startLesson').addEventListener('click',()=>{resetLesson('develop');toast('Guided opening lesson ready.')});
+  $('startFork').addEventListener('click',()=>{resetLesson('fork');toast('Knight-fork tactic ready.')});
+  $('lockedLesson').addEventListener('click',()=>toast('King safety and mating nets remain planned lessons; they are not playable yet.'));
+  $('lessonHint').addEventListener('click',()=>{
+    if(lessonKind==='fork')$('lessonFeedback').textContent=lessonStep===0?'Hint: from c6, check which square lets the knight attack both the king and queen.':'The fork is shown on the board.';
+    else $('lessonFeedback').textContent=lessonFree?'You are in free play. Restart to return to the guided line.':lessonStep>=DEV_STEPS.length?'Lesson complete. Restart to practise again.':DEV_STEPS[lessonStep].hint;
+  });
+  $('lessonReset').addEventListener('click',()=>{resetLesson(lessonKind);toast('Lesson restarted.')});
+  $('lessonNext').addEventListener('click',()=>{
+    if(lessonKind==='fork'){resetLesson('fork');toast('Tactic restarted.');return}
+    if(lessonStep>=DEV_STEPS.length){resetLesson('develop');return}
+    if(lessonFree){resetLesson('develop');toast('Guided line restarted.');return}
+    if(!lessonWaiting){toast('Play the guided move before going to the next step.');return}
+    lessonStep++;lessonWaiting=false;lessonSelected=null;
+    $('lessonFeedback').textContent=lessonStep>=DEV_STEPS.length?'Lesson complete.':'Position updated for the next guided move.';$('lessonFeedback').style.color='var(--green)';renderLessonBoard();
+  });
+  resetLesson('develop');
+
+  function resetPuzzle(){
+    puzzleGame=new Chess(FORK_FEN);puzzleSelected=null;puzzleAttempts=0;puzzleHints=0;puzzleSolved=false;
+    $('attemptCount').textContent='0';$('puzzleHint').textContent='Show hint 1';$('puzzleFeedback').textContent='White to move. Find Ne7+.';$('puzzleFeedback').style.color='var(--muted)';
+    drawBoard('puzzleBoard',puzzleGame,puzzleClick,{orientation:'w'});
+  }
+  function puzzleClick(sq){
+    if(puzzleSolved)return;
+    const p=puzzleGame.get(sq);
+    if(!puzzleSelected){
+      if(!p||p.color!=='w'){toast('Select a white piece first.');return}
+      puzzleSelected=sq;drawBoard('puzzleBoard',puzzleGame,puzzleClick,{selected:puzzleSelected,orientation:'w'});return;
+    }
+    if(puzzleSelected===sq){puzzleSelected=null;drawBoard('puzzleBoard',puzzleGame,puzzleClick,{orientation:'w'});return}
+    const from=puzzleSelected,moves=puzzleGame.moves({square:from,verbose:true}),candidate=moves.find(m=>m.to===sq);
+    if(!candidate){if(p&&p.color==='w'){puzzleSelected=sq;drawBoard('puzzleBoard',puzzleGame,puzzleClick,{selected:puzzleSelected,orientation:'w'});return}toast('That is not a legal destination. Try a highlighted square.');return}
+    puzzleSelected=null;puzzleAttempts++;$('attemptCount').textContent=String(puzzleAttempts);
+    if(from==='c6'&&sq==='e7'){
+      const move=puzzleGame.move({from,to:sq});puzzleSolved=puzzleGame.isCheck();
+      drawBoard('puzzleBoard',puzzleGame,puzzleClick,{lastMove:[move.from,move.to],orientation:'w'});
+      $('puzzleFeedback').textContent=puzzleSolved?'Correct! Ne7+ checks the king on g8 and attacks the queen on c8 — a knight fork.':'The move was legal, but the expected check was not produced.';
+      $('puzzleFeedback').style.color=puzzleSolved?'var(--green)':'var(--gold2)';
+    }else{
+      drawBoard('puzzleBoard',puzzleGame,puzzleClick,{orientation:'w'});
+      $('puzzleFeedback').textContent='Legal move, but it misses the fork. Find a knight move that checks the king and attacks the queen.';
+      $('puzzleFeedback').style.color='var(--gold2)';
+    }
+  }
+  $('puzzleHint').addEventListener('click',()=>{
+    puzzleHints++;
+    $('puzzleHint').textContent='Show hint '+(puzzleHints+1);
+    $('puzzleFeedback').textContent=puzzleHints===1?'Hint: the knight on c6 can jump to a square that checks the king. Look for a second target.':'Try Ne7+: the knight checks the king on g8 while attacking the queen on c8.';
+    $('puzzleFeedback').style.color='var(--gold2)';
+  });
+  $('puzzleReveal').addEventListener('click',()=>{
+    if(puzzleSolved)return;
+    const move=puzzleGame.move({from:'c6',to:'e7'});puzzleSolved=!!move&&puzzleGame.isCheck();
+    drawBoard('puzzleBoard',puzzleGame,puzzleClick,{lastMove:move?[move.from,move.to]:null,orientation:'w'});
+    $('puzzleFeedback').textContent='Solution: Ne7+ — the knight checks the king and attacks the queen. Puzzle progress is not synced to an account.';
+    $('puzzleFeedback').style.color='var(--green)';
+  });
+  $('puzzleReset').addEventListener('click',()=>{resetPuzzle();toast('Puzzle reset.')});
+  resetPuzzle();
+
+  // Validate that the lesson and puzzle both use a real legal tactic line.
+  const puzzleCheck=new Chess(FORK_FEN);const forkMove=puzzleCheck.move({from:'c6',to:'e7'});
+  if(!forkMove||!puzzleCheck.isCheck())throw new Error('The configured knight-fork position did not validate.');
+  addClockMarkup();
+}
+bootChess().catch(error=>{
+  console.error('Bablo Chess initialization failed:',error);
+  toast('Chess rules could not load. Check your connection and refresh the preview.');
+});
 </script></body></html>
