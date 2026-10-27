@@ -1714,10 +1714,17 @@ const ICON = {
   me: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   social: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/>'
 };
-function fmt(t, subj) {                 // superscripts for chemistry configs (2p6 -> 2p^6)
+function fmt(t, subj) {                 // render chemistry notation with real HTML subscripts/superscripts
   if (subj !== 'CHM') return [t];
-  const out = [], re = /\b([1-7][spdf])(\d{1,2})\b/g; let last = 0, m;
-  while ((m = re.exec(t))) { out.push(t.slice(last, m.index), m[1], h('sup', null, m[2])); last = m.index + m[0].length; }
+  const out = [], re = /C_([VP]),m|C_([VP])|\\)_([A-Za-z]+)|\\b([1-7][spdf])(\\d{1,2})\\b/g; let last = 0, m;
+  while ((m = re.exec(t))) {
+    out.push(t.slice(last, m.index));
+    if (m[1]) out.push('C', h('sub', null, m[1] + ',m'));
+    else if (m[2]) out.push('C', h('sub', null, m[2]));
+    else if (m[3]) out.push(')', h('sub', null, m[3]));
+    else out.push(m[4], h('sup', null, m[5]));
+    last = m.index + m[0].length;
+  }
   out.push(t.slice(last)); return out;
 }
 const pick = a => a[Math.floor(Math.random() * a.length)];
