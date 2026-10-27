@@ -693,10 +693,14 @@ button,a,input,select,textarea{touch-action:manipulation}
       ]}
     ]
   };
-  if (!window.__NOTES__.CHM || !/Thermodynamics/i.test(window.__NOTES__.CHM.title || "")) {
+  if (!window.__NOTES__.CHM) {
     window.__NOTES__.CHM = thermoNotes;
-  } else if (!window.__NOTES__.CHM.topics.some(t => /Formula sheet/i.test(t.title || ""))) {
-    window.__NOTES__.CHM.topics.push(...thermoNotes.topics);
+  } else {
+    const existingNotes = window.__NOTES__.CHM;
+    if (!existingNotes.topics.some(t => /01 • Introduction and thermodynamic language/i.test(t.title || ""))) {
+      existingNotes.topics.push(...thermoNotes.topics);
+    }
+    existingNotes.source = (existingNotes.source || "") + " | Added: CHM 101 Thermodynamics study material.";
   }
   window.__CARDS__ = window.__CARDS__ || {};
   const thermoCards = [
