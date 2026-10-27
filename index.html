@@ -4018,6 +4018,29 @@ applyTheme();
 loadHidden();
 window.addEventListener('hashchange', route);
 route();
+
+/* Validate the persisted account token on startup. Local storage can outlive
+   the server-side 30-day session, so a stale token must not masquerade as login. */
+async function validateSavedBabloSession() {
+  if (!DB.account || !DB.account.token || !authConfigured()) return;
+  const tokenAtStart = DB.account.token;
+  try {
+    const result = await hubCall('hub_get_progress', { p_token: tokenAtStart });
+    if (DB.account && DB.account.token === tokenAtStart && result && result.ok === false) {
+      DB.account = null;
+      DB.profile = null;
+      save();
+      toast('Your session expired. Sign in again; your study progress on this device is preserved.');
+      route();
+    } else if (DB.account && DB.account.token === tokenAtStart && result && result.ok === true && result.progress) {
+      mergeRemote(result.progress);
+    }
+  } catch (e) {
+    /* Network failure is not proof that the token is invalid. Keep local state
+       and allow the app to retry rather than forcing a spurious sign-out. */
+  }
+}
+setTimeout(validateSavedBabloSession, 0);
 startIncomingChessWatcher();
 startRestReminder();
 setTimeout(liveNotice, 1200);
