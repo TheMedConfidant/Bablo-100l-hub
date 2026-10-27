@@ -4040,7 +4040,22 @@ async function validateSavedBabloSession() {
        and allow the app to retry rather than forcing a spurious sign-out. */
   }
 }
-setTimeout(validateSavedBabloSession, 0);
+/* Keep long-lived sessions alive without treating temporary network failures as logout.
+   The RPC refreshes the server-side 30-day expiry only when the token is still valid. */
+let BABLO_SESSION_CHECK_BUSY = false;
+async function refreshBabloSession() {
+  if (BABLO_SESSION_CHECK_BUSY || !DB.account || !DB.account.token || !authConfigured()) return;
+  BABLO_SESSION_CHECK_BUSY = true;
+  try { await validateSavedBabloSession(); }
+  finally { BABLO_SESSION_CHECK_BUSY = false; }
+}
+setTimeout(refreshBabloSession, 0);
+setInterval(() => {
+  if (!document.hidden) refreshBabloSession();
+}, 12 * 60 * 60 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refreshBabloSession();
+});
 startIncomingChessWatcher();
 startRestReminder();
 setTimeout(liveNotice, 1200);
