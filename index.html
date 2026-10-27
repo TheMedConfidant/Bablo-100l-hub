@@ -614,6 +614,210 @@ button,a,input,select,textarea{touch-action:manipulation}
 <script src="mts-maths-topics.js"></script>
 <script src="mts-maths-induction-extra.js"></script>
 <script>
+
+<script>
+/* BH_CHM101_THERMODYNAMICS_V1 — course resources in their native sections */
+(function () {
+  window.__NOTES__ = window.__NOTES__ || {};
+  const thermoNotes = {
+    title: "CHM 101 — Thermodynamics",
+    source: "CHM 101 Thermodynamics lecture-note study material. Worked examples and clarification notes are labelled within the material.",
+    topics: [
+      {title:"01 • Introduction and thermodynamic language",sections:[
+        "Thermodynamics is the branch of physical chemistry concerned with energy transformations and the relationships among heat, work and energy in chemical systems.",
+        "A system is the part selected for study; the surroundings are everything outside it; the universe is system plus surroundings. A boundary separates the system from its surroundings and may be real or imaginary.",
+        "Open system: exchanges matter and energy. Closed system: exchanges energy but not matter. Isolated system: exchanges neither matter nor energy.",
+        "Thermodynamic properties describe a system. A state function depends only on the current state, not the path taken. Examples include temperature, pressure, volume, internal energy, enthalpy, entropy and amount of substance. Heat and work are path functions."
+      ]},
+      {title:"02 • Intensive, extensive and state properties",sections:[
+        "Intensive properties do not depend on the amount of material: temperature, pressure, density, viscosity, melting point, boiling point and specific heat capacity.",
+        "Extensive properties depend on the amount of material and are additive: mass, volume, internal energy, enthalpy, entropy and heat capacity.",
+        "For a state function X, its change is ΔX = X_final − X_initial. The value of ΔX depends on the initial and final states, not on the route between them."
+      ]},
+      {title:"03 • Thermodynamic processes",sections:[
+        "Isothermal: temperature remains constant (ΔT = 0). Isobaric: pressure remains constant (ΔP = 0). Isochoric: volume remains constant (ΔV = 0), so pressure–volume work is zero.",
+        "Adiabatic: no heat crosses the system boundary (q = 0); temperature may still change. Cyclic: the system returns to its initial state, so the net change in every state function, including ΔU, is zero.",
+        "Reversible: an ideal process that can be reversed by an infinitesimal change in conditions. Irreversible: cannot be reversed by an infinitesimal change. Quasi-static processes pass through states very close to equilibrium."
+      ]},
+      {title:"04 • Thermodynamic equilibrium",sections:[
+        "Complete thermodynamic equilibrium requires thermal, mechanical and chemical equilibrium.",
+        "Thermal equilibrium means there is no net heat transfer driven by a temperature difference. Mechanical equilibrium means no unbalanced force drives macroscopic change. Chemical equilibrium means no net chemical change; species able to exchange have equal chemical potentials at equilibrium.",
+        "A system can be in one kind of equilibrium without being in complete thermodynamic equilibrium."
+      ]},
+      {title:"05 • Heat, work and internal energy",sections:[
+        "Heat (q) is energy transferred because of a temperature difference. Under the chemistry convention, q > 0 when heat enters the system and q < 0 when heat leaves.",
+        "An endothermic process absorbs heat from its surroundings; an exothermic process releases heat to its surroundings.",
+        "Work (w) is energy transferred by a generalized force acting through a displacement. For pressure–volume work at constant external pressure, w = −P_ext ΔV. Work done on the system is positive; work done by the system is negative.",
+        "Internal energy U is the total microscopic kinetic and potential energy of the system. It is a state function and an extensive property."
+      ]},
+      {title:"06 • First Law of Thermodynamics",sections:[
+        "The First Law expresses conservation of energy: energy cannot be created or destroyed, only transferred or transformed.",
+        "Chemistry sign convention: ΔU = q + w, where q is heat transferred to the system and w is work done on the system.",
+        "Example: if a system absorbs 500 J and does 200 J of work on the surroundings, q = +500 J and w = −200 J; therefore ΔU = 500 − 200 = +300 J.",
+        "For an isolated system, q = 0 and w = 0, so ΔU = 0. In a complete cycle the system returns to its original state, so net ΔU = 0 and q = −w."
+      ]},
+      {title:"07 • Pressure–volume work",sections:[
+        "At constant external pressure: w = −P_ext(V_f − V_i) = −P_ext ΔV. Expansion has ΔV > 0 and w < 0; compression has ΔV < 0 and w > 0.",
+        "Useful conversion: 1 L·atm = 101.325 J. A gas expanding from 5 L to 10 L against 1 atm has ΔV = +5 L and w = −5 L·atm = −506.6 J (approximately −507 J).",
+        "If external pressure changes, w = −∫(V_i to V_f) P_ext dV. For reversible isothermal expansion of an ideal gas, w_rev = −nRT ln(V_f/V_i), using natural logarithm and absolute temperature.",
+        "Free expansion against zero external pressure gives w = 0. Heat transfer is not automatically zero; q = 0 only if the process is also thermally insulated."
+      ]},
+      {title:"08 • Enthalpy and reaction energy",sections:[
+        "Enthalpy is defined as H = U + PV. At constant pressure, if pressure–volume work is the only work mode, ΔH = q_P. At constant volume under the same restriction, ΔU = q_V.",
+        "For reactions involving ideal gases: ΔH = ΔU + Δn_g RT, where Δn_g = gaseous product moles − gaseous reactant moles.",
+        "Exothermic reaction: heat is released and ΔH is generally negative at constant pressure. Endothermic reaction: heat is absorbed and ΔH is generally positive at constant pressure.",
+        "Do not confuse heat q with stored energy U or H. Heat is energy in transfer; internal energy and enthalpy are state functions."
+      ]},
+      {title:"09 • Heat capacity",sections:[
+        "Heat capacity C is the heat required to raise a system's temperature by one kelvin along a specified path: C = dq/dT.",
+        "At constant volume, C_V = (∂U/∂T)_V; for constant molar heat capacity, ΔU = n C_V,m ΔT. At constant pressure, C_P = (∂H/∂T)_P; ΔH = n C_P,m ΔT.",
+        "For one mole of an ideal gas, C_P,m − C_V,m = R. Thus C_P,m = C_V,m + R. Use temperature differences in kelvin or degrees Celsius because their increments are equal."
+      ]},
+      {title:"10 • Worked calculations and common traps",sections:[
+        "First Law: q = +250 J and w = +40 J (work done on the system) gives ΔU = +290 J.",
+        "Expansion: if P_ext = 2 atm and volume increases by 3 L, w = −(2)(3) L·atm = −6 L·atm = −607.95 J.",
+        "Heat capacity: heating 2 mol with C_V,m = 20 J mol⁻¹ K⁻¹ through 10 K gives ΔU = nC_V,mΔT = 2 × 20 × 10 = 400 J.",
+        "Unit and sign checks: write ΔV = V_f − V_i; convert L·atm to joules when required; state the sign convention; use kelvin for absolute temperature in gas equations.",
+        "Source-check note: in a spring-energy example, 100 J must not be labelled 100 kJ; if 15 J is stored and 100 J is supplied as work to the system, calculate with the stated units and sign convention rather than mixing units."
+      ]},
+      {title:"11 • Formula sheet",sections:[
+        "First Law: ΔU = q + w.",
+        "Constant external pressure: w = −P_ext ΔV.",
+        "Changing external pressure: w = −∫P_ext dV.",
+        "Reversible isothermal ideal-gas expansion: w_rev = −nRT ln(V_f/V_i).",
+        "Enthalpy: H = U + PV.",
+        "Ideal-gas reaction relation: ΔH = ΔU + Δn_g RT.",
+        "Constant-volume heating: ΔU = nC_V,mΔT.",
+        "Constant-pressure heating: ΔH = nC_P,mΔT.",
+        "Ideal gas, one mole: C_P,m − C_V,m = R.",
+        "Conversion: 1 L·atm = 101.325 J."
+      ]}
+    ]
+  };
+  if (!window.__NOTES__.CHM || !/Thermodynamics/i.test(window.__NOTES__.CHM.title || "")) {
+    window.__NOTES__.CHM = thermoNotes;
+  } else if (!window.__NOTES__.CHM.topics.some(t => /Formula sheet/i.test(t.title || ""))) {
+    window.__NOTES__.CHM.topics.push(...thermoNotes.topics);
+  }
+  window.__CARDS__ = window.__CARDS__ || {};
+  const thermoCards = [
+    ["What does thermodynamics study?","Energy transformations and relations among heat, work and energy.","Introduction"],
+    ["Define the system.","The part of the universe selected for study.","Systems"],
+    ["What is the surroundings?","Everything outside the selected system.","Systems"],
+    ["What exchanges matter and energy?","An open system.","Systems"],
+    ["What can a closed system exchange?","Energy, but not matter.","Systems"],
+    ["What does an isolated system exchange?","Neither matter nor energy.","Systems"],
+    ["Define a state function.","A property depending only on the system's state.","State properties"],
+    ["Name two path functions.","Heat and work.","State properties"],
+    ["Give two intensive properties.","Temperature and pressure.","Properties"],
+    ["Give two extensive properties.","Mass and volume.","Properties"],
+    ["What is an isothermal process?","A process at constant temperature; ΔT = 0.","Processes"],
+    ["What is an isobaric process?","A process at constant pressure; ΔP = 0.","Processes"],
+    ["What is an isochoric process?","A process at constant volume; ΔV = 0.","Processes"],
+    ["Why is PV work zero in an isochoric process?","Because ΔV = 0, so w = −P_extΔV = 0.","Processes"],
+    ["What does adiabatic mean?","No heat transfer across the boundary; q = 0.","Processes"],
+    ["What is true of ΔU over a complete cycle?","It is zero because internal energy returns to its initial state.","Processes"],
+    ["When is q positive in chemistry convention?","When heat enters the system.","Heat and work"],
+    ["When is w positive in chemistry convention?","When work is done on the system.","Heat and work"],
+    ["What is an endothermic process?","A process that absorbs heat from surroundings.","Heat and work"],
+    ["What is an exothermic process?","A process that releases heat to surroundings.","Heat and work"],
+    ["State the First Law.","ΔU = q + w.","First Law"],
+    ["A system absorbs 500 J and does 200 J work. Find ΔU.","ΔU = 500 − 200 = +300 J.","First Law"],
+    ["What is internal energy?","Total microscopic kinetic and potential energy of the system.","First Law"],
+    ["Write constant-pressure PV work.","w = −P_extΔV.","PV work"],
+    ["What is the sign of work during expansion?","Negative under the chemistry convention.","PV work"],
+    ["What is the sign of work during compression?","Positive under the chemistry convention.","PV work"],
+    ["Convert 1 L·atm to joules.","101.325 J.","PV work"],
+    ["Define enthalpy.","H = U + PV.","Enthalpy"],
+    ["At constant pressure, when PV work is the only work, what is q_P?","q_P = ΔH.","Enthalpy"],
+    ["At constant volume, when PV work is the only work, what is q_V?","q_V = ΔU.","Enthalpy"],
+    ["Write the ideal-gas reaction relation between ΔH and ΔU.","ΔH = ΔU + Δn_gRT.","Enthalpy"],
+    ["How is Δn_g calculated?","Gaseous product moles minus gaseous reactant moles.","Enthalpy"],
+    ["Define heat capacity.","Heat required to raise a system's temperature by one kelvin along a specified path.","Heat capacity"],
+    ["Write ΔU for constant C_V,m.","ΔU = nC_V,mΔT.","Heat capacity"],
+    ["Write ΔH for constant C_P,m.","ΔH = nC_P,mΔT.","Heat capacity"],
+    ["What is C_P,m − C_V,m for one mole of an ideal gas?","R.","Heat capacity"],
+    ["What is the work in free expansion against vacuum?","Zero, because external pressure is zero.","PV work"],
+    ["Does free expansion automatically mean q = 0?","No; q = 0 only if the process is insulated.","PV work"],
+    ["Which logarithm is used in reversible isothermal expansion work?","Natural logarithm: ln(V_f/V_i).","PV work"],
+    ["What does ΔU = 0 imply for an isolated system?","It is consistent with q = 0 and w = 0.","First Law"],
+    ["What are the three equilibrium requirements?","Thermal, mechanical and chemical equilibrium.","Equilibrium"]
+  ].map(([front,back,u])=>({front,back,u}));
+  const priorCards = window.__CARDS__.CHM || [];
+  const cardKeys = new Set(priorCards.map(c => c.front));
+  window.__CARDS__.CHM = priorCards.concat(thermoCards.filter(c => !cardKeys.has(c.front)));
+  window.__BANK__ = window.__BANK__ || [];
+  const thermoQuestions = [
+    ["Which branch studies heat, work and energy transformations?","Thermodynamics",["Kinetics","Thermodynamics","Spectroscopy","Electroplating"],1,"Thermodynamics studies energy transformations and relations among heat, work and energy."],
+    ["The part selected for investigation is the:","System",["Surroundings","Universe","System","Boundary"],2,"The system is the part of the universe chosen for study."],
+    ["Which system exchanges matter and energy?","Open system",["Open system","Closed system","Isolated system","Adiabatic system"],0,"An open system exchanges both matter and energy."],
+    ["A sealed container that exchanges heat but not matter is a:","Closed system",["Open system","Closed system","Isolated system","Cyclic system"],1,"A closed system may exchange energy but not matter."],
+    ["Which is a path function?","Heat",["Pressure","Temperature","Heat","Internal energy"],2,"Heat depends on the path/process, not only the state."],
+    ["Which is a state function?","Internal energy",["Work","Heat","Path length","Internal energy"],3,"Internal energy depends only on the state."],
+    ["Which property is intensive?","Density",["Mass","Volume","Enthalpy","Density"],3,"Density does not depend on the amount of material."],
+    ["Which property is extensive?","Volume",["Temperature","Pressure","Volume","Boiling point"],2,"Volume scales with the amount of material."],
+    ["An isothermal process occurs at constant:","Temperature",["Pressure","Temperature","Volume","Heat"],1,"Isothermal means temperature remains constant."],
+    ["An isobaric process occurs at constant:","Pressure",["Pressure","Volume","Internal energy","Entropy"],0,"Isobaric means pressure remains constant."],
+    ["In an isochoric process, which quantity is zero?","Volume change",["Pressure change","Volume change","Heat transfer","Internal energy"],1,"At constant volume, ΔV = 0."],
+    ["An adiabatic process has:","q = 0",["w = 0 always","ΔU = 0 always","q = 0","ΔT = 0 always"],2,"Adiabatic means no heat transfer; temperature can change."],
+    ["Complete thermodynamic equilibrium requires thermal, mechanical and:","Chemical equilibrium",["Optical equilibrium","Nuclear equilibrium","Chemical equilibrium","Electrical equilibrium only"],2,"All three types are required for complete thermodynamic equilibrium."],
+    ["Heat is energy transferred because of a difference in:","Temperature",["Mass","Colour","Temperature","Volume only"],2,"Heat transfer is driven by a temperature difference."],
+    ["In chemistry convention, heat entering the system has:","Positive q",["Negative q","Positive q","Zero q","Undefined q"],1,"Heat absorbed by the system is positive."],
+    ["In chemistry convention, work done by the system has:","Negative w",["Positive w","Negative w","Always zero","Positive q"],1,"Work done by the system is negative in this convention."],
+    ["Which equation expresses the First Law?","ΔU = q + w",["ΔU = q − w always","ΔU = q + w","ΔH = q + T","PV = nRT"],1,"The chemistry convention uses ΔU = q + w."],
+    ["A system absorbs 100 J and has 30 J work done on it. Find ΔU.","+130 J",["+70 J","−70 J","+130 J","−130 J"],2,"ΔU = q + w = 100 + 30 = +130 J."],
+    ["A system absorbs 500 J and does 200 J work on the surroundings. ΔU is:","+300 J",["+700 J","+300 J","−300 J","−700 J"],1,"q = +500 J and w = −200 J, so ΔU = +300 J."],
+    ["For an isolated system, q and w are:","Both zero",["Both zero","Both positive","Both negative","Equal to ΔH"],0,"An isolated system exchanges neither heat nor work with surroundings."],
+    ["At constant external pressure, PV work is:","w = −P_extΔV",["w = P_extΔV","w = −P_extΔV","w = q + ΔU","w = P/V"],1,"The chemistry convention includes the negative sign."],
+    ["During expansion, ΔV is usually:","Positive",["Negative","Positive","Always zero","Undefined"],1,"Final volume exceeds initial volume during expansion."],
+    ["During compression, chemistry-convention PV work is:","Positive",["Negative","Positive","Always zero","Equal to heat"],1,"Compression gives ΔV < 0, so −P_extΔV > 0."],
+    ["A gas expands 4 L against 2 atm. Work is:","−8 L·atm",["+8 L·atm","−8 L·atm","+2 L·atm","−2 L·atm"],1,"w = −P_extΔV = −2 × 4 = −8 L·atm."],
+    ["1 L·atm is approximately:","101.325 J",["1.01325 J","10.1325 J","101.325 J","1000 J"],2,"Use 1 L·atm = 101.325 J."],
+    ["A gas expands from 5 L to 10 L. ΔV equals:","+5 L",["+15 L","−5 L","+5 L","+2 L"],2,"ΔV = V_f − V_i = 10 − 5 = +5 L."],
+    ["Work against zero external pressure during free expansion is:","Zero",["Positive","Negative","Zero","Equal to ΔU"],2,"w = −P_extΔV and P_ext = 0."],
+    ["Free expansion guarantees q = 0. This statement is:","False",["True","False","True only at constant pressure","True only for liquids"],1,"Heat is zero only if insulation or other conditions make q = 0."],
+    ["The reversible isothermal ideal-gas work formula uses:","Natural logarithm",["Common logarithm only","Natural logarithm","Square root","No logarithm"],1,"w_rev = −nRT ln(V_f/V_i)."],
+    ["Enthalpy is defined as:","H = U + PV",["H = U − PV","H = U + PV","H = q + w only","H = PV/T"],1,"Enthalpy is internal energy plus pressure-volume product."],
+    ["At constant pressure with only PV work, heat equals:","ΔH",["ΔU always","ΔH","ΔV","w only"],1,"Under those conditions q_P = ΔH."],
+    ["At constant volume with only PV work, heat equals:","ΔU",["ΔH always","ΔU","PV","−w always"],1,"At constant volume, q_V = ΔU."],
+    ["For ideal-gas reactions, ΔH − ΔU equals:","Δn_gRT",["Δn_gRT","nRT only","PΔV always","q/w"],0,"ΔH = ΔU + Δn_gRT."],
+    ["Δn_g is calculated using:","Gaseous products minus gaseous reactants",["All products minus all reactants regardless of phase","Gaseous products minus gaseous reactants","Liquid products only","Total atoms"],1,"Only gaseous stoichiometric mole amounts are included."],
+    ["An exothermic reaction releases heat; at constant pressure ΔH is generally:","Negative",["Positive","Negative","Always zero","Always equal to ΔU"],1,"Heat released corresponds to negative enthalpy change at constant pressure."],
+    ["An endothermic process absorbs heat; at constant pressure ΔH is generally:","Positive",["Positive","Negative","Always zero","Undefined"],0,"Heat absorbed gives positive ΔH under the stated conditions."],
+    ["Heat capacity is heat required to raise temperature by:","One kelvin",["One mole","One litre","One kelvin","One atmosphere"],2,"Heat capacity is defined per one-kelvin temperature rise for the system."],
+    ["For constant molar heat capacity at constant volume:","ΔU = nC_V,mΔT",["ΔU = nC_P,mΔT","ΔU = nC_V,mΔT","ΔU = q − w always","ΔU = PV"],1,"This relation applies for constant C_V,m."],
+    ["For constant molar heat capacity at constant pressure:","ΔH = nC_P,mΔT",["ΔH = nC_P,mΔT","ΔH = nC_V,mΔT","ΔH = nRT only","ΔH = 0"],0,"This relation applies for constant C_P,m."],
+    ["For one mole of an ideal gas, C_P,m − C_V,m equals:","R",["0","R","2R","PV"],1,"The ideal-gas heat-capacity relation is C_P,m − C_V,m = R."],
+    ["If n = 2 mol, C_V,m = 20 J mol⁻¹ K⁻¹ and ΔT = 10 K, ΔU is:","400 J",["40 J","200 J","400 J","800 J"],2,"ΔU = nC_V,mΔT = 2 × 20 × 10 = 400 J."],
+    ["A cyclic process has net ΔU equal to:","Zero",["Positive","Negative","Zero","Equal to ΔH"],2,"Internal energy is a state function and returns to its initial value."],
+    ["Thermal equilibrium means no net heat flow due to a difference in:","Temperature",["Pressure only","Temperature","Volume only","Mass"],1,"Systems in thermal equilibrium have the same temperature."],
+    ["Which statement about temperature in an adiabatic process is correct?","It may change",["It must stay constant","It may change","It must be zero","It equals pressure"],1,"Adiabatic means q = 0, not ΔT = 0."],
+    ["A state function change is determined by:","Initial and final states",["The exact path only","Initial and final states","Elapsed time only","The apparatus colour"],1,"State function changes depend on the endpoints."],
+    ["For expansion work, ΔV must be calculated as:","V_f − V_i",["V_i − V_f","V_f − V_i","V_f + V_i","P × V"],1,"Use final volume minus initial volume."],
+    ["Which temperature belongs in nRT for gas equations?","Absolute temperature",["Celsius temperature without conversion","Absolute temperature","Temperature difference only","Fahrenheit temperature"],1,"Use kelvin for absolute temperature in gas equations."],
+    ["If q = −80 J and w = +25 J, ΔU equals:","−55 J",["−105 J","−55 J","+55 J","+105 J"],1,"ΔU = q + w = −80 + 25 = −55 J."],
+    ["If q = +60 J and w = −90 J, ΔU equals:","−30 J",["+150 J","−150 J","−30 J","+30 J"],2,"ΔU = 60 − 90 = −30 J."],
+    ["A gas compressed against external pressure has work done:","On the system",["By the system","On the system","Neither by nor on it","Only as heat"],1,"Compression requires work input to the system."],
+    ["Which is not a state function?","Work",["Enthalpy","Internal energy","Temperature","Work"],3,"Work is path-dependent."],
+    ["Which is extensive?","Enthalpy",["Density","Pressure","Enthalpy","Temperature"],2,"Enthalpy scales with the amount of substance."],
+    ["Which is intensive?","Boiling point",["Mass","Energy","Volume","Boiling point"],3,"Boiling point does not scale with sample size."],
+    ["For a sealed rigid vessel, which condition is true?","No matter transfer and ΔV = 0",["Matter freely enters and leaves","No matter transfer and ΔV = 0","Pressure must be zero","q must be zero"],1,"Sealed means no matter transfer; rigid means constant volume."],
+    ["At constant volume, PV work is zero even if pressure changes. Why?","ΔV = 0",["Pressure is constant","ΔV = 0","Temperature is zero","q = 0"],1,"PV work depends on volume change, not pressure change alone."],
+    ["If a system loses 120 J of heat and 20 J work is done on it, ΔU is:","−100 J",["−140 J","−100 J","+100 J","+140 J"],1,"q = −120 J and w = +20 J; ΔU = −100 J."],
+    ["Which best describes internal energy?","Microscopic kinetic and potential energy",["Only translational kinetic energy","Microscopic kinetic and potential energy","Heat stored as a substance","External pressure"],1,"Internal energy includes microscopic kinetic and potential contributions."],
+    ["Which equation converts L·atm to joules?","Multiply by 101.325",["Multiply by 10","Multiply by 101.325","Divide by 101.325","Multiply by 273"],1,"1 L·atm equals 101.325 J."],
+    ["What is the sign of ΔV when a gas expands?","Positive",["Positive","Negative","Zero","Always undefined"],0,"Expansion means final volume is larger."],
+    ["A process that can be reversed by an infinitesimal change is idealized as:","Reversible",["Irreversible","Reversible","Adiabatic only","Cyclic only"],1,"That is the defining ideal criterion for reversibility."],
+    ["A quasi-static process passes through states close to:","Equilibrium",["Vacuum only","Equilibrium","Combustion","Absolute zero"],1,"Quasi-static means the system remains close to equilibrium states."]
+  ];
+  const ids = new Set(window.__BANK__.map(q => q.i));
+  thermoQuestions.forEach((x,i) => {
+    const id = "CHM-THERMO-V1-" + String(i+1).padStart(3,"0");
+    if (!ids.has(id)) window.__BANK__.push({i:id,c:"CHM",u:"Thermodynamics",s:"mcq",q:x[0],o:x[2],a:x[3],e:x[4]});
+  });
+})();
+</script>
+
 /* Bablo 100L Hub - pure logic (no DOM). Tested in test/run.js */
 (function (root) {
   const GRADES = [
