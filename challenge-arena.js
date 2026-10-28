@@ -254,27 +254,18 @@
     addChallengeNav();
   };
   addChallengeNav();
-  // Prominent entry point independent of the bottom-nav visibility/layout.
-  // This makes Challenge Arena discoverable on phones and on signed-out screens.
-  function ensureChallengeLauncher() {
-    if (document.getElementById('challengeArenaLauncher')) return;
-    const launch=h('a',{
-      id:'challengeArenaLauncher', href:'#/challenges',
-      style:{
-        position:'fixed', right:'14px', bottom:'calc(82px + env(safe-area-inset-bottom, 0px))',
-        zIndex:'9999', display:'flex', alignItems:'center', gap:'8px',
-        padding:'12px 16px', borderRadius:'999px',
-        background:'linear-gradient(135deg,#f7d879,#c18b25)',
-        color:'#17130a', fontWeight:'800', fontSize:'14px',
-        textDecoration:'none', boxShadow:'0 8px 28px rgba(0,0,0,.28)',
-        border:'1px solid rgba(255,255,255,.45)'
-      },
-      'aria-label':'Open Challenge Arena'
-    },'🏆 Challenges');
-    document.body.append(launch);
-  }
-  ensureChallengeLauncher();
-  window.addEventListener('DOMContentLoaded', ensureChallengeLauncher);
+  // Route Challenges through the real bottom-navigation item. Use an explicit
+  // click handler as well as hashchange so embedded/mobile browsers cannot swallow
+  // the navigation event or leave the core router on Home.
+  document.addEventListener('click', function (event) {
+    const link = event.target && event.target.closest
+      ? event.target.closest('[data-challenge-nav], a[href="#/challenges"]')
+      : null;
+    if (!link) return;
+    event.preventDefault();
+    if (location.hash !== '#/challenges') location.hash = '#/challenges';
+    setTimeout(dispatchChallengeRoute, 0);
+  }, true);
   function dispatchChallengeRoute() {
     const raw=location.hash.slice(1).split('?')[0].split('/').filter(Boolean);
     if(raw[0]!=='challenges') return;
