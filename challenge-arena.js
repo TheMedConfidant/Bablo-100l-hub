@@ -118,13 +118,51 @@
 
 
   async function openChat(username) {
-    const close=modal(h('div',{class:'stack'},h('p',{class:'eyebrow'},'FRIEND CHAT'),h('h2',null,'@'+esc(username)),
-      small('Messages are limited to accepted friends. Use Block or Report if a conversation becomes uncomfortable.'),
-      (()=>{const feed=h('div',{class:'stack',style:{maxHeight:'42vh',overflowY:'auto'}});const input=h('input',{placeholder:'Write a message…',maxlength:'1000',autocomplete:'off'});const status=errorBox();
-        async function load(){feed.replaceChildren(small('Loading messages…'));try{const j=await rpc('hub_friend_messages_get',{p_friend_username:username});feed.replaceChildren(...((j.messages||[]).map(m=>panel(h('div',{class:'row between'},h('b',null,m.mine?'You':'@'+esc(username)),small(stamp(m.created_at))),h('p',{class:'small',style:{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}},m.body))))||[small('No messages yet. Say hello!')]);if(!(j.messages||[]).length)feed.replaceChildren(small('No messages yet. Say hello!'));}catch(e){feed.replaceChildren(small(e.message));}}
-        const send=async()=>{status.textContent='';const body=input.value.trim();if(!body)return;try{await rpc('hub_friend_message_send',{p_recipient_username:username,p_body:body});input.value='';await load();}catch(e){status.textContent=e.message;}};
-        setTimeout(load,0);
-        return h('div',{class:'stack'},feed,h('div',{class:'row wrapr'},input,btn('Send',send,'primary')),status,h('div',{class:'row wrapr'},btn('Refresh',load,'ghost'),btn('Report friend',()=>openReport(username),'ghost'),btn('Close',close,'ghost')));
+    let closed = false;
+    let pollTimer = null;
+    const close = modal(h('div',{class:'stack'},h('p',{class:'eyebrow'},'FRIEND CHAT'),h('h2',null,'@'+esc(username)),
+      small('Private messages with your accepted friend. Messages refresh automatically.'),
+      (()=>{const feed=h('div',{class:'stack',style:{maxHeight:'42vh',overflowY:'auto',minHeight:'120px'}});const input=h('input',{placeholder:'Write a message…',maxlength:'1000',autocomplete:'off'});const status=errorBox();
+        let loading=false, sending=false, lastSignature='';
+        async function load(silent=false){
+          if(closed||loading)return;
+          loading=true;
+          if(!silent && !feed.childElementCount)feed.replaceChildren(small('Loading messages…'));
+          try{
+            const j=await rpc('hub_friend_messages_get',{p_friend_username:username});
+            if(!j||j.ok===false)throw new Error((j&&j.error)||'Could not load messages.');
+            const messages=Array.isArray(j.messages)?j.messages:[];
+            const signature=messages.map(m=>String(m.id)+':'+String(m.body)).join('|');
+            if(signature!==lastSignature){
+              const nearBottom=feed.scrollHeight-feed.scrollTop-feed.clientHeight<90;
+              feed.replaceChildren(...(messages.length?messages.map(m=>panel(
+                h('div',{class:'row between wrapr'},h('b',null,m.mine?'You':'@'+esc(username)),small(stamp(m.created_at))),
+                h('p',{class:'small',style:{whiteSpace:'pre-wrap',overflowWrap:'anywhere',margin:'4px 0'}},esc(m.body))
+              )):[small('No messages yet. Say hello!')]));
+              lastSignature=signature;
+              if(nearBottom)feed.scrollTop=feed.scrollHeight;
+            }
+            if(!silent)status.textContent='';
+          }catch(e){if(!silent){status.textContent=e.message;}}
+          finally{loading=false;}
+        }
+        const send=async()=>{
+          if(sending)return;
+          const body=input.value.trim();
+          if(!body)return;
+          sending=true;status.textContent='';
+          try{
+            await rpc('hub_friend_message_send',{p_recipient_username:username,p_body:body});
+            input.value='';
+            lastSignature='';await load();
+            input.focus();
+          }catch(e){status.textContent=e.message||'Message could not be sent.';}
+          finally{sending=false;}
+        };
+        input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+        setTimeout(()=>{load();pollTimer=setInterval(()=>load(true),2500);},0);
+        return h('div',{class:'stack'},feed,h('div',{class:'row wrapr'},input,btn('Send',send,'primary')),status,
+          h('div',{class:'row wrapr'},btn('Refresh',()=>load(),'ghost'),btn('Report friend',()=>openReport(username),'ghost'),btn('Close',()=>{closed=true;if(pollTimer)clearInterval(pollTimer);close();},'ghost')));
       })()),true);
   }
 
