@@ -210,13 +210,40 @@
 
     let index=0,score=0,correct=0,wrong=0,questionStarted=Date.now(),locked=false,finishing=false,answers=[];
     const timer=h('b',null,'--:--'),progress=h('span',{class:'tiny muted'},'Question 1 of '+questions.length),scoreEl=h('b',null,'0 points');
-    const area=h('div',{class:'stack'}),err=errorBox(),feed=h('div',{class:'stack',style:{gap:'6px',maxHeight:'260px',overflowY:'auto'}}),playersBox=h('div',{class:'stack',style:{gap:'6px'}});
+    const area=h('div',{class:'stack'}),err=errorBox(),feed=h('div',{class:'stack',style:{gap:'6px'}}),playersBox=h('div',{class:'stack',style:{gap:'6px'}});
     const emojis=['😂','😭','🔥','👏','😮','💀','❤️','😤'];
-    const reactionButtons=emojis.map(emoji=>btn(emoji,async()=>{try{await rpc('hub_challenge_reaction_send',{p_match_id:matchId,p_emoji:emoji});await refreshLive();}catch(e){toast(e.message);}},'ghost'));
-    const reactionPanel=panel(h('h2',null,'React live 💬'),small('Your friend sees these instantly. Keep it fun.'),h('div',{class:'row wrapr'},...reactionButtons),h('h3',null,'Live reactions'),feed,h('h3',null,'Scoreboard'),playersBox);
+    const seenReactionIds=new Set();
+    const floatingLayer=h('div',{class:'bablo-live-reaction-layer','aria-live':'polite','aria-label':'Live reactions'});
+    const reactionBar=h('div',{class:'bablo-live-reaction-bar','aria-label':'Send a live reaction'});
+    const popReaction=(emoji,username,mine,id)=>{
+      if(id!=null&&seenReactionIds.has(String(id)))return;
+      if(id!=null)seenReactionIds.add(String(id));
+      const node=h('div',{class:'bablo-live-reaction-pop'},h('span',{class:'bablo-live-reaction-emoji'},emoji),h('span',{class:'bablo-live-reaction-name'},mine?'You':'@'+esc(username||'opponent')));
+      floatingLayer.append(node);
+      setTimeout(()=>node.remove(),2400);
+    };
+    const reactionButtons=emojis.map(emoji=>btn(emoji,async()=>{
+      try{
+        const sent=await rpc('hub_challenge_reaction_send',{p_match_id:matchId,p_emoji:emoji});
+        popReaction(emoji,DB.account.username,true,sent.id);
+        await refreshLive();
+      }catch(e){toast(e.message);}
+    },'ghost'));
+    reactionBar.append(...reactionButtons);
+    const reactionPanel=panel(h('h2',null,'Live scoreboard'),small('Reactions pop up on both screens—even while you answer.'),playersBox);
     const questionPanel=panel(area,err,btn('Leave challenge',async()=>{if(confirm('Leave this challenge? Your completed answers will be kept.')){try{await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});}catch(e){}go('#/challenges');}},'ghost'));
-    const shell=wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'LIVE CHALLENGE • TWO-PLAYER MATCH'),h('h1',null,'Challenge in progress ⚡'),h('p',null,(j.courses||[]).join(' + ')),h('div',{class:'hero-stats'},h('div',null,timer,h('span',null,'shared time remaining')),h('div',null,scoreEl,h('span',null,'your score')),h('div',null,progress))),
-      h('div',{class:'row wrapr',style:{alignItems:'stretch',gap:'12px'}},h('div',{style:{flex:'1 1 320px',minWidth:'0'}},questionPanel),h('div',{style:{flex:'0 1 240px',minWidth:'220px'}},reactionPanel)));
+    const reactionStyles=h('style',null,`
+      .bablo-live-reaction-bar{position:fixed;z-index:10020;top:76px;right:12px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;max-width:min(340px,calc(100vw - 24px));padding:8px;border:1px solid rgba(222,180,74,.55);border-radius:16px;background:rgba(15,18,24,.92);backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(0,0,0,.28)}
+      .bablo-live-reaction-bar .btn{min-width:36px;padding:7px 9px;font-size:1.15rem;line-height:1}
+      .bablo-live-reaction-layer{position:fixed;z-index:10019;top:126px;right:20px;width:min(300px,calc(100vw - 40px));display:flex;flex-direction:column;align-items:flex-end;gap:6px;pointer-events:none}
+      .bablo-live-reaction-pop{display:flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid rgba(222,180,74,.55);border-radius:999px;background:rgba(15,18,24,.94);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:babloReactionFloat 2.3s ease-out forwards}
+      .bablo-live-reaction-emoji{font-size:1.8rem;line-height:1.1}.bablo-live-reaction-name{font-size:.75rem;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      @keyframes babloReactionFloat{0%{opacity:0;transform:translateY(18px) scale(.8)}12%{opacity:1;transform:translateY(0) scale(1.08)}25%{transform:translateY(-3px) scale(1)}75%{opacity:1;transform:translateY(-28px)}100%{opacity:0;transform:translateY(-48px) scale(.92)}}
+      @media(prefers-reduced-motion:reduce){.bablo-live-reaction-pop{animation:none;opacity:1;transition:opacity .5s}}
+      @media(max-width:520px){.bablo-live-reaction-bar{top:68px;right:8px;left:8px;max-width:none;justify-content:center}.bablo-live-reaction-layer{top:120px;right:12px}}
+    `);
+    const shell=wrap(reactionStyles,floatingLayer,reactionBar,h('section',{class:'hero'},h('p',{class:'eyebrow'},'LIVE CHALLENGE • TWO-PLAYER MATCH'),h('h1',null,'Challenge in progress ⚡'),h('p',null,(j.courses||[]).join(' + ')),h('div',{class:'hero-stats'},h('div',null,timer,h('span',null,'shared time remaining')),h('div',null,scoreEl,h('span',null,'your score')),h('div',null,progress))),
+      h('div',{class:'row wrapr',style:{alignItems:'stretch',gap:'12px'}},h('div',{style:{flex:'1 1 320px',minWidth:'0'},},questionPanel),h('div',{style:{flex:'0 1 240px',minWidth:'220px'}},reactionPanel)));
     mount(shell);
 
     function draw(){
@@ -242,15 +269,9 @@
       try{
         const live=await rpc('hub_challenge_reaction_feed',{p_match_id:matchId});
         const reactionRows=live.reactions||[];
-        const reactionCards = reactionRows.length
-          ? reactionRows.slice(-10).reverse().map(r =>
-              h('div',{class:'panel row between',style:{padding:'7px 9px',gap:'8px'}},
-                h('span',{style:{fontSize:'1.5rem'}},r.emoji),
-                h('span',{class:'tiny',style:{overflowWrap:'anywhere'}},r.mine?'You':'@'+esc(r.username))
-              )
-            )
-          : [small('No reactions yet. Send the first one!')];
-        feed.replaceChildren(...reactionCards);
+        reactionRows.forEach(r=>popReaction(r.emoji,r.username,!!r.mine,r.id));
+        // Reactions are ephemeral animations, never a persistent chat/feed entry.
+        feed.replaceChildren();
         const playerCards = (live.players||[]).map(p =>
           h('div',{class:'panel stack',style:{padding:'8px 10px',gap:'3px'}},
             h('b',null,p.username===DB.account.username?'You':'@'+esc(p.username)),
