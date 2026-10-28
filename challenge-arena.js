@@ -146,8 +146,8 @@
     if(j.status!=='active'){
       mount(wrap(panel(h('p',{class:'eyebrow'},'CHALLENGE LOBBY'),h('h1',null,j.status==='waiting'?'Waiting for your friend…':'Getting the arena ready'),
         h('p',null,'Share this code so your friend can join:'),
-        h('strong',{style:{fontSize:'1.6rem',letterSpacing:'.15em'}},(inboxCache?.challenges||[]).find(x=>x.id===matchId)?.invite_code||'Open Arena inbox for code'),
-        btn('Copy invitation code',()=>{const m=(inboxCache?.challenges||[]).find(x=>x.id===matchId);if(m)copyCode(m.invite_code);else toast('Refresh your Arena inbox to retrieve the code.');}),
+        h('strong',{style:{fontSize:'1.6rem',letterSpacing:'.15em'}},j.invite_code||'Open Arena inbox for code'),
+        btn('Copy invitation code',()=>{if(j.invite_code)copyCode(j.invite_code);else toast('Refresh your Arena inbox to retrieve the code.');}),
         small('The quiz begins when two participants have joined. Refresh after your friend accepts.'),
         h('div',{class:'row wrapr'},btn('Refresh status',()=>matchView(matchId)),btn('Back to Arena',()=>go('#/challenges'),'ghost')))));
       return;
@@ -184,6 +184,12 @@
         const result=await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});
         const rows=result.players||[];
         const cards=rows.map(p=>h('div',{class:'panel stack'},h('b',null,'@'+esc(p.username||p.nickname||'Player')),h('div',{class:'row between'},h('span',null,'Score'),h('strong',null,esc(p.score)+' points')),small('Correct: '+esc(p.correct)+' • Incorrect: '+esc(p.incorrect)),small('Response time: '+Math.round((p.total_response_ms||0)/1000)+'s')));
+        if(result.status!=='completed'){
+          mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'YOUR ANSWERS ARE IN'),h('h1',null,'Waiting for your opponent'),h('p',null,'Your answers are saved. The full results and explanations unlock when both players finish.')),
+            panel(h('h2',null,'Current scores'),...cards),
+            h('div',{class:'row wrapr'},btn('Refresh results',()=>finish(),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
+          return;
+        }
         const qReview=(result.questions||[]).map((q,i)=>panel(h('b',null,(i+1)+'. '+esc(q.prompt)),h('p',{class:'small'},'Correct answer: '+esc((q.choices||[])[Number(q.answer_key)]||q.answer_key)),q.explanation?small(q.explanation):null));
         mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'CHALLENGE COMPLETE'),h('h1',null,'Results & analytics'),h('p',null,'Your score: '+score+' points'),h('div',{class:'hero-stats'},h('div',null,h('b',null,correct),h('span',null,'correct answers')),h('div',null,h('b',null,wrong),h('span',null,'incorrect answers')),h('div',null,h('b',null,Math.round(correct/Math.max(1,answers.length)*100)+'%'),h('span',null,'your accuracy')))),
           panel(h('h2',null,'Match results'),...cards),
