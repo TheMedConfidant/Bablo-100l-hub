@@ -247,6 +247,37 @@
       return;
     }
 
+    if(j.my_status==='completed' && j.status!=='completed'){
+      let cancelled=false;
+      const check=async()=>{
+        if(cancelled||!stillHere())return;
+        try{
+          const result=await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});
+          if(cancelled||!stillHere())return;
+          if(result.status==='completed'){matchView(matchId);return;}
+          const me=(result.players||[]).find(p=>p.username===DB.account.username);
+          const cards=(result.players||[]).map(p=>panel(h('b',null,'@'+esc(p.username||p.nickname||'Player')),
+            h('div',{class:'row between'},h('span',null,'Saved score'),h('strong',null,esc(p.score)+' points')),
+            small('Correct: '+esc(p.correct)+' • Incorrect: '+esc(p.incorrect)),
+            small(p.status==='completed'?'Finished':'Still playing…')));
+          mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'ANSWERS SAVED'),
+            h('h1',null,'Waiting for your opponent'),
+            h('p',null,'Your answers are saved. You cannot submit more answers to this match. The final review unlocks when the other player finishes.'),
+            h('div',{class:'hero-stats'},h('div',null,h('b',null,esc(me?me.score:0)),h('span',null,'your saved points')))),
+            panel(h('h2',null,'Live standings'),...cards),
+            h('div',{class:'row wrapr'},btn('Check results now',()=>matchView(matchId),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
+          setTimeout(()=>{if(!cancelled&&stillHere())check();},1800);
+        }catch(e){
+          if(!cancelled&&stillHere())mount(wrap(panel(h('h2',null,'Waiting for final results'),h('p',{class:'muted'},e.message),
+            btn('Retry',()=>matchView(matchId),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
+        }
+      };
+      mount(wrap(panel(h('p',{class:'eyebrow'},'ANSWERS SAVED'),h('h1',null,'Waiting for your opponent…'),
+        h('p',null,'Your score is saved. Final results and answer review will appear here once the match is complete.'))));
+      setTimeout(check,0);
+      return;
+    }
+
     if(j.status==='completed'){
       try{
         const result=await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});
