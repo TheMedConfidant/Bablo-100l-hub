@@ -95,8 +95,32 @@
     }
     if(friends){
       const list=j.friends||[];
-      friends.replaceChildren(...(list.length?list.map(f=>panel(h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('b',null,'@'+esc(f.username||f.nickname)),small(esc(f.programme||'Bablo Hub friend'))),btn('Challenge',()=>showCreate(f.username),'primary')))):[small('Your saved friends will appear here once they accept a request.')]));
+      friends.replaceChildren(...(list.length?list.map(f=>panel(
+        h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('b',null,'@'+esc(f.username||f.nickname)),small(esc(f.programme||'Bablo Hub friend'))),
+          h('div',{class:'row wrapr'},btn('Challenge',()=>showCreate(f.username),'primary'),btn('Chat',()=>openChat(f.username),'ghost'),btn('Block',async()=>{if(!await confirmBox({title:'Block @'+f.username+'?',msg:'They will no longer be able to send you friend requests or messages. Existing friendship will be removed.',ok:'Block user',cancel:'Cancel',danger:true}))return;try{await rpc('hub_challenge_block_user',{p_target_username:f.username});toast('User blocked.');await refreshInbox();}catch(e){toast(e.message);}},'ghost'),btn('Report',()=>openReport(f.username),'ghost')))
+      )):[small('Your saved friends will appear here once they accept a request.')]));
     }
+  }
+
+
+  async function openChat(username) {
+    const close=modal(h('div',{class:'stack'},h('p',{class:'eyebrow'},'FRIEND CHAT'),h('h2',null,'@'+esc(username)),
+      small('Messages are limited to accepted friends. Use Block or Report if a conversation becomes uncomfortable.'),
+      (()=>{const feed=h('div',{class:'stack',style:{maxHeight:'42vh',overflowY:'auto'}});const input=h('input',{placeholder:'Write a message…',maxlength:'1000',autocomplete:'off'});const status=errorBox();
+        async function load(){feed.replaceChildren(small('Loading messages…'));try{const j=await rpc('hub_friend_messages_get',{p_friend_username:username});feed.replaceChildren(...((j.messages||[]).map(m=>panel(h('div',{class:'row between'},h('b',null,m.mine?'You':'@'+esc(username)),small(stamp(m.created_at))),h('p',{class:'small',style:{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}},m.body))))||[small('No messages yet. Say hello!')]);if(!(j.messages||[]).length)feed.replaceChildren(small('No messages yet. Say hello!'));}catch(e){feed.replaceChildren(small(e.message));}}
+        const send=async()=>{status.textContent='';const body=input.value.trim();if(!body)return;try{await rpc('hub_friend_message_send',{p_recipient_username:username,p_body:body});input.value='';await load();}catch(e){status.textContent=e.message;}};
+        setTimeout(load,0);
+        return h('div',{class:'stack'},feed,h('div',{class:'row wrapr'},input,btn('Send',send,'primary')),status,h('div',{class:'row wrapr'},btn('Refresh',load,'ghost'),btn('Report friend',()=>openReport(username),'ghost'),btn('Close',close,'ghost')));
+      })()),true);
+  }
+
+  function openReport(username) {
+    const category=h('select',null,[['spam','Spam'],['harassment','Harassment'],['inappropriate','Inappropriate content'],['impersonation','Impersonation'],['other','Other']].map(([v,t])=>h('option',{value:v},t)));
+    const details=h('input',{placeholder:'Optional details (max 1000 characters)',maxlength:'1000'});
+    const status=errorBox();
+    const close=modal(h('div',{class:'stack'},h('h2',null,'Report @'+esc(username)),small('Reports are reviewed for safety and misuse. Please do not include private information.'),
+      label('Reason',category),label('Details (optional)',details),status,
+      h('div',{class:'row wrapr'},btn('Submit report',async()=>{try{await rpc('hub_challenge_report_user',{p_target_username:username,p_category:category.value,p_details:details.value});toast('Report submitted.');close();}catch(e){status.textContent=e.message;}},'danger'),btn('Cancel',close,'ghost'))),true);
   }
 
   async function copyCode(code) {
