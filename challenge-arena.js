@@ -259,7 +259,7 @@
           const cards=(result.players||[]).map(p=>panel(h('b',null,'@'+esc(p.username||p.nickname||'Player')),
             h('div',{class:'row between'},h('span',null,'Saved score'),h('strong',null,esc(p.score)+' points')),
             small('Correct: '+esc(p.correct)+' • Incorrect: '+esc(p.incorrect)),
-            small(p.status==='completed'?'Finished':'Still playing…')));
+            small(p.username===DB.account.username?'You have finished':'Opponent status updates automatically')));
           mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'ANSWERS SAVED'),
             h('h1',null,'Waiting for your opponent'),
             h('p',null,'Your answers are saved. You cannot submit more answers to this match. The final review unlocks when the other player finishes.'),
