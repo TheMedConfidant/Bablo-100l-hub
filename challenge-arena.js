@@ -74,7 +74,14 @@
       const rows=j.challenges||[];
       const pending=(j.friend_requests||[]);
       const cards=[];
-      pending.forEach(r=>cards.push(panel(h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('b',null,'Friend request from @'+esc(r.sender_username)),small(stamp(r.created_at))),h('div',{class:'row wrapr'},btn('Accept',async()=>{try{await rpc('hub_friend_request_respond',{p_request_id:r.id,p_accept:true});toast('Friend added.');await refreshInbox();}catch(e){toast(e.message);}},'primary'),btn('Decline',async()=>{try{await rpc('hub_friend_request_respond',{p_request_id:r.id,p_accept:false});await refreshInbox();}catch(e){toast(e.message);}},'ghost')))));
+      pending.forEach(r => {
+        const identity = h('div',{class:'stack',style:{gap:'2px'}},
+          h('b',null,'Friend request from @'+esc(r.sender_username)), small(stamp(r.created_at)));
+        const actions = h('div',{class:'row wrapr'},
+          btn('Accept',async()=>{try{await rpc('hub_friend_request_respond',{p_request_id:r.id,p_accept:true});toast('Friend added.');await refreshInbox();}catch(e){toast(e.message);}},'primary'),
+          btn('Decline',async()=>{try{await rpc('hub_friend_request_respond',{p_request_id:r.id,p_accept:false});await refreshInbox();}catch(e){toast(e.message);}},'ghost'));
+        cards.push(panel(h('div',{class:'row between wrapr'},identity,actions)));
+      });
       rows.forEach(m=>{
         const incoming=m.invited_uid===DB.account.uid&&m.created_by!==DB.account.uid&&m.status==='waiting';
         const active=m.status==='active'||m.status==='ready';
