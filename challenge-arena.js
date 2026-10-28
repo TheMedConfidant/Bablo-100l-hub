@@ -174,66 +174,99 @@
     try { j=await rpc('hub_challenge_get_questions',{p_match_id:matchId}); }
     catch(e){mount(wrap(panel(h('h2',null,'Challenge unavailable'),h('p',{class:'muted'},e.message),btn('Back to Arena',()=>go('#/challenges'),'primary'))));return;}
     if(!j||!j.ok){toast((j&&j.error)||'Could not load this challenge.');go('#/challenges');return;}
-    if(j.status!=='active'){
-      mount(wrap(panel(h('p',{class:'eyebrow'},'CHALLENGE LOBBY'),h('h1',null,j.status==='waiting'?'Waiting for your friend…':'Getting the arena ready'),
-        h('p',null,'Share this code so your friend can join:'),
-        h('strong',{style:{fontSize:'1.6rem',letterSpacing:'.15em'}},j.invite_code||'Open Arena inbox for code'),
-        btn('Copy invitation code',()=>{if(j.invite_code)copyCode(j.invite_code);else toast('Refresh your Arena inbox to retrieve the code.');}),
-        small('The quiz begins when two participants have joined. Refresh after your friend accepts.'),
-        h('div',{class:'row wrapr'},btn('Refresh status',()=>matchView(matchId)),btn('Back to Arena',()=>go('#/challenges'),'ghost')))));
+
+    const stillHere=()=>location.hash.includes('/challenges/'+matchId);
+    if(j.status==='waiting' || j.status==='ready'){
+      const waiting=j.status==='waiting';
+      const lobby=wrap(panel(
+        h('p',{class:'eyebrow'},'CHALLENGE LOBBY'),
+        h('h1',null,waiting?'Waiting for your friend…':'Both players must be ready'),
+        h('p',null,waiting?'Your opponent must accept the invitation first. Once they join, both players will enter the ready check.':'You are in the same lobby now. Press Ready, and the match starts only after both players are here.'),
+        j.invite_code?h('div',{class:'stack'},h('span',{class:'tiny muted'},'INVITATION CODE'),h('strong',{style:{fontSize:'1.6rem',letterSpacing:'.15em'}},j.invite_code),btn('Copy invitation code',()=>copyCode(j.invite_code),'ghost')):null,
+        !waiting?h('div',{class:'panel stack'},h('b',null,(j.ready_count||0)+' of 2 players ready'),h('p',{class:'muted small'},j.my_status==='ready'?'You are ready. Waiting for your friend to press Ready.':'The countdown begins when both players press Ready.'),j.my_status!=='ready'?btn('I’m Ready ⚡',async()=>{try{const r=await rpc('hub_challenge_ready',{p_match_id:matchId});if(!r.ok)throw new Error(r.error||'Could not mark ready.');toast(r.status==='active'?'Both ready! Match starting…':'Ready! Waiting for your opponent.');matchView(matchId);}catch(e){toast(e.message);}},'primary'):null):null,
+        small('Keep this screen open. Bablo will automatically move both players into the match together.'),
+        h('div',{class:'row wrapr'},btn('Refresh status',()=>matchView(matchId),'ghost'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))
+      ));
+      mount(lobby);
+      if(stillHere())setTimeout(()=>{if(stillHere())matchView(matchId);},1800);
       return;
     }
+
     const questions=j.questions||[];
     if(!questions.length){toast('This challenge has no questions.');go('#/challenges');return;}
-    let index=0,score=0,correct=0,wrong=0,started=Date.now(),locked=false,answers=[];
+    const startsAt=j.starts_at?new Date(j.starts_at).getTime():Date.now();
+    const deadline=startsAt+Number(j.duration_seconds||300)*1000;
+    if(Date.now()<startsAt){
+      const countdown=h('b',null,'5');
+      mount(wrap(panel(h('p',{class:'eyebrow'},'BOTH PLAYERS READY'),h('h1',null,'Get set…'),h('p',null,'The same countdown and deadline apply to both players.'),countdown,h('p',{class:'muted small'},'Keep Bablo open. Your questions will appear automatically.'))));
+      const timerId=setInterval(()=>{if(!stillHere()){clearInterval(timerId);return;}const left=Math.max(0,startsAt-Date.now());countdown.textContent=(left/1000).toFixed(1)+'s';if(left<=0){clearInterval(timerId);matchView(matchId);}},100);
+      return;
+    }
+
+    let index=0,score=0,correct=0,wrong=0,questionStarted=Date.now(),locked=false,finishing=false,answers=[];
     const timer=h('b',null,'--:--'),progress=h('span',{class:'tiny muted'},'Question 1 of '+questions.length),scoreEl=h('b',null,'0 points');
-    const area=h('div',{class:'stack'}),err=errorBox();
-    const shell=wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'LIVE CHALLENGE'),h('h1',null,'Challenge in progress'),h('p',null,(j.courses||[]).join(' + ')),h('div',{class:'hero-stats'},h('div',null,timer,h('span',null,'remaining')),h('div',null,scoreEl,h('span',null,'your score')),h('div',null,progress))),
-      panel(area,err,btn('Leave challenge',async()=>{if(confirm('Leave this challenge? Your completed answers will be kept.')){try{await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});}catch(e){}go('#/challenges');}},'ghost')));
+    const area=h('div',{class:'stack'}),err=errorBox(),feed=h('div',{class:'stack',style:{gap:'6px',maxHeight:'260px',overflowY:'auto'}}),playersBox=h('div',{class:'stack',style:{gap:'6px'}});
+    const emojis=['😂','😭','🔥','👏','😮','💀','❤️','😤'];
+    const reactionButtons=emojis.map(emoji=>btn(emoji,async()=>{try{await rpc('hub_challenge_reaction_send',{p_match_id:matchId,p_emoji:emoji});await refreshLive();}catch(e){toast(e.message);}},'ghost'));
+    const reactionPanel=panel(h('h2',null,'React live 💬'),small('Your friend sees these instantly. Keep it fun.'),h('div',{class:'row wrapr'},...reactionButtons),h('h3',null,'Live reactions'),feed,h('h3',null,'Scoreboard'),playersBox);
+    const questionPanel=panel(area,err,btn('Leave challenge',async()=>{if(confirm('Leave this challenge? Your completed answers will be kept.')){try{await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});}catch(e){}go('#/challenges');}},'ghost'));
+    const shell=wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'LIVE CHALLENGE • TWO-PLAYER MATCH'),h('h1',null,'Challenge in progress ⚡'),h('p',null,(j.courses||[]).join(' + ')),h('div',{class:'hero-stats'},h('div',null,timer,h('span',null,'shared time remaining')),h('div',null,scoreEl,h('span',null,'your score')),h('div',null,progress))),
+      h('div',{class:'row wrapr',style:{alignItems:'stretch',gap:'12px'}},h('div',{style:{flex:'1 1 320px',minWidth:'0'}},questionPanel),h('div',{style:{flex:'0 1 240px',minWidth:'220px'}},reactionPanel)));
     mount(shell);
-    const deadline=Date.now()+Number(j.duration_seconds||300)*1000;
+
     function draw(){
       locked=false;err.textContent='';
-      const q=questions[index];progress.textContent='Question '+(index+1)+' of '+questions.length;
+      const q=questions[index];questionStarted=Date.now();progress.textContent='Question '+(index+1)+' of '+questions.length;
       const choices=(q.choices||[]).map((c,i)=>btn(String.fromCharCode(65+i)+'. '+String(c),()=>answer(i),'ghost'));
-      area.replaceChildren(h('div',{class:'stack'},h('p',{class:'eyebrow'},esc(q.course||'' )+' • '+esc(q.topic||'')),h('h2',null,q.prompt||'Question'),...choices));
+      area.replaceChildren(h('div',{class:'stack'},h('p',{class:'eyebrow'},esc(q.course||'')+' • '+esc(q.topic||'')),h('h2',null,q.prompt||'Question'),...choices));
     }
     async function answer(choice){
-      if(locked)return;locked=true;
-      const q=questions[index],ms=Math.min(7200000,Date.now()-started);
+      if(locked||finishing)return;locked=true;
+      const ms=Math.min(7200000,Math.max(0,Date.now()-questionStarted));
       try{
         const result=await rpc('hub_challenge_submit_answer',{p_match_id:matchId,p_question_index:index,p_answer_key:String(choice),p_response_ms:ms});
         if(result.point_awarded)score++;if(result.correct)correct++;else wrong++;
         answers.push({index,choice,correct:result.correct,point:result.point_awarded});
         scoreEl.textContent=score+' point'+(score===1?'':'s');
-        area.append(h('p',{class:'small',style:{color:result.correct?'var(--good)':'var(--bad)'}},result.correct?(result.point_awarded?'Correct — you got the point!':'Correct, but your opponent answered correctly first.'):'Not quite. Your friend can still earn the point.'));
-        area.append(btn(index+1<questions.length?'Next question':'Finish challenge',async()=>{if(index+1<questions.length){index++;started=Date.now();draw();}else await finish();}));
+        area.append(h('p',{class:'small',style:{color:result.correct?'var(--good)':'var(--bad)'}},result.correct?'Correct! Your point is yours—both players score independently.':'Not quite. Your answer is saved.'));
+        area.append(btn(index+1<questions.length?'Next question':'Finish challenge',async()=>{if(index+1<questions.length){index++;draw();}else await finish();}));
+        refreshLive();
       }catch(e){locked=false;err.textContent=e.message||'Answer could not be submitted.';}
     }
+    async function refreshLive(){
+      try{
+        const live=await rpc('hub_challenge_reaction_feed',{p_match_id:matchId});
+        const reactionRows=live.reactions||[];
+        feed.replaceChildren(...(reactionRows.length?reactionRows.slice(-10).reverse().map(r=>h('div',{class:'panel row between',style:{padding:'7px 9px',gap:'8px'}},h('span',{style:{fontSize:'1.5rem'}},r.emoji),h('span',{class:'tiny',style:{overflowWrap:'anywhere'}},(r.mine?'You':'@'+esc(r.username)))):[small('No reactions yet. Send the first one!')]));
+        playersBox.replaceChildren(...((live.players||[]).map(p=>h('div',{class:'panel stack',style:{padding:'8px 10px',gap:'3px'}},h('b',null,(p.username===DB.account.username?'You':'@'+esc(p.username))),h('div',{class:'row between'},h('span',{class:'tiny muted'},'Score'),h('strong',null,esc(p.score))),h('span',{class:'tiny muted'},esc(p.answered)+' / '+questions.length+' answered')))));
+      }catch(e){}
+    }
     async function finish(){
+      if(finishing)return;finishing=true;
       try{
         const result=await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});
         const rows=result.players||[];
         const cards=rows.map(p=>h('div',{class:'panel stack'},h('b',null,'@'+esc(p.username||p.nickname||'Player')),h('div',{class:'row between'},h('span',null,'Score'),h('strong',null,esc(p.score)+' points')),small('Correct: '+esc(p.correct)+' • Incorrect: '+esc(p.incorrect)),small('Response time: '+Math.round((p.total_response_ms||0)/1000)+'s')));
         if(result.status!=='completed'){
-          mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'YOUR ANSWERS ARE IN'),h('h1',null,'Waiting for your opponent'),h('p',null,'Your answers are saved. The full results and explanations unlock when both players finish.')),
-            panel(h('h2',null,'Current scores'),...cards),
-            h('div',{class:'row wrapr'},btn('Refresh results',()=>finish(),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
+          finishing=false;
+          mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'YOUR ANSWERS ARE IN'),h('h1',null,'Waiting for your opponent'),h('p',null,'Your answers are saved. Keep the screen open; results unlock when both players finish.')),
+            panel(h('h2',null,'Current scores'),...cards),h('div',{class:'row wrapr'},btn('Refresh results',()=>finish(),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
           return;
         }
         const qReview=(result.questions||[]).map((q,i)=>panel(h('b',null,(i+1)+'. '+esc(q.prompt)),h('p',{class:'small'},'Correct answer: '+esc((q.choices||[])[Number(q.answer_key)]||q.answer_key)),q.explanation?small(q.explanation):null));
         mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'CHALLENGE COMPLETE'),h('h1',null,'Results & analytics'),h('p',null,'Your score: '+score+' points'),h('div',{class:'hero-stats'},h('div',null,h('b',null,correct),h('span',null,'correct answers')),h('div',null,h('b',null,wrong),h('span',null,'incorrect answers')),h('div',null,h('b',null,Math.round(correct/Math.max(1,answers.length)*100)+'%'),h('span',null,'your accuracy')))),
-          panel(h('h2',null,'Match results'),...cards),
-          panel(h('h2',null,'Answer review'),...qReview),
+          panel(h('h2',null,'Match results'),...cards),panel(h('h2',null,'Answer review'),...qReview),
           h('div',{class:'row wrapr'},btn('Rematch',()=>showCreate(),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
-      }catch(e){err.textContent=e.message||'Could not finish challenge.';}
+      }catch(e){finishing=false;err.textContent=e.message||'Could not finish challenge.';}
     }
     function tick(){
       const remaining=Math.max(0,deadline-Date.now()),s=Math.ceil(remaining/1000);
       timer.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
-      if(remaining<=0){clearInterval(interval);finish();}
+      if(remaining<=0){clearInterval(interval);if(!locked)finish();}
     }
-    draw();tick();const interval=setInterval(tick,500);
+    draw();tick();refreshLive();
+    const interval=setInterval(()=>{if(!stillHere()){clearInterval(interval);clearInterval(liveInterval);return;}tick();},500);
+    const liveInterval=setInterval(()=>{if(!stillHere()){clearInterval(interval);clearInterval(liveInterval);return;}refreshLive();},1200);
   }
 
   // Keep the Challenges entry visible whenever the Hub redraws its bottom nav.
