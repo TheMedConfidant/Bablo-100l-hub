@@ -75,6 +75,17 @@
     if(box){
       const rows=j.challenges||[];
       const pending=(j.friend_requests||[]);
+      const notifications=(j.notifications||[]).slice(0,12);
+      const notificationCards=notifications.map(n=>panel(
+        h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px',minWidth:'0'}},
+          h('b',null,esc(n.title||'Bablo Hub notification')),
+          small(esc(n.body||'')),
+          small(stamp(n.created_at)+' • '+(n.read?'Read':'New'))),
+          (['challenge_invite','challenge_accepted'].includes(n.kind)&&n.target_id)
+            ?btn('Open challenge',()=>go('#/challenges/'+esc(n.target_id)),'primary')
+            :null
+        )
+      ));
       const cards=[];
       pending.forEach(r => {
         const identity = h('div',{class:'stack',style:{gap:'2px'}},
@@ -101,6 +112,9 @@
           small('Your saved score: '+esc(m.score==null?'—':m.score)+' points • Completed '+stamp(m.created_at))),
         btn('Review results',()=>go('#/challenges/'+m.id),'primary'))));
       box.replaceChildren(
+        h('h3',null,'Notifications'),
+        ...(notificationCards.length?notificationCards:[small('You’re all caught up. Friend and challenge updates will appear here.')]),
+        h('h3',null,'Active challenges & requests'),
         ...(cards.length?cards:[small('No active challenges yet. Create one or join a friend’s invitation.')]),
         h('h3',null,'Completed challenge history'),
         small('Finished challenges leave the active list, but their scores and results stay saved here.'),
