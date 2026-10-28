@@ -266,6 +266,7 @@
           finishing=false;
           mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'YOUR ANSWERS ARE IN'),h('h1',null,'Waiting for your opponent'),h('p',null,'Your answers are saved. Keep the screen open; results unlock when both players finish.')),
             panel(h('h2',null,'Current scores'),...cards),h('div',{class:'row wrapr'},btn('Refresh results',()=>finish(),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
+          if(stillHere())setTimeout(()=>{if(stillHere())finish();},1800);
           return;
         }
         const qReview=(result.questions||[]).map((q,i)=>panel(h('b',null,(i+1)+'. '+esc(q.prompt)),h('p',{class:'small'},'Correct answer: '+esc((q.choices||[])[Number(q.answer_key)]||q.answer_key)),q.explanation?small(q.explanation):null));
@@ -274,14 +275,15 @@
           h('div',{class:'row wrapr'},btn('Rematch',()=>showCreate(),'primary'),btn('Back to Arena',()=>go('#/challenges'),'ghost'))));
       }catch(e){finishing=false;err.textContent=e.message||'Could not finish challenge.';}
     }
+    let interval=null,liveInterval=null;
     function tick(){
       const remaining=Math.max(0,deadline-Date.now()),s=Math.ceil(remaining/1000);
       timer.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
       if(remaining<=0){clearInterval(interval);if(!locked)finish();}
     }
     draw();tick();refreshLive();
-    const interval=setInterval(()=>{if(!stillHere()){clearInterval(interval);clearInterval(liveInterval);return;}tick();},500);
-    const liveInterval=setInterval(()=>{if(!stillHere()){clearInterval(interval);clearInterval(liveInterval);return;}refreshLive();},1200);
+    interval=setInterval(()=>{if(!stillHere()){clearInterval(interval);clearInterval(liveInterval);return;}tick();},500);
+    liveInterval=setInterval(()=>{if(!stillHere()){clearInterval(interval);clearInterval(liveInterval);return;}refreshLive();},1200);
   }
 
   // Keep the Challenges entry visible whenever the Hub redraws its bottom nav.
