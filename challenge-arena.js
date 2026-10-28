@@ -33,6 +33,8 @@
   const stamp = v => { try{return new Date(v).toLocaleString();}catch(e){return '';} };
   const modeLabel = m => (MODES.find(x=>x[0]===m)||[m,m])[1];
   let inboxCache = null;
+  // Prevent slower, stale lobby polls from overwriting the active-match screen.
+  let matchViewSeq = 0;
 
   async function loadInbox() {
     const j=await rpc('hub_challenge_inbox',{});
@@ -170,12 +172,15 @@
   }
 
   async function matchView(matchId) {
+    const viewRequest = ++matchViewSeq;
+    const stillHere=()=>location.hash.includes('/challenges/'+matchId);
     let j;
     try { j=await rpc('hub_challenge_get_questions',{p_match_id:matchId}); }
-    catch(e){mount(wrap(panel(h('h2',null,'Challenge unavailable'),h('p',{class:'muted'},e.message),btn('Back to Arena',()=>go('#/challenges'),'primary'))));return;}
+    catch(e){if(viewRequest!==matchViewSeq||!stillHere())return;mount(wrap(panel(h('h2',null,'Challenge unavailable'),h('p',{class:'muted'},e.message),btn('Back to Arena',()=>go('#/challenges'),'primary'))));return;}
+    // A poll started before the second Ready click may finish late. Never let it
+    // redraw the old lobby over the newer countdown or live quiz.
+    if(viewRequest!==matchViewSeq||!stillHere())return;
     if(!j||!j.ok){toast((j&&j.error)||'Could not load this challenge.');go('#/challenges');return;}
-
-    const stillHere=()=>location.hash.includes('/challenges/'+matchId);
     if(j.status==='waiting' || j.status==='ready'){
       const waiting=j.status==='waiting';
       const lobby=wrap(panel(
