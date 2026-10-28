@@ -13,7 +13,14 @@
   const token = () => DB && DB.account && DB.account.token;
   const rpc = async (name, args) => {
     if (!token()) throw new Error('Log in to use Challenge Arena.');
-    return hubCall(name, Object.assign({ p_token: token() }, args || {}));
+    const response = await fetch(LB.url + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: { apikey: LB.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ p_token: token() }, args || {}))
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.message || data.details || data.error || 'Challenge service is unavailable.');
+    return data;
   };
   const panel = (...kids) => h('section',{class:'panel stack'},...kids);
   const label = (title, control) => h('label',{class:'field'},h('span',null,title),control);
@@ -34,6 +41,13 @@
   }
 
   function challengeView() {
+    if (!signedIn()) {
+      mount(wrap(panel(h('p',{class:'eyebrow'},'BABLO HUB • CHALLENGE ARENA'),h('h1',null,'Log in to challenge friends'),
+        h('p',{class:'muted'},'Challenge matches, friend requests, and results need a Bablo Hub account so they can follow you across devices.'),
+        btn('Go to account area',()=>go('#/me'),'primary'),btn('Back home',()=>go('#/'),'ghost'))));
+      renderNav('challenges');
+      return;
+    }
     const head=wrap(
       h('section',{class:'hero'},h('p',{class:'eyebrow'},'BABLO HUB • FRIEND COMPETITION'),
         h('h1',null,'Challenge Arena 🏆'),
