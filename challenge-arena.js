@@ -59,7 +59,7 @@
       panel(h('h2',null,'Your arena'),small('Invitations, active matches, recent results, and friend requests.'),
         h('div',{id:'challengeInbox',class:'stack'},h('p',{class:'muted small'},'Loading your arena…'))),
       panel(h('h2',null,'Friends'),small('Find friends by username. You can send challenges after they accept your request.'),
-        (()=>{const input=h('input',{placeholder:'Enter exact username',maxlength:'30',autocomplete:'off'});const err=errorBox();return h('div',{class:'stack'},h('div',{class:'row wrapr'},input,btn('Add friend',async()=>{err.textContent='';try{const j=await rpc('hub_friend_request_send',{p_target_username:input.value.trim()});if(!j.ok)throw new Error(j.error||'Could not send request.');toast(j.status==='already_friends'?'You are already friends.':'Friend request sent.');input.value='';await refreshInbox();}catch(e){err.textContent=e.message;}})),err);})(),
+        (()=>{const input=h('input',{placeholder:'Username or leaderboard nickname',maxlength:'50',autocomplete:'off'});const err=errorBox();return h('div',{class:'stack'},h('div',{class:'row wrapr'},input,btn('Add friend',async()=>{err.textContent='';try{const j=await rpc('hub_friend_request_send',{p_target_username:input.value.trim().replace(/^@+/, '')});if(!j.ok)throw new Error(j.error||'Could not send request.');toast(j.status==='already_friends'?'You are already friends.':'Friend request sent.');input.value='';await refreshInbox();}catch(e){err.textContent=e.message;}})),err);})(),
         h('div',{id:'challengeFriends',class:'stack'},small('Loading friends…'))),
       small('Safety: only friends can receive private challenges and messages. Block/report controls are being added with the full friend tools.')
     );
