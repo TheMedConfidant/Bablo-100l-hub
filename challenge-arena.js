@@ -84,7 +84,9 @@
           btn('Decline',async()=>{try{await rpc('hub_friend_request_respond',{p_request_id:r.id,p_accept:false});await refreshInbox();}catch(e){toast(e.message);}},'ghost'));
         cards.push(panel(h('div',{class:'row between wrapr'},identity,actions)));
       });
-      rows.forEach(m=>{
+      const activeRows=rows.filter(m=>m.status!=='completed');
+      const completedRows=rows.filter(m=>m.status==='completed');
+      activeRows.forEach(m=>{
         const incoming=m.invited_uid===DB.account.uid&&m.created_by!==DB.account.uid&&m.status==='waiting';
         const active=m.status==='active'||m.status==='ready';
         cards.push(panel(h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'3px',minWidth:'0'}},
@@ -93,7 +95,17 @@
           h('div',{class:'row wrapr'},incoming?btn('Accept',async()=>{try{const a=await rpc('hub_challenge_accept',{p_match_id:m.id});if(!a.ok)throw new Error(a.error||'Could not accept.');go('#/challenges/'+m.id);}catch(e){toast(e.message);}}):btn(active?'Open match':'View',()=>go('#/challenges/'+m.id),active?'primary':'ghost'),
           m.status==='waiting'&&m.created_by===DB.account.uid?btn('Copy code',()=>copyCode(m.invite_code),'ghost'):null))));
       });
-      box.replaceChildren(...(cards.length?cards:[small('No invitations yet. Create a challenge and invite a friend!')]));
+      const historyCards=completedRows.map(m=>panel(h('div',{class:'row between wrapr'},
+        h('div',{class:'stack',style:{gap:'3px',minWidth:'0'}},h('b',null,modeLabel(m.mode)),
+          small((m.courses||[]).join(' + ')+' • '+m.question_count+' questions'),
+          small('Your saved score: '+esc(m.score==null?'—':m.score)+' points • Completed '+stamp(m.created_at))),
+        btn('Review results',()=>go('#/challenges/'+m.id),'primary'))));
+      box.replaceChildren(
+        ...(cards.length?cards:[small('No active challenges yet. Create one or join a friend’s invitation.')]),
+        h('h3',null,'Completed challenge history'),
+        small('Finished challenges leave the active list, but their scores and results stay saved here.'),
+        ...(historyCards.length?historyCards:[small('No completed challenges yet. Results will appear here after a match ends.')])
+      );
     }
     if(friends){
       const list=j.friends||[];
@@ -197,6 +209,29 @@
       return;
     }
 
+    if(j.status==='completed'){
+      try{
+        const result=await rpc('hub_challenge_finish',{p_match_id:matchId,p_opt_into_leaderboard:false});
+        if(viewRequest!==matchViewSeq||!stillHere())return;
+        const rows=result.players||[];
+        const me=rows.find(p=>p.username===DB.account.username);
+        const cards=rows.map(p=>panel(h('b',null,'@'+esc(p.username||p.nickname||'Player')),
+          h('div',{class:'row between'},h('span',null,'Final score'),h('strong',null,esc(p.score)+' points')),
+          small('Correct: '+esc(p.correct)+' • Incorrect: '+esc(p.incorrect)),
+          small('Response time: '+Math.round((p.total_response_ms||0)/1000)+'s')));
+        const qReview=(result.questions||[]).map((q,i)=>panel(h('b',null,(i+1)+'. '+esc(q.prompt)),
+          h('p',{class:'small'},'Correct answer: '+esc((q.choices||[])[Number(q.answer_key)]||q.answer_key)),
+          q.explanation?small(q.explanation):null));
+        mount(wrap(h('section',{class:'hero'},h('p',{class:'eyebrow'},'COMPLETED CHALLENGE • HISTORY'),
+          h('h1',null,'Saved results 🏆'),h('p',null,'Your saved score: '+esc(me?me.score:0)+' points. These results remain available after the challenge leaves the active list.'),
+          h('div',{class:'hero-stats'},h('div',null,h('b',null,esc(me?me.correct:0)),h('span',null,'correct answers')),
+            h('div',null,h('b',null,esc(me?me.incorrect:0)),h('span',null,'incorrect answers')))),
+          panel(h('h2',null,'Final standings'),...cards),
+          panel(h('h2',null,'Answer review'),...(qReview.length?qReview:[small('No answer review is available for this challenge.')])),
+          h('div',{class:'row wrapr'},btn('Back to Challenge History',()=>go('#/challenges'),'primary'),btn('Create another challenge',()=>showCreate(),'ghost'))));
+      }catch(e){mount(wrap(panel(h('h2',null,'Saved results unavailable'),h('p',{class:'muted'},e.message),btn('Back to Arena',()=>go('#/challenges'),'primary'))));}
+      return;
+    }
     const questions=j.questions||[];
     if(!questions.length){toast('This challenge has no questions.');go('#/challenges');return;}
     const startsAt=j.starts_at?new Date(j.starts_at).getTime():Date.now();
