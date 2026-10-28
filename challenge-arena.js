@@ -121,14 +121,13 @@
         err.textContent='';
         try{
           if(!selected.size)throw new Error('Choose at least one course.');
-          const codes=[...selected], bank=getBank(codes);
+          const codes=[...selected];
           const n=Number(count.value);
-          if(bank.length<n)throw new Error('Only '+bank.length+' questions are available across your selected courses. Choose fewer questions or more courses.');
-          const chosen=shuffle(bank).slice(0,n).map(q=>({id:String(q.i),course:String(q.c),topic:String(q.u||''),prompt:String(q.q),choices:q.o.map(String),answer_key:String(q.a),explanation:String(q.e||'')}));
-          const topicList=topics.value.split(',').map(s=>s.trim()).filter(Boolean);
-          const matching=topicList.length?chosen.filter(q=>topicList.some(t=>(q.topic+' '+q.course).toLowerCase().includes(t.toLowerCase()))):chosen;
-          if(topicList.length&&matching.length<n)throw new Error('Not enough questions matched those topics. Clear the topic filter or choose broader topics.');
-          const finalSet=matching;
+          const topicList=topics.value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+          let bank=getBank(codes);
+          if(topicList.length)bank=bank.filter(q=>topicList.some(t=>(String(q.u||'')+' '+String(q.c||'')).toLowerCase().includes(t)));
+          if(bank.length<n)throw new Error('Only '+bank.length+' questions match your selected courses/topics. Choose fewer questions, broader topics, or more courses.');
+          const finalSet=shuffle(bank).slice(0,n).map(q=>({id:String(q.i),course:String(q.c),topic:String(q.u||''),prompt:String(q.q),choices:q.o.map(String),answer_key:String(q.a),explanation:String(q.e||'')}));
           const j=await rpc('hub_challenge_create',{p_mode:mode.value,p_courses:codes,p_topics:topicList,p_question_count:n,p_duration_seconds:Number(mins.value)*60,p_question_set:finalSet,p_invited_username:username.value.trim()||null,p_leaderboard_opt_in:share.checked});
           if(!j||!j.ok)throw new Error((j&&j.error)||'Challenge creation failed.');
           document.querySelector('.overlay')?.remove();
