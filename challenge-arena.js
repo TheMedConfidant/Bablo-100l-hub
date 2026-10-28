@@ -243,6 +243,10 @@
     const link=h('a',{href:'#/challenges','data-challenge-nav':'','aria-label':'Challenge Arena'},
       h('span',{class:'challenge-nav-icon','aria-hidden':'true'},'⚡'),'Challenges');
     bar.append(link);
+    // The Hub's original navigation is a five-column grid; reserve a real slot
+    // for the sixth Challenge Arena item so it isn't pushed off-screen.
+    bar.style.gridTemplateColumns = 'repeat(6, minmax(0, 1fr))';
+    bar.querySelectorAll('a').forEach(a => { a.style.minWidth='0'; a.style.fontSize='clamp(.58rem, 2.5vw, .74rem)'; });
   }
   const hubRenderNav = renderNav;
   renderNav = function(active) {
