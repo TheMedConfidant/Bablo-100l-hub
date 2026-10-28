@@ -236,23 +236,26 @@
     draw();tick();const interval=setInterval(tick,500);
   }
 
-  // Do not overwrite Bablo Hub's core router/nav bindings.
+  // Keep the Challenges entry visible whenever the Hub redraws its bottom nav.
   function addChallengeNav() {
     const bar=document.querySelector('#nav .in');
     if(!bar || bar.querySelector('[data-challenge-nav]')) return;
-    bar.append(h('a',{href:'#/challenges','data-challenge-nav':'','aria-label':'Challenge Arena'},
-      h('span',{class:'challenge-nav-icon'},'⚡'),h('span',null,'Challenges')));
+    const link=h('a',{href:'#/challenges','data-challenge-nav':'','aria-label':'Challenge Arena'},
+      h('span',{class:'challenge-nav-icon','aria-hidden':'true'},'⚡'),'Challenges');
+    bar.append(link);
   }
-  function dispatchChallengeRoute() {
-    const raw=location.hash.slice(1).replace(/^\//,'').split('?')[0].split('/').filter(Boolean);
-    if(raw[0]!=='challenges') return;
-    renderNav('home');
+  const hubRenderNav = renderNav;
+  renderNav = function(active) {
+    hubRenderNav(active);
     addChallengeNav();
+  };
+  addChallengeNav();
+  function dispatchChallengeRoute() {
+    const raw=location.hash.slice(1).split('?')[0].split('/').filter(Boolean);
+    if(raw[0]!=='challenges') return;
     if(!DB.profile) { challengeView(); return; }
     if(raw[1]) matchView(raw[1]); else challengeView();
   }
   window.addEventListener('hashchange', dispatchChallengeRoute);
-  if(location.hash.slice(1).replace(/^\//,'').startsWith('challenges')) {
-    setTimeout(dispatchChallengeRoute, 0);
-  }
+  if(location.hash.slice(1).split('/').filter(Boolean)[0]==='challenges') setTimeout(dispatchChallengeRoute, 0);
 })();
