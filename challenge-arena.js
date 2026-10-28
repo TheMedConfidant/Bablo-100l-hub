@@ -237,8 +237,23 @@
       try{
         const live=await rpc('hub_challenge_reaction_feed',{p_match_id:matchId});
         const reactionRows=live.reactions||[];
-        feed.replaceChildren(...(reactionRows.length?reactionRows.slice(-10).reverse().map(r=>h('div',{class:'panel row between',style:{padding:'7px 9px',gap:'8px'}},h('span',{style:{fontSize:'1.5rem'}},r.emoji),h('span',{class:'tiny',style:{overflowWrap:'anywhere'}},(r.mine?'You':'@'+esc(r.username)))):[small('No reactions yet. Send the first one!')]));
-        playersBox.replaceChildren(...((live.players||[]).map(p=>h('div',{class:'panel stack',style:{padding:'8px 10px',gap:'3px'}},h('b',null,(p.username===DB.account.username?'You':'@'+esc(p.username))),h('div',{class:'row between'},h('span',{class:'tiny muted'},'Score'),h('strong',null,esc(p.score))),h('span',{class:'tiny muted'},esc(p.answered)+' / '+questions.length+' answered')))));
+        const reactionCards = reactionRows.length
+          ? reactionRows.slice(-10).reverse().map(r =>
+              h('div',{class:'panel row between',style:{padding:'7px 9px',gap:'8px'}},
+                h('span',{style:{fontSize:'1.5rem'}},r.emoji),
+                h('span',{class:'tiny',style:{overflowWrap:'anywhere'}},r.mine?'You':'@'+esc(r.username))
+              )
+            )
+          : [small('No reactions yet. Send the first one!')];
+        feed.replaceChildren(...reactionCards);
+        const playerCards = (live.players||[]).map(p =>
+          h('div',{class:'panel stack',style:{padding:'8px 10px',gap:'3px'}},
+            h('b',null,p.username===DB.account.username?'You':'@'+esc(p.username)),
+            h('div',{class:'row between'},h('span',{class:'tiny muted'},'Score'),h('strong',null,esc(p.score))),
+            h('span',{class:'tiny muted'},esc(p.answered)+' / '+questions.length+' answered')
+          )
+        );
+        playersBox.replaceChildren(...playerCards);
       }catch(e){}
     }
     async function finish(){
