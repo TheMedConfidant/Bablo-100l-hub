@@ -236,33 +236,23 @@
     draw();tick();const interval=setInterval(tick,500);
   }
 
-  const originalRenderNav = renderNav;
-  renderNav = function(active) {
-    originalRenderNav(active==='challenges'?'home':active);
-    if(!DB.profile)return;
-    const bar=document.querySelector('#nav .in');if(!bar)return;
-    if(!bar.querySelector('[data-challenge-nav]')){
-      const a=h('a',{href:'#/challenges','data-challenge-nav':'', 'aria-label':'Challenge Arena'},h('span',{class:'challenge-nav-icon'},'⚡'),h('span',null,'Challenges'));
-      bar.append(a);
-    }
-    const link=bar.querySelector('[data-challenge-nav]');
-    if(link){link.setAttribute('aria-current',active==='challenges'?'page':'false');}
-  };
-  const originalRoute = route;
-  route = function(){
-    const raw=location.hash.replace(/^#\/?/,'').split('?')[0].split('/').filter(Boolean);
-    if(raw[0]==='challenges'){
-      stopTimer();
-      if(!DB.profile){originalRoute();return;}
-      renderNav('challenges');
-      if(raw[1])matchView(raw[1]);else challengeView();
-      return;
-    }
-    return originalRoute();
-  };
-  window.addEventListener('hashchange',function(){
-    const raw=location.hash.replace(/^#\/?/,'').split('?')[0].split('/').filter(Boolean);
-    if(raw[0]==='challenges') route();
-  });
-  if(location.hash.replace(/^#\/?/,'').startsWith('challenges')) route();
+  // Do not overwrite Bablo Hub's core router/nav bindings.
+  function addChallengeNav() {
+    const bar=document.querySelector('#nav .in');
+    if(!bar || bar.querySelector('[data-challenge-nav]')) return;
+    bar.append(h('a',{href:'#/challenges','data-challenge-nav':'','aria-label':'Challenge Arena'},
+      h('span',{class:'challenge-nav-icon'},'⚡'),h('span',null,'Challenges')));
+  }
+  function dispatchChallengeRoute() {
+    const raw=location.hash.slice(1).replace(/^\//,'').split('?')[0].split('/').filter(Boolean);
+    if(raw[0]!=='challenges') return;
+    renderNav('home');
+    addChallengeNav();
+    if(!DB.profile) { challengeView(); return; }
+    if(raw[1]) matchView(raw[1]); else challengeView();
+  }
+  window.addEventListener('hashchange', dispatchChallengeRoute);
+  if(location.hash.slice(1).replace(/^\//,'').startsWith('challenges')) {
+    setTimeout(dispatchChallengeRoute, 0);
+  }
 })();
