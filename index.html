@@ -3579,7 +3579,7 @@ function sectionTiles(c, questions, topics) {
     { name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
-    { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!((window.__PRACTICALS__ || {})[c.code]) || practicalCode(c.code) === 'CHM107', premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : '#/practicals/' + c.code) }
+    { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!((window.__PRACTICALS__ || {})[c.code]) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/lab/phy107' : '#/practicals/' + c.code) }
   ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
