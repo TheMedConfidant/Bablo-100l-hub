@@ -1716,7 +1716,7 @@ const ICON = {
 };
 function fmt(t, subj) {                 // render chemistry notation with real HTML subscripts/superscripts
   if (subj !== 'CHM') return [t];
-  const out = [], re = /C_([VP]),m|C_([VP])|\\)_([A-Za-z]+)|\\b([1-7][spdf])(\\d{1,2})\\b/g; let last = 0, m;
+  const out = [], re = /C_([VP]),m|C_([VP])|\\\)_([A-Za-z]+)|\\b([1-7][spdf])(\\d{1,2})\\b/g; let last = 0, m;
   while ((m = re.exec(t))) {
     out.push(t.slice(last, m.index));
     if (m[1]) out.push('C', h('sub', null, m[1] + ',m'));
