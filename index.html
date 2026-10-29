@@ -597,6 +597,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 /* MLS 101 lecture content in the native Notes module */
 .mls-lecture-notes{min-width:0;line-height:1.65;overflow-wrap:anywhere}.mls-lecture-notes .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:0 0 14px;box-shadow:none}.mls-lecture-notes h2{font-size:1.08rem;color:var(--brand);margin:0 0 8px}.mls-lecture-notes h3{font-size:1rem;margin:14px 0 6px}.mls-lecture-notes p{margin:8px 0}.mls-lecture-notes ul,.mls-lecture-notes ol{padding-left:22px;margin:8px 0}.mls-lecture-notes li{margin:4px 0}.mls-lecture-notes .key{border-left:3px solid var(--gold);padding:8px 0 8px 12px;color:var(--ink2)}.mls-lecture-notes .note-table-wrap{max-width:100%;overflow-x:auto;margin:10px 0}.mls-lecture-notes table{width:100%;min-width:440px;border-collapse:collapse;font-size:.9rem}.mls-lecture-notes th,.mls-lecture-notes td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.mls-lecture-notes th{background:var(--surface2)}
 </style>
+<script src="/phy101-data.js"></script>
 </head>
 <body>
 <div id="splash" aria-hidden="true"><div class="sp-wrap"><svg class="sp-logo" viewBox="0 0 64 64" width="120" height="120"><defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="sp-line"/></svg><div class="sp-name">Bablo Hub</div><div class="sp-sub">for CoHES students</div></div></div>
@@ -1684,6 +1685,13 @@ window.__BANK__.push(...[{"i":"COSPLUS-2026-261","c":"COS","u":"COS 101 +++","s"
 const BANK = window.__BANK__ || [];
 const BYC = {};
 BANK.forEach(q => { (BYC[q.c] = BYC[q.c] || []).push(q); });
+/* Load the approved PHY 101 study pack into the existing course sections. */
+if (window.__PHY101_PACK__) {
+  const P = window.__PHY101_PACK__;
+  window.__NOTES__ = window.__NOTES__ || {}; window.__NOTES__.PHY = P.notes;
+  window.__CARDS__ = window.__CARDS__ || {}; window.__CARDS__.PHY = P.cards;
+  P.questions.forEach(q => { if (!(BYC.PHY || []).some(old => old.i === q.i)) { (BYC.PHY = BYC.PHY || []).push(q); BANK.push(q); } });
+}
 const unitsOf = code => { const m = new Map(); (BYC[code] || []).forEach(q => m.set(q.u, (m.get(q.u) || 0) + 1)); return Array.from(m, ([name, count]) => ({ name, count })); };
 const courseBy = code => COURSES.find(c => c.code === code);
 const isAvail = c => !!(BYC[c.code] && BYC[c.code].length);
