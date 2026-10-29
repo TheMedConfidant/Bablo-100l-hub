@@ -1,121 +1,18 @@
-/* Bablo Hub resilient app shell: cache current release first, migrate safely, support weak networks. */
-const VERSION = 'bablo-offline-v9-cache-order';
-const SHELL = [
-  './', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
-  './mls101-data.js', './mts-maths-topics.js', './mts-maths-induction-extra.js',
-  './practicals/', './practicals/index.html',
-  './practicals/chm107-practicals.html', './practicals/phy107-practical.html'
-];
-
-function timedFetch(request, ms) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  return fetch(request, { signal: controller.signal }).finally(() => clearTimeout(timer));
+/* Bablo Hub offline support + startup error reporting. */
+const VERSION='bablo-offline-v10-startup-guard';
+const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./mls101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html'];
+function timedFetch(req,ms){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal}).finally(()=>clearTimeout(t));}
+async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
+async function save(req,res){if(res&&res.ok&&res.type!=='opaque'){const c=await caches.open(VERSION);await c.put(req,res.clone());}}
+async function decorate(res){
+ if(!res||!res.ok||!(res.headers.get('content-type')||'').includes('text/html'))return res;
+ try{let html=await res.text();if(!html.includes('id="app"')||html.includes('bablo-startup-guard'))return new Response(html,{status:res.status,headers:res.headers});
+ const guard=`<script id="bablo-startup-guard">(function(){function show(t,d){if(document.getElementById('bablo-startup-error'))return;var x=document.createElement('div');x.id='bablo-startup-error';x.style.cssText='position:fixed;z-index:2147483647;inset:0;background:#0a1020;color:white;padding:26px 20px;font:16px/1.5 system-ui;overflow:auto';var h=document.createElement('h2');h.textContent=t;x.appendChild(h);var p=document.createElement('p');p.textContent=d;x.appendChild(p);var b=document.createElement('button');b.textContent='Try again';b.style.cssText='padding:12px 18px;border:0;border-radius:10px;background:#f0bd43;color:#111;font-weight:bold';b.onclick=function(){location.reload()};x.appendChild(b);document.body.appendChild(x)}window.addEventListener('error',function(e){show('Bablo Hub startup error',String(e.message||'Script error')+(e.filename?' • '+e.filename.split('/').pop():'')+(e.lineno?':'+e.lineno:''))});window.addEventListener('unhandledrejection',function(e){show('Bablo Hub startup error',String(e.reason&&e.reason.message||e.reason||'Promise failed'))});setTimeout(function(){var a=document.getElementById('app');if(a&&!a.children.length)show('Bablo Hub did not finish loading','The app failed to render. Tap Try again; if it repeats, send us this screen.')},25000)})();</script>`;
+ html=html.replace(/<body([^>]*)>/i,m=>m+guard);const h=new Headers(res.headers);h.delete('content-length');return new Response(html,{status:res.status,statusText:res.statusText,headers:h});
+ }catch(e){return res}
 }
-async function currentMatch(request) {
-  const current = await caches.open(VERSION);
-  return (await current.match(request, { ignoreSearch: true })) ||
-    (await caches.match(request, { ignoreSearch: true }));
-}
-async function saveCopy(request, response) {
-  if (!response || !response.ok || response.type === 'opaque') return;
-  const cache = await caches.open(VERSION);
-  await cache.put(request, response.clone());
-}
-
-self.addEventListener('install', event => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(VERSION);
-    // Migrate a saved shell before attempting network refreshes.
-    for (const path of SHELL) {
-      try {
-        const old = await caches.match(path, { ignoreSearch: true });
-        if (old && !(await cache.match(path))) await cache.put(path, old);
-      } catch (_) {}
-    }
-    // Refresh independently; slow optional assets cannot block install.
-    await Promise.all(SHELL.map(async path => {
-      try {
-        const response = await timedFetch(path, path === './' || path === './index.html' ? 20000 : 7000);
-        if (response.ok) await cache.put(path, response);
-      } catch (_) {}
-    }));
-    await self.skipWaiting();
-  })());
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    // The current cache has the migrated shell; remove obsolete Bablo caches to avoid stale HTML winning.
-    const keys = await caches.keys();
-    await Promise.all(keys
-      .filter(key => (key.startsWith('bablo-shell-') || key.startsWith('bablo-offline-')) && key !== VERSION)
-      .map(key => caches.delete(key)));
-    await self.clients.claim();
-  })());
-});
-
-self.addEventListener('fetch', event => {
-  const request = event.request;
-  const url = new URL(request.url);
-  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
-  const isNavigation = request.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname === '/';
-
-  if (isNavigation) {
-    event.respondWith((async () => {
-      const cached = await currentMatch(request) ||
-        await currentMatch('./index.html') ||
-        await currentMatch('./');
-      if (cached) {
-        // Serve cached UI immediately; refresh cache in background when network allows.
-        event.waitUntil(timedFetch(request, 12000).then(async response => {
-          if (response.ok) {
-            await saveCopy('./index.html', response);
-            await saveCopy('./', response);
-          }
-        }).catch(() => {}));
-        return cached;
-      }
-      try {
-        const response = await timedFetch(request, 25000);
-        if (response.ok) {
-          await saveCopy('./index.html', response);
-          await saveCopy('./', response);
-        }
-        return response;
-      } catch (_) {
-        return new Response('<!doctype html><html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bablo Hub</title><body style="font-family:system-ui;padding:24px;background:#0a1020;color:white"><h2>Bablo Hub</h2><p>The connection is too weak to load Bablo Hub.</p><p>Tap retry when your connection improves. Once the app loads successfully, it can be opened offline.</p><button onclick="location.reload()">Try again</button></body></html>', {status:200,headers:{'Content-Type':'text/html; charset=utf-8'}});
-      }
-    })());
-    return;
-  }
-
-  event.respondWith((async () => {
-    const cached = await currentMatch(request);
-    if (cached) {
-      event.waitUntil(timedFetch(request, 7000).then(response => saveCopy(request, response)).catch(() => {}));
-      return cached;
-    }
-    try {
-      const response = await timedFetch(request, 10000);
-      if (response.ok) await saveCopy(request, response);
-      return response;
-    } catch (_) {
-      return new Response('This resource has not been cached yet. Open it once while connected to save it for offline use.', {status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}});
-    }
-  })());
-});
-
-self.addEventListener('push', event => {
-  let data = {title:'Bablo Hub',body:'',url:'./'};
-  try { data = Object.assign(data,event.data.json()); } catch (_) {}
-  event.waitUntil(self.registration.showNotification(data.title,{body:data.body,icon:'icon-192.png',badge:'icon-192.png',data:{url:data.url||'./'}}));
-});
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  const target=(event.notification.data&&event.notification.data.url)||'./';
-  event.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{
-    for(let i=0;i<list.length;i++) if('focus' in list[i]) return list[i].focus();
-    return clients.openWindow(target);
-  }));
-});
+self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(VERSION);for(const p of SHELL){try{const old=await caches.match(p,{ignoreSearch:true});if(old&&!await c.match(p))await c.put(p,old)}catch(_){}}await Promise.all(SHELL.map(async p=>{try{const r=await timedFetch(p,p==='./'||p==='./index.html'?18000:6000);if(r.ok){const v=(p==='./'||p==='index.html'||p==='./index.html')?await decorate(r):r;await c.put(p,v)}}catch(_){}}));await self.skipWaiting()})()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
+self.addEventListener('fetch',e=>{const q=e.request,u=new URL(q.url);if(q.method!=='GET'||u.origin!==self.location.origin)return;const nav=q.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname==='/';if(nav){e.respondWith((async()=>{const old=await matchAny(q)||await matchAny('./index.html')||await matchAny('./');if(old){e.waitUntil(timedFetch(q,10000).then(async r=>{if(r.ok){const v=await decorate(r);await save('./index.html',v);await save('./',v)}}).catch(()=>{}));return old}try{const r=await timedFetch(q,25000);if(r.ok){const v=await decorate(r);await save('./index.html',v);await save('./',v);return v}return r}catch(_){return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font:16px system-ui;background:#0a1020;color:white;padding:24px"><h2>Bablo Hub</h2><p>Connection too weak to load the app.</p><button onclick="location.reload()">Try again</button></body>',{status:200,headers:{'Content-Type':'text/html; charset=utf-8'}})}})());return}e.respondWith((async()=>{const old=await matchAny(q);if(old){e.waitUntil(timedFetch(q,6000).then(r=>save(q,r)).catch(()=>{}));return old}try{const r=await timedFetch(q,10000);if(r.ok)await save(q,r);return r}catch(_){return new Response('This resource has not been cached yet.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})())});
+self.addEventListener('push',e=>{let d={title:'Bablo Hub',body:'',url:'./'};try{d=Object.assign(d,e.data.json())}catch(_){}e.waitUntil(self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'./'}}))});
+self.addEventListener('notificationclick',e=>{e.notification.close();const t=e.notification.data&&e.notification.data.url||'./';e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(a=>{for(let i=0;i<a.length;i++)if('focus'in a[i])return a[i].focus();return clients.openWindow(t)}))});
