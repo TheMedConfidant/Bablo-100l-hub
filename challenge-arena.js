@@ -158,9 +158,9 @@ async function review(x){
    const title='Question '+(i+1)+' · '+(q.course||'')+(q.topic?' / '+q.topic:'');
    card.append(h('b',null,title));
    card.append(h('p',{style:{margin:'8px 0'}},q.prompt));
-   card.append(h('p',{class:'muted'},'Correct answer: '+q.correct_answer));
+   const correctIndex=Number(q.correct_answer);const correctText=Array.isArray(q.choices)&&Number.isInteger(correctIndex)?q.choices[correctIndex]:q.correct_answer;card.append(h('p',{class:'muted'},'Correct answer: '+correctText));
    (q.responses||[]).forEach(r=>{
-    const verdict=(r.is_correct?'Correct':'Incorrect')+' · '+(Number(r.response_ms||0)/1000).toFixed(1)+'s';
+    const answerIndex=Number(r.answer_key);const chosen=Array.isArray(q.choices)&&Number.isInteger(answerIndex)?q.choices[answerIndex]:r.answer_key;const verdict=(r.is_correct?'Correct':'Incorrect')+' · '+chosen+' · '+(Number(r.response_ms||0)/1000).toFixed(1)+'s';
     const who=h('span',null,r.username);
     const result=h('strong',null,verdict);
     card.append(h('div',{class:'cd-row'},who,result));
