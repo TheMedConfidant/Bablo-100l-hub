@@ -1872,7 +1872,7 @@ function route() {
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
+  const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', challenges: 'challenges', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
