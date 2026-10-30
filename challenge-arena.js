@@ -150,7 +150,29 @@ async function loadLeaderboard(panel,period){
  rows.forEach(r=>panel.append(h('div',{class:'cd-row'},h('div',null,h('b',null,'#'+r.rank+'  '+r.username),h('div',{class:'muted'},r.nickname+' · '+r.programme),h('div',{class:'muted'},r.wins+' wins · '+r.matches+' matches · '+r.accuracy+'% accuracy')),h('strong',null,r.points+' pts'))));
  }catch(e){panel.append(h('p',{class:'muted'},e.message))}
 }
-function createPanel(mode,targetUsername){let cs=courses();const root=h('div',{id:'challenge-dashboard'});root.append(hero(),challengeNav('Create Challenge'),h('section',{class:'cd-panel'},h('h2',null,'Create a challenge'),h('div',{class:'cd-grid'},h('div',null,h('label',null,'Game mode'),h('select',{id:'cd-mode'},...['First to Answer|quick_duel','Mixed Challenge|multi_course','Timed Test|course_clash','Topic Master|topic_battle','Survival|survival','Best of Several Rounds|marathon'].map(v=>h('option',{value:v.split('|')[1],selected:v.split('|')[1]===(mode||'quick_duel')},v.split('|')[0]))),h('label',null,'Courses — select multiple'),h('select',{id:'cd-courses',multiple:true,size:6},...cs.map(c=>h('option',{value:c},c))),h('label',null,'Question count'),h('select',{id:'cd-count'},...[5,10,15,20,30,50].map(n=>h('option',{value:n,selected:n===10},n+' questions')))),h('div',null,h('label',null,'Match duration'),h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes'],[1800,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),h('label',null,'Invite username (optional)'),h('input',{id:'cd-invite',placeholder:'Enter Bablo username'}),h('label',null,'Result visibility'),h('select',{id:'cd-private'},h('option',{value:'false'},'Private result'),h('option',{value:'true'},'Include in Champions League')))),h('div',{class:'cd-quick'},h('button',{onclick:create},'Create room'),h('button',{class:'secondary',onclick:dashboard},'Cancel')))));frame(root);if(typeof mode==='string')$('#cd-mode').value=mode;if(targetUsername)$('#cd-invite').value=targetUsername;}
+function createPanel(mode,targetUsername){
+ const cs=courses();
+ const root=h('div',{id:'challenge-dashboard'});
+ root.append(hero(),challengeNav('Create Challenge'));
+ const panel=h('section',{class:'cd-panel'});
+ panel.append(h('h2',null,'Create a challenge'));
+ const grid=h('div',{class:'cd-grid'});
+ const left=h('div'),right=h('div');
+ const modeSelect=h('select',{id:'cd-mode'},...['First to Answer|quick_duel','Mixed Challenge|multi_course','Timed Test|course_clash','Topic Master|topic_battle','Survival|survival','Best of Several Rounds|marathon'].map(v=>h('option',{value:v.split('|')[1]},v.split('|')[0])));
+ left.append(h('label',null,'Game mode'),modeSelect);
+ left.append(h('label',null,'Courses — select multiple'));
+ left.append(h('select',{id:'cd-courses',multiple:true,size:6},...cs.map(course=>h('option',{value:course},course))));
+ left.append(h('label',null,'Question count'),h('select',{id:'cd-count'},...[5,10,15,20,30,50].map(n=>h('option',{value:n,selected:n===10},n+' questions'))));
+ right.append(h('label',null,'Match duration'),h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes'],[1800,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))));
+ right.append(h('label',null,'Invite username (optional)'),h('input',{id:'cd-invite',placeholder:'Enter Bablo username'}));
+ right.append(h('label',null,'Result visibility'),h('select',{id:'cd-private'},h('option',{value:'false'},'Private result'),h('option',{value:'true'},'Include in Champions League')));
+ grid.append(left,right);panel.append(grid);
+ const actions=h('div',{class:'cd-actions'});
+ actions.append(h('button',{onclick:create},'Create room'),h('button',{class:'secondary',onclick:dashboard},'Cancel'));
+ panel.append(actions);root.append(panel);frame(root);
+ if(typeof mode==='string')$('#cd-mode').value=mode;
+ if(targetUsername)$('#cd-invite').value=targetUsername;
+}
 async function create(){try{let cs=[...$('#cd-courses').selectedOptions].map(o=>o.value),n=+$('#cd-count').value;if(!cs.length)throw Error('Select at least one course.');let pool=questions().filter(q=>cs.includes(q.c));if(pool.length<n)throw Error('Not enough prepared questions across selected courses.');pool.sort(()=>Math.random()-.5);let qs=pool.slice(0,n).map(q=>({prompt:String(q.q),choices:q.o.map(String),answer_key:String(answerIndex(q)),course:q.c,topic:q.u||''}));CA.leaderboard=$('#cd-private').value==='true';let x=await call('hub_challenge_create',{p_mode:$('#cd-mode').value,p_courses:cs,p_topics:[],p_question_count:n,p_duration_seconds:+$('#cd-duration').value,p_question_set:qs,p_invited_username:$('#cd-invite').value.trim()||null,p_leaderboard_opt_in:$('#cd-private').value==='true'});CA.match=x.id||x.match_id;room(CA.match,x.invite_code,x);watchLobby()}catch(e){toast(e.message)}}
 function toast(msg){if(typeof window.toast==='function')window.toast(msg);else alert(msg)}
 function joinPrompt(){let code=prompt('Enter challenge room code');if(!code)return;call('hub_challenge_join_code',{p_code:code.trim()}).then(x=>open(x.id||x.match_id)).catch(e=>toast(e.message))}
