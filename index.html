@@ -596,6 +596,29 @@ button,a,input,select,textarea{touch-action:manipulation}
 
 /* MLS 101 lecture content in the native Notes module */
 .mls-lecture-notes{min-width:0;line-height:1.65;overflow-wrap:anywhere}.mls-lecture-notes .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:0 0 14px;box-shadow:none}.mls-lecture-notes h2{font-size:1.08rem;color:var(--brand);margin:0 0 8px}.mls-lecture-notes h3{font-size:1rem;margin:14px 0 6px}.mls-lecture-notes p{margin:8px 0}.mls-lecture-notes ul,.mls-lecture-notes ol{padding-left:22px;margin:8px 0}.mls-lecture-notes li{margin:4px 0}.mls-lecture-notes .key{border-left:3px solid var(--gold);padding:8px 0 8px 12px;color:var(--ink2)}.mls-lecture-notes .note-table-wrap{max-width:100%;overflow-x:auto;margin:10px 0}.mls-lecture-notes table{width:100%;min-width:440px;border-collapse:collapse;font-size:.9rem}.mls-lecture-notes th,.mls-lecture-notes td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.mls-lecture-notes th{background:var(--surface2)}
+
+/* Dashboard navigation refresh */
+.nav{z-index:80;padding-bottom:env(safe-area-inset-bottom)}
+.nav .in{grid-template-columns:repeat(4,minmax(0,1fr))}
+.nav a{min-width:0;gap:4px;font-size:.72rem;font-weight:750}
+.nav a[aria-current="page"]{color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent);border-radius:14px}
+#hub-menu-trigger{position:fixed;z-index:91;top:calc(env(safe-area-inset-top) + 12px);right:14px;width:44px;height:44px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);box-shadow:0 8px 26px #0002;font-size:1.25rem;display:grid;place-items:center;cursor:pointer}
+#hub-drawer-layer{position:fixed;inset:0;z-index:120;display:none}
+#hub-drawer-layer.open{display:block}
+#hub-drawer-scrim{position:absolute;inset:0;background:#07101dcc;backdrop-filter:blur(3px)}
+#hub-drawer{position:absolute;inset:0 auto 0 0;width:min(340px,88vw);height:100%;height:100dvh;background:var(--surface);color:var(--ink);border-right:1px solid var(--line);box-shadow:18px 0 50px #0003;display:flex;flex-direction:column;transform:translateX(-102%);transition:transform .24s ease;overflow:hidden}
+#hub-drawer-layer.open #hub-drawer{transform:translateX(0)}
+#hub-drawer-head{flex:0 0 auto;padding:calc(env(safe-area-inset-top) + 18px) 18px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+#hub-drawer-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 14px calc(24px + env(safe-area-inset-bottom))}
+#hub-drawer .drawer-cup{display:flex;align-items:center;gap:12px;padding:15px;border-radius:17px;text-decoration:none;color:#201a0b;background:linear-gradient(130deg,#f5df9b,#c59b43);box-shadow:0 8px 22px #b78b322e;margin-bottom:16px}
+#hub-drawer .drawer-cup b{display:block;font-size:1rem}#hub-drawer .drawer-cup small{display:block;opacity:.78;margin-top:3px}
+#hub-drawer .drawer-label{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:850;padding:10px 9px 6px}
+#hub-drawer .drawer-link{display:flex;align-items:center;gap:12px;min-height:46px;padding:10px 12px;border-radius:12px;text-decoration:none;color:var(--ink);font-weight:650}
+#hub-drawer .drawer-link:active,#hub-drawer .drawer-link:hover{background:var(--surface2)}
+#hub-drawer .drawer-icon{width:28px;text-align:center;font-size:1.08rem}
+body.drawer-open{overflow:hidden;touch-action:none}
+@media(max-width:420px){.nav a{font-size:.68rem}.nav .in{padding-left:5px;padding-right:5px}#hub-menu-trigger{top:calc(env(safe-area-inset-top) + 8px);right:10px}}
+@media(prefers-reduced-motion:reduce){#hub-drawer{transition:none}}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
@@ -1825,11 +1848,36 @@ const mount = (...nodes) => { app.replaceChildren(...nodes); window.scrollTo(0, 
 const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
+function ensureHubDrawer() {
+  if (document.getElementById('hub-menu-trigger')) return;
+  const trigger = h('button', { id:'hub-menu-trigger', type:'button', 'aria-label':'Open navigation menu', 'aria-expanded':'false', onclick:openHubDrawer }, '☰');
+  document.body.append(trigger);
+  const layer = h('div',{id:'hub-drawer-layer'},
+    h('div',{id:'hub-drawer-scrim',onclick:closeHubDrawer}),
+    h('aside',{id:'hub-drawer','aria-label':'Bablo Hub navigation','role':'dialog','aria-modal':'true'},
+      h('div',{id:'hub-drawer-head'},h('div',null,h('b',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},'Your learning space')),h('button',{class:'icon-btn','aria-label':'Close menu',onclick:closeHubDrawer},'✕')),
+      h('div',{id:'hub-drawer-scroll'},
+        h('a',{class:'drawer-cup',href:'#/cup',onclick:closeHubDrawer},h('span',{style:{fontSize:'1.8rem'}},'🏆'),h('span',null,h('b',null,'Programme Cup'),h('small',null,'Inter-programme competition & standings'))),
+        h('div',{class:'drawer-label'},'Explore'),
+        ...[['📚','Practicals','#/practicals/PHY'],['🗞️','Community Board','#/social'],['⚔️','Challenges','#/challenges'],['♟️','Bablo Chess','#/chess']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
+        h('div',{class:'drawer-label'},'Your hub'),
+        ...[['📁','Uploads & Files','#/files'],['🔔','Notifications & Preferences','#/settings'],['👤','Profile','#/me'],['⚙️','Settings','#/settings']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
+        h('div',{class:'drawer-label'},'Management'),
+        ...(DB&&DB.profile&&DB.profile.isAdmin?[['🛠️','Admin Panel','#/admin']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)):[])
+      )
+    )
+  );
+  document.body.append(layer);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHubDrawer()});
+}
+function openHubDrawer(){ensureHubDrawer();const l=document.getElementById('hub-drawer-layer');l.classList.add('open');document.body.classList.add('drawer-open');document.getElementById('hub-menu-trigger').setAttribute('aria-expanded','true');}
+function closeHubDrawer(){const l=document.getElementById('hub-drawer-layer');if(l)l.classList.remove('open');document.body.classList.remove('drawer-open');const t=document.getElementById('hub-menu-trigger');if(t)t.setAttribute('aria-expanded','false');}
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['plan', '#/plan', 'Time', 'time'], ['social', '#/social', 'Social', 'social'], ['board', '#/board', 'Board', 'board']];
+  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/plan', 'Timetable', 'time'], ['board', '#/board', 'Board', 'board'], ['challenges', '#/challenges', 'Challenges', 'board']];
   navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
-    h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
+    h('a', { href, 'aria-current': active === k ? 'page' : null }, k==='challenges' ? h('span',{style:{fontSize:'1.15rem'}},'⚔️') : svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
+  ensureHubDrawer();
 }
 
 let CALC_ANS=0,CALC_DEG=true;
@@ -1872,7 +1920,7 @@ function route() {
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
+  const tab = { plan: 'plan', timetable: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'board', challenges: 'challenges', gpa: null, me: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
@@ -1881,6 +1929,7 @@ function route() {
     else if (v === 'run') runView();
     else if (v === 'result') resultView();
     else if (v === 'board') boardView();
+    else if (v === 'challenges') { if (window.challengeDashboardView) window.challengeDashboardView(); else pendingPage('Challenges'); }
     else if (v === 'social') socialView();
     else if (v === 'cup') cupView();
     else if (v === 'weak') weakView();
@@ -1953,7 +2002,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null)),
     h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
@@ -4097,5 +4146,6 @@ startRestReminder();
 setTimeout(liveNotice, 1200);
 
 </script>
+<script src="/challenge-arena.js"></script>
 </body>
 </html>
