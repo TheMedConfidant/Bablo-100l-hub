@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101a2a"><title>Bablo Hub — Challenge Arena Preview</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101a2a}
+#preview{display:block;width:100%;height:100%;border:0;background:#101a2a}
+#load{position:fixed;inset:0;display:grid;place-items:center;color:#e7c66e;font:700 14px system-ui;letter-spacing:.12em;background:#101a2a;z-index:2}
+</style>
+</head>
+<body>
+<div id="load">LOADING CHALLENGE ARENA…</div>
+<iframe id="preview" title="Bablo Hub Challenge Arena" src="/#/challenges"></iframe>
+<script>
+const f=document.getElementById('preview');
+f.addEventListener('load',()=>{
+ try{
+  const d=f.contentDocument;
+  const css=d.createElement('style');css.id='challenge-preview-isolation';
+  css.textContent='html,body{background:var(--bg,#101a2a)!important}#nav,.nav,#splash{display:none!important}#app{padding-top:0!important;margin-top:0!important}#challenge-dashboard{padding-top:20px!important}body{overflow-x:hidden!important}';
+  d.head.append(css);
+  document.getElementById('load').remove();
+ }catch(e){document.getElementById('load').textContent='Open the Challenge Arena preview in the same browser session.'}
+});
+</script>
+</body></html>
