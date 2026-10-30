@@ -1826,7 +1826,7 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['plan', '#/plan', 'Time', 'time'], ['social', '#/social', 'Social', 'social'], ['board', '#/board', 'Board', 'board']];
+  const items = [['home', '#/', 'Home', 'home'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['plan', '#/plan', 'Time', 'time'], ['social', '#/social', 'Social', 'social'], ['challenges', '#/challenges', 'Challenges', 'board'], ['board', '#/board', 'Board', 'board']];
   navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
@@ -1880,6 +1880,7 @@ function route() {
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
     else if (v === 'result') resultView();
+    else if (v === 'challenges') challengeDashboardView();
     else if (v === 'board') boardView();
     else if (v === 'social') socialView();
     else if (v === 'cup') cupView();
