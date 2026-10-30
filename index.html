@@ -1932,7 +1932,7 @@ function onboarding() {
 const PULSE = 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360';
 function openHomeDrawer() {
   if (document.getElementById('bablo-home-drawer')) return;
-  const links = [['⌂','Home','#/'],['▤','CGPA Calculator','#/gpa'],['◷','Time','#/plan'],['▱','Social','#/social'],['♜','Board','#/board'],['ϟ','Challenges','#/challenges']];
+  const links = [['⌂','Home','#/'],['▤','CGPA Calculator','#/gpa'],['◷','Time','#/plan'],['▱','Social','#/social'],['♜','Board','#/board'],['ϟ','Challenges','#/challenges'],['⚙','Settings','#/settings'],['♟','Chess','#/chess'],['⇧','Uploads','#/files']];
   const overlay=h('div',{id:'bablo-home-drawer',class:'bh-drawer-overlay',onclick:e=>{if(e.target===e.currentTarget)e.currentTarget.remove();}},
     h('aside',{class:'bh-drawer','aria-label':'Main navigation'},
       h('div',{class:'bh-drawer-head'},h('div',null,h('span',{class:'bh-drawer-kicker'},'BABLO HUB ™'),h('h2',null,'Navigation')),h('button',{class:'bh-drawer-close','aria-label':'Close menu',onclick:()=>document.getElementById('bablo-home-drawer')?.remove()},'×')),
