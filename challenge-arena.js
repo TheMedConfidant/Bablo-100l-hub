@@ -45,7 +45,7 @@ s.textContent += `
 #challenge-dashboard .cd-delete{background:#3b1018!important;color:#fff!important;border-color:#ff879b!important}
 `;
 
-#challenge-dashboard{width:min(100% - 24px,1120px)!important;margin:0 auto!important;padding:12px 0 56px!important;background:#000!important;color:#fff!important}
+s.textContent += `#challenge-dashboard{width:min(100% - 24px,1120px)!important;margin:0 auto!important;padding:12px 0 56px!important;background:#000!important;color:#fff!important}
 #challenge-dashboard .cd-hero{background:linear-gradient(125deg,#090909,#171717)!important;border:1px solid #5a4927!important;color:#fff!important}
 #challenge-dashboard .cd-hero h1,#challenge-dashboard .cd-hero h2,#challenge-dashboard .cd-hero span{color:#fff!important}
 #challenge-dashboard .cd-hero p{color:#eee!important}
@@ -61,6 +61,7 @@ s.textContent += `
 #challenge-dashboard option{background:#050505!important;color:#fff!important}
 #challenge-dashboard button:focus-visible,#challenge-dashboard input:focus-visible,#challenge-dashboard select:focus-visible{outline:3px solid #e4c36e!important;outline-offset:2px}
 @media(max-width:600px){#challenge-dashboard{width:calc(100% - 20px)!important}#challenge-dashboard .cd-hero{padding:20px!important;min-height:170px!important}#challenge-dashboard .cd-tabs{margin-left:-2px!important;margin-right:-2px!important}#challenge-dashboard .cd-grid{grid-template-columns:1fr!important}#challenge-dashboard .cd-actions button{flex:1 1 100%!important}}
+`;
 
 document.head.append(s);}
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
