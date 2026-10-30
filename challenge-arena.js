@@ -44,30 +44,54 @@ s.textContent += `
 #challenge-dashboard button:disabled{opacity:.78!important;color:#eee!important}
 #challenge-dashboard .cd-delete{background:#3b1018!important;color:#fff!important;border-color:#ff879b!important}
 `;
+
+#challenge-dashboard{width:min(100% - 24px,1120px)!important;margin:0 auto!important;padding:12px 0 56px!important;background:#000!important;color:#fff!important}
+#challenge-dashboard .cd-hero{background:linear-gradient(125deg,#090909,#171717)!important;border:1px solid #5a4927!important;color:#fff!important}
+#challenge-dashboard .cd-hero h1,#challenge-dashboard .cd-hero h2,#challenge-dashboard .cd-hero span{color:#fff!important}
+#challenge-dashboard .cd-hero p{color:#eee!important}
+#challenge-dashboard .cd-tabs{display:flex!important;flex-wrap:nowrap!important;gap:8px!important;overflow-x:auto!important;overflow-y:hidden!important;padding:10px 2px 14px!important;margin:10px 0 18px!important;border-bottom:1px solid #3d3320!important;scrollbar-width:thin}
+#challenge-dashboard .cd-tabs button{flex:0 0 auto!important;min-width:max-content!important;padding:11px 15px!important;background:#101010!important;color:#fff!important;border:1px solid #555!important;border-radius:11px!important}
+#challenge-dashboard .cd-tabs button.active{background:#e4c36e!important;color:#090909!important;border-color:#e4c36e!important}
+#challenge-dashboard .cd-actions{display:flex!important;flex-wrap:wrap!important;gap:10px!important;margin:14px 0 18px!important}
+#challenge-dashboard .cd-actions button{flex:1 1 190px!important;min-height:46px}
+#challenge-dashboard .cd-panel,#challenge-dashboard .cd-stat,#challenge-dashboard .cd-row{background:#090909!important;color:#fff!important;border:1px solid #454545!important}
+#challenge-dashboard .cd-panel h1,#challenge-dashboard .cd-panel h2,#challenge-dashboard .cd-panel h3,#challenge-dashboard .cd-panel b,#challenge-dashboard .cd-panel strong{color:#fff!important}
+#challenge-dashboard .cd-panel p,#challenge-dashboard .cd-panel span,#challenge-dashboard .muted{color:#e2e2e2!important}
+#challenge-dashboard input,#challenge-dashboard select,#challenge-dashboard textarea{background:#050505!important;color:#fff!important;border:1px solid #777!important}
+#challenge-dashboard option{background:#050505!important;color:#fff!important}
+#challenge-dashboard button:focus-visible,#challenge-dashboard input:focus-visible,#challenge-dashboard select:focus-visible{outline:3px solid #e4c36e!important;outline-offset:2px}
+@media(max-width:600px){#challenge-dashboard{width:calc(100% - 20px)!important}#challenge-dashboard .cd-hero{padding:20px!important;min-height:170px!important}#challenge-dashboard .cd-tabs{margin-left:-2px!important;margin-right:-2px!important}#challenge-dashboard .cd-grid{grid-template-columns:1fr!important}#challenge-dashboard .cd-actions button{flex:1 1 100%!important}}
+
 document.head.append(s);}
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
 function stat(n,t){return h('div',{class:'cd-stat'},h('b',null,n),h('span',{class:'muted'},t))}
+function challengeNav(active){
+ const names=['Overview','Discover','My Challenges','Friends','Champions League','Create Challenge'];
+ return h('nav',{class:'cd-tabs','aria-label':'Challenge Arena sections'},...names.map(t=>h('button',{class:t===active?'active':'',onclick:()=>tab(t)},t)));
+}
 function dashboard(){
  CA.tab='overview';
- const modes=[['⚡','First to Answer','Fastest correct answer takes the point.','quick_duel'],['⏱','Timed Test','Race the clock across a shared question set.','course_clash'],['🛡','Survival','Keep answering correctly to stay in.','survival'],['🏁','Points Race','Build the highest score before time runs out.','marathon'],['🧠','Topic Master','Own one topic from start to finish.','topic_battle'],['🌐','Mixed Challenge','Combine courses in one battle.','multi_course']];
- const cards=modes.map(([ic,title,desc,mode])=>h('button',{class:'cd-modecard',onclick:()=>createPanel(mode)},ic,title,desc));
- const nav=['Overview','Discover','My Challenges','Friends','Champions League'].map((t,i)=>h('button',{class:i===0?'active':'',onclick:()=>tab(t)},t));
- const left=h('section',{class:'cd-panel'});left.append(h('h3',null,'Rooms & invitations'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your rooms and invitations…'));
- const right=h('aside',{class:'cd-panel cd-rankpanel'});right.append(h('h3',null,'Your next level starts here.'),h('p',{class:'muted'},'Play consistently, earn XP and build your course reputation.'));
+ const nav=challengeNav('Overview');
+ const left=h('section',{class:'cd-panel'});
+ left.append(h('h3',null,'Your challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your rooms and invitations…'));
+ const right=h('aside',{class:'cd-panel cd-rankpanel'});
+ right.append(h('h3',null,'Compete. Learn. Climb.'),h('p',{class:'muted'},'Find an opponent, challenge a friend, or track your progress in the Champions League.'),h('button',{onclick:()=>tab('Discover')},'Explore open challenges'));
  const grid=h('div',{class:'cd-grid'},left,right);
- const actions=h('div',{class:'cd-actions'});actions.append(h('button',{onclick:quick},'⚡ Create open challenge'),h('button',{onclick:createPanel},'＋ Create a challenge'),h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'));
- const content=h('div',{id:'challenge-dashboard'});content.append(hero(),h('div',{class:'cd-stats'},stat('—','Open rooms'),stat('—','Invitations'),stat('—','Wins'),stat('0','XP earned')),actions,h('div',{class:'cd-modegrid'},...cards),h('div',{class:'cd-tabs'},...nav),grid);
+ const actions=h('div',{class:'cd-actions'});
+ actions.append(h('button',{onclick:()=>tab('Create Challenge')},'＋ Create a challenge'),h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'));
+ const content=h('div',{id:'challenge-dashboard'});
+ content.append(hero(),nav,actions,h('div',{class:'cd-stats'},stat('—','Open rooms'),stat('—','Invitations'),stat('—','Wins'),stat('0','XP earned')),grid);
  frame(content);loadInbox();
 }
 async function loadInbox(){let el=$('#cd-inbox');if(!el)return;try{let x=await call('hub_challenge_inbox',{});CA.inbox=x.challenges||[];el.replaceChildren(...(CA.inbox.length?CA.inbox.map(m=>{const done=m.status==='completed';const row=h('div',{class:'cd-row'},h('div',{style:{minWidth:'0',flex:'1'}},h('b',null,m.creator_username||'Challenge'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions'),h('div',{class:'muted'},'Room '+(m.invite_code||'—')+' · '+m.status)),h('div',{class:'cd-row-actions'},done?h('button',{class:'cd-delete',onclick:()=>hideChallenge(m.id)},'Delete'):m.status==='waiting'?h('button',{onclick:()=>accept(m.id)},'Accept'):h('button',{class:'secondary',onclick:()=>open(m.id)},'Open')));return row}):[h('p',{class:'cd-empty'},'No active or saved challenges yet. Create a room or join one with a code.')]))}catch(e){el.textContent=e.message}}
 async function hideChallenge(id){try{if(!confirm('Delete this completed challenge from your history? This only removes it from your own list.'))return;await call('hub_challenge_hide',{p_match_id:id});toast('Challenge removed from your history.');await loadInbox()}catch(e){toast(e.message)}}
 function tab(name){
- if(name==='Overview'){dashboard();return} if(name==='Create Challenge'){createPanel();return}
+ if(name==='Overview'){dashboard();return}
+ if(name==='Create Challenge'){createPanel();return}
  CA.tab=name;
- const names=['Overview','Discover','My Challenges','Friends','Champions League'];
- const nav=h('div',{class:'cd-tabs'},...names.map(t=>h('button',{class:t===name?'active':'secondary',onclick:()=>tab(t)},t)));
  const panel=h('section',{class:'cd-panel'},h('h2',null,name),h('p',{class:'muted'},'Live data from Bablo Hub.'));
- const root=h('div',{id:'challenge-dashboard'},hero(),nav,panel);
+ const root=h('div',{id:'challenge-dashboard'});
+ root.append(hero(),challengeNav(name),panel);
  frame(root);
  if(name==='Discover')loadDiscover(panel);
  else if(name==='My Challenges')loadHistory(panel);
@@ -125,7 +149,7 @@ async function loadLeaderboard(panel,period){
  rows.forEach(r=>panel.append(h('div',{class:'cd-row'},h('div',null,h('b',null,'#'+r.rank+'  '+r.username),h('div',{class:'muted'},r.nickname+' · '+r.programme),h('div',{class:'muted'},r.wins+' wins · '+r.matches+' matches · '+r.accuracy+'% accuracy')),h('strong',null,r.points+' pts'))));
  }catch(e){panel.append(h('p',{class:'muted'},e.message))}
 }
-function createPanel(mode,targetUsername){let cs=courses();frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Create a challenge'),h('div',{class:'cd-grid'},h('div',null,h('label',null,'Game mode'),h('select',{id:'cd-mode'},...['First to Answer|quick_duel','Mixed Challenge|multi_course','Timed Test|course_clash','Topic Master|topic_battle','Survival|survival','Best of Several Rounds|marathon'].map(v=>h('option',{value:v.split('|')[1],selected:v.split('|')[1]===(mode||'quick_duel')},v.split('|')[0]))),h('label',null,'Courses — select multiple'),h('select',{id:'cd-courses',multiple:true,size:6},...cs.map(c=>h('option',{value:c},c))),h('label',null,'Question count'),h('select',{id:'cd-count'},...[5,10,15,20,30,50].map(n=>h('option',{value:n,selected:n===10},n+' questions')))),h('div',null,h('label',null,'Match duration'),h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes'],[1800,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),h('label',null,'Invite username (optional)'),h('input',{id:'cd-invite',placeholder:'Enter Bablo username'}),h('label',null,'Result visibility'),h('select',{id:'cd-private'},h('option',{value:'false'},'Private result'),h('option',{value:'true'},'Include in Champions League')))),h('div',{class:'cd-quick'},h('button',{onclick:create},'Create room'),h('button',{class:'secondary',onclick:dashboard},'Cancel')))));if(typeof mode==='string')$('#cd-mode').value=mode;if(targetUsername)$('#cd-invite').value=targetUsername;}
+function createPanel(mode,targetUsername){let cs=courses();const root=h('div',{id:'challenge-dashboard'});root.append(hero(),challengeNav('Create Challenge'),h('section',{class:'cd-panel'},h('h2',null,'Create a challenge'),h('div',{class:'cd-grid'},h('div',null,h('label',null,'Game mode'),h('select',{id:'cd-mode'},...['First to Answer|quick_duel','Mixed Challenge|multi_course','Timed Test|course_clash','Topic Master|topic_battle','Survival|survival','Best of Several Rounds|marathon'].map(v=>h('option',{value:v.split('|')[1],selected:v.split('|')[1]===(mode||'quick_duel')},v.split('|')[0]))),h('label',null,'Courses — select multiple'),h('select',{id:'cd-courses',multiple:true,size:6},...cs.map(c=>h('option',{value:c},c))),h('label',null,'Question count'),h('select',{id:'cd-count'},...[5,10,15,20,30,50].map(n=>h('option',{value:n,selected:n===10},n+' questions')))),h('div',null,h('label',null,'Match duration'),h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes'],[1800,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),h('label',null,'Invite username (optional)'),h('input',{id:'cd-invite',placeholder:'Enter Bablo username'}),h('label',null,'Result visibility'),h('select',{id:'cd-private'},h('option',{value:'false'},'Private result'),h('option',{value:'true'},'Include in Champions League')))),h('div',{class:'cd-quick'},h('button',{onclick:create},'Create room'),h('button',{class:'secondary',onclick:dashboard},'Cancel')))));frame(root);if(typeof mode==='string')$('#cd-mode').value=mode;if(targetUsername)$('#cd-invite').value=targetUsername;}
 async function create(){try{let cs=[...$('#cd-courses').selectedOptions].map(o=>o.value),n=+$('#cd-count').value;if(!cs.length)throw Error('Select at least one course.');let pool=questions().filter(q=>cs.includes(q.c));if(pool.length<n)throw Error('Not enough prepared questions across selected courses.');pool.sort(()=>Math.random()-.5);let qs=pool.slice(0,n).map(q=>({prompt:String(q.q),choices:q.o.map(String),answer_key:String(answerIndex(q)),course:q.c,topic:q.u||''}));CA.leaderboard=$('#cd-private').value==='true';let x=await call('hub_challenge_create',{p_mode:$('#cd-mode').value,p_courses:cs,p_topics:[],p_question_count:n,p_duration_seconds:+$('#cd-duration').value,p_question_set:qs,p_invited_username:$('#cd-invite').value.trim()||null,p_leaderboard_opt_in:$('#cd-private').value==='true'});CA.match=x.id||x.match_id;room(CA.match,x.invite_code,x);watchLobby()}catch(e){toast(e.message)}}
 function toast(msg){if(typeof window.toast==='function')window.toast(msg);else alert(msg)}
 function joinPrompt(){let code=prompt('Enter challenge room code');if(!code)return;call('hub_challenge_join_code',{p_code:code.trim()}).then(x=>open(x.id||x.match_id)).catch(e=>toast(e.message))}
