@@ -87,6 +87,7 @@ async function loadHistory(panel){
  }catch(e){panel.append(h('p',{class:'muted'},e.message))}
 }
 async function loadFriends(panel){
+ panel.replaceChildren(h('h2',null,'Friends & challenges'));
  const search=h('input',{id:'cd-friend-search',placeholder:'Enter exact Bablo username'});
  const send=h('button',{onclick:async()=>{try{const v=search.value.trim();if(!v)throw Error('Enter a username.');await call('hub_friend_request_send',{p_target_username:v});toast('Friend request sent.');loadFriends(panel)}catch(e){toast(e.message)}}},'Send friend request');
  panel.append(h('h3',null,'Find a friend'),search,send);
@@ -100,6 +101,7 @@ async function loadFriends(panel){
  }catch(e){panel.append(h('p',{class:'muted'},e.message))}
 }
 async function loadLeaderboard(panel,period){
+ panel.replaceChildren(h('h2',null,'Champions League'));
  panel.append(h('p',{class:'muted'},'Verified completed matches. Players appear only when they opt into the Champions League.'));
  const sel=h('select',{onchange:e=>loadLeaderboard(panel,e.target.value)},...['overall','weekly','monthly'].map(p=>h('option',{value:p,selected:p===period},p[0].toUpperCase()+p.slice(1))));
  panel.append(sel);
@@ -125,6 +127,6 @@ function tick(){let el=$('#cd-clock');if(!el)return;let left=Math.max(0,CA.end-D
 async function answer(i){if(CA.done)return;CA.done=true;let bs=[...$('#cd-options').querySelectorAll('button')];bs.forEach(b=>b.disabled=true);try{let x=await call('hub_challenge_submit_answer',{p_match_id:CA.match,p_question_index:CA.idx,p_answer_key:String(i),p_response_ms:Math.max(0,Date.now()-(CA.started||Date.now()))});$('#cd-feedback').textContent=x.correct?'Correct — point earned.':'Answer submitted — not correct.';$('#cd-next').disabled=false;feed()}catch(e){CA.done=false;bs.forEach(b=>b.disabled=false);toast(e.message)}}
 async function feed(){try{let x=await call('hub_challenge_reaction_feed',{p_match_id:CA.match});let el=$('#cd-score');if(el)el.textContent=(x.players||[]).map(p=>p.username+' · '+p.score+' pts').join('  |  ')}catch(e){}}
 async function react(){try{await call('hub_challenge_reaction_send',{p_match_id:CA.match,p_emoji:'🔥'})}catch(e){}}
-async function finish(){clearInterval(CA.timer);try{let x=await call('hub_challenge_finish',{p_match_id:CA.match,p_opt_into_leaderboard:!!CA.leaderboard});frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Final standings'),...(x.players||[]).map((p,i)=>h('div',{class:'cd-row'},h('b',null,(i+1)+'. '+p.username),h('span',null,p.score+' pts'))),h('button',{onclick:dashboard},'Return to Arena'))))}catch(e){toast(e.message)}}
+async function finish(){clearInterval(CA.timer);try{let x=await call('hub_challenge_finish',{p_match_id:CA.match,p_opt_into_leaderboard:!!CA.leaderboard});if(x.waiting_for_opponent){frame(h('div',{id:'challenge-dashboard'},hero(),h('section',{class:'cd-panel'},h('h2',null,'Your result is saved'),h('p',{class:'muted'},'Waiting for your opponent to finish. Standings will update automatically.'),h('div',{id:'cd-pending-scores'},...(x.players||[]).map((p,i)=>h('div',{class:'cd-row'},h('b',null,(i+1)+'. '+p.username),h('span',null,p.score+' pts')))),h('button',{class:'secondary',onclick:dashboard},'Return to Arena'))));CA.timer=setInterval(async()=>{try{let z=await call('hub_challenge_finish',{p_match_id:CA.match,p_opt_into_leaderboard:false});if(!z.waiting_for_opponent){clearInterval(CA.timer);review(z)}else{let el=$('#cd-pending-scores');if(el)el.replaceChildren(...(z.players||[]).map((p,i)=>h('div',{class:'cd-row'},h('b',null,(i+1)+'. '+p.username),h('span',null,p.score+' pts'))))}}catch(e){clearInterval(CA.timer)}},4000);return}review(x)}catch(e){toast(e.message)}}
 window.challengeDashboardView=function(){try{clearInterval(CA.timer);dashboard()}catch(e){console.error('[Challenge Arena render]',e);try{mount(wrap(h('main',{id:'challenge-dashboard',class:'panel stack'},h('h2',null,'Challenge Arena could not load'),h('p',{class:'muted'},String(e&&e.message||e)),h('button',{onclick:()=>location.hash='#/'},'Back home'))))}catch(renderError){console.error('[Challenge Arena fallback]',renderError)}}};
 })();
