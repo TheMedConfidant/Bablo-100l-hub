@@ -118,7 +118,29 @@ function joinPrompt(){let code=prompt('Enter challenge room code');if(!code)retu
 async function quick(){createPanel('quick_duel')}
 async function accept(id){try{await call('hub_challenge_accept',{p_match_id:id});open(id)}catch(e){toast(e.message)}}
 async function open(id){try{clearInterval(CA.timer);CA.match=id;let x=await call('hub_challenge_get_questions',{p_match_id:id});CA.qs=x.questions||[];CA.idx=0;if(x.status==='completed'){let result=await call('hub_challenge_review',{p_match_id:id});review(result);return}room(id,x.invite_code,x);if(x.status==='active')startMatch(x);else watchLobby()}catch(e){toast(e.message)}}
-async function review(x){const rows=(x.players||[]).map((p,i)=>h('div',{class:'cd-row'},h('b',null,(i+1)+'. '+(p.username||'Player')),h('strong',null,(p.score||0)+' pts · '+(p.correct||0)+' correct')));frame(h('div',{id:'challenge-dashboard'},hero(),h('section',{class:'cd-panel'},h('h2',null,'Match review'),h('p',{class:'muted'},'Final verified standings'),...rows,h('div',{id:'cd-answer-review',class:'cd-list'},h('p',{class:'muted'},'Loading question-by-question review…')),h('button',{onclick:()=>dashboard()},'Return to Arena'))));try{const detail=await call('hub_challenge_review',{p_match_id:CA.match}),box=$('#cd-answer-review');if(!box)return;const cards=(detail.questions||[]).map((q,i)=>{const responses=(q.responses||[]).map(r=>h('div',{class:'cd-row'},h('span',null,r.username),h('strong',null,(r.is_correct?'Correct':'Incorrect')+' · '+(Number(r.response_ms||0)/1000).toFixed(1)+'s')));return h('article',{class:'cd-panel',style:{marginTop:'12px'}},h('b',null,'Question '+(i+1)+' · '+(q.course||'')+(q.topic?' / '+q.topic:'')),h('p',{style:{margin:'8px 0'}},q.prompt),h('p',{class:'muted'},'Correct answer: '+q.correct_answer),...responses)});box.replaceChildren(...(cards.length?cards:[h('p',{class:'cd-empty'},'No question review is available.')]));}catch(e){const box=$('#cd-answer-review');if(box)box.textContent='Detailed review unavailable: '+e.message}}
+async function review(x){
+ const root=h('div',{id:'challenge-dashboard'});
+ const panel=h('section',{class:'cd-panel'});
+ panel.append(h('h2',null,'Match review'),h('p',{class:'muted'},'Final verified standings'));
+ (x.players||[]).forEach((p,i)=>panel.append(h('div',{class:'cd-row'},h('b',null,(i+1)+'. '+(p.username||'Player')),h('strong',null,(p.score||0)+' pts · '+(p.correct||0)+' correct'))));
+ const answerBox=h('div',{id:'cd-answer-review',class:'cd-list'},h('p',{class:'muted'},'Loading question-by-question review…'));
+ panel.append(answerBox,h('button',{onclick:()=>dashboard()},'Return to Arena'));
+ root.append(hero(),panel);frame(root);
+ try{
+  const detail=await call('hub_challenge_review',{p_match_id:CA.match});
+  const box=$('#cd-answer-review');if(!box)return;
+  const cards=[];
+  (detail.questions||[]).forEach((q,i)=>{
+   const card=h('article',{class:'cd-panel',style:{marginTop:'12px'}});
+   card.append(h('b',null,'Question '+(i+1)+' · '+(q.course||'')+(q.topic?' / '+q.topic:'')));
+   card.append(h('p',{style:{margin:'8px 0'}},q.prompt));
+   card.append(h('p',{class:'muted'},'Correct answer: '+q.correct_answer));
+   (q.responses||[]).forEach(r=>card.append(h('div',{class:'cd-row'},h('span',null,r.username),h('strong',null,(r.is_correct?'Correct':'Incorrect')+' · '+(Number(r.response_ms||0)/1000).toFixed(1)+'s'))));
+   cards.push(card);
+  });
+  box.replaceChildren(...(cards.length?cards:[h('p',{class:'cd-empty'},'No question review is available.')]));
+ }catch(e){const box=$('#cd-answer-review');if(box)box.textContent='Detailed review unavailable: '+e.message}
+}
 function room(id,code,x={}){let status=x.status||'waiting';frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Challenge lobby'),h('p',null,'Room code: '+(code||'Open inbox for code')),h('p',{class:'muted'},(x.question_count||CA.qs.length)+' questions · '+Math.round((x.duration_seconds||300)/60)+' minutes'),h('p',{id:'cd-lobby-status'},status==='ready'?'Opponent joined. Both players must be ready.':status==='active'?'Starting match…':'Waiting for an opponent to join.'),h('p',null,'Share this code with your opponent.'),h('button',{id:'cd-ready',onclick:ready,disabled:status==='active'},status==='active'?'Starting…':'I’m ready'),h('button',{class:'secondary',onclick:dashboard},'Back to Arena'))))}
 async function ready(){try{let b=$('#cd-ready');if(b)b.disabled=true;let x=await call('hub_challenge_ready',{p_match_id:CA.match});if(x.status==='active'){let detail=await call('hub_challenge_get_questions',{p_match_id:CA.match});startMatch(detail)}else{let s=$('#cd-lobby-status');if(s)s.textContent='You’re ready. Waiting for your opponent to get ready…';if(b)b.textContent='Ready ✓';watchLobby()}}catch(e){let b=$('#cd-ready');if(b)b.disabled=false;toast(e.message)}}
 function watchLobby(){clearInterval(CA.timer);CA.timer=setInterval(async()=>{try{let x=await call('hub_challenge_get_questions',{p_match_id:CA.match});if(x.status==='active'){clearInterval(CA.timer);CA.qs=x.questions||CA.qs;startMatch(x);return}let s=$('#cd-lobby-status');if(s)s.textContent=x.status==='ready'?'Opponent joined. Both players must press Ready.':'Waiting for an opponent to join.'}catch(e){let s=$('#cd-lobby-status');if(s)s.textContent=e.message}},2000)}
