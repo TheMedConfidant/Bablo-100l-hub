@@ -77,8 +77,17 @@ async function create(){
   if(!cs.length)throw Error('Select at least one course.');
   const pool=questions().filter(q=>cs.includes(q.c)&&(!ts.length||ts.includes(String(q.u||''))));
   if(pool.length<n)throw Error('Only '+pool.length+' questions match that course/topic selection. Reduce the count or select more topics.');
-  pool.sort(()=>Math.random()-.5);
-  const qs=pool.slice(0,n).map(q=>({prompt:String(q.q),choices:q.o.map(String),answer_key:String(q.a),explanation:String(q.e||''),course:q.c,topic:q.u||''}));
+  // Shuffle without the biased Array.sort(Math.random) pattern.
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  const answerIndex=q=>{
+   const raw=String(q.a??'').trim(),opts=q.o.map(v=>String(v).trim());
+   const byText=opts.findIndex(v=>v.toLowerCase()===raw.toLowerCase());
+   if(byText>=0)return byText;
+   if(/^[A-Z]$/i.test(raw)){const n=raw.toUpperCase().charCodeAt(0)-65;if(n>=0&&n<opts.length)return n;}
+   if(/^\\d+$/.test(raw)){const n=Number(raw);if(n>=0&&n<opts.length)return n;if(n>=1&&n<=opts.length)return n-1;}
+   throw Error('A selected question has an answer key that cannot be matched to its options. Please report this question.');
+  };
+  const qs=pool.slice(0,n).map(q=>({prompt:String(q.q),choices:q.o.map(String),answer_key:String(answerIndex(q)),explanation:String(q.e||''),course:q.c,topic:q.u||''}));
   const x=await call('hub_challenge_create',{p_mode:$('#cd-mode').value,p_courses:cs,p_topics:ts,p_question_count:n,p_duration_seconds:+$('#cd-duration').value,p_question_set:qs,p_invited_username:$('#cd-invite').value.trim()||null,p_leaderboard_opt_in:$('#cd-private').value==='true'});
   CA.match=x.match_id||x.id;CA.mode=$('#cd-mode').value;room(CA.match,x.invite_code,x);watchLobby();
  }catch(e){toast(e.message)}
