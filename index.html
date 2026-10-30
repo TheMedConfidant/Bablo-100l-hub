@@ -1861,7 +1861,7 @@ function ensureHubDrawer() {
         h('div',{class:'drawer-label'},'Explore'),
         ...[['📚','Practicals','#/practicals/PHY'],['🗞️','Community Board','#/social'],['⚔️','Challenges','#/challenges'],['♟️','Bablo Chess','#/chess']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
         h('div',{class:'drawer-label'},'Your hub'),
-        ...[['📁','Uploads & Files','#/files'],['🔔','Notifications','#/notifications'],['👤','Profile','#/me'],['⚙️','Settings','#/settings']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
+        ...[['📁','Uploads & Files','#/files'],['🔔','Notifications','#/notifications'],['👤','Profile','#/me'],['⚙️','Settings','#/settings'],['ℹ️','About Bablo Hub','#/about']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
         h('div',{class:'drawer-label'},'Management'),
         ...(DB&&DB.profile&&DB.profile.isAdmin?[['🛠️','Admin Panel','#/admin']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)):[])
       )
@@ -1939,6 +1939,7 @@ function route() {
     else if (v === 'files') filesView();
     else if (v === 'settings') settingsView();
     else if (v === 'notifications') notificationsView();
+    else if (v === 'about') aboutView();
     else if (v === 'bonus' && seg[1]) bonusView(seg[1]);
     else if (v === 'lab' && seg[1] === 'phy107') embeddedPhyLabView();
     else if (v === 'lab' && seg[1] === 'chm107') embeddedChmLabView();
@@ -3820,7 +3821,14 @@ function settingsView() {
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Account'), h('p', { class: 'small muted' }, 'Your personal details are managed in Profile. Alerts and reminders have their own page.'),
       h('a', { class: 'btn block', href: '#/me' }, 'Open Profile'), h('a', { class: 'btn block', href: '#/notifications' }, 'Notification preferences')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' • version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '© Bababola Moses Bolawaife, The MedConfidant Channel')))));
+    h('section', { class: 'panel stack' }, h('h2', null, 'More information'), h('p', { class: 'small muted' }, 'Learn about Bablo Hub, its purpose and the team behind it.'), h('a', { class: 'btn block', href: '#/about' }, 'About Bablo Hub')))));
+}
+
+function aboutView() {
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('section', { class: 'panel stack' }, h('div', { class: 'eyebrow' }, 'THE MEDCONFIDANT'), h('h1', null, 'About Bablo Hub'), h('p', { class: 'muted' }, APP.name + ' • version ' + APP.version),
+      ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 12px', lineHeight: '1.7' } }, t)),
+      h('p', { class: 'tiny muted' }, '© Bababola Moses Bolawaife, The MedConfidant Channel')))));
 }
 
 function notificationsView() {
