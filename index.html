@@ -1861,7 +1861,7 @@ function ensureHubDrawer() {
         h('div',{class:'drawer-label'},'Explore'),
         ...[['📚','Practicals','#/practicals/PHY'],['🗞️','Community Board','#/social'],['⚔️','Challenges','#/challenges'],['♟️','Bablo Chess','#/chess']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
         h('div',{class:'drawer-label'},'Your hub'),
-        ...[['📁','Uploads & Files','#/files'],['🔔','Notifications & Preferences','#/settings'],['👤','Profile','#/me'],['⚙️','Settings','#/settings']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
+        ...[['📁','Uploads & Files','#/files'],['🔔','Notifications','#/notifications'],['👤','Profile','#/me'],['⚙️','Settings','#/settings']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)),
         h('div',{class:'drawer-label'},'Management'),
         ...(DB&&DB.profile&&DB.profile.isAdmin?[['🛠️','Admin Panel','#/admin']].map(([ic,label,href])=>h('a',{class:'drawer-link',href,onclick:closeHubDrawer},h('span',{class:'drawer-icon'},ic),label)):[])
       )
@@ -1938,6 +1938,7 @@ function route() {
     else if (v === 'timetable') timetableView();
     else if (v === 'files') filesView();
     else if (v === 'settings') settingsView();
+    else if (v === 'notifications') notificationsView();
     else if (v === 'bonus' && seg[1]) bonusView(seg[1]);
     else if (v === 'lab' && seg[1] === 'phy107') embeddedPhyLabView();
     else if (v === 'lab' && seg[1] === 'chm107') embeddedChmLabView();
@@ -2333,21 +2334,19 @@ function boardView() {
 /* ---------- me ---------- */
 function meView() {
   const p = DB.profile, name = h('input', { type: 'text', value: p.name, maxlength: '40' }), nick = h('input', { type: 'text', value: p.nick, maxlength: '20' }), prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
-  const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); meView(); } }, l);
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); meView(); } }, l);
   const flagged = BANK.filter(q => q.f).length;
-  mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
-    h('h1', null, 'Me'), installCard(), accountSection(),
-    h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Name'), name), h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick), h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
-      h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: '100L' }; save(); toast('Saved.'); } }, 'Save changes')),
-    h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic'))),
-    h('section', { class: 'stack' }, h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
-    feedbackSection(), h('section', { class: 'stack' }, h('h2', null, 'About'), h('p', { class: 'muted small' }, 'Bablo Hub v' + APP.version + ' \u2022 ' + plural(BANK.length, 'question') + '. Answer keys come from the original lecture quizzes and are not independently verified' + (flagged ? '; ' + flagged + ' flagged questions are kept out of timed quizzes and exams' : '') + '. Spot a mistake? Tell Bablo so it can be fixed.')),
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('h1', null, 'Profile'), h('p', { class: 'muted' }, 'Your Bablo Hub identity, programme and account details.'),
+    installCard(), accountSection(),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Personal details'),
+      h('label', { class: 'field' }, h('span', null, 'Name'), name),
+      h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
+      h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
+      h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile.name = n; DB.profile.nick = (nick.value.trim() || n.split(' ')[0]).slice(0, 20); DB.profile.programme = prog.value; save(); toast('Profile saved.'); } }, 'Save profile')),
+    feedbackSection(),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Study account'), h('p', { class: 'small muted' }, 'Bablo Hub v' + APP.version + ' • ' + plural(BANK.length, 'question') + '. ' + (flagged ? flagged + ' flagged questions are excluded from timed quizzes and exams.' : 'Your study progress stays connected to your account.'))),
     h('section', { class: 'stack' }, h('button', { class: 'btn danger', onclick: async () => { if (await confirmBox({ title: 'Erase my data?', msg: 'This clears your profile, scores and weak spots on this device.', ok: 'Erase', danger: true })) { try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } location.hash = '#/'; location.reload(); } } }, 'Erase my data on this device')))));
 }
-
-
-;
 /* Bablo 100L Hub - UI part 4: Weak Spots and Chess */
 
 /* ---------- Weak Spots ---------- */
@@ -3815,20 +3814,27 @@ function holdPage(title, withPoll) {
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
-  const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); if (DB.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
-  const sound = h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); if (DB.soundAlerts) playNoticeSound('chess'); toast(DB.soundAlerts ? 'Sound alerts on.' : 'Sound alerts off.'); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Settings')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
+    h('div', { class: 'stack' }, h('h1', null, 'Settings'), h('p', { class: 'muted' }, 'Control the appearance and general behaviour of Bablo Hub.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'App appearance'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
-      h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
-      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Browser notifications require permission.'), h('div', { class: 'row between' }, h('span', null, 'Sound effects for timer and chess'), sound), h('p', { class: 'tiny muted' }, 'Optional short tones for timer completion, incoming chess moves and accepted challenges.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
-      h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' \u2022 version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '\u00A9 Bababola Moses Bolawaife, The MedConfidant Channel')))));
+    h('section', { class: 'panel stack' }, h('h2', null, 'Account'), h('p', { class: 'small muted' }, 'Your personal details are managed in Profile. Alerts and reminders have their own page.'),
+      h('a', { class: 'btn block', href: '#/me' }, 'Open Profile'), h('a', { class: 'btn block', href: '#/notifications' }, 'Notification preferences')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' • version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '© Bababola Moses Bolawaife, The MedConfidant Channel')))));
 }
 
+function notificationsView() {
+  const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); if (DB.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); notificationsView(); } }, DB.notify ? 'On' : 'Off');
+  const sound = h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); if (DB.soundAlerts) playNoticeSound('chess'); toast(DB.soundAlerts ? 'Sound alerts on.' : 'Sound alerts off.'); notificationsView(); } }, DB.soundAlerts ? 'On' : 'Off');
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, 'Notifications'), h('p', { class: 'muted' }, 'Manage announcements, reminders and sound alerts separately from your account and app appearance.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Push notifications'), h('div', { class: 'row between' }, h('span', null, 'Programme Cup, polls and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
+      h('p', { class: 'tiny muted' }, 'Push alerts can arrive when Bablo Hub is closed. Browser permission may be required.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Study reminders'), h('div', { class: 'row between' }, h('span', null, 'Calendar and test reminders'), notif),
+      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Browser notifications require permission.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Sound'), h('div', { class: 'row between' }, h('span', null, 'Timer, chess and challenge tones'), sound),
+      h('p', { class: 'tiny muted' }, 'Optional short tones for timer completion and incoming activity.')))));
+}
 /* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
 const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'] };
 function uploadPublicUrl(path) { return LB.url + '/storage/v1/object/public/hub-uploads/' + path; }
