@@ -1931,31 +1931,50 @@ function onboarding() {
 
 /* ---------- home ---------- */
 const PULSE = 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360';
+function openHomeDrawer() {
+  if (document.getElementById('bablo-home-drawer')) return;
+  const links = [['⌂','Home','#/'],['▤','CGPA Calculator','#/gpa'],['◷','Time','#/plan'],['▱','Social','#/social'],['♜','Board','#/board'],['ϟ','Challenges','#/challenges']];
+  const overlay=h('div',{id:'bablo-home-drawer',class:'bh-drawer-overlay',onclick:e=>{if(e.target===e.currentTarget)e.currentTarget.remove();}},
+    h('aside',{class:'bh-drawer','aria-label':'Main navigation'},
+      h('div',{class:'bh-drawer-head'},h('div',null,h('span',{class:'bh-drawer-kicker'},'BABLO HUB ™'),h('h2',null,'Navigation')),h('button',{class:'bh-drawer-close','aria-label':'Close menu',onclick:()=>document.getElementById('bablo-home-drawer')?.remove()},'×')),
+      h('nav',{class:'bh-drawer-links'},...links.map(([ic,label,href],i)=>h('a',{href,class:i===0?'is-current':'',onclick:()=>document.getElementById('bablo-home-drawer')?.remove()},h('span',{class:'bh-drawer-icon'},ic),h('span',null,label),h('span',{class:'bh-drawer-arrow'},'›')))),
+      h('p',{class:'bh-drawer-foot'},'Confidence in Clarity · TheMedConfidant')));
+  document.body.append(overlay);
+}
 function homeView() {
-  const p = DB.profile, first = p.name.split(' ')[0], hr = new Date().getHours();
-  const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
-  const st = Core.streak(DB.history.map(x => x.ts), Date.now());
-  const weak = Object.keys(DB.missed).length;
-  const hero = h('section', { class: 'hero' + (DB.skin === 'gold' ? ' gold-hero' : '') },
-    h('h1', null, greet + ', ' + first),
-    h('p', null, 'Pick a course, practise a topic, then test yourself.'),
-    h('div', { class: 'hero-stats' },
-      h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
-      h('div', null, h('b', null, DB.history.length), h('span', null, 'attempts')),
-      h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
-  const L200 = DB.profile && DB.profile.level === '200L';
-  const tiles = homeCourses().map(c => {
-    if (c.pending200) return h('div', { class: 'tile pending', style: { '--c': c.color } }, h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title), h('div', { class: 'row wrapr', style: { marginTop: '6px' } }, ['Questions', 'Notes', 'Practicals', 'Labs'].map(t => h('button', { class: 'btn sm', onclick: () => open200(c.code, t) }, t))));
-    const ok = isAvail(c), n = ok ? BYC[c.code].length : 0, bp = bestPct(c.code);
-    const body = [h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title)];
-    if (ok) body.push(h('div', { class: 'meta' }, plural(n, 'question') + ' \u2022 ' + plural(unitsOf(c.code).length, 'topic')),
-      h('div', { class: 'bar', style: { '--c': c.color } }, h('i', { style: { width: (bp || 0) + '%' } })),
-      h('div', { class: 'status' }, bp == null ? 'Available \u2022 start a quiz' : 'Best ' + bp + '% \u2022 continue to quiz'));
-    else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
-    return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
+  const p=DB.profile, first=p.name.split(' ')[0], hr=new Date().getHours();
+  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()), weak=Object.keys(DB.missed).length;
+  const hero=h('section',{class:'hero'+(DB.skin==='gold'?' gold-hero':'')},
+    h('span',{class:'bh-welcome-label'},'YOUR STUDY SPACE'),h('h1',null,greet+', '+first),
+    h('p',null,'Good to have you here. What are we learning today?'),
+    h('div',{class:'hero-stats'},h('div',null,h('b',null,st),h('span',null,'day streak')),
+      h('div',null,h('b',null,DB.history.length),h('span',null,'attempts')),
+      h('a',{href:'#/weak',style:{color:'inherit',textDecoration:'none'}},h('b',null,weak),h('span',null,'weak spots ›'))));
+  const L200=p&&p.level==='200L';
+  const tiles=homeCourses().map(c=>{
+    if(c.pending200)return h('div',{class:'tile pending',style:{'--c':c.color}},h('div',{class:'code'},c.label),h('div',{class:'meta'},c.title),h('div',{class:'row wrapr',style:{marginTop:'6px'}},['Questions','Notes','Practicals','Labs'].map(t=>h('button',{class:'btn sm',onclick:()=>open200(c.code,t)},t))));
+    const ok=isAvail(c),n=ok?BYC[c.code].length:0,bp=bestPct(c.code);
+    const body=[h('div',{class:'code'},c.label),h('div',{class:'meta'},c.title)];
+    if(ok)body.push(h('div',{class:'meta'},plural(n,'question')+' • '+plural(unitsOf(c.code).length,'topic')),h('div',{class:'bar',style:{'--c':c.color}},h('i',{style:{width:(bp||0)+'%'}})),h('div',{class:'status'},bp==null?'Available • start a quiz':'Best '+bp+'% • continue to quiz'));
+    else body.push(h('div',{class:'status'},'Pending'),h('div',{class:'tiny'},'Questions on the way'));
+    return h('button',{class:'tile'+(ok?'':' pending'),style:{'--c':c.color},onclick:()=>ok?go('#/course/'+c.code):toast(c.label+' questions are on the way.')},body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
-    h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
+  if(!document.getElementById('bh-home-style')){
+    const css=document.createElement('style');css.id='bh-home-style';
+    css.textContent='.bh-homebar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.bh-homebar-left{display:flex;align-items:center;gap:12px;min-width:0}.bh-menu-btn{width:44px;height:44px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font-size:1.35rem;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px #1018280c}.bh-homebar .top-actions{display:flex;align-items:center;gap:8px}.bh-welcome-label{display:block;font-size:.68rem;font-weight:900;letter-spacing:.18em;color:#e5c46c;margin-bottom:8px}.bh-drawer-overlay{position:fixed;inset:0;z-index:9999;background:#08111dcc;backdrop-filter:blur(5px);display:flex;justify-content:flex-start;animation:bhFade .18s ease}.bh-drawer{width:min(360px,88vw);height:100%;background:var(--surface,#fff);color:var(--ink);padding:26px 20px;box-shadow:18px 0 50px #0003;display:flex;flex-direction:column;animation:bhSlide .22s ease}.bh-drawer-head{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 5px 24px;border-bottom:1px solid var(--line)}.bh-drawer-kicker{font-size:.65rem;letter-spacing:.18em;font-weight:900;color:#c49b43}.bh-drawer-head h2{margin:7px 0 0;font-size:1.55rem}.bh-drawer-close{border:0;background:transparent;color:var(--ink);font-size:2rem;line-height:1;cursor:pointer}.bh-drawer-links{display:grid;gap:7px;padding-top:22px}.bh-drawer-links a{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink);padding:14px 13px;border:1px solid transparent;border-radius:14px;font-weight:750}.bh-drawer-links a:hover,.bh-drawer-links a.is-current{background:#d4b15a20;border-color:#caa34d66}.bh-drawer-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:#c9a34b22;color:#c39b43;font-size:1.25rem}.bh-drawer-arrow{margin-left:auto;opacity:.45;font-size:1.3rem}.bh-drawer-foot{margin-top:auto;padding:18px 5px 4px;border-top:1px solid var(--line);font-size:.72rem;opacity:.65}@keyframes bhFade{from{opacity:0}to{opacity:1}}@keyframes bhSlide{from{transform:translateX(-18px);opacity:.7}to{transform:translateX(0);opacity:1}}@media(max-width:600px){.bh-homebar{margin-bottom:13px}.bh-homebar .top-actions{gap:5px}.bh-homebar .icon-btn{width:38px;height:38px}}';
+    document.head.append(css);
+  }
+  mount(wrap(h('div',{class:'bh-homebar'},
+    h('div',{class:'bh-homebar-left'},h('button',{class:'bh-menu-btn','aria-label':'Open main navigation',onclick:openHomeDrawer},'☰'),brand()),
+    h('span',{class:'top-actions'},st>0?h('span',{class:'chip gold'},'🔥 '+st+'-day streak'):null,
+      h('a',{class:'icon-btn',href:'#/files','aria-label':'Files: upload and download'},'📁'),
+      h('a',{class:'icon-btn',href:'#/chess','aria-label':'Chess'},'♞'),
+      h('a',{class:'icon-btn',href:'#/settings','aria-label':'Settings'},'⚙️'))),
+    h('div',{class:'stack-l'},eventBanner(),hero,
+      h('section',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,L200?'200 Level courses':'Your courses'),
+        L200?h('div',{class:'seg'},[['first','First semester'],['second','Second semester']].map(([v,l])=>h('button',{class:'opt','aria-pressed':String(HOME_SEM===v),onclick:()=>{HOME_SEM=v;route();}},l))):null),
+        h('div',{class:'grid'},tiles.length?tiles:[h('p',{class:'muted'},'No courses for this semester yet.')])))));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
 function ecgBeatPath(x0, variant) {
