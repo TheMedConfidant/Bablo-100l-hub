@@ -136,7 +136,7 @@ async function review(){
 }
 function installHomeEntry(){const path=location.hash.replace(/^#\/?/,'').split(/[/?]/)[0];if(path&&path!=='home')return;const app=document.getElementById('app'),main=app&&app.querySelector('main.wrap');if(!main||main.querySelector('[data-challenge-entry]'))return;const link=h('a',{href:'#/challenge',class:'btn primary block','data-challenge-entry':'true'},'🏆 Challenge Arena');const hero=main.querySelector('.hero');if(hero)hero.after(link);else main.prepend(link);}
 function handleChallengeRoute(){const path=location.hash.replace(/^#\/?/,'').split(/[/?]/)[0];if(path==='challenge'){setTimeout(()=>{try{if(typeof DB!=='undefined'&&DB.profile&&window.challengeDashboardView)window.challengeDashboardView()}catch(e){console.error('[Challenge Arena route]',e)}},0)}else setTimeout(installHomeEntry,0)}
-function watchShell(){const app=document.getElementById('app');if(app){new MutationObserver(()=>installHomeEntry()).observe(app,{childList:true,subtree:true});installHomeEntry();}}
+function watchShell(){const app=document.getElementById('app');if(app){new MutationObserver(()=>installHomeEntry()).observe(app,{childList:true,subtree:true});installHomeEntry();}if(location.hash.replace(/^#\/?/,'').split(/[/?]/)[0]==='challenge')handleChallengeRoute();}
 window.addEventListener('hashchange',handleChallengeRoute);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',watchShell,{once:true});else watchShell();
 if(location.hash.replace(/^#\/?/,'').split(/[/?]/)[0]==='challenge')setTimeout(handleChallengeRoute,0);
