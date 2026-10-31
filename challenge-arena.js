@@ -126,6 +126,59 @@ function tick(){let el=$('#cd-clock');if(!el)return;let left=Math.max(0,CA.end-D
 async function answer(i){if(CA.done)return;CA.done=true;let bs=[...$('#cd-options').querySelectorAll('button')];bs.forEach(b=>b.disabled=true);try{let x=await call('hub_challenge_submit_answer',{p_match_id:CA.match,p_question_index:CA.idx,p_answer_key:String(i),p_response_ms:Math.max(0,Date.now()-(CA.started||Date.now()))});$('#cd-feedback').textContent=x.correct?'Correct — point earned.':'Answer submitted — not correct.';$('#cd-next').disabled=false;feed()}catch(e){CA.done=false;bs.forEach(b=>b.disabled=false);toast(e.message)}}
 async function feed(){try{let x=await call('hub_challenge_reaction_feed',{p_match_id:CA.match});let el=$('#cd-score');if(el)el.textContent=(x.players||[]).map(p=>p.username+' · '+p.score+' pts').join('  |  ')}catch(e){}}
 async function react(){try{await call('hub_challenge_reaction_send',{p_match_id:CA.match,p_emoji:'🔥'})}catch(e){}}
-async function finish(){if(CA.finishing)return;CA.finishing=true;clearInterval(CA.timer);try{let x=await call('hub_challenge_finish',{p_match_id:CA.match,p_opt_into_leaderboard:CA.opted});frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Final standings'),...(x.players||[]).map((p,i)=>h('div',{class:'cd-row'},h('b',null,(i+1)+'. '+p.username),h('span',null,p.score+' pts'))),h('button',{onclick:dashboard},'Return to Arena'))))}catch(e){CA.finishing=false;toast(e.message)}}
+async function finish(){
+  if(CA.finishing)return;
+  CA.finishing=true;clearInterval(CA.timer);
+  try{
+    const x=await call('hub_challenge_finish',{p_match_id:CA.match,p_opt_into_leaderboard:CA.opted});
+    if(x.status==='completed'){const review=await call('hub_challenge_review',{p_match_id:CA.match});showReview(review);return;}
+    frame(h('div',null,hero(),h('section',{class:'cd-panel'},
+      h('h2',null,'Your answers are submitted'),
+      h('p',{class:'muted'},'Your opponent has not finished yet. The final review unlocks when both players have submitted.'),
+      h('div',{id:'cd-review-wait',class:'cd-row'},'Checking match status…'),
+      h('button',{class:'secondary',onclick:checkReview},'Check results now'),
+      h('button',{class:'secondary',onclick:dashboard},'Back to Arena'))));
+    CA.finishing=false;
+    clearInterval(CA.timer);
+    CA.timer=setInterval(checkReview,3000);
+  }catch(e){CA.finishing=false;toast(e.message)}
+}
+async function checkReview(){
+  if(!CA.match)return;
+  try{
+    const x=await call('hub_challenge_finish',{p_match_id:CA.match,p_opt_into_leaderboard:CA.opted});
+    if(x.status!=='completed'){
+      const el=$('#cd-review-wait');if(el)el.textContent='Waiting for your opponent to submit…';
+      return;
+    }
+    clearInterval(CA.timer);CA.finishing=true;
+    const review=await call('hub_challenge_review',{p_match_id:CA.match});
+    showReview(review);
+  }catch(e){const el=$('#cd-review-wait');if(el)el.textContent=e.message;}
+}
+function showReview(x){
+  clearInterval(CA.timer);CA.finishing=false;
+  const players=x.players||[],questions=x.questions||[];
+  const panel=h('section',{class:'cd-panel'},h('h2',null,'Final standings'));
+  panel.append(...players.map((p,i)=>h('div',{class:'cd-row'},
+    h('div',null,h('b',null,(i+1)+'. '+p.username),h('div',{class:'muted'},p.correct+' correct · '+p.incorrect+' incorrect')),
+    h('strong',null,p.score+' pts'))));
+  panel.append(h('h2',null,'Answer review'));
+  if(!questions.length)panel.append(h('p',{class:'muted'},'No question review was returned for this match.'));
+  questions.forEach((q,i)=>{
+    const choices=q.choices||[];
+    const answer=Number.parseInt(q.correct_answer,10);
+    const card=h('article',{class:'cd-panel',style:'margin:10px 0'});
+    card.append(h('b',null,'Question '+(i+1)),h('p',null,q.prompt));
+    choices.forEach((choice,j)=>card.append(h('div',{class:'cd-row',style:j===answer?'border-color:#c59d45;background:rgba(197,157,69,.12)':''},
+      h('span',null,String.fromCharCode(65+j)+'. '+choice),
+      j===answer?h('strong',null,'Correct answer'):null)));
+    if(q.explanation)card.append(h('p',{class:'muted'},'Explanation: '+q.explanation));
+    if((q.responses||[]).length)card.append(h('div',{class:'muted'},'Responses: '+q.responses.map(r=>r.username+': '+(r.is_correct?'correct':'incorrect')+' ('+String.fromCharCode(65+(Number(r.answer_key)||0))+')').join(' · ')));
+    panel.append(card);
+  });
+  panel.append(h('button',{onclick:dashboard},'Return to Arena'));
+  frame(h('div',null,hero(),panel));
+}
 window.challengeDashboardView=function(){try{clearInterval(CA.timer);dashboard()}catch(e){console.error('[Challenge Arena render]',e);try{mount(wrap(h('main',{id:'challenge-dashboard',class:'panel stack'},h('h2',null,'Challenge Arena could not load'),h('p',{class:'muted'},String(e&&e.message||e)),h('button',{onclick:()=>location.hash='#/'},'Back home'))))}catch(renderError){console.error('[Challenge Arena fallback]',renderError)}}};
 })();
