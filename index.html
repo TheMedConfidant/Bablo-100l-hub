@@ -596,6 +596,18 @@ button,a,input,select,textarea{touch-action:manipulation}
 
 /* MLS 101 lecture content in the native Notes module */
 .mls-lecture-notes{min-width:0;line-height:1.65;overflow-wrap:anywhere}.mls-lecture-notes .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:0 0 14px;box-shadow:none}.mls-lecture-notes h2{font-size:1.08rem;color:var(--brand);margin:0 0 8px}.mls-lecture-notes h3{font-size:1rem;margin:14px 0 6px}.mls-lecture-notes p{margin:8px 0}.mls-lecture-notes ul,.mls-lecture-notes ol{padding-left:22px;margin:8px 0}.mls-lecture-notes li{margin:4px 0}.mls-lecture-notes .key{border-left:3px solid var(--gold);padding:8px 0 8px 12px;color:var(--ink2)}.mls-lecture-notes .note-table-wrap{max-width:100%;overflow-x:auto;margin:10px 0}.mls-lecture-notes table{width:100%;min-width:440px;border-collapse:collapse;font-size:.9rem}.mls-lecture-notes th,.mls-lecture-notes td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.mls-lecture-notes th{background:var(--surface2)}
+
+/* Bablo Hub navigation drawer */
+.hub-menu-overlay{position:fixed;inset:0;z-index:10000;background:rgba(3,8,18,.68);backdrop-filter:blur(5px);display:flex;justify-content:flex-end;}
+.hub-menu-panel{width:min(88vw,360px);height:100%;overflow-y:auto;background:var(--surface);color:var(--ink);border-left:1px solid var(--line);box-shadow:-18px 0 48px rgba(0,0,0,.28);padding:18px 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px;}
+.hub-menu-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 14px;border-bottom:1px solid var(--line);}
+.hub-menu-group{display:grid;gap:5px;}
+.hub-menu-heading{font-size:.69rem;font-weight:800;letter-spacing:.12em;color:var(--ink2);padding:0 8px 5px;}
+.hub-menu-link{display:flex;align-items:center;gap:12px;min-height:46px;padding:9px 11px;border-radius:12px;color:var(--ink);text-decoration:none;background:transparent;border:1px solid transparent;font-weight:650;}
+.hub-menu-link:active,.hub-menu-link:focus-visible{background:var(--surface2);border-color:var(--line);outline:none;}
+.hub-menu-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:var(--gold-soft);color:var(--gold);font-size:1.05rem;flex:none;}
+.hub-menu-arrow{margin-left:auto;color:var(--ink2);font-size:1.35rem;}
+.hub-menu-foot{margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--line);font-size:.78rem;color:var(--ink2);}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
@@ -1931,6 +1943,24 @@ function onboarding() {
 
 /* ---------- home ---------- */
 const PULSE = 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360';
+function openHubMenu(){
+  let overlay;
+  const close=()=>{if(overlay&&overlay.isConnected)overlay.remove();document.removeEventListener('keydown',onKey);};
+  const onKey=e=>{if(e.key==='Escape')close();};
+  const link=(label,href,icon)=>h('a',{href,class:'hub-menu-link',onclick:close},h('span',{class:'hub-menu-icon'},icon),h('span',null,label),h('span',{class:'hub-menu-arrow'},'›'));
+  const group=(title,items)=>h('section',{class:'hub-menu-group'},h('div',{class:'hub-menu-heading'},title),...items);
+  const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
+  panel.append(
+    h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
+    group('STUDY',[link('Dashboard & courses','#/','⌂'),link('Uploads & library','#/files','▤'),link('Practicals','#/','⚗')]),
+    group('COMMUNITY',[link('Challenge Arena','#/challenge','⚔'),link('Chess','#/chess','♞'),link('Social','#/social','◎'),link('Programme Cup','#/cup','🏆'),link('Leaderboard','#/board','▥')]),
+    group('YOUR ACCOUNT',[link('Notifications & reminders','#/settings','♧'),link('Profile','#/me','◉'),link('Settings','#/settings','⚙'),link('About Bablo Hub','#/settings','ⓘ')]),
+    h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
+  );
+  overlay=h('div',{class:'hub-menu-overlay',onclick:e=>{if(e.target===overlay)close();}},panel);
+  document.body.append(overlay);document.addEventListener('keydown',onKey);
+  const first=panel.querySelector('a');if(first)first.focus();
+}
 function homeView() {
   const p = DB.profile, first = p.name.split(' ')[0], hr = new Date().getHours();
   const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
@@ -1954,7 +1984,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/challenge', 'aria-label': 'Challenge Arena' }, '⚔️'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Open navigation menu', 'aria-haspopup': 'dialog', onclick: openHubMenu }, '☰'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
