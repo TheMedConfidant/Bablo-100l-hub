@@ -1873,9 +1873,10 @@ function route() {
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
-  renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
+  renderNav(v === 'run' || v === 'chess' || v === 'challenge' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
+    else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
     else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
@@ -1953,7 +1954,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/challenge', 'aria-label': 'Challenge Arena' }, '⚔️'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
@@ -2288,7 +2289,7 @@ function meView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); meView(); } }, l);
   const flagged = BANK.filter(q => q.f).length;
   mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
-    h('h1', null, 'Me'), installCard(), accountSection(),
+    h('h1', null, 'Me'), installCard(), accountSection(), h('section', { class: 'panel stack' }, h('h2', null, 'Challenge Arena'), h('p', { class: 'muted small' }, 'Create a quiz battle, invite a friend, review answers and climb the Champions League.'), h('button', { class: 'btn primary block', onclick: () => go('#/challenge') }, 'Open Challenge Arena')),
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Name'), name), h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick), h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: '100L' }; save(); toast('Saved.'); } }, 'Save changes')),
     h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic'))),
@@ -4097,5 +4098,7 @@ startRestReminder();
 setTimeout(liveNotice, 1200);
 
 </script>
+<script src="challenge-arena.js"></script>
+<script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
 </body>
 </html>
