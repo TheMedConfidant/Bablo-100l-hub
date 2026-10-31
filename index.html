@@ -9,17 +9,17 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bablo Hub">
-<title>Bablo Hub: study app for Bowen University CoHES students</title>
-<meta name="description" content="Bablo Hub is a study app for Bowen University CoHES students, built by Bababola Moses Bolawaife, founder of The MedConfidant Channel. Practise past questions, take timed quizzes and mock tests, and read notes.">
-<meta name="keywords" content="Bowen University, CoHES, past questions, quiz, mock test, 100 level, 200 level, notes, flashcards">
+<title>Bablo Hub™ | Bowen University Student Learning &amp; CBT Platform</title>
+<meta name="description" content="Bablo Hub™ by TheMedConfidant brings Bowen University students course notes, flashcards, question banks, CBT practice, quizzes and practical resources. Confidence in Clarity. Clarity in Faith.">
+<meta name="keywords" content="Bablo Hub, Bablo Hub™, TMC: Bablo Hub, Bablo 100L Hub, Bowen University quiz platform, Bowen University past questions, Bowen student study resources, CBT practice, CoHES">
 <link rel="canonical" href="https://bablo-100l-hub.vercel.app/">
-<meta property="og:title" content="Bablo Hub">
-<meta property="og:description" content="Practice past questions, take timed quizzes and study with notes for Bowen University CoHES students.">
+<meta property="og:site_name" content="Bablo Hub™">\n<meta property="og:title" content="Bablo Hub™ | Confidence in Clarity. Clarity in Faith.">
+<meta property="og:description" content="A student learning and CBT platform with notes, flashcards, question banks, quizzes and practical resources for Bowen University students.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://bablo-100l-hub.vercel.app/">
 <meta name="twitter:card" content="summary">
 <meta name="google-site-verification" content="Ln-9NJ0wySyKh7FuZ_yzNBpEkXljCV_gtM4j79hV0GY" />
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "EducationalApplication", "name": "Bablo Hub", "alternateName": "Bablo", "url": "https://bablo-100l-hub.vercel.app/", "description": "A study app for Bowen University CoHES students, built by Bababola Moses Bolawaife, founder of The MedConfidant Channel. Past questions, timed quizzes, mock tests, notes, flashcards, timetable, calendar and CGPA calculator.", "applicationCategory": "EducationalApplication", "operatingSystem": "Any (web, installable on Android and iOS)", "inLanguage": "en", "audience": {"@type": "EducationalAudience", "educationalRole": "student", "audienceType": "Bowen University CoHES students"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "NGN"}, "publisher": {"@type": "Organization", "name": "TheMedConfidant"}, "author": {"@type": "Person", "name": "Bababola Moses Bolawaife"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalApplication","name":"Bablo Hub™","alternateName":["Bablo Hub","TMC: Bablo Hub","Bablo 100L Hub"],"url":"https://bablo-100l-hub.vercel.app/","description":"A student learning and CBT platform offering course notes, flashcards, question banks, quizzes and practical resources for Bowen University students. Confidence in Clarity. Clarity in Faith.","applicationCategory":"EducationalApplication","operatingSystem":"Web, Android, iOS","inLanguage":"en","audience":{"@type":"EducationalAudience","educationalRole":"student","audienceType":"Bowen University students"},"publisher":{"@type":"Organization","name":"TheMedConfidant"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -596,6 +596,18 @@ button,a,input,select,textarea{touch-action:manipulation}
 
 /* MLS 101 lecture content in the native Notes module */
 .mls-lecture-notes{min-width:0;line-height:1.65;overflow-wrap:anywhere}.mls-lecture-notes .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin:0 0 14px;box-shadow:none}.mls-lecture-notes h2{font-size:1.08rem;color:var(--brand);margin:0 0 8px}.mls-lecture-notes h3{font-size:1rem;margin:14px 0 6px}.mls-lecture-notes p{margin:8px 0}.mls-lecture-notes ul,.mls-lecture-notes ol{padding-left:22px;margin:8px 0}.mls-lecture-notes li{margin:4px 0}.mls-lecture-notes .key{border-left:3px solid var(--gold);padding:8px 0 8px 12px;color:var(--ink2)}.mls-lecture-notes .note-table-wrap{max-width:100%;overflow-x:auto;margin:10px 0}.mls-lecture-notes table{width:100%;min-width:440px;border-collapse:collapse;font-size:.9rem}.mls-lecture-notes th,.mls-lecture-notes td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.mls-lecture-notes th{background:var(--surface2)}
+
+/* Bablo Hub navigation drawer */
+.hub-menu-overlay{position:fixed;inset:0;z-index:10000;background:rgba(3,8,18,.68);backdrop-filter:blur(5px);display:flex;justify-content:flex-end;}
+.hub-menu-panel{width:min(88vw,360px);height:100%;overflow-y:auto;background:var(--surface);color:var(--ink);border-left:1px solid var(--line);box-shadow:-18px 0 48px rgba(0,0,0,.28);padding:18px 16px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:18px;}
+.hub-menu-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 14px;border-bottom:1px solid var(--line);}
+.hub-menu-group{display:grid;gap:5px;}
+.hub-menu-heading{font-size:.69rem;font-weight:800;letter-spacing:.12em;color:var(--ink2);padding:0 8px 5px;}
+.hub-menu-link{display:flex;align-items:center;gap:12px;min-height:46px;padding:9px 11px;border-radius:12px;color:var(--ink);text-decoration:none;background:transparent;border:1px solid transparent;font-weight:650;}
+.hub-menu-link:active,.hub-menu-link:focus-visible{background:var(--surface2);border-color:var(--line);outline:none;}
+.hub-menu-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:var(--gold-soft);color:var(--gold);font-size:1.05rem;flex:none;}
+.hub-menu-arrow{margin-left:auto;color:var(--ink2);font-size:1.35rem;}
+.hub-menu-foot{margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--line);font-size:.78rem;color:var(--ink2);}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
@@ -1836,7 +1848,7 @@ let CALC_ANS=0,CALC_DEG=true;
 function calcEvaluate(raw){let src=String(raw||'').replace(/[×·]/g,'*').replace(/[÷]/g,'/').replace(/[−–]/g,'-').replace(/π/g,'pi');src=src.replace(/\bANS\b/gi,'('+CALC_ANS+')').replace(/(^|[^a-zA-Z])pi\b/gi,'$1('+Math.PI+')').replace(/π/g,'('+Math.PI+')').replace(/(^|[^a-zA-Z])e\b/g,'$1('+Math.E+')');const t=src.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-zA-Z]+|[%()+\-*/^]/g);if(!t||t.join('')!==src.replace(/\s+/g,''))throw Error();let i=0,P=()=>t[i],T=()=>t[i++],N=x=>x&&/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(x),A=x=>N(x)||x==='('||/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x);function atom(){let x=T(),v;if(x===undefined)throw Error();if(x==='+'||x==='-'){v=atom();return x==='-'?-v:v;}if(x==='('){v=E();if(T()!==')')throw Error();}else if(N(x))v=+x;else if(/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x)){let f=x.toLowerCase(),a;if(P()==='('){T();a=E();if(T()!==')')throw Error();}else a=atom();if(['sin','cos','tan'].includes(f))v=Math[f](CALC_DEG?a*Math.PI/180:a);else if(f==='ln')v=Math.log(a);else if(f==='log')v=Math.log10(a);else if(f==='sqrt')v=Math.sqrt(a);else if(f==='abs')v=Math.abs(a);else v=Math.exp(a);}else throw Error();while(P()==='%'){T();v/=100;}return v;}function pow(){let a=atom();if(P()==='^'){T();a=Math.pow(a,unary());}return a;}function unary(){if(P()==='+'){T();return unary();}if(P()==='-'){T();return -unary();}return pow();}function term(){let a=unary();while(P()==='*'||P()==='/'||A(P())){if(P()==='*'){T();a*=unary();}else if(P()==='/'){T();a/=unary();}else a*=unary();}return a;}function E(){let a=term();while(P()==='+'||P()==='-'){let op=T(),b=term();a=op==='+'?a+b:a-b;}return a;}let v=E();if(i!==t.length||!Number.isFinite(v))throw Error();return v;}
 function scientificCalculatorView(){
   const root=document.createElement('main');root.className='wrap calc-page';
-  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 5.910796644047 × ln(326)"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div><p class="tiny muted">Use × or * for multiplication. Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press Enter or = to evaluate.</p></section></div>';
+  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div><p class="tiny muted">Use × or * for multiplication. Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press Enter or = to evaluate.</p></section></div>';
   document.getElementById('app').replaceChildren(root);
   const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
   let lastExpression='';
@@ -1873,9 +1885,10 @@ function route() {
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
-  renderNav(v === 'run' || v === 'chess' ? null : (tab || 'home'));
+  renderNav(v === 'run' || v === 'chess' || v === 'challenge' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
+    else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
     else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
@@ -1889,6 +1902,8 @@ function route() {
     else if (v === 'timetable') timetableView();
     else if (v === 'files') filesView();
     else if (v === 'settings') settingsView();
+    else if (v === 'notifications') notificationsView();
+    else if (v === 'about') aboutView();
     else if (v === 'bonus' && seg[1]) bonusView(seg[1]);
     else if (v === 'lab' && seg[1] === 'phy107') embeddedPhyLabView();
     else if (v === 'lab' && seg[1] === 'chm107') embeddedChmLabView();
@@ -1930,6 +1945,24 @@ function onboarding() {
 
 /* ---------- home ---------- */
 const PULSE = 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360';
+function openHubMenu(){
+  let overlay;
+  const close=()=>{if(overlay&&overlay.isConnected)overlay.remove();document.removeEventListener('keydown',onKey);};
+  const onKey=e=>{if(e.key==='Escape')close();};
+  const link=(label,href,icon)=>h('a',{href,class:'hub-menu-link',onclick:close},h('span',{class:'hub-menu-icon'},icon),h('span',null,label),h('span',{class:'hub-menu-arrow'},'›'));
+  const group=(title,items)=>h('section',{class:'hub-menu-group'},h('div',{class:'hub-menu-heading'},title),...items);
+  const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
+  panel.append(
+    h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
+    group('STUDY',[link('Dashboard & courses','#/','⌂'),link('Uploads & library','#/files','▤')]),
+    group('COMMUNITY',[link('Challenge Arena','#/challenge','⚔'),link('Chess','#/chess','♞'),link('Social','#/social','◎'),link('Programme Cup','#/cup','🏆'),link('Leaderboard','#/board','▥')]),
+    group('YOUR ACCOUNT',[link('Notifications','#/notifications','♧'),link('Profile','#/me','◉'),link('Settings','#/settings','⚙'),link('About Bablo Hub','#/about','ⓘ')]),
+    h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
+  );
+  overlay=h('div',{class:'hub-menu-overlay',onclick:e=>{if(e.target===overlay)close();}},panel);
+  document.body.append(overlay);document.addEventListener('keydown',onKey);
+  const first=panel.querySelector('a');if(first)first.focus();
+}
 function homeView() {
   const p = DB.profile, first = p.name.split(' ')[0], hr = new Date().getHours();
   const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
@@ -1953,7 +1986,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('a', { class: 'icon-btn', href: '#/files', 'aria-label': 'Files: upload and download' }, '\uD83D\uDCC1'), h('a', { class: 'icon-btn', href: '#/chess', 'aria-label': 'Chess' }, '\u265E'), h('a', { class: 'icon-btn', href: '#/settings', 'aria-label': 'Settings' }, '\u2699\uFE0F'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Open navigation menu', 'aria-haspopup': 'dialog', onclick: openHubMenu }, '☰'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
@@ -2066,9 +2099,9 @@ const verseBand = pct => pct >= 70 ? 'high' : pct >= 60 ? 'good' : pct >= 50 ? '
 
 /* In-session scientific calculator: stays inside the active question flow. */
 function openSessionCalculator() {
-  const input = h('input', { type: 'text', inputmode: 'decimal', placeholder: 'Enter expression, e.g. 5.91ln(326)%', style: { width: '100%', fontSize: '1.1rem' }, 'aria-label': 'Calculator expression' });
+  const input = h('input', { type: 'text', inputmode: 'none', readOnly: true, 'aria-readonly': 'true', placeholder: 'Use the keypad below', style: { width: '100%', fontSize: '1.1rem' }, 'aria-label': 'Calculator expression' });
   const result = h('div', { class: 'panel stack', style: { gap: '4px', overflowWrap: 'anywhere' } }, h('span', { class: 'tiny muted' }, 'Result'), h('strong', null, 'Enter an expression'));
-  const pad = h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: '7px' } });
+  const pad = h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(5,minmax(0,1fr))', gap: '7px' } });
   const close = modal(h('div', { class: 'stack' },
     h('div', { class: 'row between' }, h('h2', null, 'Scientific calculator'), h('span', { class: 'chip brand' }, 'Quiz tool')),
     h('p', { class: 'muted small' }, 'Calculate without leaving your practice or quiz. Your current question and timer stay in place.'),
@@ -2088,10 +2121,10 @@ function openSessionCalculator() {
       result.replaceChildren(h('span', { class: 'tiny muted' }, 'Result'), h('strong', null, input.value.trim() ? 'Check expression' : 'Enter an expression'));
     }
   }
-  ['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','(',')','sin(','cos(','tan(','ln(','log(','sqrt(','^','%','π','ANS','+','-','*','/'].forEach(k => pad.append(h('button', { class: 'btn', onclick: () => { input.value += k; update(); input.focus(); } }, k)));
+  ['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','(',')','sin(','cos(','tan(','ln(','log(','sqrt(','^','%','π','ANS','+','-','*','/','AC','='].forEach(k => pad.append(h('button', { class: 'btn', onclick: () => { if(k==='AC'){input.value='';update();return;} if(k==='='){update();return;} input.value += k; update(); } }, k)));
   input.addEventListener('input', update);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); update(); } });
-  setTimeout(() => input.focus(), 0);
+  // Keypad-only on mobile: never summon the device keyboard.
 }
 
 /* ---------- run (practice / quiz / exam) ---------- */
@@ -2288,7 +2321,7 @@ function meView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); meView(); } }, l);
   const flagged = BANK.filter(q => q.f).length;
   mount(wrap(h('div', { class: 'top' }, brand()), h('div', { class: 'stack-l' },
-    h('h1', null, 'Me'), installCard(), accountSection(),
+    h('h1', null, 'Me'), installCard(), accountSection(), h('section', { class: 'panel stack' }, h('h2', null, 'Challenge Arena'), h('p', { class: 'muted small' }, 'Create a quiz battle, invite a friend, review answers and climb the Champions League.'), h('button', { class: 'btn primary block', onclick: () => go('#/challenge') }, 'Open Challenge Arena')),
     h('section', { class: 'panel stack' }, h('label', { class: 'field' }, h('span', null, 'Name'), name), h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick), h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('button', { class: 'btn primary', onclick: () => { const n = name.value.trim(); if (n.length < 2) { toast('Enter your name.'); return; } DB.profile = { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20), programme: prog.value, level: '100L' }; save(); toast('Saved.'); } }, 'Save changes')),
     h('section', { class: 'stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic'))),
@@ -3763,6 +3796,36 @@ function holdPage(title, withPoll) {
     withPoll ? pollCard(CUP_POLL) : null)));
 }
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
+function notificationsView() {
+  const box=h('div',{class:'stack-l'});
+  const makeToggle=(label,key,desc,action)=>{
+    const button=h('button',{class:'opt','aria-pressed':String(!!DB[key]),onclick:()=>{
+      if(action){action();return;}
+      DB[key]=!DB[key];save();notificationsView();
+    }},DB[key]?'On':'Off');
+    return h('section',{class:'panel stack'},
+      h('div',{class:'row between wrapr'},h('b',null,label),button),
+      h('p',{class:'small muted'},desc));
+  };
+  box.append(
+    h('h1',null,'Notifications'),
+    h('p',{class:'muted'},'Choose which Bablo Hub updates can reach you.'),
+    makeToggle('Announcements, polls and Programme Cup alerts','alerts','Push alerts can arrive when Bablo Hub is closed.',()=>enablePushAlerts()),
+    makeToggle('Study and calendar reminders','notify','Reminders appear while the app is open. Browser permission may be required.'),
+    makeToggle('Sound effects','soundAlerts','Optional sounds for timers, chess and accepted challenges.')
+  );
+  mount(wrap(back('#/','Home'),box));
+}
+function aboutView() {
+  const box=h('div',{class:'stack-l'});
+  box.append(h('h1',null,'About Bablo Hub ™'));
+  const panel=h('section',{class:'panel stack'});
+  panel.append(h('h2',null,APP.name),h('p',{class:'muted'},'Version '+APP.version));
+  ABOUT_TEXT.forEach(t=>panel.append(h('p',null,t)));
+  panel.append(h('p',{class:'tiny muted'},'TheMedConfidant 🩺 · Confidence in Clarity · © Bababola Moses Bolawaife'));
+  box.append(panel);
+  mount(wrap(back('#/','Home'),box));
+}
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
@@ -4097,5 +4160,7 @@ startRestReminder();
 setTimeout(liveNotice, 1200);
 
 </script>
+<script src="challenge-arena.js"></script>
+<script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
 </body>
 </html>
