@@ -13,7 +13,8 @@
 <meta name="description" content="Bablo Hub™ by TheMedConfidant brings Bowen University students course notes, flashcards, question banks, CBT practice, quizzes and practical resources. Confidence in Clarity. Clarity in Faith.">
 <meta name="keywords" content="Bablo Hub, Bablo Hub™, TMC: Bablo Hub, Bablo 100L Hub, Bowen University quiz platform, Bowen University past questions, Bowen student study resources, CBT practice, CoHES">
 <link rel="canonical" href="https://bablo-100l-hub.vercel.app/">
-<meta property="og:site_name" content="Bablo Hub™">\n<meta property="og:title" content="Bablo Hub™ | Confidence in Clarity. Clarity in Faith.">
+<meta property="og:site_name" content="Bablo Hub™">
+<meta property="og:title" content="Bablo Hub™ | Confidence in Clarity. Clarity in Faith.">
 <meta property="og:description" content="A student learning and CBT platform with notes, flashcards, question banks, quizzes and practical resources for Bowen University students.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://bablo-100l-hub.vercel.app/">
@@ -608,6 +609,13 @@ button,a,input,select,textarea{touch-action:manipulation}
 .hub-menu-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:var(--gold-soft);color:var(--gold);font-size:1.05rem;flex:none;}
 .hub-menu-arrow{margin-left:auto;color:var(--ink2);font-size:1.35rem;}
 .hub-menu-foot{margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--line);font-size:.78rem;color:var(--ink2);}
+.hub-menu-panel{overscroll-behavior:contain;animation:hubMenuIn .2s ease-out;}
+.hub-menu-link[aria-current="page"]{background:var(--gold-soft);border-color:var(--gold);color:var(--ink);}
+.hub-menu-link[aria-current="page"] .hub-menu-icon{background:var(--gold);color:#171717;}
+.hub-menu-link:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.hub-menu-group+.hub-menu-group{padding-top:2px;}
+@keyframes hubMenuIn{from{transform:translateX(18px);opacity:.7}to{transform:translateX(0);opacity:1}}
+@media(prefers-reduced-motion:reduce){.hub-menu-panel{animation:none;}}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
@@ -1947,9 +1955,26 @@ function onboarding() {
 const PULSE = 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360';
 function openHubMenu(){
   let overlay;
-  const close=()=>{if(overlay&&overlay.isConnected)overlay.remove();document.removeEventListener('keydown',onKey);};
-  const onKey=e=>{if(e.key==='Escape')close();};
-  const link=(label,href,icon)=>h('a',{href,class:'hub-menu-link',onclick:close},h('span',{class:'hub-menu-icon'},icon),h('span',null,label),h('span',{class:'hub-menu-arrow'},'›'));
+  const trigger=document.activeElement;
+  const oldOverflow=document.body.style.overflow;
+  const close=()=>{
+    if(overlay&&overlay.isConnected)overlay.remove();
+    document.body.style.overflow=oldOverflow;
+    document.removeEventListener('keydown',onKey);
+    if(trigger&&trigger.isConnected)trigger.focus();
+  };
+  const onKey=e=>{
+    if(e.key==='Escape'){e.preventDefault();close();return;}
+    if(e.key!=='Tab'||!overlay)return;
+    const focusable=[...overlay.querySelectorAll('a[href],button:not([disabled])')];
+    if(!focusable.length)return;
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  };
+  const current=(location.hash||'#/').split('?')[0];
+  const link=(label,href,icon)=>h('a',{href,class:'hub-menu-link','aria-current':current===href?'page':null,onclick:close},
+    h('span',{class:'hub-menu-icon','aria-hidden':'true'},icon),h('span',null,label),h('span',{class:'hub-menu-arrow','aria-hidden':'true'},'›'));
   const group=(title,items)=>h('section',{class:'hub-menu-group'},h('div',{class:'hub-menu-heading'},title),...items);
   const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
   panel.append(
@@ -1960,8 +1985,10 @@ function openHubMenu(){
     h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
   );
   overlay=h('div',{class:'hub-menu-overlay',onclick:e=>{if(e.target===overlay)close();}},panel);
-  document.body.append(overlay);document.addEventListener('keydown',onKey);
-  const first=panel.querySelector('a');if(first)first.focus();
+  document.body.append(overlay);
+  document.body.style.overflow='hidden';
+  document.addEventListener('keydown',onKey);
+  const first=panel.querySelector('button,a');if(first)first.focus();
 }
 function homeView() {
   const p = DB.profile, first = p.name.split(' ')[0], hr = new Date().getHours();
@@ -2132,7 +2159,8 @@ function runView() {
   const s = SESS; if (!s || s.res) { go('#/'); return; }
   const practice = s.mode === 'practice', exam = s.mode === 'exam', c = s.mode === 'qualifier' ? { label: 'Qualifications', color: '#0B7A75' } : (courseBy(s.course) || { label: s.course, color: '#0B7A75' });
   const timerEl = h('span', { class: 'timer' }), bar = h('i'), counter = h('span', { class: 'small muted' }), card = h('div'), dock = h('div', { class: 'dock' });
-  const answered = () => s.answers.filter(a => a != null && a !== '').length;
+  if (practice && !Array.isArray(s.submitted)) s.submitted = Array(s.n).fill(false);
+  const answered = () => practice ? s.submitted.filter(Boolean).length : s.answers.filter(a => a != null && a !== '').length;
   const tick = () => {
     const el = Math.floor((Date.now() - s.t0) / 1000);
     if (s.timer.kind === 'down') {
@@ -2150,13 +2178,14 @@ function runView() {
   };
   const pickOpt = k => {
     const i = s.cur;
-    if (practice) { s.answers[i] = k; } else s.answers[i] = s.answers[i] === k ? null : k;
+    if (practice) { s.answers[i] = k; s.submitted[i] = false; }
+    else s.answers[i] = s.answers[i] === k ? null : k;
     render();
   };
   const next = () => { if (s.cur < s.n - 1) { s.cur++; render(); } else finishSession(false); };
 
   function render() {
-    const i = s.cur, q = s.qs[i], a = s.answers[i], done = practice && a != null;
+    const i = s.cur, q = s.qs[i], a = s.answers[i], done = practice && !!s.submitted[i];
     counter.textContent = 'Question ' + (i + 1) + ' of ' + s.n; bar.style.width = Math.round((answered() / s.n) * 100) + '%';
     const kids = [h('div', { class: 'row between wrapr' }, h('span', { class: 'chip brand' }, q.unit),
       practice ? null : h('button', { class: 'btn sm ghost', 'aria-pressed': String(s.flags[i]), onclick: () => { s.flags[i] = !s.flags[i]; render(); } }, s.flags[i] ? '\u2691 Flagged' : '\u2690 Flag'))];
@@ -2164,22 +2193,42 @@ function runView() {
     if (q.flag) kids.push(h('div', { class: 'warnbox' }, 'This question\'s answer key is under review. Treat the answer with care.'));
     if (q.type === 'fill') {
       const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', 'aria-label': 'Your answer' });
-      const check = () => { const v = inp.value.trim(); if (!v) { toast('Type an answer first.'); return; } s.answers[i] = v; render(); };
       if (!practice) inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
-      else inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
-      kids.push(h('div', { class: 'row' }, inp, practice ? h('button', { class: 'btn primary', onclick: check }, 'Check') : null));
-      if (done) { /* feedback below */ }
+      else inp.addEventListener('input', () => {
+        const v = inp.value.trim(), wasSubmitted = !!s.submitted[i];
+        s.answers[i] = v === '' ? null : v;
+        const submitButton = dock.querySelector('.btn.primary');
+        if (submitButton && !wasSubmitted) submitButton.disabled = !v;
+        if (wasSubmitted) {
+          s.submitted[i] = false;
+          const pos = inp.selectionStart;
+          render();
+          const nextInput = card.querySelector('input[aria-label="Your answer"]');
+          if (nextInput) { nextInput.focus(); try { nextInput.setSelectionRange(pos, pos); } catch (_) {} }
+        }
+      });
+      kids.push(h('div', { class: 'row' }, inp));
+      if (done) { /* submitted feedback is rendered below */ }
     } else {
       q.opts.forEach((o, k) => {
         let cls = 'choice'; if (done) { if (k === q.ans) cls += ' right'; else if (k === a) cls += ' wrong'; }
-        kids.push(h('button', { class: cls, 'aria-pressed': String(!practice && a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
+        kids.push(h('button', { class: cls, 'aria-pressed': String(a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
       });
     }
-    if (done) { const ok = Core.isCorrect(q, a); kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' }, h('b', null, ok ? 'Correct. ' : 'Not quite. Answer: '), ok ? '' : fmt(correctText(q), q.subj), q.exp ? h('div', { class: 'small', style: { marginTop: '6px' } }, q.exp) : null)); }
+    if (done) {
+      const ok = Core.isCorrect(q, a);
+      kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' },
+        h('b', null, ok ? 'Correct answer.' : 'Your answer is not correct.'),
+        h('div', { class: 'small', style: { marginTop: '6px' } }, 'Your submitted answer: ', fmt(answerText(q, a), q.subj)),
+        !ok ? h('div', { class: 'small', style: { marginTop: '4px' } }, 'Correct answer: ', fmt(correctText(q), q.subj)) : null,
+        q.exp ? h('div', { class: 'small', style: { marginTop: '8px' } }, h('b', null, 'Explanation: '), q.exp) : h('div', { class: 'small', style: { marginTop: '8px' } }, 'No explanation has been supplied for this question yet.')));
+    }
     card.replaceChildren(h('div', { class: 'qcard' }, kids));
     const last = i === s.n - 1;
     dock.replaceChildren(h('div', { class: 'in' }, practice
-      ? [h('button', { class: 'btn ghost', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Previous'), h('button', { class: 'btn primary', disabled: !done, onclick: next }, last ? 'Finish' : 'Next')]
+      ? [h('button', { class: 'btn ghost', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Previous'),
+         !done ? h('button', { class: 'btn primary', disabled: a == null || a === '', onclick: () => { s.submitted[i] = true; render(); } }, 'Submit Answer')
+           : h('button', { class: 'btn primary', onclick: next }, last ? 'Finish practice' : 'Next question')]
       : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Back'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
   }
   const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your progress in this attempt will be lost.', ok: 'Leave', danger: true })) { stopTimer(); SESS = null; go('#/course/' + s.course); } };
@@ -2197,8 +2246,11 @@ function runView() {
 async function finishSession(auto, early) {
   const s = SESS; if (!s || s.res) return;
   if (!auto) {
-    const un = s.n - s.answers.filter(a => a != null && a !== '').length;
-    if (early && s.answers.every(a => a == null)) { stopTimer(); SESS = null; go('#/course/' + s.course); return; }
+    const completed = s.mode === 'practice'
+      ? s.submitted.filter(Boolean).length
+      : s.answers.filter(a => a != null && a !== '').length;
+    const un = s.n - completed;
+    if (early && completed === 0) { stopTimer(); SESS = null; go('#/course/' + s.course); return; }
     if (s.mode !== 'practice' || early) {
       const ok = await confirmBox({ title: s.mode === 'exam' ? 'Submit examination?' : s.mode === 'quiz' ? 'Submit quiz?' : 'Finish practice?', msg: un ? un + ' question' + (un === 1 ? ' is' : 's are') + ' unanswered and will count as wrong.' : 'You answered every question.', ok: 'Submit' });
       if (!ok) return;
@@ -2206,7 +2258,7 @@ async function finishSession(auto, early) {
   }
   stopTimer();
   if (s.mode === 'practice') {                 // practice only scores what you attempted
-    const keep = s.answers.map(a => a != null && a !== '');
+    const keep = s.answers.map((a, i) => !!s.submitted[i] && a != null && a !== '');
     s.qs = s.qs.filter((_, i) => keep[i]); s.flags = s.flags.filter((_, i) => keep[i]); s.answers = s.answers.filter((_, i) => keep[i]); s.n = s.qs.length;
     if (!s.n) { SESS = null; go('#/course/' + s.course); return; }
   }
