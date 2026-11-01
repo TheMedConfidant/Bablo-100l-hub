@@ -2197,6 +2197,8 @@ function runView() {
       else inp.addEventListener('input', () => {
         const v = inp.value.trim(), wasSubmitted = !!s.submitted[i];
         s.answers[i] = v === '' ? null : v;
+        const submitButton = dock.querySelector('.btn.primary');
+        if (submitButton && !wasSubmitted) submitButton.disabled = !v;
         if (wasSubmitted) {
           s.submitted[i] = false;
           const pos = inp.selectionStart;
@@ -2210,7 +2212,7 @@ function runView() {
     } else {
       q.opts.forEach((o, k) => {
         let cls = 'choice'; if (done) { if (k === q.ans) cls += ' right'; else if (k === a) cls += ' wrong'; }
-        kids.push(h('button', { class: cls, 'aria-pressed': String(!practice && a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
+        kids.push(h('button', { class: cls, 'aria-pressed': String(a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
       });
     }
     if (done) {
