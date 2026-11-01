@@ -61,24 +61,28 @@ function createPanel(){
  const cs=courses();
  const courseLabel=c=>{const found=(window.COURSES||[]).find(x=>x.code===c);return found?found.label:c};
  const courseChecks=cs.map(c=>h('label',{class:'cd-check'},h('input',{type:'checkbox',class:'cd-course-check',value:c}),h('span',null,courseLabel(c))));
- const content=h('div',{id:'challenge-dashboard'},hero(),
-  h('section',{class:'cd-panel'},
-   h('h2',null,'Create a challenge'),
-   h('p',{class:'muted'},'Choose one or more courses. Topics will update automatically.'),
-   h('label',null,'Courses'),
-   h('div',{id:'cd-course-list',class:'cd-checklist'},...courseChecks),
-   h('div',{id:'cd-topic-wrap'},
-    h('label',null,'Topics'),
-    h('div',{id:'cd-topics',class:'cd-checklist'},h('p',{class:'muted'},'Select course(s) to load topics.'))),
-   h('div',{class:'cd-grid'},
-    h('div',null,h('label',null,'Questions'),h('select',{id:'cd-count'},...[5,10,15,20,30,50].map(n=>h('option',{value:n,selected:n===10},n+' questions')))),
-    h('div',null,h('label',null,'Time limit'),h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes']].map(v=>h('option',{value:v[0],selected:v[0]===300},v[1]))))),
-   h('label',null,'Invite a username (optional)'),
-   h('input',{id:'cd-invite',placeholder:'Leave blank to create an open challenge',autocomplete:'off'}),
-   h('p',{class:'tiny muted'},'You can create more than one challenge. Open challenges can be joined by other students.'),
-   h('div',{class:'cd-actions'},h('button',{onclick:create},'Create challenge'),h('button',{class:'secondary',onclick:dashboard},'Cancel')))));
+ const panel=h('section',{class:'cd-panel'});
+ panel.append(
+  h('h2',null,'Create a challenge'),
+  h('p',{class:'muted'},'Choose one or more courses. Topics will update automatically.'),
+  h('label',null,'Courses'),
+  h('div',{id:'cd-course-list',class:'cd-checklist'},...courseChecks)
+ );
+ const topicHost=h('div',{id:'cd-topics',class:'cd-checklist'},h('p',{class:'muted'},'Select course(s) to load topics.'));
+ panel.append(h('label',null,'Topics'),topicHost);
+ const countSelect=h('select',{id:'cd-count'},...[5,10,15,20,30,50].map(n=>h('option',{value:n,selected:n===10},n+' questions')));
+ const durationSelect=h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes']].map(v=>h('option',{value:v[0],selected:v[0]===300},v[1])));
+ panel.append(
+  h('div',{class:'cd-grid'},
+   h('div',null,h('label',null,'Questions'),countSelect),
+   h('div',null,h('label',null,'Time limit'),durationSelect)),
+  h('label',null,'Invite a username (optional)'),
+  h('input',{id:'cd-invite',placeholder:'Leave blank to create an open challenge',autocomplete:'off'}),
+  h('p',{class:'tiny muted'},'You can create more than one challenge. Open challenges can be joined by other students.'),
+  h('div',{class:'cd-actions'},h('button',{onclick:create},'Create challenge'),h('button',{class:'secondary',onclick:dashboard},'Cancel'))
+ );
+ const content=h('div',{id:'challenge-dashboard'},hero(),panel);
  frame(content);
- const topicHost=$('#cd-topics');
  const updateTopics=()=>{
   const selected=[...document.querySelectorAll('.cd-course-check:checked')].map(x=>x.value);
   if(!selected.length){topicHost.replaceChildren(h('p',{class:'muted'},'Select course(s) to load topics.'));return}
