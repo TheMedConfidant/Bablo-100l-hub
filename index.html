@@ -2194,7 +2194,17 @@ function runView() {
     if (q.type === 'fill') {
       const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', 'aria-label': 'Your answer' });
       if (!practice) inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
-      else inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; s.submitted[i] = false; });
+      else inp.addEventListener('input', () => {
+        const v = inp.value.trim(), wasSubmitted = !!s.submitted[i];
+        s.answers[i] = v === '' ? null : v;
+        if (wasSubmitted) {
+          s.submitted[i] = false;
+          const pos = inp.selectionStart;
+          render();
+          const nextInput = card.querySelector('input[aria-label="Your answer"]');
+          if (nextInput) { nextInput.focus(); try { nextInput.setSelectionRange(pos, pos); } catch (_) {} }
+        }
+      });
       kids.push(h('div', { class: 'row' }, inp));
       if (done) { /* submitted feedback is rendered below */ }
     } else {
@@ -2234,8 +2244,11 @@ function runView() {
 async function finishSession(auto, early) {
   const s = SESS; if (!s || s.res) return;
   if (!auto) {
-    const un = s.n - s.answers.filter(a => a != null && a !== '').length;
-    if (early && s.answers.every(a => a == null)) { stopTimer(); SESS = null; go('#/course/' + s.course); return; }
+    const completed = s.mode === 'practice'
+      ? s.submitted.filter(Boolean).length
+      : s.answers.filter(a => a != null && a !== '').length;
+    const un = s.n - completed;
+    if (early && completed === 0) { stopTimer(); SESS = null; go('#/course/' + s.course); return; }
     if (s.mode !== 'practice' || early) {
       const ok = await confirmBox({ title: s.mode === 'exam' ? 'Submit examination?' : s.mode === 'quiz' ? 'Submit quiz?' : 'Finish practice?', msg: un ? un + ' question' + (un === 1 ? ' is' : 's are') + ' unanswered and will count as wrong.' : 'You answered every question.', ok: 'Submit' });
       if (!ok) return;
