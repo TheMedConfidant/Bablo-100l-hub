@@ -446,7 +446,7 @@ async function bootChess(){
       let settled=false;
       const timer=setTimeout(()=>{if(settled)return;settled=true;engineFailed=true;engineBooting=false;setEngineStatus('Engine could not start. The local legal-move bot remains available.');resolve(false)},20000);
       try{
-        engineWorker=new Worker('/chess-artifact/stockfish-worker.js');
+        engineWorker=new Worker(location.pathname.includes('/chess-artifact/')?'/chess-artifact/stockfish-worker.js':'/stockfish-worker.js');
         engineWorker.onmessage=event=>{
           const line=String(event.data||'').trim();
           if(line==='uciok'){engineWorker.postMessage('isready');return}
