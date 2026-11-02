@@ -616,6 +616,61 @@ button,a,input,select,textarea{touch-action:manipulation}
 .hub-menu-group+.hub-menu-group{padding-top:2px;}
 @keyframes hubMenuIn{from{transform:translateX(18px);opacity:.7}to{transform:translateX(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.hub-menu-panel{animation:none;}}
+
+/* BABLO HUB: enforce readable text contrast across every skin and app surface. */
+:root[data-mode="light"],:root[data-theme="light"]{
+  --ink:#111111!important;--ink2:#333333!important;
+  --surface:#FFFFFF!important;--surface2:#F3F4F6!important;
+  --line:#D1D5DB!important;
+}
+:root[data-mode="dark"],:root[data-theme="dark"]{
+  --ink:#FFFFFF!important;--ink2:#E5E7EB!important;
+  --surface:#050505!important;--surface2:#111111!important;
+  --line:#353535!important;
+}
+:root[data-mode="light"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display),
+:root[data-theme="light"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display){
+  color:#111111!important;background-color:#FFFFFF!important;
+}
+:root[data-mode="dark"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display),
+:root[data-theme="dark"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display){
+  color:#FFFFFF!important;background-color:#050505!important;
+}
+:root[data-mode="light"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display) :is(p,span,b,strong,small,label,h1,h2,h3,li,td,th,.muted),
+:root[data-theme="light"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display) :is(p,span,b,strong,small,label,h1,h2,h3,li,td,th,.muted){color:#111111!important}
+:root[data-mode="dark"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display) :is(p,span,b,strong,small,label,h1,h2,h3,li,td,th,.muted),
+:root[data-theme="dark"] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel,.field,.calc-display) :is(p,span,b,strong,small,label,h1,h2,h3,li,td,th,.muted){color:#FFFFFF!important}
+:root[data-mode="light"] :is(input,select,textarea),
+:root[data-theme="light"] :is(input,select,textarea){color:#111!important;background:#fff!important;border-color:#9CA3AF!important}
+:root[data-mode="dark"] :is(input,select,textarea),
+:root[data-theme="dark"] :is(input,select,textarea){color:#fff!important;background:#050505!important;border-color:#555!important}
+:root[data-mode="light"] :is(input,textarea)::placeholder,
+:root[data-theme="light"] :is(input,textarea)::placeholder{color:#4B5563!important;opacity:1!important}
+:root[data-mode="dark"] :is(input,textarea)::placeholder,
+:root[data-theme="dark"] :is(input,textarea)::placeholder{color:#D1D5DB!important;opacity:1!important}
+:root[data-mode="light"] .btn:not(.primary):not(.gold):not(.danger),
+:root[data-theme="light"] .btn:not(.primary):not(.gold):not(.danger){color:#111!important}
+:root[data-mode="dark"] .btn:not(.primary):not(.gold):not(.danger),
+:root[data-theme="dark"] .btn:not(.primary):not(.gold):not(.danger){color:#fff!important}
+:root[data-mode="light"] .btn.gold,:root[data-theme="light"] .btn.gold,
+:root[data-mode="dark"] .btn.gold,:root[data-theme="dark"] .btn.gold{color:#111!important}
+:root[data-mode="light"] .hero:not(.gold-hero),:root[data-theme="light"] .hero:not(.gold-hero){color:#fff!important}
+:root[data-mode="light"] .hero:not(.gold-hero) :is(p,span),:root[data-theme="light"] .hero:not(.gold-hero) :is(p,span){color:#F8FAFC!important}
+
+/* Performance: keep each theme's palette, but avoid costly glass compositing on phones. */
+@media(max-width:700px){
+  :root[data-skin] body::before{display:none!important;animation:none!important;filter:none!important}
+  :root[data-skin] :is(.panel,.tile,.rows,.qcard,.rev,.slip,.modal,.nav,.dock,.hero,.btn,.opt,.clock,.drawer,.side-panel,.menu-panel,.menu-drawer,.hamburger-panel){
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  }
+  :root[data-skin] .panel,:root[data-skin] .tile,:root[data-skin] .rows,:root[data-skin] .qcard,:root[data-skin] .rev,:root[data-skin] .slip{
+    box-shadow:0 3px 12px rgba(0,0,0,.10)!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
 </style>
 <script src="/phy101-data.js"></script>
 </head>
