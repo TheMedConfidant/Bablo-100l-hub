@@ -600,7 +600,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 
 /* Persistent in-app navigation */
 .hub-app-chrome{position:sticky;top:0;z-index:900;display:flex;align-items:center;gap:9px;width:min(100%,780px);margin:0 auto;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line);color:var(--ink)}
-.hub-chrome-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 13px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:700 .88rem/1.2 inherit;text-decoration:none;cursor:pointer}
+.hub-chrome-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:8px 13px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font-weight:700;font-size:.88rem;line-height:1.2;font-family:inherit;text-decoration:none;cursor:pointer}
 .hub-chrome-btn:first-child{margin-right:auto}.hub-chrome-menu{background:var(--gold-soft);border-color:var(--gold)}
 @media(max-width:380px){.hub-app-chrome{padding:7px 9px;gap:6px}.hub-chrome-btn{padding:7px 10px;font-size:.82rem}}
 /* Bablo Hub navigation drawer */
@@ -2085,7 +2085,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Open navigation menu', 'aria-haspopup': 'dialog', onclick: openHubMenu }, '☰'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, null)),
     h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
