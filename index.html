@@ -2141,7 +2141,7 @@ function openSessionCalculator(){
   h('div',{class:'row between'},h('b',{class:'tiny'},'Memory'),h('span',{class:'tiny muted'},'MC clears · MR recalls · M+/M− adjust')),pad,
   h('section',{class:'panel stack',style:{gap:'6px'}},h('b',{class:'tiny'},'Recent calculations'),historyBox),
   h('button',{class:'btn primary block',onclick:()=>close()},'Back to question')),true);
- function update(commit=false){try{const n=calcEvaluate(input.value);lastValue=n;CALC_ANS=n;
+ function update(commit=false){try{const n=calcEvaluate(input.value);lastValue=n;if(commit)CALC_ANS=n;
   display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',{style:{fontSize:'clamp(1.7rem,7vw,2.3rem)',fontVariantNumeric:'tabular-nums',overflowWrap:'anywhere'}},String(Number(n.toPrecision(12)))));
   status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result · M = '+String(Number(memory.toPrecision(8)));
   if(commit&&input.value.trim()){history.unshift({expr:input.value,value:n});history.splice(5);renderHistory();}
