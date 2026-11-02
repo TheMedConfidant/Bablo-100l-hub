@@ -8,10 +8,13 @@ function questions(){return (window.__BANK__||[]).filter(q=>q&&q.q&&Array.isArra
 function inviteCodeFromHash(){
   const hash=String(location.hash||'');
   const query=hash.includes('?')?hash.slice(hash.indexOf('?')+1):'';
-  return new URLSearchParams(query).get('join')||'';
+  const params=new URLSearchParams(query);
+  const path=hash.replace(/^#\/?/,'').split('?')[0].split('/');
+  const pathCode=path[0]==='challenge'&&path[1]==='join'?path[2]||'':'';
+  try{return params.get('join')||decodeURIComponent(pathCode)||'';}catch(e){return params.get('join')||pathCode||'';}
 }
 function inviteUrl(code){
-  return location.origin+location.pathname+location.search+'#/challenge?join='+encodeURIComponent(String(code||'').trim());
+  return location.origin+location.pathname+location.search+'#/challenge/join/'+encodeURIComponent(String(code||'').trim());
 }
 async function copyChallengeLink(code){
   if(!code){toast('This challenge has no invite code yet.');return;}
