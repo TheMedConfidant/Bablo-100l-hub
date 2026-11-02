@@ -1,7 +1,7 @@
 (function(){
 const $=s=>document.querySelector(s), E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let CA={match:null,qs:[],idx:0,done:false,end:0,timer:null,tab:'overview',inbox:[],opted:false,ready:false,finishing:false,joiningCode:null};
-function frame(node){style();polishStyle();mount(wrap(node));}
+function frame(node){style();polishStyle();const arena=!!(node&&node.id==='challenge-dashboard');if(arena){CA.screen='arena';CA.childHistory=false;}else{CA.screen='child';if(!CA.childHistory){history.pushState({babloChallengeChild:true},'',location.href);CA.childHistory=true;}}const nav=arena?null:h('div',{class:'cd-app-nav'},h('button',{class:'secondary',onclick:()=>{CA.childHistory=false;dashboard();}},'‹ Back to Arena'),h('button',{class:'secondary',onclick:()=>{location.hash='#/';}},'⌂ Home'));mount(wrap(nav,node));}
 async function call(fn,args={}){if(!DB||!DB.account||!DB.account.token)throw Error('Log in to use Challenge Arena.');return await hubCall(fn,{p_token:DB.account.token,...args});}
 function courses(){return [...new Set((window.__BANK__||[]).map(q=>String(q.c||'').trim()).filter(Boolean))].sort();}
 function questions(){return (window.__BANK__||[]).filter(q=>q&&q.q&&Array.isArray(q.o)&&q.o.length>1&&q.a!==undefined);}
@@ -54,7 +54,7 @@ function polishStyle(){if(document.getElementById('cd-polish-style'))return;cons
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
 function stat(n,t){return h('div',{class:'cd-stat'},h('b',null,n),h('span',{class:'muted'},t))}
 function dashboard(){
- CA.tab='overview';
+ CA.screen='arena';CA.childHistory=false;CA.tab='overview';
  const modes=[['⚡','First to Answer','Fastest correct answer takes the point.','quick_duel'],['⏱','Timed Test','Race the clock across a shared question set.','course_clash'],['🛡','Survival','Keep answering correctly to stay in.','survival'],['🏁','Points Race','Build the highest score before time runs out.','marathon'],['🧠','Topic Master','Own one topic from start to finish.','topic_battle'],['🌐','Mixed Challenge','Combine courses in one battle.','multi_course']];
  const cards=modes.map(([ic,title,desc,mode])=>h('button',{class:'cd-modecard',onclick:()=>createPanel(mode)},ic,title,desc));
  const nav=['Overview','Discover','My Challenges','Friends','Champions League'].map((t,i)=>h('button',{class:i===0?'active':'',onclick:()=>tab(t)},t));
@@ -225,4 +225,5 @@ function showReview(x){
   frame(h('div',null,hero(),panel));
 }
 window.challengeDashboardView=function(){try{clearInterval(CA.timer);dashboard();const code=inviteCodeFromHash();if(code)joinSharedChallenge(code)}catch(e){console.error('[Challenge Arena render]',e);try{mount(wrap(h('main',{id:'challenge-dashboard',class:'panel stack'},h('h2',null,'Challenge Arena could not load'),h('p',{class:'muted'},String(e&&e.message||e)),h('button',{onclick:()=>location.hash='#/'},'Back home'))))}catch(renderError){console.error('[Challenge Arena fallback]',renderError)}}};
+window.addEventListener('popstate',()=>{if(CA.screen==='child'){CA.childHistory=false;dashboard();}});
 })();
