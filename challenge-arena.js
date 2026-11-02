@@ -1,10 +1,50 @@
 (function(){
 const $=s=>document.querySelector(s), E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let CA={match:null,qs:[],idx:0,done:false,end:0,timer:null,tab:'overview',inbox:[],opted:false,ready:false,finishing:false};
+let CA={match:null,qs:[],idx:0,done:false,end:0,timer:null,tab:'overview',inbox:[],opted:false,ready:false,finishing:false,joiningCode:null};
 function frame(node){style();mount(wrap(node));}
 async function call(fn,args={}){if(!DB||!DB.account||!DB.account.token)throw Error('Log in to use Challenge Arena.');return await hubCall(fn,{p_token:DB.account.token,...args});}
 function courses(){return [...new Set((window.__BANK__||[]).map(q=>String(q.c||'').trim()).filter(Boolean))].sort();}
 function questions(){return (window.__BANK__||[]).filter(q=>q&&q.q&&Array.isArray(q.o)&&q.o.length>1&&q.a!==undefined);}
+function inviteCodeFromHash(){
+  const hash=String(location.hash||'');
+  const query=hash.includes('?')?hash.slice(hash.indexOf('?')+1):'';
+  return new URLSearchParams(query).get('join')||'';
+}
+function inviteUrl(code){
+  return location.origin+location.pathname+location.search+'#/challenge?join='+encodeURIComponent(String(code||'').trim());
+}
+async function copyChallengeLink(code){
+  if(!code){toast('This challenge has no invite code yet.');return;}
+  const url=inviteUrl(code);
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(url);toast('Challenge link copied. Share it with your opponent.');}
+    else window.prompt('Copy this challenge link:',url);
+  }catch(e){window.prompt('Copy this challenge link:',url);}
+}
+async function shareChallenge(code){
+  if(!code){toast('This challenge has no invite code yet.');return;}
+  const url=inviteUrl(code);
+  if(navigator.share){
+    try{await navigator.share({title:'Bablo Hub Challenge',text:'Join my Bablo Hub challenge!',url});return;}
+    catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  await copyChallengeLink(code);
+}
+async function joinSharedChallenge(code){
+  if(!code||CA.joiningCode===code)return;
+  CA.joiningCode=code;
+  try{
+    const result=await call('hub_challenge_join_code',{p_code:code});
+    const id=result.id||result.match_id;
+    if(!id)throw Error('The invite link did not return a valid challenge. Ask the creator for a fresh link.');
+    history.replaceState(null,'',location.pathname+location.search+'#/challenge');
+    await open(id);
+    toast('Challenge opened. Get ready to play.');
+  }catch(e){
+    CA.joiningCode=null;
+    toast(e&&e.message?e.message:'Could not join this challenge. Check the invite link and try again.');
+  }
+}
 
 function style(){if($('#cd-style'))return;let s=document.createElement('style');s.id='cd-style';s.textContent='#challenge-dashboard{width:100%;max-width:1120px;margin:0 auto;padding:18px 0 70px;color:var(--ink)}#challenge-dashboard *{box-sizing:border-box}#challenge-dashboard .cd-hero{min-height:220px;border-radius:24px;padding:28px;background:linear-gradient(125deg,#101c2d,#273c51);color:#fff;display:flex;flex-direction:column;justify-content:center}#challenge-dashboard .cd-hero p{color:#d4deea;max-width:560px}#challenge-dashboard .cd-kicker{font-size:.7rem;letter-spacing:.15em;color:#e7c66e;font-weight:900}#challenge-dashboard .cd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}#challenge-dashboard .cd-stat,#challenge-dashboard .cd-panel{background:var(--surface,#fff);border:1px solid var(--line,#ddd);border-radius:16px;padding:16px}#challenge-dashboard .cd-stat b{display:block;font-size:1.5rem;color:#c39b43}#challenge-dashboard .cd-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}#challenge-dashboard button{border:0;border-radius:12px;padding:12px;background:linear-gradient(135deg,#e4c36e,#c59d45);color:#17202b;font-weight:800;cursor:pointer}#challenge-dashboard button.secondary{background:var(--surface,#fff);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard .cd-modegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}#challenge-dashboard .cd-modecard{min-height:130px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;background:var(--surface);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard .cd-tabs{display:flex;gap:7px;overflow:auto;margin:16px 0}#challenge-dashboard .cd-tabs button{white-space:nowrap;background:var(--surface);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard .cd-grid{display:grid;grid-template-columns:1.4fr .8fr;gap:12px}#challenge-dashboard .cd-row{display:flex;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px}#challenge-dashboard label{display:block;font-weight:700;margin:12px 0 6px}#challenge-dashboard input,#challenge-dashboard select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}#challenge-dashboard .cd-choice{display:block;width:100%;text-align:left;margin:8px 0;background:var(--surface);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard button:disabled{opacity:.5;cursor:not-allowed}#challenge-dashboard .cd-hero h1,#challenge-dashboard .cd-hero p{color:#fff!important}#challenge-dashboard .cd-panel,#challenge-dashboard .cd-stat{color:var(--ink,#111)}#challenge-dashboard .cd-panel .muted,#challenge-dashboard .cd-stat .muted{color:var(--ink,#111);opacity:.78}#challenge-dashboard input,#challenge-dashboard select{color:var(--ink,#111)}#challenge-dashboard .cd-tabs button.active{background:#c59d45;color:#111;border-color:#c59d45}@media(max-width:700px){#challenge-dashboard .cd-stats{grid-template-columns:repeat(2,1fr)}#challenge-dashboard .cd-actions{grid-template-columns:1fr 1fr}#challenge-dashboard .cd-modegrid{grid-template-columns:repeat(2,1fr)}#challenge-dashboard .cd-grid{grid-template-columns:1fr}}@media(max-width:420px){#challenge-dashboard .cd-modegrid{grid-template-columns:1fr}}';document.head.append(s);}
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
@@ -117,7 +157,7 @@ function joinPrompt(){let code=prompt('Enter challenge room code');if(!code)retu
 async function quick(){createPanel('quick_duel')}
 async function accept(id){try{await call('hub_challenge_accept',{p_match_id:id});open(id)}catch(e){toast(e.message)}}
 async function open(id){try{clearInterval(CA.timer);CA.match=id;let x=await call('hub_challenge_get_questions',{p_match_id:id});CA.qs=x.questions||[];CA.idx=0;room(id,x.invite_code,x);if(x.status==='active')startMatch(x);else watchLobby()}catch(e){toast(e.message)}}
-function room(id,code,x={}){let status=x.status||'waiting';frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Challenge lobby'),h('p',null,'Room code: '+(code||'Open inbox for code')),h('p',{class:'muted'},(x.question_count||CA.qs.length)+' questions · '+Math.round((x.duration_seconds||300)/60)+' minutes'),h('p',{id:'cd-lobby-status'},status==='ready'?'Opponent joined. Both players must press Ready.':status==='active'?'Starting match…':'Waiting for an opponent to join.'),h('p',null,'Share this code with your opponent.'),h('button',{id:'cd-ready',onclick:ready,disabled:status!=='ready'&&status!=='active'},status==='active'?'Starting…':status==='waiting'?'Waiting for opponent…':'I’m ready'),h('button',{class:'secondary',onclick:dashboard},'Back to Arena'))))}
+function room(id,code,x={}){let status=x.status||'waiting';frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Challenge lobby'),h('p',null,'Room code: '+(code||'Open inbox for code')),h('p',{class:'muted'},(x.question_count||CA.qs.length)+' questions · '+Math.round((x.duration_seconds||300)/60)+' minutes'),h('p',{id:'cd-lobby-status'},status==='ready'?'Opponent joined. Both players must press Ready.':status==='active'?'Starting match…':'Waiting for an opponent to join.'),h('p',null,'Share this challenge with your opponent.'),code?h('p',{class:'muted'},inviteUrl(code)):null,code?h('div',{class:'cd-quick'},h('button',{onclick:()=>shareChallenge(code)},'↗ Share challenge'),h('button',{class:'secondary',onclick:()=>copyChallengeLink(code)},'Copy invite link')):null,h('button',{id:'cd-ready',onclick:ready,disabled:status!=='ready'&&status!=='active'},status==='active'?'Starting…':status==='waiting'?'Waiting for opponent…':'I’m ready'),h('button',{class:'secondary',onclick:dashboard},'Back to Arena'))))}
 async function ready(){try{let b=$('#cd-ready');if(b)b.disabled=true;let x=await call('hub_challenge_ready',{p_match_id:CA.match});CA.ready=true;if(x.status==='active'){let detail=await call('hub_challenge_get_questions',{p_match_id:CA.match});startMatch(detail)}else{let s=$('#cd-lobby-status');if(s)s.textContent='You’re ready. Waiting for your opponent to get ready…';if(b)b.textContent='Ready ✓';watchLobby()}}catch(e){let b=$('#cd-ready');if(b)b.disabled=false;toast(e.message)}}
 function watchLobby(){clearInterval(CA.timer);CA.timer=setInterval(async()=>{try{let x=await call('hub_challenge_get_questions',{p_match_id:CA.match});if(x.status==='active'){clearInterval(CA.timer);CA.qs=x.questions||CA.qs;startMatch(x);return}let s=$('#cd-lobby-status'),b=$('#cd-ready');if(s)s.textContent=x.status==='ready'?(CA.ready?'You’re ready. Waiting for your opponent…':'Opponent joined. Both players must press Ready.'):'Waiting for an opponent to join.';if(b&&x.status==='ready'&&!CA.ready){b.disabled=false;b.textContent='I’m ready'}}catch(e){let s=$('#cd-lobby-status');if(s)s.textContent=e.message}},2000)}
 function startMatch(x){clearInterval(CA.timer);CA.qs=x.questions||CA.qs;CA.idx=0;let start=Date.parse(x.starts_at||new Date().toISOString());let duration=Number(x.duration_seconds)||300;CA.startAt=start;CA.end=start+duration*1000;let wait=Math.max(0,start-Date.now());if(wait){frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Match starting'),h('p',{class:'muted'},'Both players are ready. Your shared timer begins in a moment.'),h('strong',{id:'cd-start-count'},Math.ceil(wait/1000)+' seconds'))));CA.timer=setInterval(()=>{let left=Math.max(0,CA.startAt-Date.now()),el=$('#cd-start-count');if(el)el.textContent=Math.ceil(left/1000)+' seconds';if(!left){clearInterval(CA.timer);play()}},200)}else play()}
@@ -180,5 +220,5 @@ function showReview(x){
   panel.append(h('button',{onclick:dashboard},'Return to Arena'));
   frame(h('div',null,hero(),panel));
 }
-window.challengeDashboardView=function(){try{clearInterval(CA.timer);dashboard()}catch(e){console.error('[Challenge Arena render]',e);try{mount(wrap(h('main',{id:'challenge-dashboard',class:'panel stack'},h('h2',null,'Challenge Arena could not load'),h('p',{class:'muted'},String(e&&e.message||e)),h('button',{onclick:()=>location.hash='#/'},'Back home'))))}catch(renderError){console.error('[Challenge Arena fallback]',renderError)}}};
+window.challengeDashboardView=function(){try{clearInterval(CA.timer);dashboard();const code=inviteCodeFromHash();if(code)joinSharedChallenge(code)}catch(e){console.error('[Challenge Arena render]',e);try{mount(wrap(h('main',{id:'challenge-dashboard',class:'panel stack'},h('h2',null,'Challenge Arena could not load'),h('p',{class:'muted'},String(e&&e.message||e)),h('button',{onclick:()=>location.hash='#/'},'Back home'))))}catch(renderError){console.error('[Challenge Arena fallback]',renderError)}}};
 })();
