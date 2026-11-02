@@ -1845,7 +1845,35 @@ function renderNav(active) {
 }
 
 let CALC_ANS=0,CALC_DEG=true;
-function calcEvaluate(raw){let src=String(raw||'').replace(/[×·]/g,'*').replace(/[÷]/g,'/').replace(/[−–]/g,'-').replace(/π/g,'pi');src=src.replace(/\bANS\b/gi,'('+CALC_ANS+')').replace(/(^|[^a-zA-Z])pi\b/gi,'$1('+Math.PI+')').replace(/π/g,'('+Math.PI+')').replace(/(^|[^a-zA-Z])e\b/g,'$1('+Math.E+')');const t=src.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-zA-Z]+|[%()+\-*/^]/g);if(!t||t.join('')!==src.replace(/\s+/g,''))throw Error();let i=0,P=()=>t[i],T=()=>t[i++],N=x=>x&&/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(x),A=x=>N(x)||x==='('||/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x);function atom(){let x=T(),v;if(x===undefined)throw Error();if(x==='+'||x==='-'){v=atom();return x==='-'?-v:v;}if(x==='('){v=E();if(T()!==')')throw Error();}else if(N(x))v=+x;else if(/^(sin|cos|tan|ln|log|sqrt|abs|exp)$/i.test(x)){let f=x.toLowerCase(),a;if(P()==='('){T();a=E();if(T()!==')')throw Error();}else a=atom();if(['sin','cos','tan'].includes(f))v=Math[f](CALC_DEG?a*Math.PI/180:a);else if(f==='ln')v=Math.log(a);else if(f==='log')v=Math.log10(a);else if(f==='sqrt')v=Math.sqrt(a);else if(f==='abs')v=Math.abs(a);else v=Math.exp(a);}else throw Error();while(P()==='%'){T();v/=100;}return v;}function pow(){let a=atom();if(P()==='^'){T();a=Math.pow(a,unary());}return a;}function unary(){if(P()==='+'){T();return unary();}if(P()==='-'){T();return -unary();}return pow();}function term(){let a=unary();while(P()==='*'||P()==='/'||A(P())){if(P()==='*'){T();a*=unary();}else if(P()==='/'){T();a/=unary();}else a*=unary();}return a;}function E(){let a=term();while(P()==='+'||P()==='-'){let op=T(),b=term();a=op==='+'?a+b:a-b;}return a;}let v=E();if(i!==t.length||!Number.isFinite(v))throw Error();return v;}
+function calcEvaluate(raw){
+ let src=String(raw||'').replace(/[×·]/g,'*').replace(/[÷]/g,'/').replace(/[−–]/g,'-').replace(/π/g,'pi').replace(/√/g,'sqrt').replace(/∛/g,'cbrt');
+ src=src.replace(/\bANS\b/gi,'('+CALC_ANS+')');
+ const tokens=src.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|[a-zA-Z][a-zA-Z0-9]*|[!%()+\-*/^]/g);
+ if(!tokens||tokens.join('')!==src.replace(/\s+/g,''))throw Error('Invalid expression');
+ let i=0;const peek=()=>tokens[i],take=()=>tokens[i++];
+ const isNum=x=>x!==undefined&&/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(x);
+ const funcs=/^(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|log2|sqrt|cbrt|abs|exp|floor|ceil|round)$/i;
+ const startsAtom=x=>isNum(x)||x==='('||funcs.test(x||'')||/^(pi|e)$/i.test(x||'');
+ function fact(n){if(n<0||n>170||!Number.isInteger(n))throw Error('Factorial requires a whole number from 0 to 170');let z=1;for(let k=2;k<=n;k++)z*=k;return z;}
+ function expression(){let v=term();while(peek()==='+'||peek()==='-'){const op=take(),b=term();v=op==='+'?v+b:v-b;}return v;}
+ function atom(){const x=take();if(x===undefined)throw Error('Incomplete expression');let v;
+  if(x==='('){v=expression();if(take()!==')')throw Error('Missing closing bracket');}
+  else if(isNum(x))v=Number(x);else if(x.toLowerCase()==='pi')v=Math.PI;else if(x.toLowerCase()==='e')v=Math.E;
+  else if(funcs.test(x)){const f=x.toLowerCase();let a;if(peek()==='('){take();a=expression();if(take()!==')')throw Error('Missing function bracket');}else a=atom();
+   if(f==='sin'||f==='cos'||f==='tan'){const z=CALC_DEG?a*Math.PI/180:a;v=Math[f](z);}
+   else if(f==='asin'||f==='acos'||f==='atan'){const z=Math[f](a);v=CALC_DEG?z*180/Math.PI:z;}
+   else if(f==='sinh'||f==='cosh'||f==='tanh')v=Math[f](a);
+   else if(f==='ln')v=Math.log(a);else if(f==='log')v=Math.log10(a);else if(f==='log2')v=Math.log2(a);
+   else if(f==='sqrt')v=Math.sqrt(a);else if(f==='cbrt')v=Math.cbrt(a);else if(f==='abs')v=Math.abs(a);else if(f==='exp')v=Math.exp(a);
+   else if(f==='floor')v=Math.floor(a);else if(f==='ceil')v=Math.ceil(a);else v=Math.round(a);
+  }else throw Error('Unknown value');
+  while(peek()==='%'||peek()==='!'){const op=take();v=op==='%'?v/100:fact(v);}return v;
+ }
+ function power(){let v=atom();if(peek()==='^'){take();v=Math.pow(v,unary());}return v;}
+ function unary(){if(peek()==='+'){take();return unary();}if(peek()==='-'){take();return -unary();}return power();}
+ function term(){let v=unary();while(peek()==='*'||peek()==='/'||startsAtom(peek())){if(peek()==='*'){take();v*=unary();}else if(peek()==='/'){take();v/=unary();}else v*=unary();}return v;}
+ const result=expression();if(i!==tokens.length||!Number.isFinite(result))throw Error('Result is undefined');return result;
+}
 function scientificCalculatorView(){
   const root=document.createElement('main');root.className='wrap calc-page';
   root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div><p class="tiny muted">Use × or * for multiplication. Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press Enter or = to evaluate.</p></section></div>';
@@ -2098,35 +2126,38 @@ const band = pct => pct >= 70 ? 'high' : pct >= 50 ? 'mid' : 'low';
 const verseBand = pct => pct >= 70 ? 'high' : pct >= 60 ? 'good' : pct >= 50 ? 'mid' : 'low';
 
 /* In-session scientific calculator: stays inside the active question flow. */
-function openSessionCalculator() {
-  const input = h('input', { type: 'text', inputmode: 'none', readOnly: true, 'aria-readonly': 'true', placeholder: 'Use the keypad below', style: { width: '100%', fontSize: '1.1rem' }, 'aria-label': 'Calculator expression' });
-  const result = h('div', { class: 'panel stack', style: { gap: '4px', overflowWrap: 'anywhere' } }, h('span', { class: 'tiny muted' }, 'Result'), h('strong', null, 'Enter an expression'));
-  const pad = h('div', { class: 'grid', style: { gridTemplateColumns: 'repeat(5,minmax(0,1fr))', gap: '7px' } });
-  const close = modal(h('div', { class: 'stack' },
-    h('div', { class: 'row between' }, h('h2', null, 'Scientific calculator'), h('span', { class: 'chip brand' }, 'Quiz tool')),
-    h('p', { class: 'muted small' }, 'Calculate without leaving your practice or quiz. Your current question and timer stay in place.'),
-    input, result,
-    h('div', { class: 'row wrapr' },
-      h('button', { class: 'btn ghost', onclick: e => { CALC_DEG = !CALC_DEG; e.currentTarget.textContent = CALC_DEG ? 'Angle: Degrees' : 'Angle: Radians'; update(); } }, CALC_DEG ? 'Angle: Degrees' : 'Angle: Radians'),
-      h('button', { class: 'btn danger', onclick: () => { input.value = ''; update(); input.focus(); } }, 'Clear'),
-      h('button', { class: 'btn ghost', onclick: () => { input.value = input.value.slice(0, -1); update(); input.focus(); } }, '⌫')),
-    pad,
-    h('button', { class: 'btn primary block', onclick: () => close() }, 'Back to question')), true);
-  function update() {
-    try {
-      const n = calcEvaluate(input.value);
-      CALC_ANS = n;
-      result.replaceChildren(h('span', { class: 'tiny muted' }, 'Result'), h('strong', { style: { fontSize: '1.45rem', overflowWrap: 'anywhere' } }, String(Number(n.toPrecision(12)))));
-    } catch (_) {
-      result.replaceChildren(h('span', { class: 'tiny muted' }, 'Result'), h('strong', null, input.value.trim() ? 'Check expression' : 'Enter an expression'));
-    }
-  }
-  ['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','(',')','sin(','cos(','tan(','ln(','log(','sqrt(','^','%','π','ANS','+','-','*','/','AC','='].forEach(k => pad.append(h('button', { class: 'btn', onclick: () => { if(k==='AC'){input.value='';update();return;} if(k==='='){update();return;} input.value += k; update(); } }, k)));
-  input.addEventListener('input', update);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); update(); } });
-  // Keypad-only on mobile: never summon the device keyboard.
+function openSessionCalculator(){
+ const input=h('input',{type:'text',inputmode:'none',readOnly:true,'aria-readonly':'true',placeholder:'Use the scientific keypad',style:{width:'100%',fontSize:'1.15rem',fontVariantNumeric:'tabular-nums'},'aria-label':'Calculator expression'});
+ const display=h('div',{class:'panel stack',style:{gap:'4px',background:'var(--surface2)',overflowWrap:'anywhere'}},h('span',{class:'tiny muted'},'RESULT'),h('strong',{style:{fontSize:'clamp(1.7rem,7vw,2.3rem)',fontVariantNumeric:'tabular-nums'}},'0'));
+ const historyBox=h('div',{class:'tiny muted',style:{display:'grid',gap:'5px'}});
+ const pad=h('div',{class:'calc-keypad'});const history=[];let memory=0,lastValue=0;
+ const angle=h('button',{class:'btn sm ghost',onclick:e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';update();}},CALC_DEG?'DEG':'RAD');
+ const status=h('span',{class:'tiny muted'},'ANS = previous result · M = 0');
+ const close=modal(h('div',{class:'stack',style:{gap:'12px'}},
+  h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('h2',null,'Scientific calculator'),h('span',{class:'tiny muted'},'Practice & quiz tool')),h('span',{class:'chip brand'},'Bablo Calc')),
+  h('p',{class:'tiny muted'},'Full scientific keypad, memory, calculation history and degree/radian mode. Your question and timer remain active.'),
+  h('section',{class:'calc-display'},h('label',{class:'tiny muted'},'EXPRESSION'),input,display,status),
+  h('div',{class:'row wrapr'},angle,h('button',{class:'btn sm ghost',onclick:()=>{input.value='';update();}},'AC'),h('button',{class:'btn sm ghost',onclick:()=>{input.value=input.value.slice(0,-1);update();}},'DEL'),h('button',{class:'btn sm ghost',onclick:async()=>{try{await navigator.clipboard.writeText(String(lastValue));toast('Result copied.');}catch(_){toast('Copy is not available on this device.');}}},'Copy result')),
+  h('div',{class:'row between'},h('b',{class:'tiny'},'Memory'),h('span',{class:'tiny muted'},'MC clears · MR recalls · M+/M− adjust')),pad,
+  h('section',{class:'panel stack',style:{gap:'6px'}},h('b',{class:'tiny'},'Recent calculations'),historyBox),
+  h('button',{class:'btn primary block',onclick:()=>close()},'Back to question')),true);
+ function update(commit=false){try{const n=calcEvaluate(input.value);lastValue=n;CALC_ANS=n;
+  display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',{style:{fontSize:'clamp(1.7rem,7vw,2.3rem)',fontVariantNumeric:'tabular-nums',overflowWrap:'anywhere'}},String(Number(n.toPrecision(12)))));
+  status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result · M = '+String(Number(memory.toPrecision(8)));
+  if(commit&&input.value.trim()){history.unshift({expr:input.value,value:n});history.splice(5);renderHistory();}
+ }catch(e){display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',null,input.value.trim()?(e.message||'Check expression'):'0'));status.textContent=(CALC_DEG?'DEG':'RAD')+' · Check brackets, function names or the operation domain';}}
+ function renderHistory(){historyBox.replaceChildren(...(history.length?history.map(item=>h('button',{class:'btn sm ghost',style:{justifyContent:'space-between',width:'100%',fontWeight:'500'},onclick:()=>{input.value=item.expr;update();}},h('span',null,item.expr),h('b',null,String(Number(item.value.toPrecision(10)))))):[h('span',null,'Your recent calculations will appear here.')]));}
+ const keys=[['MC','util'],['MR','util'],['M+','util'],['M−','util'],['⌫','util'],['sin(','fn'],['cos(','fn'],['tan(','fn'],['asin(','fn'],['acos(','fn'],['atan(','fn'],['sinh(','fn'],['cosh(','fn'],['tanh(','fn'],['ln(','fn'],['log(','fn'],['log2(','fn'],['√(','fn'],['∛(','fn'],['x²','fn'],['xʸ','fn'],['1/x','fn'],['!','fn'],['%','fn'],['π','fn'],['e','fn'],['(','fn'],[')','fn'],['ANS','fn'],['AC','util'],['7','num'],['8','num'],['9','num'],['÷','op'],['×','op'],['4','num'],['5','num'],['6','num'],['−','op'],['+','op'],['1','num'],['2','num'],['3','num'],['00','num'],['±','util'],['0','num'],['.','num'],['MS','util'],['=','equals']];
+ keys.forEach(([label,type])=>{pad.append(h('button',{class:'calc-key '+type,type:'button','aria-label':label==='⌫'?'Delete last character':label,onclick:()=>{
+  if(label==='AC'){input.value='';update();return;}if(label==='⌫'){input.value=input.value.slice(0,-1);update();return;}
+  if(label==='MC'){memory=0;update();return;}if(label==='MR'){input.value+=String(Number(memory.toPrecision(12)));update();return;}
+  if(label==='M+'){memory+=lastValue;update();return;}if(label==='M−'){memory-=lastValue;update();return;}if(label==='MS'){memory=lastValue;update();return;}
+  if(label==='='){update(true);return;}if(label==='±'){input.value=input.value?'-('+input.value+')':'-';update();return;}
+  const insert=label==='√('? 'sqrt(':label==='∛('? 'cbrt(':label==='x²'?'^2':label==='xʸ'?'^':label==='1/x'?'^(-1)':label==='×'?'*':label==='÷'?'/':label==='−'?'-':label;
+  input.value+=insert;update();
+ }},label));});
+ input.addEventListener('input',()=>update());renderHistory();update();
 }
-
 /* ---------- run (practice / quiz / exam) ---------- */
 function runView() {
   const s = SESS; if (!s || s.res) { go('#/'); return; }
