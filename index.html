@@ -1945,13 +1945,14 @@ function scientificCalculatorView(){
   root.querySelector('#calcBack').onclick=()=>{const a=input.selectionStart??input.value.length,z=input.selectionEnd??a;if(a!==z)input.value=input.value.slice(0,a)+input.value.slice(z);else if(a>0)input.value=input.value.slice(0,a-1)+input.value.slice(z);input.focus();show();};
 }
 
+let BABLO_NAV_STACK=[location.hash||'#/'];let BABLO_LAST_HASH=location.hash||'#/';
 function renderAppChrome(routeKey){
   const app=document.getElementById('app');if(!app||!DB.profile)return;
   const old=document.getElementById('hub-app-chrome');if(old)old.remove();
   const bar=document.createElement('div');bar.id='hub-app-chrome';bar.className='hub-app-chrome';
   const isChallenge=routeKey==='challenge';
   bar.append(
-    h('button',{type:'button',class:'hub-chrome-btn',onclick:()=>{if(isChallenge){location.hash='#/challenge';return;}if(history.state&&history.state.babloRoute){history.back();return;}location.hash='#/';}},'‹ <span>Back</span>'),
+    h('button',{type:'button',class:'hub-chrome-btn',onclick:()=>{if(BABLO_NAV_STACK.length>1){const target=BABLO_NAV_STACK[BABLO_NAV_STACK.length-2];BABLO_NAV_STACK.pop();BABLO_LAST_HASH=target;location.hash=target;}else{location.hash='#/';}}},'‹ <span>Back</span>'),
     h('a',{class:'hub-chrome-btn',href:'#/'},'⌂ <span>Home</span>'),
     h('button',{type:'button',class:'hub-chrome-btn hub-chrome-menu',onclick:openHubMenu,'aria-label':'Open Bablo Hub menu'},'☰ <span>Menu</span>')
   );app.prepend(bar);
@@ -4239,7 +4240,7 @@ function renderSavedChessFriends() {
 /* ---------- boot ---------- */
 applyTheme();
 loadHidden();
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange',()=>{const now=location.hash||'#/';if(now!==BABLO_LAST_HASH){const prior=BABLO_NAV_STACK.lastIndexOf(now);if(prior>=0)BABLO_NAV_STACK=BABLO_NAV_STACK.slice(0,prior+1);else BABLO_NAV_STACK.push(now);BABLO_LAST_HASH=now;}route();});
 route();
 
 /* Validate the persisted account token on startup. Local storage can outlive
