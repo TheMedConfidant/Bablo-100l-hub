@@ -1895,7 +1895,7 @@ function scientificCalculatorView(){
   function append(value,forceMultiply=false){
     const current=input.value,prev=current.slice(-1),endsAtom=/[\d.)πe]$/.test(prev)||current.endsWith('ANS');
     const numericKey=/^[0-9.]+$/.test(value);
-    const shouldMultiply=endsAtom&&!/[+\-*/^(]$/.test(current)&&(forceMultiply||!numericKey||prev===')'||prev==='π'||prev==='e'||current.endsWith('ANS'));
+    const startsAtom=/^(?:[0-9.]|ANS|pi|e|sqrt\(|cbrt\(|sin\(|cos\(|tan\(|asin\(|acos\(|atan\(|sinh\(|cosh\(|tanh\(|ln\(|log\(|log2\(|abs\(|\()/.test(value);\n    const shouldMultiply=endsAtom&&startsAtom&&!/[+\-*/^(]$/.test(current)&&(forceMultiply||!numericKey||prev===')'||prev==='π'||prev==='e'||current.endsWith('ANS'));
     input.value=current+(shouldMultiply?'*':'')+value;show();
   }
   const keys=[
