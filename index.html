@@ -1941,7 +1941,7 @@ function route() {
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
+  const tab = { plan: 'plan', time: 'plan', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'challenge' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
@@ -2030,7 +2030,7 @@ function homeView() {
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
  const cards=[
   dashboardCard('Courses','Course catalogue, notes, flashcards & QBank','📚','#/courses','#D6A82B'),
-  dashboardCard('Practicals','Laboratory guides and procedures','🧪','#/practicals','#53B6A5'),
+  dashboardCard('Practicals','Laboratory guides and procedures','🧪','#/practicals/PHY','#53B6A5'),
   dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
   dashboardCard('Leaderboard','Rankings and performance','🥇','#/board','#D6A82B'),
@@ -2039,7 +2039,7 @@ function homeView() {
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  mount(wrap(
-  h('header',{class:'dashboard-top'},h('a',{class:'brand',href:'#/'},brand()),h('div',{class:'dashboard-top-actions'},
+  h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()),
    h('button',{class:'dashboard-icon-btn',type:'button','aria-label':'Open navigation menu',onclick:openHubMenu},'☰'))),
