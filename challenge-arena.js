@@ -113,7 +113,7 @@ function createPanel(mode){
       h('div',null,
         h('label',null,'Match duration'),h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes'],[1800,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),
         h('label',null,'Invite username (optional)'),h('input',{id:'cd-invite',placeholder:'Enter Bablo username'}),
-        h('label',null,'Leaderboard'),h('select',{id:'cd-private'},h('option',{value:'false'},'Keep score private'),h('option',{value:'true'},'Include in Champions League')),h('small',{class:'muted'},'Without an invite username, your room appears in Discover for other students.')),
+        h('label',null,'Leaderboard'),h('select',{id:'cd-private'},h('option',{value:'false'},'Keep score private'),h('option',{value:'true'},'Include in Champions League')),h('small',{class:'muted'},'Without an invite username, your room appears in Discover for other students.'))),
     h('div',{class:'cd-quick'},h('button',{id:'cd-create-button',onclick:create},'Create room'),h('button',{class:'secondary',onclick:dashboard},'Cancel')))));
   if(typeof mode==='string')$('#cd-mode').value=mode;
   $('#cd-courses').addEventListener('change',refreshChallengeTopics);
