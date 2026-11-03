@@ -2018,9 +2018,8 @@ function openHubMenu(){
   const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
-    group('STUDY',[link('Dashboard','#/','⌂'),link('Courses','#/courses','📚'),link('Practicals','#/practicals','🧪'),link('Time & Productivity','#/time','◷'),link('Uploads & library','#/files','▤')]),
-    group('COMMUNITY',[link('Challenge Arena','#/challenge','⚔'),link('Bablo Arcade','#/arcade','🎮'),link('Chess','#/chess','♞'),link('Social','#/social','◎'),link('Programme Cup','#/cup','🏆'),link('Leaderboard','#/board','▥')]),
-    group('YOUR ACCOUNT',[link('Notifications','#/notifications','♧'),link('Profile','#/me','◉'),link('Settings','#/settings','⚙'),link('Admin Panel','#/admin','🛠'),link('About Bablo Hub','#/about','ⓘ')]),
+    group('MORE',[link('Uploads & library','#/files','▤'),link('Chess','#/chess','♞')]),
+    group('ACCOUNT & SUPPORT',[link('Settings','#/settings','⚙'),link('Admin Panel','#/admin','🛠'),link('About Bablo Hub','#/about','ⓘ')]),
     h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
   );
   overlay=h('div',{class:'hub-menu-overlay',onclick:e=>{if(e.target===overlay)close();}},panel);
@@ -2037,7 +2036,6 @@ function homeView() {
   dashboardCard('Practicals','Laboratory guides and procedures','🧪','#/practicals/PHY','#53B6A5'),
   dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
-  dashboardCard('Leaderboard','Rankings and performance','🥇','#/board','#D6A82B'),
   dashboardCard('Challenge Arena','Create and join quiz challenges','⚔️','#/challenge','#D6A82B'),
   dashboardCard('Arcade','Chess and games','🎮','#/arcade','#D6A82B'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
@@ -2050,7 +2048,6 @@ function homeView() {
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
   h('div',{class:'dashboard-section-head'},h('h2',null,'Explore Bablo Hub™'),h('span',null,'Your learning space')),
   h('section',{class:'dashboard-grid'},...cards),
-  h('section',{class:'dashboard-quick-grid'},h('a',{href:'#/timetable',class:'dashboard-quick'},'◷  Timetable'),h('a',{href:'#/plan',class:'dashboard-quick'},'▦  Event planner'),h('a',{href:'#/files',class:'dashboard-quick'},'⇧  Uploads'),h('a',{href:'#/settings',class:'dashboard-quick'},'⚙  Settings')),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
  ));
 }
