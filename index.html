@@ -4183,7 +4183,14 @@ function embeddedChmLabView() {
 
 function practicalsView(code) {
   const P = practicalsFor(code); const c = courseBy(code);
-  if (!P) { go('#/course/' + code); return; }
+  if (!P) {
+    const labels = { BIO: 'Biology', COS: 'Computer Studies', CHM: 'Chemistry' };
+    mount(wrap(back('#/lab', 'Laboratory'), h('section', { class: 'panel stack' },
+      h('h1', null, (labels[code] || code) + ' practicals'),
+      h('p', { class: 'muted' }, 'No in-app practical guide has been added for this subject yet. This page stays here instead of redirecting between the course and laboratory screens.'),
+      h('a', { class: 'btn primary', href: '#/lab' }, 'Back to Laboratory'))));
+    return;
+  }
   mount(wrap(back('#/course/' + code, c ? c.label : 'Course'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', { style: { color: c ? c.color : undefined } }, P.title), h('p', { class: 'tiny muted' }, P.source)),
     h('section', { class: 'stack' }, P.experiments.map(x => h('button', { class: 'urow', onclick: () => go('#/practicals/' + code + '/' + x.n) }, h('span', { class: 't' }, 'Experiment ' + x.n + ': ' + x.title), h('span', { class: 'muted' }, '\u203A')))))));
