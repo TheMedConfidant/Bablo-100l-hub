@@ -1890,12 +1890,15 @@ function scientificCalculatorView(){
     }catch(e){out.textContent=e.message||'Check expression';status.textContent=(CALC_DEG?'DEG':'RAD')+' · Check brackets, operators or function domain · M = '+String(Number(memory.toPrecision(8)));}
   };
   function renderHistory(){
-    historyBox.replaceChildren(...(history.length?history.map(item=>h('button',{class:'btn sm ghost',style:{justifyContent:'space-between',width:'100%',fontWeight:'500'},onclick:()=>{input.value=item.expr;show();}},h('span',null,item.expr),h('b',null,String(Number(item.value.toPrecision(10))))):[h('span',null,'Your recent calculations will appear here.')]));
+    const rows=history.map(item=>h('button',{class:'btn sm ghost',style:{justifyContent:'space-between',width:'100%',fontWeight:'500'},onclick:()=>{input.value=item.expr;show();}},h('span',null,item.expr),h('b',null,String(Number(item.value.toPrecision(10))))));
+    if(!rows.length)rows.push(h('span',null,'Your recent calculations will appear here.'));
+    historyBox.replaceChildren(...rows);
   }
   function append(value,forceMultiply=false){
     const current=input.value,prev=current.slice(-1),endsAtom=/[\d.)πe]$/.test(prev)||current.endsWith('ANS');
     const numericKey=/^[0-9.]+$/.test(value);
-    const startsAtom=/^(?:[0-9.]|ANS|pi|e|sqrt\(|cbrt\(|sin\(|cos\(|tan\(|asin\(|acos\(|atan\(|sinh\(|cosh\(|tanh\(|ln\(|log\(|log2\(|abs\(|\()/.test(value);\n    const shouldMultiply=endsAtom&&startsAtom&&!/[+\-*/^(]$/.test(current)&&(forceMultiply||!numericKey||prev===')'||prev==='π'||prev==='e'||current.endsWith('ANS'));
+    const startsAtom=/^(?:[0-9.]|ANS|pi|e|sqrt\(|cbrt\(|sin\(|cos\(|tan\(|asin\(|acos\(|atan\(|sinh\(|cosh\(|tanh\(|ln\(|log\(|log2\(|abs\(|\()/.test(value);
+    const shouldMultiply=endsAtom&&startsAtom&&!/[+\-*/^(]$/.test(current)&&(forceMultiply||!numericKey||prev===')'||prev==='π'||prev==='e'||current.endsWith('ANS'));
     input.value=current+(shouldMultiply?'*':'')+value;show();
   }
   const keys=[
