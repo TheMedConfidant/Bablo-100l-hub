@@ -1024,12 +1024,12 @@ const COURSES = [
   { code: 'GST111', label: 'GST 111', title: 'Communication in English', color: '#8896A8', units: 2 },
   { code: 'GEL101', label: 'BUI-GEL 101', title: 'General Education (GEL)', color: '#8896A8', units: 2 },
   { code: 'LIB101', label: 'BUI-LIB 101', title: 'Library', color: '#64748B', units: 2 },
-  { code: 'MTH101', label: 'MTH 101', title: 'Elementary Mathematics I', color: '#C2410C', units: 3 },
+  { code: 'MTH101', label: 'MTS 101', title: 'Mathematical Techniques', color: '#C2410C', units: 3 },
   { code: 'MLS101', label: 'MLS 101', title: 'Medical Laboratory Science', color: '#0F766E', units: 2 },
 ];
 
 /* Which courses each programme takes. Shared core for everyone; extras per programme.
-   MTH 101 is added for every programme except Doctor of Physiotherapy. It shows as Pending until its questions are loaded. */
+   MTS 101 (internal course key MTH101) is available to the programmes listed below; access follows each programme's course mapping. */
 const CORE_COURSES = ['BIO', 'CHM', 'PHY', 'COS', 'GST111', 'GEL101', 'LIB101'];
 const PROGRAMME_COURSES = {
   'MBBS': [...CORE_COURSES, 'AGR', 'MTH101'],
@@ -1092,7 +1092,7 @@ const TIMETABLE_100_1 = [
   { day: 'Tuesday', code: 'CHM 101', time: '9:00am-11:00am', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 107', time: '2:00pm-6:00pm', venue: 'PHY Lab 1, MICOM I, MICOM II' },
-  { day: 'Wednesday', code: 'MTH 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
+  { day: 'Wednesday', code: 'MTS 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
   { day: 'Wednesday', code: 'CHM 107', time: '1:00pm-4:00pm', venue: 'CHM Building General Lab' },
   { day: 'Thursday', code: 'BIO 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
   { day: 'Thursday', code: 'BIO 107', time: '2:00pm-5:00pm', venue: 'BIO Lab I-III' }
@@ -1876,35 +1876,66 @@ function calcEvaluate(raw){
 }
 function scientificCalculatorView(){
   const root=document.createElement('main');root.className='wrap calc-page';
-  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div><p class="tiny muted">Use × or * for multiplication. Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press Enter or = to evaluate.</p></section></div>';
+  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Full scientific keypad, memory, ANS and recent calculations. No keyboard input required.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result · M = 0</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button><button id="calcCopy" class="btn ghost">Copy result</button></div><div class="row between"><b class="tiny">Memory</b><span class="tiny muted">MC · MR · MS · M+ · M−</span></div><div id="calcPad" class="calc-keypad"></div><section class="panel stack" style="gap:6px"><b class="tiny">Recent calculations</b><div id="calcHistory" class="tiny muted" style="display:grid;gap:5px">Your recent calculations will appear here.</div></section><p class="tiny muted">Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press = to save a result to ANS.</p></section></div>';
   document.getElementById('app').replaceChildren(root);
-  const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
-  let lastExpression='';
-  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';if(force)lastExpression=input.value;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
+  const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad'),historyBox=root.querySelector('#calcHistory');
+  const history=[];let memory=0,lastValue=0;
+  const show=(commit=false)=>{
+    if(!input.value.trim()){out.textContent='0';status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = '+String(Number(CALC_ANS.toPrecision(8)))+' · M = '+String(Number(memory.toPrecision(8)));return;}
+    try{
+      const n=calcEvaluate(input.value);lastValue=n;
+      out.textContent=String(Number(n.toPrecision(12)));
+      if(commit){CALC_ANS=n;history.unshift({expr:input.value,value:n});history.splice(10);renderHistory();}
+      status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = '+String(Number(CALC_ANS.toPrecision(8)))+' · M = '+String(Number(memory.toPrecision(8)));
+    }catch(e){out.textContent=e.message||'Check expression';status.textContent=(CALC_DEG?'DEG':'RAD')+' · Check brackets, operators or function domain · M = '+String(Number(memory.toPrecision(8)));}
+  };
+  function renderHistory(){
+    const rows=history.map(item=>h('button',{class:'btn sm ghost',style:{justifyContent:'space-between',width:'100%',fontWeight:'500'},onclick:()=>{input.value=item.expr;show();}},h('span',null,item.expr),h('b',null,String(Number(item.value.toPrecision(10))))));
+    if(!rows.length)rows.push(h('span',null,'Your recent calculations will appear here.'));
+    historyBox.replaceChildren(...rows);
+  }
+  function append(value,forceMultiply=false){
+    const current=input.value,prev=current.slice(-1),endsAtom=/[\d.)πe]$/.test(prev)||current.endsWith('ANS');
+    const numericKey=/^[0-9.]+$/.test(value);
+    const startsAtom=/^(?:[0-9.]|ANS|pi|e|sqrt\(|cbrt\(|sin\(|cos\(|tan\(|asin\(|acos\(|atan\(|sinh\(|cosh\(|tanh\(|ln\(|log\(|log2\(|abs\(|\()/.test(value);
+    const shouldMultiply=endsAtom&&startsAtom&&!/[+\-*/^(]$/.test(current)&&(forceMultiply||!numericKey||prev===')'||prev==='π'||prev==='e'||current.endsWith('ANS'));
+    input.value=current+(shouldMultiply?'*':'')+value;show();
+  }
   const keys=[
-    ['sin(','fn'],['cos(','fn'],['tan(','fn'],['ln(','fn'],['log(','fn'],
-    ['√(','fn'],['x²','fn'],['xʸ','fn'],['π','fn'],['e','fn'],
-    ['(','fn'],[')','fn'],['%','fn'],['÷','op'],['×','op'],
-    ['7','num'],['8','num'],['9','num'],['−','op'],['+','op'],
-    ['4','num'],['5','num'],['6','num'],['⌫','util'],['ANS','fn'],
-    ['1','num'],['2','num'],['3','num'],['AC','util'],['ANS','fn'],
-    ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
+    ['MC','util'],['MR','util'],['MS','util'],['M+','util'],['M−','util'],
+    ['sin(','fn'],['cos(','fn'],['tan(','fn'],['asin(','fn'],['acos(','fn'],
+    ['atan(','fn'],['sinh(','fn'],['cosh(','fn'],['tanh(','fn'],['ln(','fn'],
+    ['log(','fn'],['log2(','fn'],['√(','fn'],['∛(','fn'],['abs(','fn'],
+    ['x²','fn'],['xʸ','fn'],['1/x','fn'],['!','fn'],['%','fn'],
+    ['π','fn'],['e','fn'],['(','fn'],[')','fn'],['ANS','fn'],
+    ['7','num'],['8','num'],['9','num'],['÷','op'],['×','op'],
+    ['4','num'],['5','num'],['6','num'],['−','op'],['+','op'],
+    ['1','num'],['2','num'],['3','num'],['00','num'],['⌫','util'],
+    ['0','num'],['.','num'],['±','util'],['AC','util'],['=','equals']
   ];
-  keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
-    if(label==='AC'){input.value='';out.textContent='0';status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';input.focus();return;}
-    if(label==='⌫'){input.value=input.value.slice(0,-1);show();input.focus();return;}
-    if(label==='='){show(true);input.focus();return;}
-    if(label==='±'){input.value=input.value.startsWith('-')?input.value.slice(1):'-('+input.value+')';show();input.focus();return;}
-    const insert=label==='√('? 'sqrt(':label==='x²'?'^2':label==='xʸ'?'^':label==='×'?'*':label==='÷'?'/':label==='−'?'-':label;
-    const a=input.selectionStart??input.value.length,z=input.selectionEnd??input.value.length;
-    input.value=input.value.slice(0,a)+insert+input.value.slice(z);const pos=a+insert.length;input.setSelectionRange(pos,pos);show();input.focus();
-  };if(label==='=')b.style.gridColumn='span 1';pad.append(b);});
-  input.oninput=()=>show();input.onkeydown=e=>{if(e.key==='Enter'||e.key==='='){e.preventDefault();show(true);}else if(e.key==='Escape'){input.value='';show();}};
+  keys.forEach(([label,type])=>{
+    const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);
+    b.onclick=()=>{
+      if(label==='AC'){input.value='';show();return;}
+      if(label==='⌫'){input.value=input.value.slice(0,-1);show();return;}
+      if(label==='MC'){memory=0;show();return;}
+      if(label==='MR'){append(String(Number(memory.toPrecision(12))),true);return;}
+      if(label==='MS'){memory=lastValue;show();return;}
+      if(label==='M+'){memory+=lastValue;show();return;}
+      if(label==='M−'){memory-=lastValue;show();return;}
+      if(label==='='){show(true);return;}
+      if(label==='±'){input.value=input.value?'-('+input.value+')':'-';show();return;}
+      const insert=label==='√('? 'sqrt(':label==='∛('? 'cbrt(':label==='x²'?'^2':label==='xʸ'?'^':label==='1/x'?'^(-1)':label==='×'?'*':label==='÷'?'/':label==='−'?'-':label;
+      append(insert);
+    };
+    pad.append(b);
+  });
   root.querySelector('#calcAngle').onclick=e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';show();};
-  root.querySelector('#calcClear').onclick=()=>{input.value='';show();input.focus();};
-  root.querySelector('#calcBack').onclick=()=>{const a=input.selectionStart??input.value.length,z=input.selectionEnd??a;if(a!==z)input.value=input.value.slice(0,a)+input.value.slice(z);else if(a>0)input.value=input.value.slice(0,a-1)+input.value.slice(z);input.focus();show();};
+  root.querySelector('#calcClear').onclick=()=>{input.value='';show();};
+  root.querySelector('#calcBack').onclick=()=>{input.value=input.value.slice(0,-1);show();};
+  root.querySelector('#calcCopy').onclick=async()=>{try{await navigator.clipboard.writeText(String(lastValue));toast('Result copied.');}catch(_){toast('Copy is not available on this device.');}};
+  renderHistory();show();
 }
-
 function route() {
   stopTimer();
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
@@ -1915,7 +1946,7 @@ function route() {
   const tab = { plan: 'plan', programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'challenge' ? null : (tab || 'home'));
   try {
-    if (v === 'calculator') { go('#/'); return; }
+    if (v === 'calculator') { scientificCalculatorView(); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
     else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
@@ -1982,7 +2013,7 @@ function openHubMenu(){
   const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
-    group('STUDY',[link('Dashboard & courses','#/','⌂'),link('Uploads & library','#/files','▤'),link('Study resources','#/','⚗')]),
+    group('STUDY',[link('Dashboard & courses','#/','⌂'),link('Scientific calculator','#/calculator','🧮'),link('Uploads & library','#/files','▤'),link('Study resources','#/','⚗')]),
     group('COMMUNITY',[link('Challenge Arena','#/challenge','⚔'),link('Chess','#/chess','♞'),link('Social','#/social','◎'),link('Programme Cup','#/cup','🏆'),link('Leaderboard','#/board','▥')]),
     group('YOUR ACCOUNT',[link('Notifications','#/notifications','♧'),link('Profile','#/me','◉'),link('Settings','#/settings','⚙'),link('About Bablo Hub','#/about','ⓘ')]),
     h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
@@ -2014,7 +2045,7 @@ function homeView() {
     else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
     return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
   });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Open navigation menu', 'aria-haspopup': 'dialog', onclick: openHubMenu }, '☰'))),
+  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Open scientific calculator', title: 'Scientific calculator', onclick: () => go('#/calculator') }, '🧮'), h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Open navigation menu', 'aria-haspopup': 'dialog', onclick: openHubMenu }, '☰'))),
     h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
