@@ -2004,7 +2004,9 @@ function onboarding() {
     h('label', { class: 'field' }, h('span', null, 'Your name'), name),
     h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
     h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
-    err, h('button', { class: 'btn primary block', onclick: sub }, 'Start studying')), false);
+    err,
+    h('button', { class: 'btn primary block', onclick: sub }, 'Start studying'),
+    h('button', { class: 'btn ghost block', type: 'button', onclick: () => { DB.profile = { name: 'Guest learner', nick: 'Guest', programme: 'Independent', level: '100L', isGuest: true }; DB.account = null; save(); const ov = document.querySelector('.overlay'); if (ov) ov.remove(); route(); } }, 'Continue without an account')), false);
 }
 
 /* ---------- home ---------- */
