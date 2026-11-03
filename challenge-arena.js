@@ -1,18 +1,46 @@
 (function(){
 const $=s=>document.querySelector(s), E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let CA={match:null,qs:[],idx:0,done:false,end:0,timer:null,tab:'overview',inbox:[],opted:false,ready:false,finishing:false};
-function frame(node){style();mount(wrap(node));}
+function frame(node){style();const root=h('div',{id:'challenge-dashboard',class:'challenge-arena-root'},node);mount(wrap(root));}
 async function call(fn,args={}){if(!DB||!DB.account||!DB.account.token)throw Error('Log in to use Challenge Arena.');return await hubCall(fn,{p_token:DB.account.token,...args});}
 function courses(){return [...new Set((window.__BANK__||[]).map(q=>String(q.c||'').trim()).filter(Boolean))].sort();}
 function questions(){return (window.__BANK__||[]).filter(q=>q&&q.q&&Array.isArray(q.o)&&q.o.length>1&&q.a!==undefined);}
 
-function style(){if($('#cd-style'))return;let s=document.createElement('style');s.id='cd-style';s.textContent='#challenge-dashboard{width:100%;max-width:1120px;margin:0 auto;padding:18px 0 70px;color:var(--ink)}#challenge-dashboard *{box-sizing:border-box}#challenge-dashboard .cd-hero{min-height:220px;border-radius:24px;padding:28px;background:linear-gradient(125deg,#101c2d,#273c51);color:#fff;display:flex;flex-direction:column;justify-content:center}#challenge-dashboard .cd-hero p{color:#d4deea;max-width:560px}#challenge-dashboard .cd-kicker{font-size:.7rem;letter-spacing:.15em;color:#e7c66e;font-weight:900}#challenge-dashboard .cd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}#challenge-dashboard .cd-stat,#challenge-dashboard .cd-panel{background:var(--surface,#fff);border:1px solid var(--line,#ddd);border-radius:16px;padding:16px}#challenge-dashboard .cd-stat b{display:block;font-size:1.5rem;color:#c39b43}#challenge-dashboard .cd-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}#challenge-dashboard button{border:0;border-radius:12px;padding:12px;background:linear-gradient(135deg,#e4c36e,#c59d45);color:#17202b;font-weight:800;cursor:pointer}#challenge-dashboard button.secondary{background:var(--surface,#fff);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard .cd-modegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}#challenge-dashboard .cd-modecard{min-height:130px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;background:var(--surface);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard .cd-tabs{display:flex;gap:7px;overflow:auto;margin:16px 0}#challenge-dashboard .cd-tabs button{white-space:nowrap;background:var(--surface);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard .cd-grid{display:grid;grid-template-columns:1.4fr .8fr;gap:12px}#challenge-dashboard .cd-row{display:flex;justify-content:space-between;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px}#challenge-dashboard label{display:block;font-weight:700;margin:12px 0 6px}#challenge-dashboard input,#challenge-dashboard select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}#challenge-dashboard .cd-choice{display:block;width:100%;text-align:left;margin:8px 0;background:var(--surface);color:var(--ink);border:1px solid var(--line)}#challenge-dashboard button:disabled{opacity:.5;cursor:not-allowed}#challenge-dashboard .cd-hero h1,#challenge-dashboard .cd-hero p{color:#fff!important}#challenge-dashboard .cd-panel,#challenge-dashboard .cd-stat{color:var(--ink,#111)}#challenge-dashboard .cd-panel .muted,#challenge-dashboard .cd-stat .muted{color:var(--ink,#111);opacity:.78}#challenge-dashboard input,#challenge-dashboard select{color:var(--ink,#111)}#challenge-dashboard .cd-tabs button.active{background:#c59d45;color:#111;border-color:#c59d45}#challenge-dashboard .cd-panel,#challenge-dashboard .cd-stat{background:#101820!important;color:#fff!important;border-color:#344454!important}#challenge-dashboard .cd-panel h1,#challenge-dashboard .cd-panel h2,#challenge-dashboard .cd-panel h3,#challenge-dashboard .cd-panel p,#challenge-dashboard .cd-panel span,#challenge-dashboard .cd-panel b,#challenge-dashboard .cd-panel strong,#challenge-dashboard .cd-panel label,#challenge-dashboard .cd-stat *{color:#fff!important}#challenge-dashboard .cd-panel .muted,#challenge-dashboard .cd-panel small{color:#d5deea!important;opacity:1!important}#challenge-dashboard .cd-row{background:#172330!important;border-color:#405164!important;color:#fff!important}#challenge-dashboard .cd-row *{color:#fff!important}#challenge-dashboard input,#challenge-dashboard select,#challenge-dashboard textarea{background:#080f17!important;color:#fff!important;border:1px solid #65788d!important;caret-color:#fff!important}#challenge-dashboard input::placeholder{color:#c2ccd8!important;opacity:1!important}#challenge-dashboard select option{background:#101820!important;color:#fff!important}#challenge-dashboard button.secondary,#challenge-dashboard .cd-tabs button{background:#172330!important;color:#fff!important;border:1px solid #65788d!important}#challenge-dashboard button:not(:disabled):focus-visible,#challenge-dashboard input:focus-visible,#challenge-dashboard select:focus-visible{outline:3px solid #f0cc70!important;outline-offset:2px}#challenge-dashboard button:disabled{color:#e4e8ed!important;opacity:.65!important}#challenge-dashboard{background:#000!important;color:#fff!important}#challenge-dashboard .cd-hero{background:#000!important;border:1px solid #333!important;color:#fff!important}#challenge-dashboard .cd-hero h1,#challenge-dashboard .cd-hero p,#challenge-dashboard .cd-hero span{color:#fff!important}#challenge-dashboard .cd-panel,#challenge-dashboard .cd-stat,#challenge-dashboard .cd-row{background:#000!important;color:#fff!important;border-color:#444!important}#challenge-dashboard .cd-panel *:not(button),#challenge-dashboard .cd-stat * ,#challenge-dashboard .cd-row *{color:#fff!important}#challenge-dashboard .cd-panel .muted,#challenge-dashboard .cd-panel small{color:#fff!important;opacity:.9!important}#challenge-dashboard input,#challenge-dashboard select,#challenge-dashboard textarea,#challenge-dashboard select option{background:#000!important;color:#fff!important;border:1px solid #777!important}#challenge-dashboard input::placeholder{color:#ddd!important;opacity:1!important}#challenge-dashboard button.secondary,#challenge-dashboard .cd-tabs button{background:#000!important;color:#fff!important;border:1px solid #777!important}#challenge-dashboard .cd-tabs button.active{background:#000!important;color:#fff!important;border:1px solid #e4c36e!important}#challenge-dashboard .cd-choice{background:#000!important;color:#fff!important;border:1px solid #777!important}#challenge-dashboard button:focus-visible,#challenge-dashboard input:focus-visible,#challenge-dashboard select:focus-visible{outline:3px solid #e4c36e!important;outline-offset:2px}@media(max-width:700px){#challenge-dashboard .cd-stats{grid-template-columns:repeat(2,1fr)}#challenge-dashboard .cd-actions{grid-template-columns:1fr 1fr}#challenge-dashboard .cd-modegrid{grid-template-columns:repeat(2,1fr)}#challenge-dashboard .cd-grid{grid-template-columns:1fr}}@media(max-width:420px){#challenge-dashboard .cd-modegrid{grid-template-columns:1fr}}';document.head.append(s);}
+function style(){if($('#cd-style'))return;let s=document.createElement('style');s.id='cd-style';s.textContent=`
+#challenge-dashboard{width:100%;max-width:1120px;margin:0 auto;padding:18px 0 70px;background:#000!important;color:#fff!important;--cd-bg:#000;--cd-fg:#fff;--cd-border:#555}
+#challenge-dashboard,#challenge-dashboard *{box-sizing:border-box}
+#challenge-dashboard .cd-hero{min-height:180px;border-radius:20px;padding:24px;background:#000!important;border:1px solid #555;color:#fff!important;display:flex;flex-direction:column;justify-content:center}
+#challenge-dashboard .cd-hero *{color:#fff!important}
+#challenge-dashboard .cd-kicker{font-size:.7rem;letter-spacing:.15em;color:#e4c36e!important;font-weight:900}
+#challenge-dashboard .cd-panel,#challenge-dashboard .cd-stat,#challenge-dashboard .cd-row,#challenge-dashboard article{background:#000!important;color:#fff!important;border:1px solid #555!important;border-radius:14px;padding:14px}
+#challenge-dashboard .cd-panel *:not(button),#challenge-dashboard .cd-stat * ,#challenge-dashboard .cd-row *{color:#fff!important}
+#challenge-dashboard .cd-panel .muted,#challenge-dashboard .cd-panel small,#challenge-dashboard .muted{color:#fff!important;opacity:1!important}
+#challenge-dashboard .cd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+#challenge-dashboard .cd-stat b{display:block;font-size:1.5rem;color:#e4c36e!important}
+#challenge-dashboard .cd-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+#challenge-dashboard .cd-modegrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+#challenge-dashboard .cd-tabs{display:flex;gap:7px;overflow:auto;margin:16px 0}
+#challenge-dashboard .cd-grid{display:grid;grid-template-columns:1.4fr .8fr;gap:12px}
+#challenge-dashboard .cd-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0}
+#challenge-dashboard label{display:block;font-weight:800;margin:12px 0 6px;color:#fff!important}
+#challenge-dashboard input,#challenge-dashboard select,#challenge-dashboard textarea{width:100%;padding:12px;border:1px solid #888!important;border-radius:10px;background:#000!important;color:#fff!important;caret-color:#fff}
+#challenge-dashboard select option{background:#000!important;color:#fff!important}
+#challenge-dashboard input::placeholder,#challenge-dashboard textarea::placeholder{color:#ddd!important;opacity:1!important}
+#challenge-dashboard .cd-choice{display:block;width:100%;text-align:left;margin:8px 0;background:#000!important;color:#fff!important;border:1px solid #888!important}
+#challenge-dashboard button{border:1px solid #e4c36e;border-radius:12px;padding:12px;background:#e4c36e!important;color:#000!important;font-weight:900;cursor:pointer}
+#challenge-dashboard button.secondary,#challenge-dashboard .cd-tabs button{background:#000!important;color:#fff!important;border:1px solid #888!important}
+#challenge-dashboard .cd-tabs button.active{background:#000!important;color:#fff!important;border:2px solid #e4c36e!important}
+#challenge-dashboard button:disabled{opacity:.65!important;color:#ddd!important;cursor:not-allowed}
+#challenge-dashboard button:focus-visible,#challenge-dashboard input:focus-visible,#challenge-dashboard select:focus-visible{outline:3px solid #e4c36e!important;outline-offset:2px}
+@media(max-width:700px){#challenge-dashboard .cd-stats{grid-template-columns:repeat(2,1fr)}#challenge-dashboard .cd-actions{grid-template-columns:1fr 1fr}#challenge-dashboard .cd-modegrid{grid-template-columns:repeat(2,1fr)}#challenge-dashboard .cd-grid{grid-template-columns:1fr}}
+@media(max-width:420px){#challenge-dashboard .cd-modegrid{grid-template-columns:1fr}}
+`;document.head.append(s);}
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
 function stat(n,t){return h('div',{class:'cd-stat'},h('b',null,n),h('span',{class:'muted'},t))}
 function dashboard(){
   CA.tab='overview';
-  const nav=['Open challenges','My Challenges','Friends','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t==='Open challenges'?'Discover':t)},t));
-  const content=h('div',{id:'challenge-dashboard'});
+  const nav=['Discover','My Challenges','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t)},t));
+  const content=h('div',{class:'challenge-home'});
   const actions=h('div',{class:'cd-actions'});
   actions.append(
     h('button',{onclick:()=>createPanel('quick_duel')},'＋ Create challenge'),
@@ -23,7 +51,7 @@ function dashboard(){
   rooms.append(h('h3',null,'Your active challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your challenges…'));
   content.append(
     hero(),
-    h('p',{class:'muted'},'Create a quiz battle, invite a friend, or join an open room.'),
+    h('p',{class:'muted'},'Create a quiz battle, join a public room, and compete across your courses.'),
     actions,
     h('div',{class:'cd-tabs'},...nav),
     rooms
@@ -33,7 +61,7 @@ function dashboard(){
 }
 async function loadInbox(){let el=$('#cd-inbox');if(!el)return;try{let x=await call('hub_challenge_inbox',{});CA.inbox=x.challenges||[];el.replaceChildren(...(CA.inbox.length?CA.inbox.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Challenge'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions · '+m.status),h('div',{class:'muted'},'Room '+(m.invite_code||'—'))),m.status==='waiting'?h('button',{onclick:()=>accept(m.id)},'Accept'):h('button',{class:'secondary',onclick:()=>open(m.id)},'Open'))):[h('p',{class:'muted'},'No active rooms yet. Start a Quick Match or create a challenge.')]))}catch(e){el.textContent=e.message}}
 async function tab(name){
-  const tabs=['Overview','Discover','My Challenges','Friends','Champions League'];
+  const tabs=['Overview','Discover','My Challenges','Champions League'];
   if(name==='Overview'){dashboard();return;}
   const shell=()=>h('div',null,hero(),h('div',{class:'cd-tabs'},...tabs.map(t=>h('button',{class:t===name?'active':'secondary',onclick:()=>tab(t)},t))));
   try{
@@ -49,15 +77,6 @@ async function tab(name){
       const rows=x.challenges||[];
       const panel=h('section',{class:'cd-panel'},h('h2',null,'My challenges'));
       panel.append(...(rows.length?rows.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Challenge'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions · '+m.status),h('div',{class:'muted'},'Code: '+(m.invite_code||'—'))),m.status==='waiting'&&m.created_by!==((DB&&DB.account&&(DB.account.unique_id||DB.account.uid))||'')?h('button',{onclick:()=>accept(m.id)},'Accept'):h('button',{class:'secondary',onclick:()=>open(m.id)},'Open lobby'))):[h('p',{class:'muted'},'Your challenge history will appear here.')] ));
-      frame(h('div',null,shell(),panel));return;
-    }
-    if(name==='Friends'){
-      const x=await call('hub_challenge_inbox',{});
-      const panel=h('section',{class:'cd-panel'},h('h2',null,'Friends & invitations'));
-      const add=h('div',{class:'cd-row'},h('input',{id:'cd-friend-name',placeholder:'Bablo username'}),h('button',{onclick:async()=>{try{const username=$('#cd-friend-name').value.trim();if(!username)throw Error('Enter a username.');await call('hub_friend_request_send',{p_target_username:username});toast('Friend request sent.');tab('Friends')}catch(e){toast(e.message)}}},'Add friend'));
-      panel.append(add,h('h3',null,'Your friends'),...(x.friends||[]).map(f=>h('div',{class:'cd-row'},h('div',null,h('b',null,f.nickname||f.username),h('div',{class:'muted'},f.username+' · '+(f.programme||''))),h('button',{class:'secondary',onclick:()=>{createPanel('quick_duel');setTimeout(()=>{const el=$('#cd-invite');if(el)el.value=f.username},0)}},'Challenge'))));
-      panel.append(h('h3',null,'Friend requests'),...((x.friend_requests||[]).map(r=>h('div',{class:'cd-row'},h('span',null,r.sender_username+' wants to connect'),h('button',{onclick:async()=>{try{await call('hub_friend_request_respond',{p_request_id:r.id,p_accept:true});tab('Friends')}catch(e){toast(e.message)}}},'Accept')))));
-      panel.append(h('h3',null,'Notifications'),...((x.notifications||[]).map(n=>h('div',{class:'cd-row'},h('div',null,h('b',null,n.title),h('div',{class:'muted'},n.body))))));
       frame(h('div',null,shell(),panel));return;
     }
     if(name==='Champions League'){
@@ -94,7 +113,7 @@ function createPanel(mode){
       h('div',null,
         h('label',null,'Match duration'),h('select',{id:'cd-duration'},...[[180,'3 minutes'],[300,'5 minutes'],[600,'10 minutes'],[900,'15 minutes'],[1800,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),
         h('label',null,'Invite username (optional)'),h('input',{id:'cd-invite',placeholder:'Enter Bablo username'}),
-        h('label',null,'Result visibility'),h('select',{id:'cd-private'},h('option',{value:'false'},'Private result'),h('option',{value:'true'},'Include in Champions League')))),
+        h('label',null,'Leaderboard'),h('select',{id:'cd-private'},h('option',{value:'false'},'Keep score private'),h('option',{value:'true'},'Include in Champions League')),h('small',{class:'muted'},'Without an invite username, your room appears in Discover for other students.')),
     h('div',{class:'cd-quick'},h('button',{id:'cd-create-button',onclick:create},'Create room'),h('button',{class:'secondary',onclick:dashboard},'Cancel')))));
   if(typeof mode==='string')$('#cd-mode').value=mode;
   $('#cd-courses').addEventListener('change',refreshChallengeTopics);
