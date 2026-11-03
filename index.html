@@ -1806,8 +1806,8 @@ function applyTheme() {
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
   const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
-  document.documentElement.setAttribute('data-skin', skin);
-  document.documentElement.removeAttribute('data-tint');
+  if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', 'gold'); }
+  else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
 function bestPct(code) { const l = DB.history.filter(x => x.course === code && x.mode !== 'practice'); return l.length ? Math.max.apply(null, l.map(x => x.pct)) : null; }
 function toast(msg) { const t = h('div', { class: 'toast', role: 'status' }, msg); document.body.append(t); setTimeout(() => t.remove(), 2600); }
