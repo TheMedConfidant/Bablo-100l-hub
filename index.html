@@ -1867,7 +1867,7 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['gpa', '#/gpa', 'CGPA', 'gpa'], ['plan', '#/plan', 'Time', 'time'], ['social', '#/social', 'Social', 'social'], ['board', '#/board', 'Board', 'board']];
+  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board'], ['challenge', '#/challenge', 'Challenges', 'challenge']];
   navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
   navEl.style.display = active ? '' : 'none';
@@ -1941,8 +1941,8 @@ function route() {
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'plan', time: 'plan', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: 'social', gpa: 'gpa', me: 'me' }[v] || null;
-  renderNav(v === 'run' || v === 'chess' || v === 'challenge' ? null : (tab || 'home'));
+  const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: 'challenge', home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null }[v] || null;
+  renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
@@ -2072,7 +2072,8 @@ function arcadeHubView(){
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'Games, strategy and friendly competition.')),
  h('section',{class:'dashboard-grid'},
  dashboardCard('Bablo Chess','Play Dr ECG or challenge another player','♟','#/chess'),
- dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics')
+ dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics'),
+ h('div',{class:'dashboard-card','aria-disabled':'true',style:{'--card-accent':'#D6A82B',opacity:'0.78'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},'🐄'),h('span',{class:'dashboard-card-copy'},h('b',null,'Cow Dash'),h('small',null,'COMING SOON · Speed-based learning game')),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'◷'))
  )));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
@@ -2111,7 +2112,7 @@ function courseView(code) {
       h('span', { class: 't' }, u.name), b != null ? h('span', { class: 'chip ok' }, b + '%') : null,
       h('span', { class: 'chip' }, u.count + ' Qs'), h('span', { class: 'muted' }, '\u203A'));
   });
-  mount(wrap(back('#/', 'All courses'),
+  mount(wrap(back('#/courses', 'All courses'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
