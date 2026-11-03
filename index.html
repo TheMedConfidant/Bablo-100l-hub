@@ -130,11 +130,11 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .gpa-sum{display:flex;gap:26px;flex-wrap:wrap}.gpa-sum b{font:800 2rem var(--head);display:block}
 /* nav, modal, toast */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--surface);border-top:1px solid var(--line);padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 28px rgba(0,0,0,.12);backdrop-filter:blur(16px)}
-.nav .in{width:100%;max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(7px,2.5vw,18px);align-items:stretch}
+.nav .in{width:100%;max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(3px,1vw,8px);align-items:stretch}
 .nav a,.nav-menu-button{min-width:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 3px;border-radius:13px;color:var(--ink2);text-decoration:none;font-size:.72rem;font-weight:800;background:transparent;border:0;line-height:1.1}
 .nav a svg{width:22px;height:22px;flex:0 0 auto}.nav a[aria-current=page]{color:var(--brand);background:var(--brand-soft)}
 .nav-menu-button{width:100%;cursor:pointer;color:var(--ink2);font:inherit}.nav-menu-glyph{font-size:21px;line-height:22px;font-weight:900}.nav-menu-button:focus-visible,.nav a:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
-@media(max-width:380px){.nav{padding-left:7px;padding-right:7px}.nav .in{gap:4px}.nav a,.nav-menu-button{font-size:.68rem;min-height:49px}}
+@media(max-width:380px){.nav{padding-left:7px;padding-right:7px}.nav .in{gap:2px}.nav a,.nav-menu-button{font-size:.62rem;min-height:49px;padding-left:1px;padding-right:1px}}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(6,14,28,.62);display:grid;place-items:end center;padding:0}
 @media(min-width:640px){.overlay{place-items:center;padding:20px}}
 .modal{width:100%;max-width:460px;max-height:92vh;overflow:auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px))}
@@ -1758,6 +1758,7 @@ function h(tag, props, ...kids) {
 }
 const svgEl = (vb, inner, cls) => { const w = document.createElement('span'); w.innerHTML = '<svg viewBox="' + vb + '" class="' + (cls || '') + '" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>'; return w.firstChild; };
 const ICON = {
+  challenge: '<path d="M12 3l2.2 5.1L20 10l-5.8 1.9L12 17l-2.2-5.1L4 10l5.8-1.9z"/><path d="M5 19l4-4M19 19l-4-4"/>',
   home: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   board: '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/>',
   gpa: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/>',
@@ -1864,12 +1865,13 @@ const app = document.getElementById('app'), navEl = document.getElementById('nav
 let timerHandle = null, SESS = null, SETUP = null;
 const stopTimer = () => { if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } };
 const go = hash => { if (location.hash === hash) route(); else location.hash = hash; };
+let HUB_ROUTE_STACK = [location.hash || '#/'];
 const mount = (...nodes) => { app.replaceChildren(...nodes); window.scrollTo(0, 0); renderPomoFloat(); };
 const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
-const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
+const back = (href, label) => h('a', { class: 'back', href, onclick: e => { if (HUB_ROUTE_STACK.length > 1) { e.preventDefault(); history.back(); } } }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board']];
+  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board'], ['challenge', '#/challenge', 'Challenges', 'challenge']];
   const links = items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), h('span', null, label)));
   links.push(h('button', { type:'button', class:'nav-menu-button', 'aria-label':'Open navigation menu', onclick:openHubMenu }, h('span',{class:'nav-menu-glyph'},'☰'), h('span',null,'Menu')));
@@ -1946,7 +1948,7 @@ function route() {
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: 'challenge', home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null }[v] || null;
-  renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (v === 'challenge' ? '' : (tab || 'home')));
+  renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
@@ -2020,8 +2022,11 @@ function openHubMenu(){
   const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
-    group('MORE',[link('Uploads & library','#/files','▤')]),
-    group('ACCOUNT',[link('My profile & account','#/me','◉'),link('Settings','#/settings','⚙'),link('About Bablo Hub','#/about','ⓘ'),link('Admin Panel','#/admin','🛠')]),
+    group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
+    group('LIBRARY',[link('Uploads & library','#/files','▤')]),
+    group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
+    group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
+    group('ADMINISTRATION',[link('Admin Panel','#/admin','🛠')]),
     h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
   );
   overlay=h('div',{class:'hub-menu-overlay',onclick:e=>{if(e.target===overlay)close();}},panel);
@@ -3949,11 +3954,7 @@ function notificationsView() {
   const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();}},g)));
   notices.forEach(n=>{if(!read[n.id]){ /* keep unread until opened or marked read */ }});
   box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),filters,list,
-    h('section',{class:'panel stack notification-preferences'},h('h2',null,'Notification preferences'),h('p',{class:'small muted'},'Choose which updates Bablo Hub can send you.'),
-      h('div',{class:'row between wrapr'},h('span',null,h('b',null,'Announcements, polls & Programme Cup alerts'),h('small',{class:'muted'},'Push alerts when available.')),h('button',{class:'opt',onclick:enablePushAlerts},DB.alerts?'On':'Turn on')),
-      h('div',{class:'row between wrapr'},h('span',null,h('b',null,'Study and calendar reminders'),h('small',{class:'muted'},'In-app reminders while Bablo Hub is open.')),h('button',{class:'opt','aria-pressed':String(!!DB.notify),onclick:()=>{DB.notify=!DB.notify;save();notificationsView();}},DB.notify?'On':'Off')),
-      h('div',{class:'row between wrapr'},h('span',null,h('b',null,'Sound effects'),h('small',{class:'muted'},'Optional sounds for timers and activity.')),h('button',{class:'opt','aria-pressed':String(!!DB.soundAlerts),onclick:()=>{DB.soundAlerts=!DB.soundAlerts;save();notificationsView();}},DB.soundAlerts?'On':'Off'))
-    )
+
   );
   render();mount(wrap(back('#/','Home'),box));
   list.addEventListener('click',e=>{const card=e.target.closest('.notice-card');if(!card)return;const item=notices.find(n=>n.href===card.getAttribute('href')&& !read[n.id]);if(item){DB.readNotices=DB.readNotices||{};DB.readNotices[item.id]=true;save();}});
@@ -3979,6 +3980,17 @@ function settingsView() {
       h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'),
       h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
+    h('section', { class: 'panel stack' },
+      h('h2', null, 'Notifications & reminders'),
+      h('div', { class: 'row between wrapr' },
+        h('span', null, h('b', null, 'Announcements & Programme Cup alerts'), h('small', { class: 'muted' }, 'Push notifications when available.')),
+        h('button', { class: 'opt', onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
+      h('div', { class: 'row between wrapr' },
+        h('span', null, h('b', null, 'Study and calendar reminders'), h('small', { class: 'muted' }, 'In-app reminders while Bablo Hub is open.')),
+        h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); settingsView(); } }, DB.notify ? 'On' : 'Off')),
+      h('div', { class: 'row between wrapr' },
+        h('span', null, h('b', null, 'Sound effects'), h('small', { class: 'muted' }, 'Optional sounds for timers and activity.')),
+        h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off'))),
     h('section', { class: 'stack' },
       h('h2', null, 'Account'),
       installCard(),
@@ -4267,7 +4279,13 @@ function renderSavedChessFriends() {
 /* ---------- boot ---------- */
 applyTheme();
 loadHidden();
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange', () => {
+  const current = location.hash || '#/';
+  const previousIndex = HUB_ROUTE_STACK.lastIndexOf(current);
+  if (previousIndex >= 0) HUB_ROUTE_STACK = HUB_ROUTE_STACK.slice(0, previousIndex + 1);
+  else { HUB_ROUTE_STACK.push(current); if (HUB_ROUTE_STACK.length > 40) HUB_ROUTE_STACK.shift(); }
+  route();
+});
 route();
 
 /* Validate the persisted account token on startup. Local storage can outlive
