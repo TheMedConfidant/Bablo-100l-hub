@@ -4158,9 +4158,110 @@ function labHubView() {
       h('span', { class: 'dashboard-card-arrow', 'aria-hidden': 'true' }, '›'))))
   )));
 }
-function embeddedPhyLabView() { practicalsView('PHY'); }
-
-function embeddedChmLabView() { practicalsView('CHM'); }
+async function integratedPracticalDocument(kind) {
+  const config = kind === 'phy'
+    ? { path: '/practicals/phy107-practical.html', label: 'PHY 107 Interactive Practical' }
+    : { path: '/practicals/chm107-practicals.html', label: 'CHM 107 Chemistry Practicals' };
+  const root = h('div', { id: 'native-practical-root', class: 'stack-l' },
+    h('div', { class: 'panel muted small' }, 'Loading practical resources…'));
+  mount(wrap(back('#/', 'Laboratory'), root));
+  try {
+    const response = await fetch(config.path, { cache: 'no-cache' });
+    if (!response.ok) throw new Error('Could not load practical resources (' + response.status + ')');
+    const source = await response.text();
+    const doc = new DOMParser().parseFromString(source, 'text/html');
+    const styleText = [...doc.querySelectorAll('style')].map(x => x.textContent || '').join('\n');
+    const scopedCss = (css, scope) => {
+      let out = '', pos = 0;
+      while (pos < css.length) {
+        const open = css.indexOf('{', pos);
+        if (open < 0) { out += css.slice(pos); break; }
+        const head = css.slice(pos, open);
+        let depth = 1, close = open + 1;
+        while (close < css.length && depth) {
+          if (css[close] === '{') depth++;
+          else if (css[close] === '}') depth--;
+          close++;
+        }
+        const inner = css.slice(open + 1, close - 1);
+        const trimmed = head.trim();
+        if (/^@(media|supports|layer|container|document)/i.test(trimmed)) {
+          out += head + '{' + scopedCss(inner, scope) + '}';
+        } else if (trimmed.startsWith('@')) {
+          out += head + '{' + inner + '}';
+        } else {
+          const selectors = head.split(',').map(x => {
+            const t = x.trim();
+            if (!t) return t;
+            if (t === ':root' || t === 'html' || t === 'body') return scope;
+            if (t === '*') return scope + ' *';
+            return scope + ' ' + t;
+          });
+          out += selectors.join(', ') + '{' + inner + '}';
+        }
+        pos = close;
+      }
+      return out;
+    };
+    if (styleText) {
+      const style = document.createElement('style');
+      style.dataset.practicalStyle = kind;
+      style.textContent = scopedCss(styleText, '#native-practical-root');
+      document.head.append(style);
+    }
+    root.replaceChildren();
+    const backLink = h('a', { id: 'back', class: 'btn', href: '#/', style: { display: 'inline-flex', width: 'fit-content', textDecoration: 'none' } }, '‹ Back to Laboratory');
+    root.append(backLink);
+    const sourceBody = doc.body;
+    if (kind === 'phy') {
+      const sourceMain = sourceBody.querySelector('main');
+      if (sourceMain) {
+        [...sourceMain.children].forEach(node => {
+          if (node.id !== 'back') root.append(document.importNode(node, true));
+        });
+      }
+      const viewer = sourceBody.querySelector('#lb');
+      if (viewer) root.append(document.importNode(viewer, true));
+    } else {
+      [...sourceBody.children].forEach(node => {
+        if (node.tagName === 'SCRIPT') return;
+        if (node.tagName === 'HEADER') {
+          const main = node.querySelector('main');
+          if (main) [...main.children].forEach(child => root.append(document.importNode(child, true)));
+        } else if (node.tagName === 'MAIN') {
+          [...node.children].forEach(child => root.append(document.importNode(child, true)));
+        }
+      });
+    }
+    const scripts = [...doc.querySelectorAll('script')].map(x => x.textContent || '').filter(Boolean);
+    for (let code of scripts) {
+      if (kind === 'phy') {
+        code = code.replace(
+          /document\.getElementById\('back'\)\.href=embeddedLab\?'#':'index\.html';if\(embeddedLab\)\{[\s\S]*?\}\s*/,
+          "document.getElementById('back').href='#/';\n"
+        );
+      }
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.textContent = code;
+      root.append(script);
+    }
+    if (kind === 'phy') {
+      const backInside = root.querySelector('#back');
+      if (backInside) backInside.addEventListener('click', e => { e.preventDefault(); go('#/'); });
+    }
+  } catch (error) {
+    root.replaceChildren(
+      h('div', { class: 'panel stack' },
+        h('h2', null, config.label),
+        h('p', { class: 'muted' }, 'The practical resource could not be loaded.'),
+        h('p', { class: 'tiny muted' }, String(error && error.message || error)),
+        h('button', { class: 'btn primary', onclick: () => integratedPracticalDocument(kind) }, 'Retry'))
+    );
+  }
+}
+function embeddedPhyLabView() { integratedPracticalDocument('phy'); }
+function embeddedChmLabView() { integratedPracticalDocument('chm'); }
 
 function practicalsView(code) {
   const P = practicalsFor(code); const c = courseBy(code);
