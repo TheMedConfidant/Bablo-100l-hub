@@ -10,16 +10,26 @@ function style(){if($('#cd-style'))return;let s=document.createElement('style');
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
 function stat(n,t){return h('div',{class:'cd-stat'},h('b',null,n),h('span',{class:'muted'},t))}
 function dashboard(){
- CA.tab='overview';
- const modes=[['⚡','First to Answer','Fastest correct answer takes the point.','quick_duel'],['⏱','Timed Test','Race the clock across a shared question set.','course_clash'],['🛡','Survival','Keep answering correctly to stay in.','survival'],['🏁','Points Race','Build the highest score before time runs out.','marathon'],['🧠','Topic Master','Own one topic from start to finish.','topic_battle'],['🌐','Mixed Challenge','Combine courses in one battle.','multi_course']];
- const cards=modes.map(([ic,title,desc,mode])=>h('button',{class:'cd-modecard',onclick:()=>createPanel(mode)},ic,title,desc));
- const nav=['Overview','Discover','My Challenges','Friends','Champions League'].map((t,i)=>h('button',{class:i===0?'active':'',onclick:()=>tab(t)},t));
- const left=h('section',{class:'cd-panel'});left.append(h('h3',null,'Rooms & invitations'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your rooms and invitations…'));
- const right=h('aside',{class:'cd-panel cd-rankpanel'});right.append(h('h3',null,'Your next level starts here.'),h('p',{class:'muted'},'Play consistently, earn XP and build your course reputation.'));
- const grid=h('div',{class:'cd-grid'},left,right);
- const actions=h('div',{class:'cd-actions'});actions.append(h('button',{onclick:quick},'⚡ Create open challenge'),h('button',{onclick:createPanel},'＋ Create a challenge'),h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'));
- const content=h('div',{id:'challenge-dashboard'});content.append(hero(),h('div',{class:'cd-stats'},stat('—','Open rooms'),stat('—','Invitations'),stat('—','Wins'),stat('0','XP earned')),actions,h('div',{class:'cd-modegrid'},...cards),h('div',{class:'cd-tabs'},...nav),grid);
- frame(content);loadInbox();
+  CA.tab='overview';
+  const nav=['Open challenges','My Challenges','Friends','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t==='Open challenges'?'Discover':t)},t));
+  const content=h('div',{id:'challenge-dashboard'});
+  const actions=h('div',{class:'cd-actions'});
+  actions.append(
+    h('button',{onclick:()=>createPanel('quick_duel')},'＋ Create challenge'),
+    h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'),
+    h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges')
+  );
+  const rooms=h('section',{class:'cd-panel'});
+  rooms.append(h('h3',null,'Your active challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your challenges…'));
+  content.append(
+    hero(),
+    h('p',{class:'muted'},'Create a quiz battle, invite a friend, or join an open room.'),
+    actions,
+    h('div',{class:'cd-tabs'},...nav),
+    rooms
+  );
+  frame(content);
+  loadInbox();
 }
 async function loadInbox(){let el=$('#cd-inbox');if(!el)return;try{let x=await call('hub_challenge_inbox',{});CA.inbox=x.challenges||[];el.replaceChildren(...(CA.inbox.length?CA.inbox.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Challenge'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions · '+m.status),h('div',{class:'muted'},'Room '+(m.invite_code||'—'))),m.status==='waiting'?h('button',{onclick:()=>accept(m.id)},'Accept'):h('button',{class:'secondary',onclick:()=>open(m.id)},'Open'))):[h('p',{class:'muted'},'No active rooms yet. Start a Quick Match or create a challenge.')]))}catch(e){el.textContent=e.message}}
 async function tab(name){
