@@ -2018,8 +2018,8 @@ function openHubMenu(){
   const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
-    group('MORE',[link('Uploads & library','#/files','▤'),link('Chess','#/chess','♞')]),
-    group('ACCOUNT & SUPPORT',[link('Settings','#/settings','⚙'),link('Admin Panel','#/admin','🛠'),link('About Bablo Hub','#/about','ⓘ')]),
+    group('MORE',[link('Uploads & library','#/files','▤')]),
+    group('ACCOUNT',[link('My profile & account','#/me','◉'),link('Settings','#/settings','⚙'),link('About Bablo Hub','#/about','ⓘ'),link('Admin Panel','#/admin','🛠')]),
     h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
   );
   overlay=h('div',{class:'hub-menu-overlay',onclick:e=>{if(e.target===overlay)close();}},panel);
@@ -2169,7 +2169,7 @@ function startSession(o) {
     const close = modal(h('div', { class: 'stack' }, h('h2', null, 'Create an account first'),
       h('p', { class: 'muted small' }, 'Timed quizzes, mock tests, the premium exam and qualifications need an account. Practice stays open to everyone.'),
       h('a', { class: 'btn primary block', href: '#/me', onclick: () => close() }, 'Go to my account'),
-      h('button', { class: 'btn ghost block', onclick: () => close() }, 'Not now')), true);
+      h('button', { class: 'btn ghost block', onclick: () => { close(); go('#/'); } }, 'Not now')), true);
     return;
   }
   const s = Core.buildSession(Object.assign({ bank: BANK, exclude: HIDDEN }, o));
@@ -3965,9 +3965,8 @@ function settingsView() {
     h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
       h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
       h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Browser notifications require permission.'), h('div', { class: 'row between' }, h('span', null, 'Sound effects for timer and chess'), sound), h('p', { class: 'tiny muted' }, 'Optional short tones for timer completion, incoming chess moves and accepted challenges.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
-      h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' \u2022 version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '\u00A9 Bababola Moses Bolawaife, The MedConfidant Channel')))));
+    h('section', { class: 'panel stack' }, h('h2', null, 'Account preferences'), h('p', { class: 'small muted' }, 'Manage your account from My profile & account in the navigation menu.')),
+    h('section', { class: 'panel stack' }, h('h2', null, 'Feedback'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback'))
 }
 
 /* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
