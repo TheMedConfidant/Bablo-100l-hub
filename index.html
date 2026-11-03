@@ -129,10 +129,12 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .gpa-row input{min-height:40px;padding:0 8px;text-align:center}
 .gpa-sum{display:flex;gap:26px;flex-wrap:wrap}.gpa-sum b{font:800 2rem var(--head);display:block}
 /* nav, modal, toast */
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
-.nav .in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
-.nav a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:10px;color:var(--ink2);text-decoration:none;font-size:.74rem;font-weight:700}
-.nav a svg{width:22px;height:22px}.nav a[aria-current=page]{color:var(--brand);background:var(--brand-soft)}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--surface);border-top:1px solid var(--line);padding:7px 10px calc(7px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 28px rgba(0,0,0,.12);backdrop-filter:blur(16px)}
+.nav .in{width:100%;max-width:620px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(7px,2.5vw,18px);align-items:stretch}
+.nav a,.nav-menu-button{min-width:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 3px;border-radius:13px;color:var(--ink2);text-decoration:none;font-size:.72rem;font-weight:800;background:transparent;border:0;line-height:1.1}
+.nav a svg{width:22px;height:22px;flex:0 0 auto}.nav a[aria-current=page]{color:var(--brand);background:var(--brand-soft)}
+.nav-menu-button{width:100%;cursor:pointer;color:var(--ink2);font:inherit}.nav-menu-glyph{font-size:21px;line-height:22px;font-weight:900}.nav-menu-button:focus-visible,.nav a:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+@media(max-width:380px){.nav{padding-left:7px;padding-right:7px}.nav .in{gap:4px}.nav a,.nav-menu-button{font-size:.68rem;min-height:49px}}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(6,14,28,.62);display:grid;place-items:end center;padding:0}
 @media(min-width:640px){.overlay{place-items:center;padding:20px}}
 .modal{width:100%;max-width:460px;max-height:92vh;overflow:auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px))}
@@ -1868,8 +1870,10 @@ const back = (href, label) => h('a', { class: 'back', href }, '\u2039 ', label);
 
 function renderNav(active) {
   const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board']];
-  navEl.replaceChildren(h('div', { class: 'in' }, items.map(([k, href, label, ic]) =>
-    h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), label))));
+  const links = items.map(([k, href, label, ic]) =>
+    h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), h('span', null, label)));
+  links.push(h('button', { type:'button', class:'nav-menu-button', 'aria-label':'Open navigation menu', onclick:openHubMenu }, h('span',{class:'nav-menu-glyph'},'☰'), h('span',null,'Menu')));
+  navEl.replaceChildren(h('div', { class: 'in' }, links));
   navEl.style.display = active !== null ? '' : 'none';
 }
 
@@ -2041,8 +2045,7 @@ function homeView() {
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
-   h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()),
-   h('button',{class:'dashboard-icon-btn',type:'button','aria-label':'Open navigation menu',onclick:openHubMenu},'☰'))),
+   h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
   h('div',{class:'dashboard-section-head'},h('h2',null,'Explore Bablo Hub™'),h('span',null,'Your learning space')),
@@ -3887,24 +3890,61 @@ function holdPage(title, withPoll) {
 }
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function notificationsView() {
-  const box=h('div',{class:'stack-l'});
-  const makeToggle=(label,key,desc,action)=>{
-    const button=h('button',{class:'opt','aria-pressed':String(!!DB[key]),onclick:()=>{
-      if(action){action();return;}
-      DB[key]=!DB[key];save();notificationsView();
-    }},DB[key]?'On':'Off');
-    return h('section',{class:'panel stack'},
-      h('div',{class:'row between wrapr'},h('b',null,label),button),
-      h('p',{class:'small muted'},desc));
+  const box=h('div',{class:'stack-l notifications-page'});
+  const now=Date.now(),today=new Date();today.setHours(0,0,0,0);
+  const notices=[];
+  const add=(id,type,title,body,href,when,icon)=>{
+    notices.push({id,type,title,body,href,when:when||now,icon:icon||'•'});
   };
-  box.append(
-    h('h1',null,'Notifications'),
-    h('p',{class:'muted'},'Choose which Bablo Hub updates can reach you.'),
-    makeToggle('Announcements, polls and Programme Cup alerts','alerts','Push alerts can arrive when Bablo Hub is closed.',()=>enablePushAlerts()),
-    makeToggle('Study and calendar reminders','notify','Reminders appear while the app is open. Browser permission may be required.'),
-    makeToggle('Sound effects','soundAlerts','Optional sounds for timers, chess and accepted challenges.')
+  (DB.history||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8).forEach(e=>{
+    const pct=Number(e.pct||0);
+    add('quiz-'+e.ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
+      (e.correct??'—')+' correct out of '+(e.n??'—')+' · '+(Number.isFinite(pct)?Math.round(pct)+'%':'Score recorded'),
+      '#/board',e.ts,'✓');
+  });
+  const missed=DB.missed||{};
+  const missedIds=Object.keys(missed).filter(k=>missed[k]);
+  const missedQs=missedIds.map(id=>(window.__BANK__||[]).find(q=>q.i===id)).filter(Boolean);
+  const weakCourses=[...new Set(missedQs.map(q=>q.c).filter(Boolean))];
+  if(missedIds.length)add('weak-topics','Study focus','Topics to revisit',
+    missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.','#/weak',now,'↗');
+  const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
+    const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
+    return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-3600000;
+  }).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,8);
+  events.forEach(ev=>{
+    const dt=new Date(ev.date+'T'+(ev.time||'00:00'));
+    const diff=dt.getTime()-now;
+    const timing=diff<3600000?'Starting soon':diff<86400000?'Today':diff<172800000?'Tomorrow':dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
+    add('event-'+ev.id,'Schedule',ev.title,timing+' · '+(ev.time||'Time not set')+(ev.note?' · '+ev.note:''),'#/plan',dt.getTime(),'◷');
+  });
+  const read=DB.readNotices||{};
+  const unread=notices.filter(n=>!read[n.id]).length;
+  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{DB.readNotices=DB.readNotices||{};notices.forEach(n=>DB.readNotices[n.id]=true);save();notificationsView();}},'Mark all as read');
+  const groups=['All','Schedule','Academic progress','Study focus'];
+  let selected='All';
+  const list=h('div',{class:'stack',id:'notice-list'});
+  const render=()=>{
+    const filtered=notices.filter(n=>selected==='All'||n.type===selected);
+    list.replaceChildren(...(filtered.length?filtered.map(n=>{
+      const isRead=!!read[n.id];
+      return h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':'')},
+        h('span',{class:'notice-icon'},n.icon),
+        h('span',{class:'notice-copy'},h('span',{class:'notice-meta'},n.type+' · '+new Date(n.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),h('b',null,n.title),h('span',{class:'small muted'},n.body)),
+        h('span',{class:'notice-dot','aria-label':isRead?'Read':'Unread'},isRead?'':'●'));
+    }):[h('section',{class:'panel stack'},h('b',null,'You’re all caught up'),h('p',{class:'small muted'},selected==='All'?'New quiz results, schedule reminders and study prompts will appear here as they happen.':'No '+selected.toLowerCase()+' notifications right now.'))]));
+  };
+  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();}},g)));
+  notices.forEach(n=>{if(!read[n.id]){ /* keep unread until opened or marked read */ }});
+  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),filters,list,
+    h('section',{class:'panel stack notification-preferences'},h('h2',null,'Notification preferences'),h('p',{class:'small muted'},'Choose which updates Bablo Hub can send you.'),
+      h('div',{class:'row between wrapr'},h('span',null,h('b',null,'Announcements, polls & Programme Cup alerts'),h('small',{class:'muted'},'Push alerts when available.')),h('button',{class:'opt',onclick:enablePushAlerts},DB.alerts?'On':'Turn on')),
+      h('div',{class:'row between wrapr'},h('span',null,h('b',null,'Study and calendar reminders'),h('small',{class:'muted'},'In-app reminders while Bablo Hub is open.')),h('button',{class:'opt','aria-pressed':String(!!DB.notify),onclick:()=>{DB.notify=!DB.notify;save();notificationsView();}},DB.notify?'On':'Off')),
+      h('div',{class:'row between wrapr'},h('span',null,h('b',null,'Sound effects'),h('small',{class:'muted'},'Optional sounds for timers and activity.')),h('button',{class:'opt','aria-pressed':String(!!DB.soundAlerts),onclick:()=>{DB.soundAlerts=!DB.soundAlerts;save();notificationsView();}},DB.soundAlerts?'On':'Off'))
+    )
   );
-  mount(wrap(back('#/','Home'),box));
+  render();mount(wrap(back('#/','Home'),box));
+  list.addEventListener('click',e=>{const card=e.target.closest('.notice-card');if(!card)return;const item=notices.find(n=>n.href===card.getAttribute('href')&& !read[n.id]);if(item){DB.readNotices=DB.readNotices||{};DB.readNotices[item.id]=true;save();}});
 }
 function aboutView() {
   const box=h('div',{class:'stack-l'});
@@ -4254,3 +4294,20 @@ setTimeout(liveNotice, 1200);
 <script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
 </body>
 </html>
+
+<style>
+.notifications-page{padding-bottom:18px}
+.notice-filters{display:flex;gap:7px;overflow-x:auto;padding:3px 1px 8px}
+.notice-filters .opt{white-space:nowrap;flex:0 0 auto}
+.notice-card{display:grid;grid-template-columns:42px minmax(0,1fr) 12px;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);text-decoration:none;min-width:0}
+.notice-card.is-read{opacity:.72}
+.notice-icon{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);font-size:20px;font-weight:900}
+.notice-copy{display:grid;gap:4px;min-width:0}
+.notice-copy b{font-size:.94rem}
+.notice-copy .small{line-height:1.45;overflow-wrap:anywhere}
+.notice-meta{font-size:.68rem;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);font-weight:900}
+.notice-dot{font-size:10px;color:var(--brand)}
+.notification-preferences{margin-top:10px}
+.notification-preferences .row{gap:12px;padding:8px 0}
+.notification-preferences .row span{display:grid;gap:3px;min-width:0}
+</style>
