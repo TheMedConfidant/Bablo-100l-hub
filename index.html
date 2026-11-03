@@ -3828,24 +3828,18 @@ function holdPage(title, withPoll) {
 }
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function notificationsView() {
-  const box=h('div',{class:'stack-l'});
-  const makeToggle=(label,key,desc,action)=>{
-    const button=h('button',{class:'opt','aria-pressed':String(!!DB[key]),onclick:()=>{
-      if(action){action();return;}
-      DB[key]=!DB[key];save();notificationsView();
-    }},DB[key]?'On':'Off');
-    return h('section',{class:'panel stack'},
-      h('div',{class:'row between wrapr'},h('b',null,label),button),
-      h('p',{class:'small muted'},desc));
-  };
-  box.append(
-    h('h1',null,'Notifications'),
-    h('p',{class:'muted'},'Choose which Bablo Hub updates can reach you.'),
-    makeToggle('Announcements, polls and Programme Cup alerts','alerts','Push alerts can arrive when Bablo Hub is closed.',()=>enablePushAlerts()),
-    makeToggle('Study and calendar reminders','notify','Reminders appear while the app is open. Browser permission may be required.'),
-    makeToggle('Sound effects','soundAlerts','Optional sounds for timers, chess and accepted challenges.')
-  );
-  mount(wrap(back('#/','Home'),box));
+  const box = h('div', { class: 'stack-l' });
+  const heading = h('div', { class: 'stack' },
+    h('h1', null, 'Notifications'),
+    h('p', { class: 'muted' }, 'Updates and activity from Bablo Hub.'));
+  const inbox = h('section', { class: 'panel stack', 'aria-live': 'polite' },
+    h('div', { class: 'row between wrapr' }, h('h2', null, 'Your inbox'), h('span', { class: 'chip' }, 'Notifications')),
+    h('div', { class: 'empty-state stack', style: { textAlign: 'center', padding: '28px 12px' } },
+      h('div', { style: { fontSize: '2rem' }, 'aria-hidden': 'true' }, '♧'),
+      h('b', null, 'You’re all caught up'),
+      h('p', { class: 'small muted' }, 'New announcements, challenge activity and other updates will appear here when available.')));
+  box.append(heading, inbox);
+  mount(wrap(back('#/', 'Home'), box));
 }
 function aboutView() {
   const box=h('div',{class:'stack-l'});
@@ -3860,18 +3854,13 @@ function aboutView() {
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
-  const notif = h('button', { class: 'opt', 'aria-pressed': String(!!DB.notify), onclick: () => { DB.notify = !DB.notify; save(); if (DB.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); toast(DB.notify ? 'Reminders on.' : 'Reminders off.'); settingsView(); } }, DB.notify ? 'On' : 'Off');
-  const sound = h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); if (DB.soundAlerts) playNoticeSound('chess'); toast(DB.soundAlerts ? 'Sound alerts on.' : 'Sound alerts off.'); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Settings')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Look'), h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'), h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Alerts'), h('div', { class: 'row between' }, h('span', null, 'Polls, the Cup and announcements'), h('button', { class: 'opt', 'aria-pressed': String(!!DB.alerts), onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
-      h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
-      h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Browser notifications require permission.'), h('div', { class: 'row between' }, h('span', null, 'Sound effects for timer and chess'), sound), h('p', { class: 'tiny muted' }, 'Optional short tones for timer completion, incoming chess moves and accepted challenges.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Me'), h('p', null, h('b', null, 'Name: '), DB.profile.name), h('p', null, h('b', null, 'Programme: '), DB.profile.programme), h('p', null, h('b', null, 'Unique ID: '), DB.profile.uid || 'Not created yet'),
       h('a', { class: 'btn block', href: '#/me' }, 'My account'), h('a', { class: 'btn block', href: '#/me' }, 'Pay for premium'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' \u2022 version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '\u00A9 Bababola Moses Bolawaife, The MedConfidant Channel')))));
+    h('section', { class: 'panel stack' }, h('h2', null, 'About'), h('p', { class: 'small muted' }, APP.name + ' • version ' + APP.version), ABOUT_TEXT.map(t => h('p', { style: { margin: '0 0 8px' } }, t)), h('p', { class: 'tiny muted' }, '© Bababola Moses Bolawaife, The MedConfidant Channel')))));
 }
 
 /* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
