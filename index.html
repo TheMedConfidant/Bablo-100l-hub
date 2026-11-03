@@ -3966,7 +3966,7 @@ function settingsView() {
       h('p', { class: 'tiny muted' }, 'Alerts arrive even when the app is closed. On iPhone, add Bablo Hub to your home screen first.'), h('h2', null, 'Reminders'), h('div', { class: 'row between' }, h('span', null, 'Test and calendar reminders'), notif),
       h('p', { class: 'tiny muted' }, 'Reminders appear while the app is open. Browser notifications require permission.'), h('div', { class: 'row between' }, h('span', null, 'Sound effects for timer and chess'), sound), h('p', { class: 'tiny muted' }, 'Optional short tones for timer completion, incoming chess moves and accepted challenges.')),
     h('section', { class: 'panel stack' }, h('h2', null, 'Account preferences'), h('p', { class: 'small muted' }, 'Manage your account from My profile & account in the navigation menu.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Feedback'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback'))
+    h('section', { class: 'panel stack' }, h('h2', null, 'Feedback'), h('a', { class: 'btn block', href: '#/feedback' }, 'Send feedback')))));
 }
 
 /* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
@@ -4048,7 +4048,7 @@ function liveNotice() {
     h('p', { class: 'muted small' }, 'Bablo Hub is now open for all CoHES students: past questions, timed quizzes, notes, flashcards, the timetable and the calendar.'),
     h('p', { class: 'small' }, 'Create an account so your progress is saved and follows you to any phone. Practice works without one.'),
     h('a', { class: 'btn primary block', href: '#/me', onclick: () => close() }, 'Create my account'),
-    h('button', { class: 'btn ghost block', onclick: () => close() }, 'Not now')), true);
+    h('button', { class: 'btn ghost block', onclick: () => { close(); go('#/'); } }, 'Not now')), true);
 }
 
 /* ---------- push alerts: students opt in; the admin sends from the Admin page ---------- */
