@@ -608,6 +608,35 @@ button,a,input,select,textarea{touch-action:manipulation}
 .hub-menu-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:var(--gold-soft);color:var(--gold);font-size:1.05rem;flex:none;}
 .hub-menu-arrow{margin-left:auto;color:var(--ink2);font-size:1.35rem;}
 .hub-menu-foot{margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--line);font-size:.78rem;color:var(--ink2);}
+
+/* Bablo Hub full-app dashboard refresh: lightweight glass-inspired surfaces. */
+.dashboard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.dashboard-top .brand{min-width:0}.dashboard-top-actions{display:flex;align-items:center;gap:8px}
+.dashboard-icon-btn,.dashboard-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-weight:800}
+.dashboard-avatar{border-color:var(--gold);background:var(--gold-soft);color:#17120a;border-radius:50%}
+.dashboard-welcome{border:1px solid rgba(212,175,55,.55);border-radius:22px;padding:22px;margin:10px 0 24px;background:linear-gradient(120deg,rgba(212,175,55,.16),var(--surface) 68%);box-shadow:0 6px 20px rgba(0,0,0,.08)}
+.dashboard-eyebrow{font-size:10px;letter-spacing:2px;font-weight:900;color:var(--gold)}
+.dashboard-welcome h1{font-size:clamp(25px,5vw,36px);margin:8px 0}
+.dashboard-welcome p{margin:0;color:var(--ink2)}
+.dashboard-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:20px}
+.dashboard-metrics>div,.dashboard-metrics>a{padding:10px;border-radius:13px;background:rgba(127,127,127,.09);text-decoration:none;color:inherit}
+.dashboard-metrics b,.dashboard-metrics small{display:block}.dashboard-metrics b{font-size:20px;color:var(--gold)}.dashboard-metrics small{font-size:10px;color:var(--ink2)}
+.dashboard-section-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:20px 2px 12px}.dashboard-section-head h2{margin:0;font-size:19px}.dashboard-section-head span{font-size:11px;color:var(--ink2)}
+.dashboard-grid,.catalogue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.dashboard-card,.catalogue-course{min-width:0;min-height:112px;display:flex;align-items:center;gap:11px;padding:14px;border:1px solid var(--line);border-radius:17px;background:var(--surface);color:var(--ink);text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.045);transition:border-color .14s ease,transform .14s ease}
+.dashboard-card:focus-visible,.catalogue-course:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.dashboard-card:hover,.catalogue-course:hover{border-color:var(--gold);transform:translateY(-1px)}
+.dashboard-card-icon{width:43px;height:43px;flex:0 0 43px;display:grid;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--card-accent,var(--gold)) 16%,transparent);font-size:22px}
+.dashboard-card-copy{display:block;min-width:0;flex:1}.dashboard-card-copy b,.dashboard-card-copy small{display:block}.dashboard-card-copy b{font-size:13px}.dashboard-card-copy small{font-size:10px;line-height:1.35;color:var(--ink2);margin-top:4px}
+.dashboard-card-arrow{margin-left:auto;font-size:23px;color:var(--gold)}
+.dashboard-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:17px}
+.dashboard-quick{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font-size:12px;text-decoration:none}
+.dashboard-footnote{text-align:center;color:var(--ink2);font-size:10px;margin:25px 0}
+.dashboard-page-head{margin-bottom:18px}.dashboard-page-head h1{margin:12px 0 4px}.catalogue-course{align-items:flex-start;flex-direction:column;gap:5px;text-align:left;min-height:110px}.catalogue-course small{color:var(--ink2)}.catalogue-code{font-size:10px;color:var(--gold);font-weight:900;letter-spacing:1px}
+:root[data-skin="glass"] .dashboard-card,:root[data-skin="glass"] .dashboard-quick,:root[data-skin="glass"] .catalogue-course{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+:root[data-skin="glass"] .panel,:root[data-skin="glass"] .tile,:root[data-skin="glass"] .rows,:root[data-skin="glass"] .rev,:root[data-skin="glass"] .qcard,:root[data-skin="glass"] .modal,:root[data-skin="glass"] .slip,:root[data-skin="glass"] .nav,:root[data-skin="glass"] .dock{-webkit-backdrop-filter:blur(2px) saturate(102%) !important;backdrop-filter:blur(2px) saturate(102%) !important}
+@media(max-width:380px){.dashboard-card{padding:11px;gap:8px;min-height:102px}.dashboard-card-icon{width:36px;height:36px;flex-basis:36px}.dashboard-card-copy b{font-size:12px}.dashboard-card-copy small{font-size:9px}}
+@media(min-width:760px){.dashboard-grid,.catalogue-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
@@ -1917,6 +1946,9 @@ function route() {
   try {
     if (v === 'calculator') { go('#/'); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
+    else if (v === 'courses') coursesCatalogueView();
+    else if (v === 'time') timeHubView();
+    else if (v === 'arcade') arcadeHubView();
     else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
@@ -1982,40 +2014,66 @@ function openHubMenu(){
   const panel=h('aside',{class:'hub-menu-panel',role:'dialog','aria-modal':'true','aria-label':'Bablo Hub navigation'});
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
-    group('STUDY',[link('Dashboard & courses','#/','⌂'),link('Uploads & library','#/files','▤'),link('Study resources','#/','⚗')]),
-    group('COMMUNITY',[link('Challenge Arena','#/challenge','⚔'),link('Chess','#/chess','♞'),link('Social','#/social','◎'),link('Programme Cup','#/cup','🏆'),link('Leaderboard','#/board','▥')]),
-    group('YOUR ACCOUNT',[link('Notifications','#/notifications','♧'),link('Profile','#/me','◉'),link('Settings','#/settings','⚙'),link('About Bablo Hub','#/about','ⓘ')]),
+    group('STUDY',[link('Dashboard','#/','⌂'),link('Courses','#/courses','📚'),link('Practicals','#/practicals','🧪'),link('Time & Productivity','#/time','◷'),link('Uploads & library','#/files','▤')]),
+    group('COMMUNITY',[link('Challenge Arena','#/challenge','⚔'),link('Bablo Arcade','#/arcade','🎮'),link('Chess','#/chess','♞'),link('Social','#/social','◎'),link('Programme Cup','#/cup','🏆'),link('Leaderboard','#/board','▥')]),
+    group('YOUR ACCOUNT',[link('Notifications','#/notifications','♧'),link('Profile','#/me','◉'),link('Settings','#/settings','⚙'),link('Admin Panel','#/admin','🛠'),link('About Bablo Hub','#/about','ⓘ')]),
     h('div',{class:'hub-menu-foot'},'TheMedConfidant 🩺 · Confidence in Clarity')
   );
   overlay=h('div',{class:'hub-menu-overlay',onclick:e=>{if(e.target===overlay)close();}},panel);
   document.body.append(overlay);document.addEventListener('keydown',onKey);
   const first=panel.querySelector('a');if(first)first.focus();
 }
+function dashboardCard(title,desc,icon,href,accent){return h('a',{class:'dashboard-card',href,style:{'--card-accent':accent||'var(--gold)'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},icon),h('span',{class:'dashboard-card-copy'},h('b',null,title),h('small',null,desc)),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'›'))}
 function homeView() {
-  const p = DB.profile, first = p.name.split(' ')[0], hr = new Date().getHours();
-  const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
-  const st = Core.streak(DB.history.map(x => x.ts), Date.now());
-  const weak = Object.keys(DB.missed).length;
-  const hero = h('section', { class: 'hero' + (DB.skin === 'gold' ? ' gold-hero' : '') },
-    h('h1', null, greet + ', ' + first),
-    h('p', null, 'Pick a course, practise a topic, then test yourself.'),
-    h('div', { class: 'hero-stats' },
-      h('div', null, h('b', null, st), h('span', null, st === 1 ? 'day streak' : 'day streak')),
-      h('div', null, h('b', null, DB.history.length), h('span', null, 'attempts')),
-      h('a', { href: '#/weak', style: { color: 'inherit', textDecoration: 'none' } }, h('b', null, weak), h('span', null, 'weak spots \u203A'))));
-  const L200 = DB.profile && DB.profile.level === '200L';
-  const tiles = homeCourses().map(c => {
-    if (c.pending200) return h('div', { class: 'tile pending', style: { '--c': c.color } }, h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title), h('div', { class: 'row wrapr', style: { marginTop: '6px' } }, ['Questions', 'Notes', 'Practicals', 'Labs'].map(t => h('button', { class: 'btn sm', onclick: () => open200(c.code, t) }, t))));
-    const ok = isAvail(c), n = ok ? BYC[c.code].length : 0, bp = bestPct(c.code);
-    const body = [h('div', { class: 'code' }, c.label), h('div', { class: 'meta' }, c.title)];
-    if (ok) body.push(h('div', { class: 'meta' }, plural(n, 'question') + ' \u2022 ' + plural(unitsOf(c.code).length, 'topic')),
-      h('div', { class: 'bar', style: { '--c': c.color } }, h('i', { style: { width: (bp || 0) + '%' } })),
-      h('div', { class: 'status' }, bp == null ? 'Available \u2022 start a quiz' : 'Best ' + bp + '% \u2022 continue to quiz'));
-    else body.push(h('div', { class: 'status' }, 'Pending'), h('div', { class: 'tiny' }, 'Questions on the way'));
-    return h('button', { class: 'tile' + (ok ? '' : ' pending'), style: { '--c': c.color }, onclick: () => ok ? go('#/course/' + c.code) : toast(c.label + ' questions are on the way.') }, body);
-  });
-  mount(wrap(h('div', { class: 'top' }, brand(), h('span', { class: 'top-actions' }, st > 0 ? h('span', { class: 'chip gold' }, '\uD83D\uDD25 ' + st + '-day streak') : null, h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Open navigation menu', 'aria-haspopup': 'dialog', onclick: openHubMenu }, '☰'))),
-    h('div', { class: 'stack-l' }, eventBanner(), hero, h('section', { class: 'stack' }, h('div', { class: 'row between wrapr' }, h('h2', null, L200 ? '200 Level courses' : 'Your courses'), L200 ? h('div', { class: 'seg' }, [['first', 'First semester'], ['second', 'Second semester']].map(([v, l]) => h('button', { class: 'opt', 'aria-pressed': String(HOME_SEM === v), onclick: () => { HOME_SEM = v; route(); } }, l))) : null), h('div', { class: 'grid' }, tiles.length ? tiles : [h('p', { class: 'muted' }, 'No courses for this semester yet.')])))))
+ const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
+ const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+ const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
+ const cards=[
+  dashboardCard('Courses','Course catalogue, notes, flashcards & QBank','📚','#/courses','#D6A82B'),
+  dashboardCard('Practicals','Laboratory guides and procedures','🧪','#/practicals','#53B6A5'),
+  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
+  dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
+  dashboardCard('Leaderboard','Rankings and performance','🥇','#/board','#D6A82B'),
+  dashboardCard('Challenge Arena','Create and join quiz challenges','⚔️','#/challenge','#D6A82B'),
+  dashboardCard('Arcade','Chess and games','🎮','#/arcade','#D6A82B'),
+  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
+ ];
+ mount(wrap(
+  h('header',{class:'dashboard-top'},h('a',{class:'brand',href:'#/'},brand()),h('div',{class:'dashboard-top-actions'},
+   h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
+   h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()),
+   h('button',{class:'dashboard-icon-btn',type:'button','aria-label':'Open navigation menu',onclick:openHubMenu},'☰'))),
+  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
+   h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
+  h('div',{class:'dashboard-section-head'},h('h2',null,'Explore Bablo Hub™'),h('span',null,'Your learning space')),
+  h('section',{class:'dashboard-grid'},...cards),
+  h('section',{class:'dashboard-quick-grid'},h('a',{href:'#/timetable',class:'dashboard-quick'},'◷  Timetable'),h('a',{href:'#/plan',class:'dashboard-quick'},'▦  Event planner'),h('a',{href:'#/files',class:'dashboard-quick'},'⇧  Uploads'),h('a',{href:'#/settings',class:'dashboard-quick'},'⚙  Settings')),
+  h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
+ ));
+}
+function coursesCatalogueView(){
+ const p=DB.profile,L200=p&&p.level==='200L';
+ const list=homeCourses().map(c=>{const ok=isAvail(c),n=ok?BYC[c.code].length:0;
+  return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Questions'):go('#/course/'+c.code)},
+   h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
+ });
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Choose a course to open its dashboard and learning resources.')),
+ h('section',{class:'catalogue-grid'},...list)));
+}
+function timeHubView(){
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Time & Productivity'),h('p',{class:'muted'},'Plan your academic week and protect your study time.')),
+ h('section',{class:'dashboard-grid'},
+ dashboardCard('Timetable','Departmental and programme schedules','◷','#/timetable'),
+ dashboardCard('Event Planner','Tests, exams, competitions and personal study','▦','#/plan'),
+ dashboardCard('Study reminders','Your saved reminders and alerts','♧','#/notifications')
+ )));
+}
+function arcadeHubView(){
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'Games, strategy and friendly competition.')),
+ h('section',{class:'dashboard-grid'},
+ dashboardCard('Bablo Chess','Play Dr ECG or challenge another player','♟','#/chess'),
+ dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics')
+ )));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
 function ecgBeatPath(x0, variant) {
