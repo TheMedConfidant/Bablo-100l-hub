@@ -1024,12 +1024,12 @@ const COURSES = [
   { code: 'GST111', label: 'GST 111', title: 'Communication in English', color: '#8896A8', units: 2 },
   { code: 'GEL101', label: 'BUI-GEL 101', title: 'General Education (GEL)', color: '#8896A8', units: 2 },
   { code: 'LIB101', label: 'BUI-LIB 101', title: 'Library', color: '#64748B', units: 2 },
-  { code: 'MTH101', label: 'MTH 101', title: 'Elementary Mathematics I', color: '#C2410C', units: 3 },
+  { code: 'MTH101', label: 'MTS 101', title: 'Mathematical Techniques', color: '#C2410C', units: 3 },
   { code: 'MLS101', label: 'MLS 101', title: 'Medical Laboratory Science', color: '#0F766E', units: 2 },
 ];
 
 /* Which courses each programme takes. Shared core for everyone; extras per programme.
-   MTH 101 is added for every programme except Doctor of Physiotherapy. It shows as Pending until its questions are loaded. */
+   MTS 101 (internal course key MTH101) is available to the programmes listed below; access follows each programme's course mapping. */
 const CORE_COURSES = ['BIO', 'CHM', 'PHY', 'COS', 'GST111', 'GEL101', 'LIB101'];
 const PROGRAMME_COURSES = {
   'MBBS': [...CORE_COURSES, 'AGR', 'MTH101'],
@@ -1092,7 +1092,7 @@ const TIMETABLE_100_1 = [
   { day: 'Tuesday', code: 'CHM 101', time: '9:00am-11:00am', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 107', time: '2:00pm-6:00pm', venue: 'PHY Lab 1, MICOM I, MICOM II' },
-  { day: 'Wednesday', code: 'MTH 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
+  { day: 'Wednesday', code: 'MTS 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
   { day: 'Wednesday', code: 'CHM 107', time: '1:00pm-4:00pm', venue: 'CHM Building General Lab' },
   { day: 'Thursday', code: 'BIO 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
   { day: 'Thursday', code: 'BIO 107', time: '2:00pm-5:00pm', venue: 'BIO Lab I-III' }
