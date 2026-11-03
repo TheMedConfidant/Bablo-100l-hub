@@ -1982,6 +1982,7 @@ function route() {
     else if (v === 'admin') adminView();
     else if (v === 'timetable') timetableView();
     else if (v === 'files') filesView();
+    else if (v === 'feedback') feedbackView();
     else if (v === 'settings') settingsView();
     else if (v === 'notifications') notificationsView();
     else if (v === 'about') aboutView();
@@ -2029,6 +2030,33 @@ function onboarding() {
 
 /* ---------- home ---------- */
 const PULSE = 'M0 30H62L74 30L82 8L92 52L102 18L110 30H196L208 30L216 6L228 54L238 20L246 30H360';
+function feedbackView() {
+  const kind = h('select', { class: 'field' },
+    h('option', { value: 'idea' }, 'Suggestion / idea'),
+    h('option', { value: 'bug' }, 'Report a bug'),
+    h('option', { value: 'wrong_answer' }, 'Report a wrong answer'),
+    h('option', { value: 'other' }, 'Other'));
+  const ref = h('input', { type: 'text', maxlength: '60', placeholder: 'Optional: course, question ID or page' });
+  const body = h('textarea', { rows: '6', maxlength: '1000', placeholder: 'Tell the Bablo Hub team what happened or what you would improve…', style: { width: '100%', resize: 'vertical' } });
+  const status = h('p', { class: 'tiny muted', role: 'status', 'aria-live': 'polite' });
+  const send = h('button', { class: 'btn primary block', type: 'button' }, 'Send feedback');
+  send.addEventListener('click', async () => {
+    const message = body.value.trim();
+    if (message.length < 2) { status.textContent = 'Please add a little more detail.'; return; }
+    send.disabled = true; send.textContent = 'Sending…'; status.textContent = '';
+    const result = await sendFeedback(kind.value, message, ref.value.trim());
+    if (result === 'ok') { body.value = ''; ref.value = ''; status.textContent = 'Feedback sent. Thank you for helping improve Bablo Hub.'; }
+    else status.textContent = result === 'offline' ? 'Connect to the internet and try again.' : 'Could not send feedback. Please try again.';
+    send.disabled = false; send.textContent = 'Send feedback';
+  });
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('div', { class: 'stack' }, h('h1', null, 'Feedback'), h('p', { class: 'muted' }, 'Report a problem, flag a question or suggest an improvement. Your feedback goes to the Bablo Hub team.')),
+    h('section', { class: 'panel stack' },
+      h('label', { class: 'field' }, h('span', null, 'Feedback type'), kind),
+      h('label', { class: 'field' }, h('span', null, 'Reference (optional)'), ref),
+      h('label', { class: 'field' }, h('span', null, 'Your message'), body),
+      send, status))));
+}
 function openHubMenu(){
   let overlay;
   const close=()=>{if(overlay&&overlay.isConnected)overlay.remove();document.removeEventListener('keydown',onKey);};
@@ -2039,7 +2067,7 @@ function openHubMenu(){
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
     group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
-    group('LIBRARY',[link('Uploads & library','#/files','▤')]),
+    group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Send feedback','#/feedback','✉')]),
     group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
     group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
     group('ADMINISTRATION',[link('Admin Panel','#/admin','🛠')]),
