@@ -2173,14 +2173,22 @@ function maybeExamSchedulePush(rows) {
   DB.examPushSent = DB.examPushSent || {};
   const now = Date.now();
   rows.forEach(row => {
-    if (!row.scheduled_date || DB.examPushSent[row.id]) return;
+    if (!row.scheduled_date) return;
     const exam = new Date(row.scheduled_date + 'T09:00:00+01:00').getTime();
-    if (exam > now && exam - now <= 36 * 60 * 60 * 1000) {
+    const remaining = exam - now;
+    if (remaining <= 0) return;
+    const stages = [{ key:'7d', window:7*86400000, min:6*86400000, label:'is in 7 days' },
+      { key:'1d', window:24*3600000, min:23*3600000, label:'is tomorrow' },
+      { key:'1h', window:3600000, min:0, label:'starts in about an hour' }];
+    stages.forEach(stage => {
+      const key = row.id + ':' + stage.key;
+      if (DB.examPushSent[key] || remaining > stage.window || remaining <= stage.min) return;
       try {
-        new Notification(row.course_code + (row.assessment_type === 'Exam' ? ' exam' : ' test') + ' coming up', { body: 'Scheduled for ' + examScheduleDate(row) + '. Open Bablo Hub for your study resources.', icon:'icon-192.png', tag:'exam-' + row.id });
-        DB.examPushSent[row.id] = true; save();
+        new Notification(row.course_code + (row.assessment_type === 'Exam' ? ' exam' : ' test') + ' ' + stage.label,
+          { body:'Scheduled for ' + examScheduleDate(row) + '. Open Bablo Hub for your study resources.', icon:'icon-192.png', tag:'exam-' + key });
+        DB.examPushSent[key] = true; save();
       } catch (e) {}
-    }
+    });
   });
 }
 function sharedExamSchedulePanel() {
@@ -4142,8 +4150,8 @@ function notificationsView() {
   };
   const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();}},g)));
   notices.forEach(n=>{if(!read[n.id]){ /* keep unread until opened or marked read */ }});
-  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),filters,list,
-
+  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),
+    sharedExamSchedulePanel(), filters, list
   );
   render();
   fetchPublicExamSchedule().then(rows => {
