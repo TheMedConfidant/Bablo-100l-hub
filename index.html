@@ -1713,7 +1713,7 @@ if (window.__CHM101_THERMO_PACK__) {
   window.__NOTES__.CHM = existingNotes;
   P.questions.forEach((q, i) => {
     const item = { i: 'CHM101-THERMO-' + String(i + 1).padStart(3, '0'), c: 'CHM', u: 'Thermochemistry', s: 'mcq', q: q.q, o: q.o, a: q.a, e: q.e };
-    if (!BANK.some(old => old.i === item.i)) { BANK.push(item); (BYC.CH = BYC.CH || []).push(item); }
+    if (!BANK.some(old => old.i === item.i)) { BANK.push(item); (BYC.CHM = BYC.CHM || []).push(item); }
   });
 }
 
