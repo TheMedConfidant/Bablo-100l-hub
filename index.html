@@ -4180,7 +4180,7 @@ function settingsView() {
     h('section', { class: 'panel stack' },
       h('h2', null, 'Notifications & reminders'),
       h('div', { class: 'row between wrapr' },
-        h('span', null, h('b', null, 'Announcements & Programme Cup alerts'), h('small', { class: 'muted' }, 'Push notifications when available.')),
+        h('span', null, h('b', null, 'Test, exam & Hub alerts'), h('small', { class: 'muted' }, 'Push notifications for upcoming tests, exams and announcements.')),
         h('button', { class: 'opt', onclick: enablePushAlerts }, DB.alerts ? 'On' : 'Turn on')),
       h('div', { class: 'row between wrapr' },
         h('span', null, h('b', null, 'Study and calendar reminders'), h('small', { class: 'muted' }, 'In-app reminders while Bablo Hub is open.')),
@@ -4302,7 +4302,7 @@ async function enablePushAlerts() {
     const j = sub.toJSON();
     await fetch(LB.url + '/rest/v1/push_subscriptions', { method: 'POST', headers: sbHeaders({ Prefer: 'resolution=ignore-duplicates,return=minimal' }), body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }) });
     DB.alerts = true; save();
-    toast('Alerts are on. You will hear about polls and the Cup.');
+    toast('Alerts are on. You can receive exam reminders and Hub announcements.');
     settingsView();
   } catch (e) { toast('Could not turn on alerts. Check your connection and try again.'); }
 }
