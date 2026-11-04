@@ -2152,6 +2152,52 @@ function openHubMenu(){
   const first=panel.querySelector('a');if(first)first.focus();
 }
 function dashboardCard(title,desc,icon,href,accent){return h('a',{class:'dashboard-card',href,style:{'--card-accent':accent||'var(--gold)'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},icon),h('span',{class:'dashboard-card-copy'},h('b',null,title),h('small',null,desc)),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'›'))}
+let EXAM_SCHEDULE_CACHE = null;
+async function fetchPublicExamSchedule() {
+  if (Array.isArray(EXAM_SCHEDULE_CACHE)) return EXAM_SCHEDULE_CACHE;
+  try {
+    const r = await fetch(LB.url + '/rest/v1/rpc/hub_public_exam_schedule', { method: 'POST', headers: sbHeaders(), body: '{}' });
+    if (!r.ok) throw new Error('Schedule unavailable (' + r.status + ')');
+    const rows = await r.json();
+    EXAM_SCHEDULE_CACHE = Array.isArray(rows) ? rows : [];
+    maybeExamSchedulePush(EXAM_SCHEDULE_CACHE);
+    return EXAM_SCHEDULE_CACHE;
+  } catch (e) { console.warn('[Exam schedule]', e); return []; }
+}
+function examScheduleDate(row) {
+  if (!row.scheduled_date) return row.date_status === 'tentative' ? 'Tentative · date to be confirmed' : 'Date to be confirmed';
+  return new Date(row.scheduled_date + 'T00:00:00+01:00').toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
+}
+function maybeExamSchedulePush(rows) {
+  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted') return;
+  DB.examPushSent = DB.examPushSent || {};
+  const now = Date.now();
+  rows.forEach(row => {
+    if (!row.scheduled_date || DB.examPushSent[row.id]) return;
+    const exam = new Date(row.scheduled_date + 'T09:00:00+01:00').getTime();
+    if (exam > now && exam - now <= 36 * 60 * 60 * 1000) {
+      try {
+        new Notification(row.course_code + (row.assessment_type === 'Exam' ? ' exam' : ' test') + ' coming up', { body: 'Scheduled for ' + examScheduleDate(row) + '. Open Bablo Hub for your study resources.', icon:'icon-192.png', tag:'exam-' + row.id });
+        DB.examPushSent[row.id] = true; save();
+      } catch (e) {}
+    }
+  });
+}
+function sharedExamSchedulePanel() {
+  const panel = h('section', { class:'panel stack', id:'shared-exam-schedule' },
+    h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')));
+  panel.append(h('p',{class:'small muted'},'Loading shared schedule…'));
+  fetchPublicExamSchedule().then(rows => {
+    const items = rows.slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
+    panel.replaceChildren(
+      h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')),
+      ...items.map(row => h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
+        h('span',null,h('b',null,row.course_code+' · '+row.assessment_type),h('small',{class:'muted'},row.note||'')),
+        h('span',{class:'chip'},examScheduleDate(row))))
+    );
+  });
+  return panel;
+}
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
@@ -2173,6 +2219,7 @@ function homeView() {
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
+  sharedExamSchedulePanel(),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
@@ -4096,7 +4143,17 @@ function notificationsView() {
   box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),filters,list,
 
   );
-  render();mount(wrap(back('#/','Home'),box));
+  render();
+  fetchPublicExamSchedule().then(rows => {
+    rows.forEach(row => {
+      const dateLabel = examScheduleDate(row);
+      const when = row.scheduled_date ? new Date(row.scheduled_date + 'T09:00:00+01:00').getTime() : now;
+      add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
+    });
+    notices.sort((a,b)=>(a.when||0)-(b.when||0));
+    render();
+  });
+  mount(wrap(back('#/','Home'),box));
   list.addEventListener('click',e=>{const card=e.target.closest('.notice-card');if(!card)return;const item=notices.find(n=>n.href===card.getAttribute('href')&& !read[n.id]);if(item){DB.readNotices=DB.readNotices||{};DB.readNotices[item.id]=true;save();}});
 }
 function aboutView() {
