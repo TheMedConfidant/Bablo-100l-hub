@@ -2094,7 +2094,8 @@ function setupView(code, mode, qs) {
   const us = unitsOf(code);
   if (!SETUP || SETUP.course !== code || SETUP.mode !== mode) {
     const u = qs.get('u');
-    SETUP = { course: code, mode, units: new Set(u != null && us[+u] ? [us[+u].name] : []), n: mode === 'exam' ? 40 : 20, order: 'shuffle', tk: mode === 'practice' ? 'up' : 'down', min: 0, minCustom: false };
+    const selectedUnit = u != null && us[+u] ? us[+u].name : null;
+    SETUP = { course: code, mode, units: new Set(selectedUnit ? [selectedUnit] : []), n: mode === 'exam' ? 40 : (code === 'CHM' && mode === 'quiz' && selectedUnit === 'Thermochemistry' ? 9999 : 20), order: 'shuffle', tk: mode === 'practice' ? 'up' : 'down', min: 0, minCustom: false };
   }
   const S = SETUP, box = h('div', { class: 'stack-l' });
   const poolFor = () => BYC[code].filter(q => (S.units.size === 0 || S.units.has(q.u)) && (mode === 'practice' || !q.f));
@@ -3747,8 +3748,8 @@ function workedQuestionsView(code) {
     h('div', { class: 'stack' }, h('h1', null, 'Thermochemistry — Worked Questions'), h('p', { class: 'muted small' }, '22 source questions. Open each item to reveal its supplied worked answer.')),
     ...groups.map(g => h('section', { class: 'stack' }, h('h2', null, g.name),
       ...g.items.map(q => h('details', { class: 'panel stack' },
-        h('summary', null, q.question),
-        h('div', { class: 'note-paragraph' }, q.answer))))))));
+        h('summary', null, mlsLectureHtml(q.questionHtml || q.question)),
+        mlsLectureHtml(q.answerHtml || q.answer))))))));
 }
 
 function flashView(code) {
