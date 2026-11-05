@@ -2219,7 +2219,7 @@ function homeView() {
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
   dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
-  dashboardCard('Arcade','Bablo Rush, Memory Matrix and Reaction Arena','🎮','#/arcade','#D6A82B')
+  dashboardCard('Arcade','Bablo Rush, Memory Matrix and Reaction Arena','🎮','/arcade','#D6A82B')
  ];
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
@@ -2250,9 +2250,8 @@ function timeHubView(){
  )));
 }
 function arcadeHubView(){
- mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'Quick games, strategy and friendly competition.')),
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Chess'),h('p',{class:'muted'},'Play or improve your chess skills.')),
  h('section',{class:'dashboard-grid'},
- dashboardCard('Bablo Arcade','Play Bablo Rush, Memory Matrix and Reaction Arena','🎮','/arcade','#D6A82B'),
  dashboardCard('Bablo Chess','Play Dr ECG or challenge another player','♟','#/chess'),
  dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics')
  )));
