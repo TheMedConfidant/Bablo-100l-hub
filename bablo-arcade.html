@@ -30,6 +30,13 @@ button{font:inherit;cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:24
 <script src="/mts-maths-induction-extra.js"></script>
 <script src="/cos101plus-extracted.js"></script>
 <script src="/mls101-data.js"></script>
+<script src="/phy101-data.js"></script>
+<script src="/thermochemistry-data.js"></script>
+<script>
+window.__BANK__=window.__BANK__||[];
+if(window.__PHY101_PACK__&&Array.isArray(window.__PHY101_PACK__.questions))window.__BANK__.push(...window.__PHY101_PACK__.questions);
+if(window.__CHM101_THERMO_PACK__&&Array.isArray(window.__CHM101_THERMO_PACK__.questions))window.__BANK__.push(...window.__CHM101_THERMO_PACK__.questions.map((q,i)=>({i:'CHM101-THERMO-'+String(i+1).padStart(3,'0'),c:'CHM101',u:'Thermochemistry',s:'mcq',q:q.q,o:q.o,a:q.a,e:q.e||''})));
+</script>
 <script>
 const $=id=>document.getElementById(id);let rushIndex=0,rushScore=0,rushCorrect=0,rushTimer=null,rushSeconds=30,rushQuestions=[],rushQuestionTotal=5,memFirst=null,memLock=false,memMoves=0,memMatches=0,reactionTimer=null,reactionStart=0,reactionState='idle';
 const questions=[
