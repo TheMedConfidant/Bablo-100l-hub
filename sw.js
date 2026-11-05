@@ -1,5 +1,5 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v21-arcade-question-bank';
+const VERSION='bablo-offline-v22-expanded-arcade-banks';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./bablo-arcade.html','./arcade','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./challenge-arena.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html'];
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
