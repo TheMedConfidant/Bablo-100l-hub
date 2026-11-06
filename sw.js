@@ -1,5 +1,5 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v27-arcade-navigation-fix';
+const VERSION='bablo-offline-v28-complete-offline-pack';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./offline-runtime.js','./bablo-arcade.html','./arcade/','./arcade/index.html','./discover.html','./agr-101-food-security.html','./gst103-study-hub.html','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./chm-practicals-native.js','./challenge-arena.js','./chess/','./chess/index.html','./chess/stockfish-worker.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html','./chess-lab.html','./chess-lab/','./gst103-study-hub.html','./practicals/chm107-practical.html','./chm-practicals-native.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js'];
 const CHESS_EXTERNAL=['https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm','https://esm.sh/chess.js@1.4.0'];
 function isChessExternal(url){return CHESS_EXTERNAL.includes(url.href)}

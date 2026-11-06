@@ -4197,31 +4197,58 @@ function aboutView() {
   mount(wrap(back('#/','Home'),box));
 }
 function offlineCourseManager(){
- const box=h('div',{class:'stack'},h('p',{class:'muted small'},'Save course pages and their supporting question-data files on this device. Downloaded items remain available offline until you remove them.'));
+ const box=h('div',{class:'stack'},h('p',{class:'muted small'},'Download the full study hub or save individual courses. Notes and question banks embedded in Bablo are included with the app shell; supporting files and practical pages are saved alongside them.'));
+ const status=h('p',{class:'tiny muted','aria-live':'polite'},'Downloads are stored on this device.');
+ const corePaths=[
+  './','./index.html','./manifest.json','./offline-runtime.js','./sw.js',
+  './arcade/','./arcade/index.html','./bablo-arcade.html',
+  './chess/','./chess/index.html','./chess/stockfish-worker.js',
+  './practicals/','./practicals/index.html','./practicals/phy107-practical.html',
+  './practicals/chm107-practical.html','./practicals/chm107-practicals.html',
+  './agr-101-food-security.html','./gst103-study-hub.html','./discover.html',
+  './cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js',
+  './phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js',
+  './thermochemistry-data.js','./chm-practicals-native.js','./challenge-arena.js'
+ ];
+ const courseAssets=c=>{
+  const code=String(c.code||'').toUpperCase(),assets=['./','./index.html','./offline-runtime.js'];
+  if(code.includes('COS'))assets.push('./cos-101-plus-bank.js','./cos101plus-extracted.js');
+  if(code.includes('MTS')||code.includes('MTH')||code.includes('MATH'))assets.push('./mts-maths-topics.js','./mts-maths-induction-extra.js');
+  if(code.includes('MLS'))assets.push('./mls101-data.js');
+  if(code.includes('PHY'))assets.push('./phy101-data.js','./practicals/phy107-practical.html','./practicals/index.html');
+  if(code.includes('CHM'))assets.push('./thermochemistry-data.js','./practicals/chm107-practical.html','./practicals/chm107-practicals.html','./chm-practicals-native.js');
+  if(code.includes('AGR'))assets.push('./agr-101-food-security.html');
+  if(code.includes('GST'))assets.push('./gst103-study-hub.html');
+  return [...new Set(assets)];
+ };
  const refresh=async()=>{
   if(!window.BabloOffline){box.replaceChildren(h('p',{class:'muted small'},'Offline storage is still starting. Reopen Settings in a moment.'));return}
   const saved=await window.BabloOffline.downloadedCourses().catch(()=>[]);
-  const rows=homeCourses().filter(c=>!c.pending&&!c.pending200).map(c=>{
-   const id='course-'+String(c.code).toLowerCase().replace(/[^a-z0-9_-]/g,'-');
-   const rec=saved.find(x=>x.id===id);
-   const assets=['./','./index.html','./offline-runtime.js'];
-   const code=String(c.code||'').toUpperCase();
-   if(code.includes('COS'))assets.push('./cos-101-plus-bank.js','./cos101plus-extracted.js');
-   if(code.includes('MTS')||code.includes('MTH')||code.includes('MTH101')||code.includes('MATH'))assets.push('./mts-maths-topics.js','./mts-maths-induction-extra.js');
-   if(code.includes('MLS'))assets.push('./mls101-data.js');
-   if(code.includes('PHY'))assets.push('./phy101-data.js','./practicals/phy107-practical.html');
-   if(code.includes('CHM'))assets.push('./thermochemistry-data.js','./practicals/chm107-practical.html','./chm-practicals-native.js');
-   if(code.includes('AGR'))assets.push('./agr-101-food-security.html');
-   if(code.includes('GST'))assets.push('./gst103-study-hub.html');
-   const status=rec?(rec.status==='ready'?'Saved · '+(rec.saved||0)+' files':rec.status==='partial'?'Partly saved · '+(rec.saved||0)+' files':'Preparing…'):'Not downloaded';
-   const action=rec?h('button',{class:'btn sm ghost',onclick:async()=>{if(!confirm('Remove the saved offline copy of '+c.label+' from this device?'))return;await window.BabloOffline.removeCourse(id);await refresh()}},'Remove'):h('button',{class:'btn sm primary',onclick:async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Saving…';try{const r=await window.BabloOffline.downloadCourse(id,assets);toast(r.failed?'Saved '+r.saved+'; '+r.failed+' could not be saved':'Course saved on this device.');}catch(_){toast('Could not save this course. Check storage and connection.')}await refresh()}},'Download');
-   return h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},h('span',null,h('b',null,c.label),h('small',{class:'muted'},status)),action);
+  const courses=homeCourses().filter(c=>!c.pending&&!c.pending200);
+  const allSaved=saved.find(x=>x.id==='all-courses');
+  const fullStatus=allSaved?(allSaved.status==='ready'?'Saved · '+(allSaved.saved||0)+' resources':allSaved.status==='partial'?'Partly saved · '+(allSaved.saved||0)+' resources':'Preparing…'):'Not downloaded';
+  const fullAction=allSaved?h('button',{class:'btn sm ghost',onclick:async()=>{if(!confirm('Remove the complete offline study pack from this device?'))return;const ok=await window.BabloOffline.removeCourse('all-courses');if(ok)toast('Offline study pack removed.');else toast('Could not remove the pack right now.');await refresh()}},'Remove pack'):h('button',{class:'btn sm primary',onclick:async e=>{
+   const b=e.currentTarget;b.disabled=true;b.textContent='Preparing…';status.textContent='Saving the complete Bablo offline pack…';
+   try{const r=await window.BabloOffline.downloadCourse('all-courses',corePaths,(p)=>{status.textContent='Saving offline pack: '+p.saved+' of '+p.total+' resources…'});status.textContent=r.failed?'Pack saved partially: '+r.saved+' saved, '+r.failed+' missed. Retry after reconnecting.':'Complete offline pack saved: '+r.saved+' resources.';toast(r.failed?'Offline pack partly saved.':'Bablo offline pack saved on this device.');}
+   catch(_){status.textContent='Could not save the complete pack. Check your connection and device storage.'}
+   await refresh();
+  }},'Download all');
+  const rows=courses.map(c=>{
+   const id='course-'+String(c.code).toLowerCase().replace(/[^a-z0-9_-]/g,'-'),rec=saved.find(x=>x.id===id);
+   const state=rec?(rec.status==='ready'?'Saved · '+(rec.saved||0)+' files':rec.status==='partial'?'Partly saved · '+(rec.saved||0)+' files':rec.status==='failed'?'Download failed':'Preparing…'):'Not downloaded';
+   const action=rec?h('button',{class:'btn sm ghost',onclick:async()=>{if(!confirm('Remove the saved offline copy of '+c.label+' from this device?'))return;const ok=await window.BabloOffline.removeCourse(id);toast(ok?'Offline copy removed.':'Could not remove it right now.');await refresh()}},'Remove'):h('button',{class:'btn sm primary',onclick:async e=>{
+    const b=e.currentTarget;b.disabled=true;b.textContent='Saving…';status.textContent='Saving '+c.label+'…';
+    try{const r=await window.BabloOffline.downloadCourse(id,courseAssets(c),(p)=>{status.textContent='Saving '+c.label+': '+p.saved+'/'+p.total+'…'});status.textContent=r.failed?c.label+': '+r.saved+' saved, '+r.failed+' missed.':'Saved '+c.label+' for offline use.';toast(r.failed?'Course partly saved.':'Course saved on this device.');}
+    catch(_){status.textContent='Could not save '+c.label+'. Check connection and storage.'}
+    await refresh();
+   }},'Download');
+   return h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},h('span',null,h('b',null,c.label),h('small',{class:'muted'},state)),action);
   });
   const usage=await window.BabloOffline.storage().catch(()=>null);
-  box.replaceChildren(...rows,h('p',{class:'tiny muted'},usage&&usage.quota?'Device storage used: '+(usage.usage/1048576).toFixed(1)+' MB of '+(usage.quota/1048576).toFixed(0)+' MB':'Storage estimate unavailable.'));
+  box.replaceChildren(h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('div',null,h('b',null,'Complete offline study pack'),h('small',{class:'muted'},fullStatus)),fullAction),h('small',{class:'muted'},'Includes the app, available course data, practical resources, Arcade and Chess pages. Download while connected to Wi-Fi or a stable network.')),h('h3',null,'Individual courses'),...rows,h('p',{class:'tiny muted'},usage&&usage.quota?'Device storage used: '+(usage.usage/1048576).toFixed(1)+' MB of '+(usage.quota/1048576).toFixed(0)+' MB':'Storage estimate unavailable.'));
  };
  refresh();
- return h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('h2',null,'Offline course downloads'),h('button',{class:'btn sm ghost',onclick:refresh},'Refresh')),box);
+ return h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('h2',null,'Offline downloads'),h('button',{class:'btn sm ghost',onclick:refresh},'Refresh')),status,box);
 }
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
