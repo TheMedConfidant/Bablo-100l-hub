@@ -4199,6 +4199,15 @@ function aboutView() {
 function offlineCourseManager(){
  const box=h('div',{class:'stack'},h('p',{class:'muted small'},'Download the full study hub or save individual courses. Notes and question banks embedded in Bablo are included with the app shell; supporting files and practical pages are saved alongside them.'));
  const status=h('p',{class:'tiny muted','aria-live':'polite'},'Downloads are stored on this device.');
+ const syncNow=async()=>{
+  if(!navigator.onLine){status.textContent='You are offline. Your local progress remains on this device and will retry when connected.';return}
+  status.textContent='Syncing saved account progress and queued actions…';
+  try{
+   if(typeof retryBabloAccountSync==='function')await retryBabloAccountSync();
+   const result=window.BabloOffline?await window.BabloOffline.flushQueue():{sent:0,pending:0};
+   status.textContent='Sync checked. '+(result.sent||0)+' queued actions sent; '+(result.pending||0)+' remain. Account progress sync was attempted.';
+  }catch(_){status.textContent='Sync could not finish. Bablo will retry when the connection is available.'}
+ };
  const corePaths=[
   './','./index.html','./manifest.json','./offline-runtime.js','./sw.js',
   './arcade/','./arcade/index.html','./bablo-arcade.html',
@@ -4251,7 +4260,7 @@ function offlineCourseManager(){
   box.replaceChildren(h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('div',null,h('b',null,'Complete offline study pack'),h('small',{class:'muted'},fullStatus)),fullAction),h('small',{class:'muted'},'Includes the app, available course data, practical resources, Arcade and Chess pages. Download while connected to Wi-Fi or a stable network.')),h('h3',null,'Individual courses'),...rows,h('p',{class:'tiny muted'},usage&&usage.quota?'Device storage used: '+(usage.usage/1048576).toFixed(1)+' MB of '+(usage.quota/1048576).toFixed(0)+' MB':'Storage estimate unavailable.'));
  };
  refresh();
- return h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('h2',null,'Offline downloads'),h('button',{class:'btn sm ghost',onclick:refresh},'Refresh')),status,box);
+ return h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('h2',null,'Offline downloads'),h('div',{class:'row'},h('button',{class:'btn sm ghost',onclick:syncNow},'Sync now'),h('button',{class:'btn sm ghost',onclick:refresh},'Refresh'))),status,box);
 }
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
