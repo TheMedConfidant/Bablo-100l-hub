@@ -4,14 +4,6 @@
     {
       "source": "/practicals/",
       "destination": "/practicals/index.html"
-    },
-    {
-      "source": "/arcade",
-      "destination": "/bablo-arcade.html"
-    },
-    {
-      "source": "/arcade/",
-      "destination": "/bablo-arcade.html"
     }
   ],
   "headers": [
