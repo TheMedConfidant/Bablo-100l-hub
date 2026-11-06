@@ -1,0 +1,1038 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bablo Chess — Gold Glass Arena</title><style>
+:root{--bg:#0b0d0f;--panel:#15191b;--line:#303537;--gold:#d9b35d;--gold2:#f1d995;--muted:#9ca4a4;--text:#f3f0e7;--green:#83c9a6}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 70% -15%,#483614 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}button{font:inherit;cursor:pointer;border:0}button:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}.side{padding:24px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:30px;background:#0d0f10d9}.brand{display:flex;gap:10px;align-items:center;padding:0 7px}.crest{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(140deg,#f0d58b,#a87927);color:#17140c;font-size:23px}.brand strong{display:block;letter-spacing:.05em}.brand small{display:block;font-size:10px;color:var(--muted);letter-spacing:.14em}.navlabel,.eyebrow{font-size:10px;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;font-weight:800}.navlabel{color:#6f7779;padding:0 12px;margin-bottom:8px}.nav{display:grid;gap:5px}.nav button{padding:12px;border-radius:10px;background:transparent;color:#aeb5b5;text-align:left}.nav button span{display:inline-block;width:27px;font-size:17px}.nav button.active,.nav button:hover{color:var(--gold2);background:#d8b14d12;box-shadow:inset 2px 0 var(--gold)}.sidefoot{margin-top:auto;border:1px solid var(--line);border-radius:14px;padding:14px;background:#15191a}.sidefoot small,.sub,.muted{color:var(--muted)}.sidefoot strong{display:block;margin:7px 0}.progress{height:5px;background:#303536;border-radius:9px;overflow:hidden;margin:12px 0}.progress i{display:block;height:100%;width:42%;background:var(--gold)}.main{padding:25px clamp(15px,3vw,42px) 90px;max-width:1600px;width:100%;margin:auto;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}.top h1{font-size:clamp(25px,3vw,35px);margin:4px 0 0;letter-spacing:-.04em}.topright{display:flex;align-items:center;gap:10px}.pill,.tag{border:1px solid var(--line);background:#171b1d;border-radius:999px;padding:8px 12px;font-size:11px;color:#d4d7d3}.avatar{width:37px;height:37px;border-radius:50%;display:grid;place-items:center;background:#342914;color:var(--gold2);border:1px solid #8b6e32}.page{display:none;animation:fade .18s}.page.active{display:block}@keyframes fade{from{opacity:.5;transform:translateY(4px)}to{opacity:1;transform:none}}.card{border:1px solid var(--line);border-radius:18px;background:linear-gradient(140deg,#1b2021ee,#111516f5);padding:21px;min-width:0;box-shadow:0 12px 35px #0002}.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.heroCopy{padding:clamp(23px,3vw,37px);min-height:290px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;background:radial-gradient(circle at 90% 5%,#b58c3027,transparent 35%),linear-gradient(135deg,#242117,#141718 70%)}h2,h3,p{margin-top:0}.hero h2{font-size:clamp(29px,4vw,44px);line-height:1.05;letter-spacing:-.05em;margin:13px 0}.hero p,.sub{color:#adb4b2;max-width:520px}.goldbtn{background:linear-gradient(135deg,#f2d78e,#c59a3e);color:#19150b;font-weight:800;border-radius:10px;padding:12px 16px}.secondary{background:#24292b;border:1px solid #373e40;color:#eee;border-radius:10px;padding:11px 14px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px;width:100%}.stat{padding:12px;border-radius:11px;background:#ffffff05;border:1px solid #ffffff0c}.stat small{display:block;color:var(--muted);font-size:10px}.stat strong{font-size:20px;display:block;margin-top:4px}.minihead,.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:12px}.minihead h3{margin:0;font-size:16px}.tag{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold2);border-color:#66532c;background:#d7ac4512}.botbox{display:flex;gap:13px;align-items:center;margin:20px 0}.botface{width:57px;height:57px;border-radius:16px;background:linear-gradient(145deg,#e8ca7b,#8d6325);display:grid;place-items:center;color:#17140e;font-size:28px}.botbox strong{display:block;font-size:18px}.botbox small{color:var(--muted)}.quote,.info{border-left:2px solid var(--gold);padding:12px 14px;background:#ffffff04;border-radius:0 10px 10px 0;color:#c5c9c4;font-size:13px}.info{border:1px solid var(--line);border-radius:13px;margin-top:13px}.info p{margin:7px 0 0;color:#b2b9b7}.sectionhead{margin:26px 0 14px}.sectionhead h2{font-size:21px;margin:0}.sectionhead p{font-size:12px;margin:4px 0 0;color:var(--muted)}.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.mode{padding:18px;cursor:pointer;transition:.15s}.mode:hover{border-color:#806a37;transform:translateY(-2px)}.modeicon{font-size:24px;margin-bottom:13px}.mode h3{font-size:15px;margin-bottom:6px}.mode p{font-size:12px;color:var(--muted);min-height:35px}.textlink{color:var(--gold2);font-size:12px;background:none;padding:0}.twocol{display:grid;grid-template-columns:1fr .9fr;gap:16px}.boardlayout{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.65fr);gap:18px}.boardwrap{max-width:620px;width:100%;margin:auto}.board{display:grid;grid-template-columns:repeat(8,1fr);width:100%;aspect-ratio:1;border:4px solid #2a2925;border-radius:6px;overflow:hidden;box-shadow:0 15px 45px #0007}.sq{position:relative;display:grid;place-items:center;padding:0;font-size:clamp(23px,4vw,45px);line-height:1;background:#d6c8a9;color:#17201b;user-select:none}.sq.dark{background:#6a7a6e}.sq.selected{box-shadow:inset 0 0 0 4px #e8bd54}.sq.target:after{content:"";position:absolute;width:23%;height:23%;border-radius:50%;background:#1e241b88}.coords{position:absolute;left:3px;top:2px;font-size:9px;font-weight:700;opacity:.7}.boardnote{display:flex;justify-content:space-between;margin-top:9px;color:var(--muted);font-size:10px}.movebar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.stepnum{color:var(--gold);font-size:10px;letter-spacing:.12em}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}.tabs button{background:#171b1d;color:#b3bab7;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11px}.tabs button.active{color:var(--gold2);border-color:#80652f;background:#d7ac4512}.lessonitem{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #ffffff0b}.lessonbadge{width:42px;height:42px;border-radius:12px;background:#d9b35d12;border:1px solid #d9b35d33;display:grid;place-items:center;color:var(--gold2);font-size:19px}.lessonitem strong{display:block;font-size:13px}.lessonitem small{color:var(--muted);font-size:11px}.lessonitem button{margin-left:auto;white-space:nowrap}.leaderrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:13px 3px;border-bottom:1px solid #ffffff0b}.person{display:flex;gap:9px;align-items:center;min-width:0}.personicon{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#252c2c;color:var(--gold2)}.person strong{display:block;font-size:12px}.person small{display:block;color:var(--muted);font-size:10px}.rating{font-size:12px;font-weight:800}.trend{color:var(--green);font-size:10px}.profilehead{display:flex;align-items:center;gap:17px}.bigavatar{width:74px;height:74px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(145deg,#e9d08a,#896122);color:#17140c;font-size:28px;font-weight:900}.mobilebar{display:none}.toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#252a2a;border:1px solid #6b592f;color:#f5e2a9;border-radius:12px;padding:12px 17px;z-index:10;transition:.2s;box-shadow:0 10px 40px #0009;font-size:13px}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.main{padding:18px 14px 100px}.hero,.twocol,.boardlayout{grid-template-columns:1fr}.three{grid-template-columns:repeat(2,minmax(0,1fr))}.mobilebar{display:grid;position:fixed;bottom:0;left:0;right:0;grid-template-columns:repeat(5,1fr);background:#0d0f10f2;backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:5}.mobilebar button{background:none;color:#929b9c;font-size:10px;padding:4px}.mobilebar button span{display:block;font-size:18px;margin-bottom:3px}.mobilebar button.active{color:var(--gold2)}.top{margin-bottom:20px}.topright .pill{display:none}}@media(max-width:480px){.three{grid-template-columns:1fr}.card{padding:15px}.heroCopy{padding:23px}.stat{padding:9px}.stat strong{font-size:17px}.board{border-width:3px}.sq{font-size:clamp(24px,8vw,37px)}.sectionhead{align-items:flex-start}}
+
+/* Interaction and accessibility refinements */
+button{transition:background .16s ease,border-color .16s ease,transform .16s ease}
+button:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.sq{touch-action:manipulation}
+.sq.dark{background:#6e7e70}
+.sq.light{background:#e6dcc5}
+.sq.last{box-shadow:inset 0 0 0 100vmax #e5bc5140}
+.sq.selected{box-shadow:inset 0 0 0 4px #f2d78e!important;z-index:1}
+.sq.target:after{content:"";position:absolute;width:23%;height:23%;border-radius:50%;background:#1e241b99;pointer-events:none}
+.sq.capture-target:after{content:"";position:absolute;width:70%;height:70%;border-radius:50%;border:4px solid #24281f;background:transparent;pointer-events:none}
+.sq.check{background:#a64e45!important;box-shadow:inset 0 0 0 3px #ffd1c4}
+.sq .coords{pointer-events:none;font-size:10px}
+.sq .filecoords{position:absolute;right:3px;bottom:2px;font-size:9px;font-weight:800;opacity:.72;pointer-events:none}
+.piece{position:relative;z-index:1;filter:drop-shadow(0 1px 1px #0005)}
+.clockrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.clockchip{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#101314;color:#aeb6b3;font-size:10px}
+.clockchip strong{font-variant-numeric:tabular-nums;font-size:16px;color:#f3f0e7;letter-spacing:.04em}
+.clockchip.active{border-color:#937535;background:#c9a34016}
+.clockchip.active strong{color:var(--gold2)}
+.preview-note{font-size:11px;margin-top:10px}
+.result-layer{position:fixed;inset:0;background:#050606c9;backdrop-filter:blur(10px);display:grid;place-items:center;padding:18px;z-index:30}
+.result-card{width:min(100%,440px);border:1px solid #6f592c;border-radius:20px;background:linear-gradient(145deg,#202321,#111415);padding:clamp(22px,4vw,34px);box-shadow:0 28px 90px #000b}
+.result-card h2{font-size:clamp(26px,5vw,36px);margin:10px 0}
+.result-card p{color:#b8bfba;line-height:1.6}
+.result-stamp{font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--gold2);text-transform:uppercase}
+.analysis-moves{display:flex;flex-wrap:wrap;gap:7px;max-height:300px;overflow:auto;padding:8px 0}.analysis-move{border:1px solid var(--line);background:#101314;color:var(--text);border-radius:8px;padding:7px 9px;font-size:12px;cursor:pointer}.analysis-move.active{border-color:var(--gold);background:#2b2414;color:var(--gold2)}
+.capture-tray{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.capture-box{min-width:0;border:1px solid var(--line);border-radius:10px;background:#101314;padding:10px}
+.capture-box small{display:block;color:var(--muted);font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.capture-pieces{min-height:28px;display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-top:5px;font-size:20px;letter-spacing:-.08em}
+.capture-pieces .empty{font-size:11px;color:#717a77;letter-spacing:0}
+
+@media(max-width:480px){.clockchip{padding:8px}.clockchip strong{font-size:14px}.sq.capture-target:after{border-width:3px}}
+
+
+.enginebar{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.engine-stat{border:1px solid var(--line);border-radius:10px;padding:11px;background:#101314;min-width:0}.engine-stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.08em;text-transform:uppercase}.engine-stat strong{display:block;color:var(--gold2);font-size:16px;margin-top:4px;overflow-wrap:anywhere}.engine-line{margin-top:10px;font-size:12px;color:#c5c9c4;overflow-wrap:anywhere}.engine-line code{color:var(--gold2);font-family:ui-monospace,monospace}
+
+/* Board geometry: every cell is constrained to the same square dimensions. */
+.board{grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);aspect-ratio:1/1;flex:none;min-width:0;min-height:0}
+.sq{width:100%;height:100%;min-width:0;min-height:0;aspect-ratio:1/1;overflow:hidden}
+.boardwrap{width:min(100%,min(72vh,620px));max-width:620px}
+@media(max-width:900px){.boardwrap{width:min(100%,calc(100vw - 42px),min(68vh,620px))}}
+.board[data-board-theme="forest"] .sq.light{background:#ebecd0}.board[data-board-theme="forest"] .sq.dark{background:#779556}
+.board[data-board-theme="blue"] .sq.light{background:#dee3ed}.board[data-board-theme="blue"] .sq.dark{background:#6c8ebf}
+.board[data-board-theme="violet"] .sq.light{background:#eee3f4}.board[data-board-theme="violet"] .sq.dark{background:#9276aa}
+.board[data-board-theme="walnut"] .sq.light{background:#e7cda5}.board[data-board-theme="walnut"] .sq.dark{background:#9a6245}
+.board[data-board-theme="slate"] .sq.light{background:#d8dce0}.board[data-board-theme="slate"] .sq.dark{background:#65717c}
+.piece-set-monochrome .piece{filter:grayscale(1) drop-shadow(0 1px 1px #0005)}
+.piece-set-bold .piece{font-weight:900;text-shadow:0 1px 1px #0008!important;-webkit-text-stroke:.45px currentColor}
+.piece-set-emoji .piece{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif!important;filter:none}
+.board-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.option-group{border:1px solid var(--line);border-radius:12px;padding:12px;background:#101314}
+.option-group label{display:block;font-size:10px;letter-spacing:.1em;color:var(--muted);font-weight:800;margin-bottom:8px}
+.option-group select{width:100%;background:#1a1f20;border:1px solid #3a4142;color:var(--text);padding:10px;border-radius:8px;font:inherit;font-size:12px}
+@media(max-width:480px){.board-options{grid-template-columns:1fr}.boardwrap{width:min(100%,calc(100vw - 38px),min(64vh,620px))}}
+
+
+/* Arena redesign: board-first, dense like a serious chess client rather than stacked cards. */
+.match-workspace{margin-top:12px;border:1px solid #303536;border-radius:18px;overflow:hidden;background:#101314;box-shadow:0 18px 55px #0005;min-width:0}
+.match-topbar{display:flex;align-items:center;gap:13px;padding:14px 18px;border-bottom:1px solid #292f30;background:#141819}
+.iconbtn{width:40px;height:40px;flex:0 0 40px;border-radius:11px;background:#222829;color:#eee;border:1px solid #394142;font-size:21px}
+.match-title{min-width:0}.match-title h2{margin:3px 0 0;font-size:18px;letter-spacing:-.025em}.match-title .eyebrow{font-size:9px}
+.match-topmeta{margin-left:auto;display:flex;align-items:center;gap:9px;color:#9ea7a5;font-size:11px}.live-dot{width:7px;height:7px;display:inline-block;border-radius:50%;background:#80cda0;box-shadow:0 0 0 3px #80cda01a;flex:0 0 auto}
+.arena-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;align-items:stretch;min-width:0}
+.board-stage{min-width:0;padding:18px clamp(12px,2.4vw,30px) 20px;border-right:1px solid #292f30;background:radial-gradient(ellipse at 50% 42%,#202725 0, #121616 62%)}
+.board-stage .boardwrap{width:min(100%,min(70vh,680px));max-width:680px}
+.opponent-strip{width:min(100%,min(70vh,680px));margin:0 auto 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid #303838;border-radius:11px;background:#191e1f}
+.you-strip{margin:10px auto 0}
+.player-identity{display:flex;align-items:center;gap:10px;min-width:0}.player-identity strong{display:block;font-size:13px}.player-identity small{display:block;color:#9ca6a3;font-size:10px;margin-top:1px}
+.player-avatar{width:35px;height:35px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;font-size:21px}
+.ecg-avatar{background:linear-gradient(145deg,#e7ca7a,#8c6325);color:#17140b}.you-avatar{background:#303b39;color:#d8e4dc;border:1px solid #485452}
+.player-rating{font-size:9px;color:#899390;letter-spacing:.1em}.player-rating b{font-size:12px;color:#d9dfd9;margin-left:4px}
+.board-stage .board{border:1px solid #353c37;border-radius:3px;box-shadow:0 10px 32px #0006}
+.board-stage .boardnote{font-size:11px;margin-top:8px}
+.board-stage .clockrow{margin-bottom:9px}
+.arena-controls{width:min(100%,min(70vh,680px));margin:14px auto 0;display:flex;gap:8px;flex-wrap:wrap}
+.arena-controls button{min-height:40px;padding:9px 11px;border-radius:9px;display:flex;align-items:center;gap:7px;font-size:12px}
+.arena-controls .resign{margin-left:auto;background:#302020;border:1px solid #613b3b;color:#f0b3aa}
+.arena-sidebar{min-width:0;background:#141819;display:flex;flex-direction:column}
+.arena-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:0 12px;border-bottom:1px solid #303637}
+.arena-tabs button{position:relative;padding:15px 7px;background:transparent;color:#909b98;font-size:12px}
+.arena-tabs button.active{color:#f0d58b;font-weight:750}
+.arena-tabs button.active:after{content:"";height:2px;position:absolute;bottom:-1px;left:12px;right:12px;background:#d9b35d}
+.arena-panel{padding:18px 15px;min-width:0}.arena-panel[hidden]{display:none!important}
+.panel-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.panel-heading h3{font-size:17px;margin:3px 0 0}.panel-heading .eyebrow{font-size:9px}
+.move-history{min-height:160px;max-height:260px;overflow:auto;border:1px solid #303738;border-radius:10px;background:#0e1112;padding:12px;color:#d9dfda;font-size:13px;line-height:1.9;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.arena-sidebar .capture-tray{grid-template-columns:1fr;gap:7px;margin-top:12px}.arena-sidebar .capture-box{padding:9px 10px}.arena-sidebar .capture-pieces{min-height:23px;font-size:19px}
+.coach-identity{padding:13px;border-radius:11px;background:#1b2020;border:1px solid #303737}.coach-identity strong{font-size:13px}.coach-identity p{font-size:11px;color:#a3adaa;margin:5px 0 0;line-height:1.5}
+.coach-quote{margin-top:12px;padding:15px;border-left:2px solid var(--gold);background:#d9b35d0a;border-radius:0 10px 10px 0;font-size:13px;line-height:1.65;color:#e2d8b9}
+.coach-note{display:flex;align-items:center;gap:8px;color:#8f9b96;font-size:10px;margin-top:13px}
+.tool-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #2a3030;font-size:12px;color:#c6ceca}.tool-row select{max-width:145px;background:#202626;border:1px solid #3b4442;color:#f1f1e9;border-radius:8px;padding:9px;font:inherit;min-width:0}
+.tool-explainer{font-size:11px;line-height:1.55;color:#919c98;margin:13px 0}
+#setup[hidden],#matchCard[hidden]{display:none!important}
+@media(min-width:901px){.match-workspace{margin-top:8px}.arena-grid{min-height:620px}.board-stage{display:flex;flex-direction:column;justify-content:center}.arena-sidebar{min-height:100%}.arena-panel{flex:1}}
+@media(max-width:900px){.match-topbar{padding:12px}.match-topmeta .tag{display:none}.arena-grid{grid-template-columns:minmax(0,1fr)}.board-stage{border-right:0;border-bottom:1px solid #303637;padding:14px 12px 16px}.board-stage .boardwrap,.opponent-strip,.arena-controls{width:min(100%,calc(100vw - 60px),min(68vh,620px))}.arena-sidebar{display:block}.arena-panel{padding:15px}.move-history{min-height:80px;max-height:180px}.arena-sidebar .capture-tray{grid-template-columns:1fr 1fr}.arena-controls button{flex:1;justify-content:center}.arena-controls .resign{margin-left:0;flex:0 0 auto}}
+@media(max-width:480px){.match-topbar{gap:9px;padding:10px}.iconbtn{width:36px;height:36px;flex-basis:36px}.match-title h2{font-size:15px}.match-topmeta{font-size:0}.match-topmeta .live-dot{width:7px}.board-stage .boardwrap,.opponent-strip,.arena-controls{width:min(100%,calc(100vw - 42px),min(64vh,620px))}.opponent-strip{padding:7px 8px}.player-avatar{width:31px;height:31px}.arena-controls button{padding:9px 8px;font-size:11px}.arena-controls button span{font-size:10px}.arena-tabs button{padding:13px 5px}.arena-panel{padding:13px}.arena-sidebar .capture-tray{grid-template-columns:1fr 1fr}.arena-sidebar .capture-pieces{font-size:16px}}
+
+
+.main.arena-active{padding-top:10px}
+.main.arena-active>.top{display:none}
+.main.arena-active{max-width:1560px}
+@media(max-width:900px){.main.arena-active{padding:8px 8px 100px}}
+
+
+/* Match configuration is a modal: choosing Quick Match never requires scrolling to find settings. */
+#setupBackdrop[hidden],#setup[hidden]{display:none!important}
+#setupBackdrop{position:fixed;inset:0;z-index:80;background:#050606d9;backdrop-filter:blur(7px)}
+#setup:not([hidden]){position:fixed;z-index:81;left:50%;top:50%;transform:translate(-50%,-50%);width:min(760px,calc(100vw - 28px));max-height:min(88dvh,820px);overflow:auto;margin:0!important;padding:clamp(16px,3vw,26px);box-shadow:0 28px 100px #000b;border-color:#65532e;background:linear-gradient(145deg,#1b2020,#101313);overscroll-behavior:contain}
+#setup .minihead{margin-bottom:18px}#setup .setup-close{margin-left:auto;font-size:24px}
+body.setup-open{overflow:hidden}
+#setup .twocol{grid-template-columns:minmax(0,1fr) minmax(220px,.72fr);align-items:start;gap:22px}
+#setup .tabs{gap:6px;margin:9px 0 18px}
+#setup .tabs button{min-height:37px;padding:8px 11px}
+#setup .info{margin-top:24px;align-self:start}
+.profile-settings{background:#111516;padding:20px;border-color:#353c3c}
+.setting-label{display:block;color:#c7b37e;font-size:10px;letter-spacing:.12em;font-weight:800;margin:14px 0 8px}
+.username-row{display:flex;align-items:center;gap:8px}
+.username-at{color:#8f9995;background:#202626;border:1px solid #38403f;border-right:0;padding:11px 0 11px 12px;border-radius:9px 0 0 9px;margin-right:-8px}
+.username-row input{flex:1;min-width:0;width:100%;background:#202626;border:1px solid #38403f;color:#f2f0e8;padding:11px 12px;border-radius:0 9px 9px 0;font:inherit}
+.username-row .goldbtn{white-space:nowrap;padding:11px 14px}
+.setting-help{display:block;color:#8f9995;font-size:11px;line-height:1.5;margin-top:7px}
+.settings-split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+.settings-split select{width:100%;background:#202626;border:1px solid #38403f;color:#f1f1e9;border-radius:9px;padding:11px;font:inherit}
+.settings-split input{width:100%;min-width:0;background:#202626;border:1px solid #38403f;color:#f1f1e9;border-radius:9px;padding:11px;font:inherit}.settings-split input::placeholder{color:#7f8985}
+@media(max-width:650px){#setup:not([hidden]){width:calc(100vw - 18px);max-height:90dvh;padding:16px;border-radius:16px}#setup .twocol{grid-template-columns:1fr;gap:8px}#setup .info{margin-top:8px}#setup .tabs{margin-bottom:12px}.settings-split{grid-template-columns:1fr}.username-row .goldbtn{padding:11px 10px}}
+
+</style></head><body><div class="shell"><aside class="side"><div class="brand"><div class="crest">♞</div><div><strong>BABLO CHESS</strong><small>THINK ONE MOVE AHEAD</small></div></div><div><div class="navlabel">Workspace</div><nav class="nav" id="sidenav"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play chess</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="puzzle"><span>✳</span>Daily puzzle</button><button data-page="analysis"><span>⌕</span>Game analysis</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav></div><div class="sidefoot"><small>YOUR CHESS JOURNEY</small><strong>Build the habit. Read the board.</strong><div class="progress"><i></i></div><small>3 day streak · Demo progress</small></div></aside><main class="main"><header class="top"><div><div class="eyebrow" id="eyebrow">THE BOARD IS YOURS</div><h1 id="pagetitle">Good evening, player.</h1></div><div class="topright"><a href="/" aria-label="Back to Bablo Hub" style="color:var(--gold2);font-size:12px;text-decoration:none;border:1px solid var(--line);padding:8px 11px;border-radius:999px">← Bablo Hub</a><div class="pill">♨ 3 day streak</div><div class="avatar">P</div></div></header>
+<section class="page active" id="page-home"><div class="hero"><div class="card heroCopy"><div class="eyebrow">YOUR NEXT MOVE STARTS HERE</div><h2>Play with purpose.<br><span style="color:var(--gold2)">Think like a strategist.</span></h2><p>Face Dr ECG, sharpen your tactics on the board, or take on today's challenge. One move at a time.</p><div class="actions"><button class="goldbtn" data-go="play">♟ &nbsp; Play a match</button><button class="secondary" data-go="learn">Continue learning ↗</button></div><div class="statrow"><div class="stat"><small>LOCAL PRACTICE RATING</small><strong id="homeChessRating">1000</strong></div><div class="stat"><small>PUZZLE STREAK</small><strong id="homePuzzleStreak">0 days</strong></div><div class="stat"><small>LESSONS</small><strong id="homeLessons">0 / 4</strong></div></div><p class="muted preview-note">Saved on this device. This is not a global or verified online rating.</p></div><div class="card"><div class="minihead"><h3>Your signature opponent</h3><span class="tag">Training bot</span></div><div class="botbox"><div class="botface">♞</div><div><strong>Dr ECG</strong><small>Professor of painful blunders</small><div style="margin-top:6px;color:var(--gold2);font-size:12px">★★★★★ <span class="muted">Strength tier: Registrar</span></div></div></div><div class="quote">“You can’t diagnose a position by staring at it. Make your move, doctor.”</div><div class="sectionhead"><div><h2 style="font-size:15px">Choose your session</h2><p>Strength and clock are set before play.</p></div></div><button class="goldbtn" style="width:100%" data-go="play">Set up match →</button></div></div><div class="sectionhead"><div><h2>Pick up where you left off</h2><p>Short sessions, deliberate progress.</p></div><button class="textlink" data-go="learn">All lessons ↗</button></div><div class="three"><div class="card mode" data-go="learn"><div class="modeicon">♙</div><h3>Board-side learning</h3><p>Learn by making moves on an interactive board.</p><button class="textlink">Resume lesson →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Daily puzzle</h3><p>Find the winning tactic. Hints are available if you get stuck.</p><button class="textlink">Solve today's puzzle →</button></div><div class="card mode" data-go="compete"><div class="modeicon">♜</div><h3>Leaderboard</h3><p>Compare demo rankings and see how competition works.</p><button class="textlink">View standings →</button></div></div></section>
+<section class="page" id="page-play"><div class="card"><div class="eyebrow">MATCHMAKING</div><h2 style="margin:8px 0">What kind of game?</h2><p class="sub">Pick the purpose first. Configure the clock and Dr ECG's strength before the board opens.</p><div class="three" style="margin-top:20px"><div class="card mode" data-format="Quick Match"><div class="modeicon">⚡</div><h3>Quick match</h3><p>Get to the board quickly. A straightforward practice game.</p><button class="goldbtn">Choose →</button></div><div class="card mode" data-format="Timed Match"><div class="modeicon">◷</div><h3>Timed match</h3><p>Bullet, blitz, rapid, classical or a custom clock.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Training Match"><div class="modeicon">♧</div><h3>Training match</h3><p>Unranked practice with optional hints and take-backs.</p><button class="secondary">Choose →</button></div><div class="card mode" data-format="Challenge Ladder"><div class="modeicon">↗</div><h3>Challenge ladder</h3><p>Climb through progressively tougher challenges.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="puzzle"><div class="modeicon">✳</div><h3>Tactical rounds</h3><p>Solve positions against a move limit and objective.</p><button class="secondary">Explore →</button></div><div class="card mode" data-go="learn"><div class="modeicon">⌘</div><h3>Opening lab</h3><p>Study an opening line, then try it on the board.</p><button class="secondary">Explore →</button></div></div></div><div id="setupBackdrop" hidden aria-hidden="true"></div><div class="card" id="setup" role="dialog" aria-modal="true" aria-labelledby="setupTitle" hidden><div class="minihead"><h3 id="setupTitle">Match setup</h3><button class="iconbtn setup-close" id="closeSetup" type="button" aria-label="Close match configuration">×</button></div><div class="twocol"><div><label class="muted">DR ECG STRENGTH</label><div class="tabs" id="strengthTabs"><button>Student</button><button>Intern</button><button>House Officer</button><button class="active">Registrar</button><button>Consultant</button><button>Professor</button></div><label class="muted">TIME CONTROL</label><div class="tabs" id="clockTabs"><button>Unlimited</button><button>3 + 2</button><button class="active">10 + 0</button><button>15 + 10</button></div><label class="muted">PLAYING SIDE</label><div class="tabs" id="sideTabs"><button class="active">White</button><button>Black</button></div><div class="board-options" aria-label="Board appearance settings"><div class="option-group"><label for="boardTheme">BOARD STYLE</label><select id="boardTheme"><option value="classic">Classic green</option><option value="forest">Forest</option><option value="blue">Ocean blue</option><option value="violet">Violet</option><option value="walnut">Walnut</option><option value="slate">Slate</option></select></div><div class="option-group"><label for="pieceSet">PIECE STYLE</label><select id="pieceSet"><option value="classic">Classic pieces</option><option value="monochrome">Monochrome</option><option value="bold">Bold pieces</option><option value="emoji">Colour emoji</option></select></div></div></div><div class="info"><strong>Practice match</strong><p>Legal moves, checks and game endings are validated locally. Dr ECG uses Stockfish when it loads, with a legal-move fallback. Online play and saved ratings are not connected.</p><div class="actions"><button class="goldbtn" id="startMatch">Start match →</button></div></div></div></div><div class="match-workspace" id="matchCard" hidden>
+  <header class="match-topbar">
+    <button class="iconbtn" id="exitMatch" type="button" aria-label="Back to match setup">←</button>
+    <div class="match-title"><span class="eyebrow">LOCAL ARENA · PRACTICE</span><h2 id="matchName">Practice match</h2></div>
+    <div class="match-topmeta"><span class="live-dot"></span><span>Rated: off</span><span class="tag">Stockfish when available</span></div>
+  </header>
+  <div class="arena-grid">
+    <section class="board-stage" aria-label="Chess game">
+      <div class="opponent-strip">
+        <div class="player-identity"><div class="player-avatar ecg-avatar">♞</div><div><strong>Dr ECG</strong><small id="matchStrength">Registrar · Practice</small></div></div>
+        <span class="player-rating">BOT <b id="botTierLabel">04</b></span>
+      </div>
+      <div class="boardwrap"><div class="board" id="matchBoard"></div><div class="boardnote"><span id="turnLabel" aria-live="polite">White to move</span><span>Tap a piece to see legal moves</span></div></div>
+      <div class="opponent-strip you-strip">
+        <div class="player-identity"><div class="player-avatar you-avatar">P</div><div><strong>You</strong><small>Practice session</small></div></div>
+        <span class="player-rating">LOCAL <b>—</b></span>
+      </div>
+      <div class="arena-controls" aria-label="Game controls">
+        <button class="secondary" id="undoMove" title="Take back last exchange">↶ <span>Take back</span></button>
+        <button class="secondary" id="resetBoard" title="Start a new game">↻ <span>Restart</span></button>
+        <button class="secondary" id="gameSound" type="button" aria-pressed="true">♫ <span>Sound on</span></button>
+        <button class="secondary resign" id="finishMatch">Resign</button>
+      </div>
+    </section>
+    <aside class="arena-sidebar">
+      <div class="arena-tabs" role="tablist" aria-label="Game panel">
+        <button class="active" type="button" data-arena-tab="moves" role="tab" aria-selected="true">Moves</button>
+        <button type="button" data-arena-tab="coach" role="tab" aria-selected="false">Dr ECG</button>
+        <button type="button" data-arena-tab="tools" role="tab" aria-selected="false">Tools</button>
+      </div>
+      <section class="arena-panel active" data-arena-panel="moves" role="tabpanel">
+        <div class="panel-heading"><div><span class="eyebrow">GAME RECORD</span><h3>Move history</h3></div><span class="tag">Live</span></div>
+        <div class="move-history" id="moveLog" aria-live="polite">Your moves will appear here.</div>
+        <div class="capture-tray" aria-label="Captured pieces"><div class="capture-box"><small>You captured</small><div class="capture-pieces" id="playerCaptures"><span class="empty">None yet</span></div></div><div class="capture-box"><small>Dr ECG captured</small><div class="capture-pieces" id="botCaptures"><span class="empty">None yet</span></div></div></div>
+      </section>
+      <section class="arena-panel" data-arena-panel="coach" role="tabpanel" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">YOUR OPPONENT</span><h3>Dr ECG</h3></div><div class="player-avatar ecg-avatar">♞</div></div>
+        <div class="coach-identity"><strong>Professor of painful blunders</strong><p>Fixed identity. The commentary reacts to moves and game events.</p></div>
+        <div class="coach-quote" id="botLine">“Read the whole board, doctor. Symptoms are pieces; threats are the diagnosis.”</div>
+        <div class="coach-note"><span class="live-dot"></span> Commentary appears during play</div>
+      </section>
+      <section class="arena-panel" data-arena-panel="tools" role="tabpanel" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">GAME SETTINGS</span><h3>At the board</h3></div></div>
+        <div class="tool-row"><span>Board theme</span><select id="liveBoardTheme" aria-label="Board theme"><option value="classic">Classic green</option><option value="forest">Forest</option><option value="blue">Ocean blue</option><option value="violet">Violet</option><option value="walnut">Walnut</option><option value="slate">Slate</option></select></div>
+        <div class="tool-row"><span>Piece set</span><select id="livePieceSet" aria-label="Piece style"><option value="classic">Classic pieces</option><option value="monochrome">Monochrome</option><option value="bold">Bold pieces</option><option value="emoji">Colour emoji</option></select></div>
+        <div class="tool-explainer">Appearance changes apply immediately. These controls stay available without leaving the board.</div>
+        <div class="info"><strong>Engine status</strong><p id="matchStatus">Stockfish starts when available. A legal-move fallback keeps local play usable.</p></div>
+      </section>
+    </aside>
+  </div>
+</div></section>
+<section class="page" id="page-learn"><div class="twocol"><div class="card"><div class="eyebrow">BABLO CHESS ACADEMY</div><h2 style="margin:8px 0">Learn on the board</h2><p class="sub">No lecture-only lessons. Try the move, see what changes, and learn why it matters.</p><div class="lessonitem"><div class="lessonbadge">♙</div><div><strong>1. Develop your pieces</strong><small>Beginner · 4 guided steps</small></div><button class="goldbtn" id="startLesson">Start</button></div><div class="lessonitem"><div class="lessonbadge">✳</div><div><strong>2. Spot the knight fork</strong><small>Tactics · Find the attacking square</small></div><button class="secondary" id="startFork">Try</button></div><div class="lessonitem"><div class="lessonbadge">♔</div><div><strong>3. Checkmate in one</strong><small>Foundations · Find the forced mate</small></div><button class="secondary" id="lockedLesson">Start</button></div><p class="muted" style="font-size:11px;margin-top:15px">Guided positions use legal-move validation. Lesson completion is a local preview and is not synced to an account.</p></div><div class="card"><div class="minihead"><h3 id="lessonTitle">Lesson board</h3><span class="tag" id="lessonTag">Guided practice</span></div><div class="boardwrap"><div class="board" id="lessonBoard"></div><div class="boardnote"><span id="lessonTurn">White to move</span><span id="lessonStep">Step 1 of 3</span></div></div><div class="info"><div class="stepnum" id="lessonObjective">OBJECTIVE · DEVELOP A KNIGHT</div><p id="lessonExplanation">Move the kingside knight toward the centre.</p></div><div class="movebar"><button class="secondary" id="lessonHint">Hint</button><button class="secondary" id="lessonReset">Restart</button><button class="goldbtn" id="lessonNext">Next step →</button></div><p class="muted" id="lessonFeedback" style="font-size:12px;margin:12px 0 0">Select a piece and tap its destination.</p></div></div></section>
+<section class="page" id="page-puzzle"><div class="twocol"><div class="card"><div class="eyebrow">DAILY TACTIC · DEMO POSITION</div><div class="minihead" style="margin-top:8px"><h2 style="margin:0">Find the knight fork</h2><span class="tag">Intermediate</span></div><p class="sub">White to move. Find a knight move that attacks two valuable targets at once.</p><div class="statrow"><div class="stat"><small>DATE</small><strong id="puzzleDate">—</strong></div><div class="stat"><small>STREAK</small><strong>3 days</strong></div><div class="stat"><small>ATTEMPTS</small><strong id="attemptCount">0</strong></div></div><div class="info"><strong>Your objective</strong><p>Choose the candidate move that creates a fork. This constructed practice position has a checked solution. The daily puzzle feed and saved streaks are not connected yet.</p></div><div class="actions"><button class="secondary" id="puzzleHint">Show hint 1</button><button class="secondary" id="puzzleReveal">Reveal solution</button><button class="goldbtn" id="puzzleReset">Reset puzzle</button></div><p id="puzzleFeedback" class="muted" style="font-size:13px;margin:13px 0 0">Make your choice on the board.</p></div><div class="card"><div class="minihead"><h3>Puzzle board</h3><span class="tag">Interactive demo</span></div><div class="boardwrap"><div class="board" id="puzzleBoard"></div><div class="boardnote"><span>White to move</span><span>Find the fork</span></div></div><div class="info"><strong>What to look for</strong><p>A knight attacks in an L shape. Look for a move that checks the king while threatening another valuable piece.</p></div></div></div></section>
+<section class="page" id="page-compete"><div class="twocol"><div class="card"><div class="minihead"><div><div class="eyebrow">CAMPUS & FRIENDS</div><h2 style="margin:7px 0 0">Leaderboard</h2></div><span class="tag">Local preview</span></div><p class="sub">Your local practice record is shown below. Verified campus rankings are not connected.</p><div class="tabs" id="leaderTabs"><button class="active">Overall</button><button>Friends</button><button>Weekly</button></div><div id="leaderRows"></div><div class="info"><strong>Trustworthy rankings</strong><p>Chess rating and puzzle streak are separate. Live standings need authenticated records and a defined rating service.</p></div></div><div class="card"><div class="eyebrow">TODAY'S OBJECTIVE</div><h2 style="margin:9px 0">Daily puzzle</h2><p class="sub">One position. One idea to discover. Your streak tracks puzzle completion, not chess rating.</p><button class="goldbtn" data-go="puzzle">Open daily puzzle →</button><div class="sectionhead"><div><h2>Challenge ladder</h2><p>A route from fundamentals to tougher tactics.</p></div></div><div class="progress"><i style="width:0%"></i></div><p class="muted" style="font-size:11px">No stages are counted yet. Ladder progress will appear when the challenge ladder is implemented.</p><button class="secondary" data-go="learn">Train with a guided lesson</button></div></div></section>
+<section class="page" id="page-analysis">
+  <div class="card">
+    <div class="eyebrow">MOVE-BY-MOVE REVIEW</div>
+    <h2 style="margin:8px 0">Game analysis</h2>
+    <p class="sub">Replay a game from the current browser session. Stockfish can evaluate the selected position and suggest a move; analysis is calculated on demand in your browser.</p>
+    <div class="statrow" style="margin-top:16px">
+      <div class="stat"><small>MOVE</small><strong id="analysisPly">0 / 0</strong></div>
+      <div class="stat"><small>MATERIAL BALANCE</small><strong id="analysisMaterial">0.0</strong></div>
+      <div class="stat"><small>POSITION</small><strong id="analysisState">No game loaded</strong></div>
+    </div>
+    <p class="muted" style="font-size:12px;margin-top:8px">Material balance is a simple piece-count estimate. Engine score is separate and uses White's perspective.</p><div class="enginebar"><div class="engine-stat"><small>Stockfish evaluation</small><strong id="engineEval">Not analysed</strong></div><div class="engine-stat"><small>Engine depth</small><strong id="engineDepth">—</strong></div></div><div class="engine-line" id="engineStatus" role="status">Engine loads on demand when you open analysis or start a match.</div><div class="engine-line"><strong>Suggested move:</strong> <code id="engineBestMove">—</code><span id="enginePv"></span></div>
+  </div>
+  <div class="boardlayout" style="margin-top:16px">
+    <div class="card">
+      <div class="boardwrap"><div class="board" id="analysisBoard"></div><div class="boardnote"><span id="analysisTurn">Load a game to begin.</span><span>Replay board</span></div></div>
+      <div class="movebar"><button class="secondary" id="analysisStart">|‹ Start</button><button class="secondary" id="analysisPrev">‹ Previous</button><button class="goldbtn" id="analysisNext">Next ›</button><button class="secondary" id="analysisEnd">End ›|</button></div>
+      <div class="info" style="margin-top:12px"><strong id="analysisMoveTitle">Move details</strong><p id="analysisMoveDetail">Finish or make moves in a local match, then open Game analysis.</p></div>
+    </div>
+    <div class="card">
+      <div class="minihead"><h3>Move list</h3><span class="tag" id="analysisCount">0 plies</span></div>
+      <div id="analysisMoveList" class="analysis-moves"><p class="muted">No moves to review yet.</p></div>
+      <div class="info" style="margin-top:14px"><strong>Coming in the engine phase</strong><p>Stockfish-backed position scores, best-move suggestions, missed tactics and blunder classification. Those will be labelled as engine analysis only after the engine is actually connected.</p></div>
+      <button class="secondary" style="width:100%;margin-top:12px" data-go="play">Start a practice game →</button>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-profile"><div class="card"><div class="profilehead"><div class="bigavatar">P</div><div><div class="eyebrow">PLAYER PROFILE</div><h2 style="margin:5px 0">Player One</h2><p class="sub" style="margin:0">Bablo Chess learner · Demo profile</p></div></div><div class="profile-settings card" style="margin-top:16px"><div class="sectionhead" style="margin:0 0 12px"><div><div class="eyebrow">PERSONALISE YOUR GAME</div><h2 style="margin:5px 0 0;font-size:20px">Profile & settings</h2><p>Saved on this device for this prototype.</p></div></div><label class="setting-label" for="usernameInput">CHESS USERNAME</label><div class="username-row"><span class="username-at">@</span><input id="usernameInput" maxlength="18" autocomplete="nickname" placeholder="Create your username" aria-describedby="usernameHelp"><button class="goldbtn" id="saveUsername" type="button">Save</button></div><small class="setting-help" id="usernameHelp">3–18 characters. Letters, numbers and underscores only.</small><div class="settings-split"><div><label class="setting-label" for="programmeInput">PROGRAMME</label><select id="programmeInput"><option value="">Choose programme</option><option>Medicine & Surgery (MBBS)</option><option>Nursing Science</option><option>Medical Laboratory Science</option><option>Pharmacy</option><option>Physiotherapy</option><option>Public Health</option><option>Computer Science</option><option>Other</option></select></div><div><label class="setting-label" for="courseComboInput">COURSE / CAMPUS INSIDE JOKE</label><input id="courseComboInput" maxlength="70" placeholder="e.g. MTS 101 + PHY 107"></div></div><small class="setting-help" id="studyContextHelp">Optional. Personalises Dr ECG’s banter on this device; it is not sent to a server.</small><div class="settings-split"><div><label class="setting-label" for="profileBoardTheme">BOARD STYLE</label><select id="profileBoardTheme"><option value="classic">Classic green</option><option value="forest">Forest</option><option value="blue">Ocean blue</option><option value="violet">Violet</option><option value="walnut">Walnut</option><option value="slate">Slate</option></select></div><div><label class="setting-label" for="profilePieceSet">PIECE STYLE</label><select id="profilePieceSet"><option value="classic">Classic pieces</option><option value="monochrome">Monochrome</option><option value="bold">Bold pieces</option><option value="emoji">Colour emoji</option></select></div></div><p class="setting-help" style="margin-top:12px">Your username and board preferences apply to the preview on this device. Online identity and cross-device sync are not connected yet.</p></div><div class="statrow"><div class="stat"><small>LOCAL PRACTICE RATING</small><strong id="profileChessRating">1000</strong></div><div class="stat"><small>GAMES PLAYED</small><strong id="profileGamesPlayed">0</strong></div><div class="stat"><small>WIN RATE</small><strong id="profileWinRate">0%</strong></div></div></div><div class="three" style="margin-top:16px"><div class="card"><div class="eyebrow">HABIT</div><h2 id="profilePuzzleStreak" style="font-size:28px;margin:8px 0">0 days</h2><p class="sub">Daily puzzle streak · This device</p></div><div class="card"><div class="eyebrow">ACADEMY</div><h2 id="profileLessonCount" style="font-size:28px;margin:8px 0">0 / 4</h2><p class="sub">Lessons completed · This device</p></div><div class="card"><div class="eyebrow">ACHIEVEMENT</div><h2 style="font-size:28px;margin:8px 0">Keep learning</h2><p class="sub">Earn badges as your local progress grows.</p></div></div><div class="card" style="margin-top:16px"><h3>Recent matches</h3><div id="chessRecentGames"><p class="sub">No completed local matches yet.</p></div></div><div class="card" style="margin-top:16px"><h3>Progress & connection status</h3><p class="sub">Practice ratings, completed matches and puzzle streaks are saved on this device. Global leaderboards, online matches and cross-device sync are not connected in this standalone build yet.</p></div></section>
+</main></div><nav class="mobilebar" id="mobilebar"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="play"><span>♟</span>Play</button><button data-page="learn"><span>◈</span>Learn</button><button data-page="compete"><span>♜</span>Compete</button><button data-page="profile"><span>◎</span>Profile</button></nav><div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- Rule validation uses chess.js 1.4.0 (BSD-2-Clause) as an ESM dependency. -->
+<script type="module">
+const titles={home:['THE BOARD IS YOURS','Good evening, player.'],play:['MATCHMAKING','Choose your game.'],learn:['BABLO CHESS ACADEMY','Learn by making moves.'],puzzle:['DAILY TACTIC','Find the knight fork.'],analysis:['REVIEW THE POSITION','Understand the game.'],compete:['CAMPUS & FRIENDS','Compete with purpose.'],profile:['YOUR CHESS JOURNEY','Your progress.']};
+function go(p){if(p!=='play')document.querySelector('.main')?.classList.remove('arena-active');document.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-'+p));document.querySelectorAll('[data-page]').forEach(e=>e.classList.toggle('active',e.dataset.page===p));if(titles[p]){document.getElementById('eyebrow').textContent=titles[p][0];document.getElementById('pagetitle').textContent=titles[p][1]}window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+let toastTimer;
+function toast(t){const e=document.getElementById('toast');if(!e)return;e.textContent=t;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),2500)}
+async function bootChess(){
+  let mod;
+  try{mod=await import('https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm')}catch(e){mod=await import('https://esm.sh/chess.js@1.4.0')}
+  const Chess=mod.Chess;
+  if(!Chess)throw new Error('Chess rules module did not export Chess');
+  const $=id=>document.getElementById(id);
+  const PIECE={w:{k:'♔',q:'♕',r:'♖',b:'♗',n:'♘',p:'♙'},b:{k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'}};
+  const EMOJI_PIECE={w:{k:'♔️',q:'♕️',r:'♖️',b:'♗️',n:'♘️',p:'♙️'},b:{k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'}};
+  const VALUES={p:1,n:3,b:3.2,r:5,q:9,k:0};
+  const TIERS=['Student','Intern','House Officer','Registrar','Consultant','Professor'];
+  const FILES='abcdefgh';
+  const FORK_FEN='2q3k1/8/2N5/8/8/8/8/4K3 w - - 0 1';
+  const MATE_FEN='7k/8/5KQ1/8/8/8/8/8 w - - 0 1';
+  const DEV_STEPS=[
+    {from:'e2',to:'e4',objective:'CLAIM THE CENTRE',text:'The e-pawn takes central space and opens lines for the queen and bishop.',hint:'Move the pawn in front of your king two squares: e2 to e4.',reply:{from:'e7',to:'e5'}},
+    {from:'g1',to:'f3',objective:'DEVELOP WITH TEMPO',text:'The knight develops toward the centre and attacks Black’s e5-pawn.',hint:'Move your kingside knight from g1 to f3.',reply:{from:'b8',to:'c6'}},
+    {from:'f1',to:'c4',objective:'AIM AT A WEAK POINT',text:'The bishop develops to c4 and looks toward the f7 square near Black’s king.',hint:'Move the bishop from f1 along the diagonal to c4.',reply:{from:'f8',to:'e7'}},
+    {from:'e1',to:'g1',objective:'CASTLE TO SAFETY',text:'Kingside castling moves your king away from the centre and brings the rook toward the middle. Both the king and rook must be eligible, and the squares between them must be clear and safe.',hint:'Your king starts on e1. Since the knight and bishop have moved, select the king and move it two squares to g1.',reply:null}
+  ];
+  let match=null,matchSelected=null,lastMatchMove=null,matchMode='Quick Match',strength='Registrar',playerColor='w';
+  let analysisMoves=[],analysisPly=0,analysisBaseFen=null;
+  let engineWorker=null,engineReady=false,engineFailed=false,engineBooting=false,engineQueue=[],engineActive=null,analysisDebounce=null,analysisRenderId=0;
+  let audioContext=null,soundEnabled=true;
+  let botThinking=false,botTimer=null,clockInterval=null,clockBase=600,clockIncrement=0,clocks={w:600,b:600},clockEnabled=true;
+  let resultLayer=null,matchStarted=false,matchOver=false,matchStartedAt=0,matchSaved=false;
+  const CHESS_PROGRESS_KEY='babloChessProgress:v1';
+  const BOT_RATING_ESTIMATE={Student:700,Intern:900,'House Officer':1100,Registrar:1300,Consultant:1500,Professor:1700};
+  function loadChessProgress(){
+    try{
+      const value=JSON.parse(localStorage.getItem(CHESS_PROGRESS_KEY)||'null');
+      if(value&&typeof value==='object')return Object.assign({rating:1000,games:0,wins:0,draws:0,losses:0,history:[],puzzleDays:[],lessons:[]},value);
+    }catch(e){}
+    return {rating:1000,games:0,wins:0,draws:0,losses:0,history:[],puzzleDays:[],lessons:[]};
+  }
+  let chessProgress=loadChessProgress();
+  function saveChessProgress(){try{localStorage.setItem(CHESS_PROGRESS_KEY,JSON.stringify(chessProgress))}catch(e){}}
+  function localDayKey(date=new Date()){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
+  function puzzleStreak(){
+    const days=new Set(chessProgress.puzzleDays||[]);let count=0,d=new Date();
+    if(!days.has(localDayKey(d)))d.setDate(d.getDate()-1);
+    while(days.has(localDayKey(d))&&count<366){count++;d.setDate(d.getDate()-1)}
+    return count;
+  }
+  function recordPuzzleSolved(){
+    chessProgress.puzzleDays=chessProgress.puzzleDays||[];
+    const key=localDayKey();
+    if(!chessProgress.puzzleDays.includes(key)){chessProgress.puzzleDays.push(key);chessProgress.puzzleDays=chessProgress.puzzleDays.slice(-90);saveChessProgress()}
+    updateChessProgressUI();
+  }
+  function recordLessonComplete(){
+    chessProgress.lessons=chessProgress.lessons||[];
+    if(!chessProgress.lessons.includes('development')){chessProgress.lessons.push('development');saveChessProgress()}
+    updateChessProgressUI();
+  }
+  function recordLocalMatch(title,detail){
+    if(matchSaved||!match)return null;
+    let outcome='draw';
+    if(/^you win/i.test(title))outcome='win';
+    else if(/^dr ecg wins/i.test(title))outcome='loss';
+    else if(/draw/i.test(title))outcome='draw';
+    else return null;
+    matchSaved=true;
+    const before=Number(chessProgress.rating)||1000;
+    const opponent=BOT_RATING_ESTIMATE[strength]||1100;
+    const expected=1/(1+Math.pow(10,(opponent-before)/400));
+    const actual=outcome==='win'?1:outcome==='loss'?0:.5;
+    const after=Math.max(100,Math.round(before+24*(actual-expected)));
+    chessProgress.rating=after;chessProgress.games++;
+    if(outcome==='win')chessProgress.wins++;else if(outcome==='loss')chessProgress.losses++;else chessProgress.draws++;
+    const row={date:new Date().toISOString(),outcome,strength,ratingBefore:before,ratingAfter:after,delta:after-before,pgn:match.pgn(),detail:String(detail||'').slice(0,180)};
+    chessProgress.history.unshift(row);chessProgress.history=chessProgress.history.slice(0,30);
+    saveChessProgress();updateChessProgressUI();return row;
+  }
+  function updateChessProgressUI(){
+    const rate=chessProgress.games?Math.round(chessProgress.wins/chessProgress.games*100):0;
+    const values={
+      homeChessRating:String(chessProgress.rating),
+      homePuzzleStreak:puzzleStreak()+' days',
+      homeLessons:(chessProgress.lessons||[]).length+' / 4',
+      profileChessRating:String(chessProgress.rating),
+      profileGamesPlayed:String(chessProgress.games),
+      profileWinRate:rate+'%',
+      profilePuzzleStreak:puzzleStreak()+' days',
+      profileLessonCount:(chessProgress.lessons||[]).length+' / 4'
+    };
+    Object.entries(values).forEach(([id,value])=>{const el=document.getElementById(id);if(el)el.textContent=value});
+    const recent=document.getElementById('chessRecentGames');
+    if(recent){
+      recent.replaceChildren();
+      if(!chessProgress.history.length){const empty=document.createElement('p');empty.className='sub';empty.textContent='No completed local matches yet. Your results will appear here.';recent.appendChild(empty)}
+      else chessProgress.history.slice(0,5).forEach(g=>{
+        const row=document.createElement('div');row.className='leaderrow';
+        const label=document.createElement('strong');label.textContent=g.outcome==='win'?'Win':g.outcome==='loss'?'Loss':'Draw';
+        const meta=document.createElement('small');meta.textContent=new Date(g.date).toLocaleDateString()+' · Dr ECG / '+g.strength;
+        const score=document.createElement('span');score.className='rating';score.textContent=(g.delta>0?'+':'')+g.delta+' · '+g.ratingAfter;
+        const person=document.createElement('div');person.className='person';person.append(label,meta);row.append(person,score);recent.appendChild(row);
+      });
+    }
+  }
+  let lessonGame=null,lessonSelected=null,lessonKind='develop',lessonStep=0,lessonWaiting=false,lessonFree=false,lessonHistory=[];
+  let puzzleGame=null,puzzleSelected=null,puzzleAttempts=0,puzzleHints=0,puzzleSolved=false;
+
+  function updatePuzzleDate(){const d=new Date();const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];if($('puzzleDate'))$('puzzleDate').textContent=months[d.getMonth()]+' '+d.getDate()}
+  updatePuzzleDate();
+
+  function ensureAudio(){
+    const AudioCtor=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtor)return null;
+    try{if(!audioContext)audioContext=new AudioCtor();if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});return audioContext}catch(e){return null}
+  }
+  function playChessSound(kind){
+    if(!soundEnabled)return;
+    const ctx=ensureAudio();if(!ctx)return;
+    const now=ctx.currentTime;
+    const patterns={move:[[420,0,.055]],capture:[[360,0,.065],[245,.07,.06]],check:[[610,0,.08],[780,.09,.09]],end:[[523,0,.10],[659,.11,.12],[784,.24,.18]]};
+    (patterns[kind]||patterns.move).forEach(([hz,offset,duration])=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.type=kind==='capture'?'triangle':'sine';
+      osc.frequency.setValueAtTime(hz,now+offset);
+      gain.gain.setValueAtTime(.0001,now+offset);
+      gain.gain.exponentialRampToValueAtTime(.045,now+offset+.012);
+      gain.gain.exponentialRampToValueAtTime(.0001,now+offset+duration);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start(now+offset);osc.stop(now+offset+duration+.015);
+    });
+  }
+  function getBoardTheme(){return $('boardTheme')?.value||localStorage.getItem('babloChessBoardTheme')||'classic'}
+  function getPieceSet(){return $('pieceSet')?.value||localStorage.getItem('babloChessPieceSet')||'classic'}
+  function applyBoardAppearance(root){
+    if(!root)return;
+    root.dataset.boardTheme=getBoardTheme();
+    root.classList.remove('piece-set-monochrome','piece-set-bold','piece-set-emoji');
+    const set=getPieceSet();if(set!=='classic')root.classList.add('piece-set-'+set);
+  }
+  function refreshBoardAppearance(){
+    ['matchBoard','learnBoard','puzzleBoard','analysisBoard'].forEach(id=>{const root=$(id);if(root){applyBoardAppearance(root);if(id==='matchBoard'&&match)drawMatch() }});
+    localStorage.setItem('babloChessBoardTheme',getBoardTheme());
+    localStorage.setItem('babloChessPieceSet',getPieceSet());
+  }
+  function isDarkSquare(sq){return (FILES.indexOf(sq[0])+Number(sq[1]))%2===1}
+  function kingSquare(game,color){for(let rank=8;rank>=1;rank--){for(let fi=0;fi<8;fi++){const sq=FILES[fi]+rank,p=game.get(sq);if(p&&p.type==='k'&&p.color===color)return sq}}return null}
+  function drawBoard(id,game,click,opts={}){
+    const root=$(id);if(!root||!game)return;
+    applyBoardAppearance(root);
+    root.innerHTML='';root.setAttribute('role','grid');root.setAttribute('aria-label','Chessboard');
+    const orientation=opts.orientation||'w';
+    const ranks=orientation==='b'?[1,2,3,4,5,6,7,8]:[8,7,6,5,4,3,2,1];
+    const files=orientation==='b'?['h','g','f','e','d','c','b','a']:[...'abcdefgh'];
+    const selected=opts.selected||null;
+    const last=opts.lastMove||null;
+    const targets=selected?game.moves({square:selected,verbose:true}).map(m=>m.to):[];
+    const check=game.isCheck()?kingSquare(game,game.turn()):null;
+    ranks.forEach((rank,row)=>files.forEach((file,col)=>{
+      const sq=file+rank,p=game.get(sq),cell=document.createElement('button');
+      cell.type='button';cell.className='sq '+(isDarkSquare(sq)?'dark':'light');
+      if(selected===sq)cell.classList.add('selected');
+      if(targets.includes(sq))cell.classList.add(p?'capture-target':'target');
+      if(last&&last.includes(sq))cell.classList.add('last');
+      if(check===sq)cell.classList.add('check');
+      let label=sq;
+      if(p)label=(p.color==='w'?'white ':'black ')+({k:'king',q:'queen',r:'rook',b:'bishop',n:'knight',p:'pawn'}[p.type])+' on '+sq;
+      cell.setAttribute('aria-label',label);cell.setAttribute('role','gridcell');
+      if(col===0){const c=document.createElement('span');c.className='coords';c.textContent=String(rank);cell.appendChild(c)}
+      if(row===7){const c=document.createElement('span');c.className='filecoords';c.textContent=file;cell.appendChild(c)}
+      if(p){const piece=document.createElement('span');piece.className='piece';piece.textContent=(getPieceSet()==='emoji'?EMOJI_PIECE:PIECE)[p.color][p.type];piece.style.color=p.color==='w'?'#fff9e8':'#19211c';piece.style.textShadow=p.color==='w'?'0 1px 2px #0008':'0 1px 1px #fff3';cell.appendChild(piece)}
+      cell.addEventListener('click',()=>click(sq));root.appendChild(cell);
+    }));
+  }
+  function addClockMarkup(){
+    const board=$('matchBoard');if(board&&!$('matchClocks'))board.insertAdjacentHTML('beforebegin','<div id="matchClocks" class="clockrow"><div class="clockchip" id="clockBlackWrap"><span id="blackClockName">Dr ECG · Black</span><strong id="clockBlack">10:00</strong></div><div class="clockchip active" id="clockWhiteWrap"><span id="whiteClockName">You · White</span><strong id="clockWhite">10:00</strong></div></div>');
+    const finish=$('finishMatch');if(finish){finish.textContent='Resign';finish.title='End this unranked game by resignation'}
+    const note=$('matchBoard')?.parentElement?.querySelector('.boardnote span:last-child');if(note)note.textContent='Legal moves active · unranked preview';
+    const tag=$('matchCard')?.querySelector('.minihead .tag');if(tag)tag.textContent='Local rules enabled';
+    const log=$('moveLog');if(log)log.setAttribute('aria-live','polite');
+    const turn=$('turnLabel');if(turn)turn.setAttribute('aria-live','polite');
+    if($('matchBoard')&&!$('drawOffer'))$('finishMatch').insertAdjacentHTML('beforebegin','<button class="secondary" id="drawOffer" type="button">Offer draw</button>');
+    if($('matchBoard')&&!$('matchStatus'))$('matchBoard').insertAdjacentHTML('afterend','<div class="muted" id="matchStatus" role="status" style="font-size:11px;margin-top:8px">Unranked local game. Engine-calibrated strength and online play are not connected.</div>');
+  }
+  function formatTime(seconds){if(!Number.isFinite(seconds))return '∞';seconds=Math.max(0,Math.floor(seconds));return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')}
+  function updateClocks(){
+    if(!$('clockWhite'))return;
+    $('clockWhite').textContent=clockEnabled?formatTime(clocks.w):'∞';$('clockBlack').textContent=clockEnabled?formatTime(clocks.b):'∞';
+    $('clockWhiteWrap').classList.toggle('active',!!match&&match.turn()==='w'&&!matchOver);$('clockBlackWrap').classList.toggle('active',!!match&&match.turn()==='b'&&!matchOver);
+    $('whiteClockName').textContent=(playerColor==='w'?'You':'Dr ECG')+' · White';$('blackClockName').textContent=(playerColor==='b'?'You':'Dr ECG')+' · Black';
+  }
+  function stopClock(){if(clockInterval!==null){clearInterval(clockInterval);clockInterval=null}}
+  function startClock(){
+    stopClock();updateClocks();if(!clockEnabled)return;
+    clockInterval=setInterval(()=>{
+      if(!match||matchOver||!matchStarted)return;
+      const side=match.turn();clocks[side]=Math.max(0,clocks[side]-1);updateClocks();
+      if(clocks[side]<=0){const winner=side===playerColor?'Dr ECG':'You';const title=winner==='You'?'You win on time':'Dr ECG wins on time';finishByResult(title,side===playerColor?'Your clock ran out. This local game does not change a rating.':'Dr ECG ran out of time. This local result is not rated.');}
+    },1000);
+  }
+  function currentStrength(){return document.querySelector('#strengthTabs .active')?.textContent.trim()||'Registrar'}
+  function currentClock(){return document.querySelector('#clockTabs .active')?.textContent.trim()||'10 + 0'}
+  function currentSide(){return document.querySelector('#sideTabs .active')?.textContent.trim()||'White'}
+  function parseClock(text){if(text==='Unlimited')return {base:Infinity,inc:0,enabled:false};const nums=text.match(/\d+/g)||['10','0'];return {base:Number(nums[0])*60,inc:Number(nums[1]||0),enabled:true}}
+  function startMatch(){
+    clearTimeout(botTimer);botTimer=null;stopClock();matchMode=matchMode||'Quick Match';strength=currentStrength();playerColor=currentSide()==='Black'?'b':'w';
+    const clock=parseClock(currentClock());clockBase=clock.base;clockIncrement=clock.inc;clockEnabled=clock.enabled;
+    clocks={w:clockBase,b:clockBase};match=new Chess();matchSelected=null;lastMatchMove=null;botThinking=false;matchStarted=true;matchOver=false;matchStartedAt=Date.now();matchSaved=false;
+    if(resultLayer){resultLayer.remove();resultLayer=null}
+    $('setup').hidden=true;$('setupBackdrop').hidden=true;document.body.classList.remove('setup-open');$('matchCard').hidden=false;document.querySelector('.main')?.classList.add('arena-active');
+    $('matchName').textContent=matchMode+' · Local unranked';
+    $('matchStrength').textContent=strength+' · Practice';if($('botTierLabel'))$('botTierLabel').textContent=String(TIERS.indexOf(strength)+1).padStart(2,'0');
+    $('botLine').textContent='“Read the whole board, doctor. Symptoms are pieces; threats are the diagnosis.”';
+    $('moveLog').textContent='No moves yet. Select a piece, then a highlighted legal destination.';
+    $('turnLabel').textContent=playerColor==='w'?'White to move':'Dr ECG to move';
+    if($('matchStatus'))$('matchStatus').textContent='Legal chess rules are active. Dr ECG uses Stockfish when available, with a legal-move fallback. Results update your local practice rating only.';
+    ensureEngine().catch(()=>{});
+    const undo=$('undoMove');if(undo)undo.disabled=false;
+    drawMatch();startClock();
+    if(playerColor==='b')scheduleBot();
+  }
+
+  function setEngineStatus(text){const node=$('engineStatus');if(node)node.textContent=text}
+  function ensureEngine(){
+    if(engineReady)return Promise.resolve(true);
+    if(engineFailed)return Promise.resolve(false);
+    if(engineBooting)return new Promise(resolve=>{const started=Date.now();const poll=()=>{if(engineReady||engineFailed)return resolve(engineReady);if(Date.now()-started>20000)return resolve(false);setTimeout(poll,100)};poll()});
+    engineBooting=true;setEngineStatus('Loading Stockfish lite engine… first load may take a moment.');
+    return new Promise(resolve=>{
+      let settled=false;
+      const timer=setTimeout(()=>{if(settled)return;settled=true;engineFailed=true;engineBooting=false;setEngineStatus('Engine could not start. The local legal-move bot remains available.');resolve(false)},20000);
+      try{
+        engineWorker=new Worker('/chess/stockfish-worker.js');
+        engineWorker.onmessage=event=>{
+          const line=String(event.data||'').trim();
+          if(line==='uciok'){engineWorker.postMessage('isready');return}
+          if(line==='readyok'){
+            engineReady=true;engineBooting=false;clearTimeout(timer);
+            if(!settled){settled=true;setEngineStatus('Stockfish ready · browser-based engine active.');resolve(true)}
+            runEngineQueue();return;
+          }
+          if(line.startsWith('info ')){
+            const score=line.match(/\bscore (cp|mate) (-?\d+)/);
+            const depth=line.match(/\bdepth (\d+)/);
+            const pv=line.match(/\bpv (.+)$/);
+            if(engineActive&&score)engineActive.latest={kind:score[1],value:Number(score[2]),depth:depth?Number(depth[1]):0,pv:pv?pv[1]:''};
+            return;
+          }
+          if(line.startsWith('bestmove ')){
+            const active=engineActive;engineActive=null;
+            if(active){clearTimeout(active.timer);active.resolve({bestmove:(line.match(/^bestmove (\S+)/)||[])[1]||'(none)',info:active.latest||null})}
+            runEngineQueue();
+          }
+        };
+        engineWorker.onerror=()=>{
+          engineFailed=true;engineReady=false;engineBooting=false;clearTimeout(timer);
+          setEngineStatus('Engine failed to load. Using legal-move fallback.');
+          if(!settled){settled=true;resolve(false)}
+        };
+        engineWorker.postMessage('uci');
+      }catch(e){clearTimeout(timer);engineFailed=true;engineBooting=false;setEngineStatus('Engine unavailable; using legal-move fallback.');if(!settled){settled=true;resolve(false)}}
+    });
+  }
+  function engineCommand(command){
+    return ensureEngine().then(ok=>{if(!ok||!engineWorker)return false;return new Promise(resolve=>{engineQueue.push({command,resolve,kind:'command'});runEngineQueue()})});
+  }
+  function engineSearch(fen,depth=10){
+    return ensureEngine().then(ok=>{if(!ok||!engineWorker)return null;return new Promise(resolve=>{engineQueue.push({fen,depth,resolve,kind:'search'});runEngineQueue()})});
+  }
+  function runEngineQueue(){
+    if(!engineReady||engineActive||!engineQueue.length)return;
+    const task=engineQueue.shift();
+    if(task.kind==='command'){engineWorker.postMessage(task.command);task.resolve(true);setTimeout(runEngineQueue,0);return}
+    engineActive=task;
+    task.timer=setTimeout(()=>{if(engineActive!==task)return;engineActive=null;task.resolve(null);runEngineQueue()},16000);
+    engineWorker.postMessage('position fen '+task.fen);
+    engineWorker.postMessage('go depth '+task.depth);
+  }
+  function uciToSan(fen,uci){
+    if(!uci||uci==='(none)')return 'No legal move';
+    try{const game=new Chess(fen);const move=game.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||'q'});return move?move.san+' ('+uci+')':uci}catch(e){return uci}
+  }
+  function showEngineResult(fen,result,renderId){
+    if(renderId!==analysisRenderId)return;
+    const ev=$('engineEval'),dep=$('engineDepth'),best=$('engineBestMove'),pv=$('enginePv');
+    if(!result){setEngineStatus('Engine analysis timed out. Try selecting the position again.');return}
+    const info=result.info;
+    if(info){
+      const whiteScore=fen.split(' ')[1]==='b'?-info.value:info.value;ev.textContent=info.kind==='mate'?'Mate in '+(fen.split(' ')[1]==='b'?-info.value:info.value):(whiteScore/100>0?'+':'')+(whiteScore/100).toFixed(2);
+      dep.textContent=String(info.depth||'—');pv.textContent=info.pv?' · '+info.pv.split(' ').slice(0,5).join(' '):'';
+    }else{ev.textContent='Score unavailable';dep.textContent='—';pv.textContent=''}
+    best.textContent=uciToSan(fen,result.bestmove);
+    setEngineStatus('Stockfish analysis complete. Scores are from White’s perspective.');
+  }
+  function requestAnalysis(fen){
+    const renderId=++analysisRenderId;clearTimeout(analysisDebounce);
+    $('engineEval').textContent='Analysing…';$('engineDepth').textContent='—';$('engineBestMove').textContent='—';$('enginePv').textContent='';
+    setEngineStatus('Preparing Stockfish analysis…');
+    analysisDebounce=setTimeout(async()=>{
+      const ok=await ensureEngine();if(!ok){$('engineEval').textContent='Unavailable';return}
+      if(renderId!==analysisRenderId)return;
+      setEngineStatus('Stockfish is analysing this position…');
+      const result=await engineSearch(fen,12);
+      showEngineResult(fen,result,renderId);
+    },180);
+  }
+  function materialBalance(game){
+    let score=0;
+    game.board().forEach(row=>row.forEach(piece=>{if(piece)score+=(piece.color==='w'?1:-1)*VALUES[piece.type]}));
+    return score;
+  }
+  function loadAnalysis(){
+    if(!match||!match.history().length){toast('Play at least one move in a local match before reviewing it.');go('play');return}
+    analysisBaseFen=new Chess().fen();
+    analysisMoves=match.history({verbose:true}).map(move=>({...move}));
+    analysisPly=analysisMoves.length;
+    go('analysis');renderAnalysis();
+  }
+  function renderAnalysis(){
+    if(!analysisBaseFen)analysisBaseFen=new Chess().fen();
+    const game=new Chess(analysisBaseFen);
+    for(let i=0;i<analysisPly;i++){
+      const m=analysisMoves[i];
+      const applied=game.move({from:m.from,to:m.to,promotion:m.promotion||'q'});
+      if(!applied)break;
+    }
+    drawBoard('analysisBoard',game,()=>{}, {lastMove:analysisPly? [analysisMoves[analysisPly-1].from,analysisMoves[analysisPly-1].to]:null,orientation:'w'});
+    $('analysisPly').textContent=analysisPly+' / '+analysisMoves.length;
+    const balance=materialBalance(game);
+    $('analysisMaterial').textContent=(balance>0?'+':'')+balance.toFixed(1);
+    $('analysisState').textContent=game.isCheckmate()?'Checkmate':game.isCheck()?'Check':game.isDraw()?'Draw':'In play';
+    requestAnalysis(game.fen());
+    $('analysisTurn').textContent=game.isCheckmate()?'Checkmate':(game.turn()==='w'?'White':'Black')+' to move';
+    if(analysisPly===0){
+      $('analysisMoveTitle').textContent='Starting position';
+      $('analysisMoveDetail').textContent='No move played yet. Use Next to step through the game.';
+    }else{
+      const m=analysisMoves[analysisPly-1];
+      const flags=[];
+      if(m.captured)flags.push('capture');
+      if(m.san.includes('+'))flags.push('check');
+      if(m.san.includes('#'))flags.push('checkmate');
+      $('analysisMoveTitle').textContent='Ply '+analysisPly+' · '+(m.color==='w'?'White':'Black')+' played '+m.san;
+      $('analysisMoveDetail').textContent=flags.length?'Move features: '+flags.join(', ')+'.':'Legal move replayed. No check or capture on this move.';
+    }
+    $('analysisCount').textContent=analysisMoves.length+' plies';
+    const list=$('analysisMoveList');list.textContent='';
+    if(!analysisMoves.length){const p=document.createElement('p');p.className='muted';p.textContent='No moves to review yet.';list.appendChild(p)}
+    analysisMoves.forEach((m,index)=>{
+      const button=document.createElement('button');button.className='analysis-move'+(index+1===analysisPly?' active':'');
+      button.textContent=(m.color==='w'?Math.floor(index/2)+1+'. ':'')+m.san;
+      button.addEventListener('click',()=>{analysisPly=index+1;renderAnalysis()});
+      list.appendChild(button);
+    });
+    $('analysisStart').disabled=analysisPly===0;
+    $('analysisPrev').disabled=analysisPly===0;
+    $('analysisNext').disabled=analysisPly>=analysisMoves.length;
+    $('analysisEnd').disabled=analysisPly>=analysisMoves.length;
+  }
+  function drawMatch(){drawBoard('matchBoard',match,matchClick,{selected:matchSelected,lastMove:lastMatchMove,orientation:playerColor}) ;updateClocks();updateTurn();updateCapturedPieces()}
+  function updateTurn(){
+    if(!match||!$('turnLabel'))return;
+    if(matchOver){$('turnLabel').textContent='Game complete';return}
+    if(botThinking){$('turnLabel').textContent='Dr ECG is thinking…';return}
+    let text=(match.turn()==='w'?'White':'Black')+' to move';
+    if(match.turn()===playerColor)text='Your move · '+(playerColor==='w'?'White':'Black');
+    else text='Dr ECG to move';
+    if(match.isCheck())text+=' · CHECK';
+    $('turnLabel').textContent=text;
+  }
+  function redrawMoveLog(){
+    const hist=match.history();let text='';
+    hist.forEach((san,i)=>{if(i%2===0)text+=(Math.floor(i/2)+1)+'. ';text+=san+' '});
+    $('moveLog').textContent=text.trim()||'No moves yet. Select a piece, then a highlighted legal destination.';
+  }
+  function updateCapturedPieces(){
+    const captured={player:[],bot:[]};
+    if(match)match.history({verbose:true}).forEach(move=>{
+      if(!move.captured)return;
+      const capturedColor=move.color==='w'?'b':'w';
+      const list=capturedColor===playerColor?captured.bot:captured.player;
+      list.push(PIECE[capturedColor][move.captured]);
+    });
+    const paint=(id,pieces)=>{
+      const node=$(id);if(!node)return;
+      node.textContent='';
+      if(!pieces.length){const empty=document.createElement('span');empty.className='empty';empty.textContent='None yet';node.appendChild(empty);return}
+      pieces.forEach(symbol=>{const piece=document.createElement('span');piece.textContent=symbol;piece.setAttribute('aria-hidden','true');node.appendChild(piece)});
+    };
+    paint('playerCaptures',captured.player);paint('botCaptures',captured.bot);
+  }
+  function describeMove(move,fromBot){
+    const playerName=localStorage.getItem('babloChessUsername')||'';
+    const programme=localStorage.getItem('babloChessProgramme')||'';
+    const courseCombo=localStorage.getItem('babloChessCourseCombo')||'';
+    const address=playerName?'@'+playerName:'doctor';
+    const context=courseCombo||programme||'Bowen campus';
+    if(move.san==='O-O'||move.san==='O-O-O')return fromBot?'“Even the king knows when to leave the centre, '+address+'. Consider that a clinical decision.”':'“Castled. King safety first — even during Bowen timetable wahala.”';
+    if(move.promotion)return fromBot?'“A pawn has been promoted, '+address+'. That is career progression I respect.”':'“Promotion! Small beginnings, big endgame energy.”';
+    if(move.flags&&move.flags.includes('e'))return fromBot?'“En passant? Okay, '+address+', you came prepared. '+context+' has clearly taught you something.”':'“En passant! You caught the pawn before it could settle.”';
+    if(move.san.includes('#'))return fromBot?'“Checkmate. The diagnosis is conclusive, '+address+'. No resit.”':'“Checkmate! You found the correct treatment plan.”';
+    if(move.san.includes('+'))return fromBot?'“Check. Your king’s vitals need attention, '+address+'. Review the whole board.”':'“Check. You made Dr ECG answer a direct question.”';
+    if(move.captured)return fromBot?'“I’ve taken that piece, '+address+'. Even '+context+' cannot explain away that material loss.”':'“Good capture. You spotted a weakness rather than moving without a plan.”';
+    const level=Math.max(0,TIERS.indexOf(strength));
+    const lines=fromBot?[
+      '“A legal move is the beginning, '+address+'. Now tell me what it threatens.”',
+      '“Checks, captures, threats — in that order. This is not a last-minute cram session.”',
+      '“Your pieces need coordination. '+context+' is not a group assignment, doctor.”',
+      '“I have made my move. Read the position before you react, '+address+'.”',
+      '“You have survived this move. Don’t start writing your victory testimony yet.”',
+      '“Doctor, your king is not immune because you have other courses to worry about.”'
+    ]:[
+      '“Interesting. Can you explain what that move improves?”',
+      '“Scan for checks, captures and threats before the next move.”',
+      '“One move at a time, '+address+'. Keep your king safe.”',
+      '“You have a plan. Now verify it against the opponent’s strongest reply.”'
+    ];
+    return lines[(match.history().length+(fromBot?level:0))%lines.length];
+  }
+  function materialScore(game,color){let total=0;game.board().forEach(row=>row.forEach(p=>{if(p)total+=(p.color===color?1:-1)*VALUES[p.type]}));return total}
+  function chooseBotMove(){
+    const moves=match.moves({verbose:true});if(!moves.length)return null;
+    const botColor=match.turn();
+    const scored=moves.map(m=>{
+      const test=new Chess(match.fen());const played=test.move({from:m.from,to:m.to,promotion:m.promotion||'q'});
+      let score=materialScore(test,botColor);
+      if(test.isCheckmate())score+=10000;
+      else if(test.isCheck())score+=0.65;
+      if(m.captured)score+=VALUES[m.captured]*0.15;
+      if(m.promotion)score+=VALUES[m.promotion]||8;
+      if(m.san.includes('+'))score+=0.1;
+      return {move:m,score};
+    }).sort((a,b)=>b.score-a.score);
+    const idx=Math.max(0,TIERS.indexOf(strength));const proportions=[1,.72,.48,.3,.16,.06];
+    const pool=Math.max(1,Math.ceil(scored.length*proportions[idx]));
+    return scored[Math.floor(Math.random()*pool)].move;
+  }
+  function scheduleBot(){
+    if(!match||matchOver||match.turn()===playerColor)return;
+    botThinking=true;matchSelected=null;updateTurn();drawMatch();
+    const requestedFen=match.fen();
+    clearTimeout(botTimer);botTimer=setTimeout(async()=>{
+      botTimer=null;
+      if(!match||matchOver||match.fen()!==requestedFen)return;
+      let move=null;
+      try{
+        const ready=await ensureEngine();
+        if(ready){
+          const levels={Student:0,Intern:3,'House Officer':6,Registrar:10,Consultant:15,Professor:20};
+          await engineCommand('setoption name Skill Level value '+(levels[strength]??10));
+          const best=await engineSearch(requestedFen,Math.min(14,7+Math.max(0,TIERS.indexOf(strength))));
+          if(best&&best.bestmove&&best.bestmove!=='(none)'){
+            const u=best.bestmove;move={from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||'q'};
+          }
+        }
+      }catch(e){console.warn('Stockfish bot fallback:',e)}
+      if(!match||matchOver||match.fen()!==requestedFen)return;
+      if(!move)move=chooseBotMove();
+      botThinking=false;
+      if(!move){settleGame();return}
+      commitMove(move.from,move.to,move.promotion||'q',true);
+    },250+Math.random()*250);
+  }
+  function commitMove(from,to,promotion,fromBot){
+    if(!match||matchOver)return;
+    const movingColor=match.turn();let move;
+    try{move=match.move({from,to,promotion:promotion||'q'})}catch(e){move=null}
+    if(!move){toast('That move is not legal in this position.');matchSelected=null;drawMatch();return}
+    if(clockEnabled&&Number.isFinite(clocks[movingColor]))clocks[movingColor]+=clockIncrement;
+    lastMatchMove=[move.from,move.to];matchSelected=null;redrawMoveLog();$('botLine').textContent=describeMove(move,fromBot);playChessSound(move.san.includes('#')?'end':match.isCheck()?'check':move.captured?'capture':'move');
+    drawMatch();
+    if(match.isGameOver()){settleGame();return}
+    if(match.turn()!==playerColor)scheduleBot();
+  }
+  function matchClick(sq){
+    if(!match||matchOver||botThinking||match.turn()!==playerColor)return;
+    const p=match.get(sq);
+    if(!matchSelected){
+      if(!p||p.color!==playerColor){toast('Select one of your own pieces first.');return}
+      matchSelected=sq;drawMatch();return;
+    }
+    if(matchSelected===sq){matchSelected=null;drawMatch();return}
+    const move=match.moves({square:matchSelected,verbose:true}).find(m=>m.to===sq);
+    if(!move){
+      if(p&&p.color===playerColor){matchSelected=sq;drawMatch();return}
+      toast('That destination is not legal. Choose a highlighted square.');return;
+    }
+    const from=matchSelected;matchSelected=null;
+    if(move.promotion){showPromotionPicker(from,sq,playerColor,piece=>commitMove(from,sq,piece,false))}
+    else commitMove(from,sq,'q',false);
+  }
+  function showPromotionPicker(from,to,color,callback){
+    const old=document.getElementById('promotionLayer');if(old)old.remove();
+    const symbols=PIECE[color];const layer=document.createElement('div');layer.className='result-layer';layer.id='promotionLayer';layer.setAttribute('role','dialog');layer.setAttribute('aria-modal','true');
+    layer.innerHTML='<div class="result-card"><div class="result-stamp">Pawn promotion</div><h2>Choose your piece</h2><p>Promote this pawn. Queen is the usual choice, but the other legal options remain available.</p><div class="actions" id="promotionOptions"></div></div>';
+    document.body.appendChild(layer);
+    ['q','r','b','n'].forEach(piece=>{const b=document.createElement('button');b.className=piece==='q'?'goldbtn':'secondary';b.type='button';b.textContent=symbols[piece]+' '+({q:'Queen',r:'Rook',b:'Bishop',n:'Knight'}[piece]);b.addEventListener('click',()=>{layer.remove();callback(piece)});$('promotionOptions').appendChild(b)});
+  }
+  function finishByResult(title,detail){
+    if(matchOver)return;
+    const saved=recordLocalMatch(title,detail);
+    matchOver=true;matchStarted=false;botThinking=false;clearTimeout(botTimer);botTimer=null;stopClock();matchSelected=null;drawMatch();showResult(title,detail,saved);
+  }
+  function settleGame(){
+    if(!match)return;
+    if(match.isCheckmate()){
+      const winner=match.turn()==='w'?'Black':'White';
+      const headline=(winner===playerColor?'You win':'Dr ECG wins')+' · Checkmate';
+      finishByResult(headline,'Checkmate has been verified from the legal position. This game is unranked and does not change a stored rating.');
+    }else if(match.isStalemate())finishByResult('Draw · Stalemate','The side to move has no legal move and is not in check.');
+    else if(match.isThreefoldRepetition())finishByResult('Draw · Repetition','The position has repeated three times.');
+    else if(match.isInsufficientMaterial())finishByResult('Draw · Insufficient material','Neither side has enough material to force checkmate.');
+    else if(match.isDraw())finishByResult('Draw','The rules position is drawn.');
+  }
+  function showResult(title,detail,saved){
+    if(resultLayer)resultLayer.remove();
+    resultLayer=document.createElement('div');resultLayer.className='result-layer';resultLayer.setAttribute('role','dialog');resultLayer.setAttribute('aria-modal','true');resultLayer.setAttribute('aria-labelledby','resultTitle');
+    resultLayer.innerHTML='<div class="result-card"><div class="result-stamp">Local practice result · saved on this device</div><h2 id="resultTitle"></h2><p id="resultDetail"></p><div class="info"><strong>Practice rating</strong><p id="resultRating"></p></div><div class="info"><strong>Move record</strong><p id="resultMoves" style="overflow-wrap:anywhere"></p></div><div class="actions"><button class="goldbtn" id="resultReview">Review board</button><button class="secondary" id="resultRematch">Rematch</button><button class="secondary" id="resultHome">Home</button></div></div>';
+    document.body.appendChild(resultLayer);
+    const analyzeButton=document.createElement('button');analyzeButton.className='secondary';analyzeButton.textContent='Review this game';analyzeButton.style.marginTop='10px';analyzeButton.style.width='100%';analyzeButton.addEventListener('click',()=>{if(resultLayer){resultLayer.remove();resultLayer=null}loadAnalysis()});
+    resultLayer.querySelector('.result-card .actions')?.appendChild(analyzeButton);
+    resultLayer.querySelector('#resultTitle').textContent=title;
+    resultLayer.querySelector('#resultDetail').textContent=detail;
+    resultLayer.querySelector('#resultRating').textContent=saved?String(saved.ratingAfter)+' ('+(saved.delta>0?'+':'')+saved.delta+') · Local estimate against '+saved.strength+'.':'This result was not rated.';
+    resultLayer.querySelector('#resultMoves').textContent=match?match.pgn().replace(/\[.*?\]\s*/g,'').trim()||'No moves recorded.':'No moves recorded.';
+    resultLayer.querySelector('#resultReview').addEventListener('click',()=>{resultLayer.remove();resultLayer=null;go('play');$('matchCard').hidden=false;$('matchCard').scrollIntoView({behavior:'smooth',block:'start'});toast('Final position and move record are shown. The game cannot continue.')});
+    resultLayer.querySelector('#resultRematch').addEventListener('click',()=>startMatch());
+    resultLayer.querySelector('#resultHome').addEventListener('click',()=>{resultLayer.remove();resultLayer=null;$('matchCard').hidden=true;go('home')});
+    resultLayer.querySelector('#resultReview').focus();
+  }
+
+  addClockMarkup();
+  document.querySelectorAll('[data-format]').forEach(card=>card.addEventListener('click',()=>{
+    const next=card.dataset.format;
+    if(!['Quick Match','Timed Match','Training Match'].includes(next)){toast(next+' is planned, but not playable in this prototype yet. Quick, Timed and Training Match are active.');return}
+    matchMode=next;$('setupTitle').textContent=next+' setup';$('setup').hidden=false;$('setupBackdrop').hidden=false;document.body.classList.add('setup-open');$('closeSetup').focus();
+  }));
+  document.querySelectorAll('#page-play .mode:not([data-format])').forEach(card=>card.addEventListener('click',()=>toast('This format is in the product plan but is not yet playable in this preview.')));
+  ['boardTheme','pieceSet'].forEach(id=>{const control=$(id);if(!control)return;const saved=localStorage.getItem(id==='boardTheme'?'babloChessBoardTheme':'babloChessPieceSet');if(saved&&[...control.options].some(o=>o.value===saved))control.value=saved;control.addEventListener('change',refreshBoardAppearance)});
+  // Mirror setup appearance controls inside the live arena; the underlying persisted selectors remain canonical.
+  function syncLiveAppearance(){
+    const board=$('liveBoardTheme'),pieces=$('livePieceSet');
+    if(board&&$('boardTheme'))board.value=$('boardTheme').value;
+    if(pieces&&$('pieceSet'))pieces.value=$('pieceSet').value;
+  }
+  syncLiveAppearance();
+  const usernameInput=$('usernameInput');
+  const profileName=localStorage.getItem('babloChessUsername')||'';
+  function applyUsername(name){
+    const shown=name||'Guest player';
+    document.querySelectorAll('.player-identity.you-strip strong').forEach(n=>n.textContent=shown);
+    const avatar=document.querySelector('.you-strip .you-avatar');if(avatar)avatar.textContent=(name||'G').slice(0,1).toUpperCase();
+    const profileHeading=document.querySelector('#page-profile .profilehead h2');if(profileHeading)profileHeading.textContent=shown;
+    const profileSub=document.querySelector('#page-profile .profilehead .sub');if(profileSub)profileSub.textContent=name?'Bablo Chess player · @'+name:'Create your chess username below';
+    const topTitle=$('pagetitle');if(topTitle&&document.querySelector('#page-home.active'))topTitle.textContent='Good evening, '+shown+'.';
+    const topAvatar=document.querySelector('.topright .avatar');if(topAvatar)topAvatar.textContent=(name||'G').slice(0,1).toUpperCase();
+  }
+  if(usernameInput)usernameInput.value=profileName;
+  const programmeInput=$('programmeInput'),courseComboInput=$('courseComboInput');
+  if(programmeInput)programmeInput.value=localStorage.getItem('babloChessProgramme')||'';
+  if(courseComboInput)courseComboInput.value=localStorage.getItem('babloChessCourseCombo')||'';
+  applyUsername(profileName);
+  updateChessProgressUI();
+  $('saveUsername')?.addEventListener('click',()=>{
+    const value=(usernameInput?.value||'').trim().replace(/^@/,'');
+    if(!/^[A-Za-z0-9_]{3,18}$/.test(value)){if($('usernameHelp'))$('usernameHelp').textContent='Use 3–18 letters, numbers or underscores.';toast('Choose a valid username first.');return;}
+    localStorage.setItem('babloChessUsername',value);applyUsername(value);
+    if(programmeInput)localStorage.setItem('babloChessProgramme',programmeInput.value);
+    if(courseComboInput)localStorage.setItem('babloChessCourseCombo',(courseComboInput.value||'').trim().slice(0,70));
+    if($('usernameHelp'))$('usernameHelp').textContent='Saved on this device as @'+value+'.';
+    if($('studyContextHelp'))$('studyContextHelp').textContent='Dr ECG will use your programme/course context in local banter. Nothing is sent to a server.';
+    toast('Profile and Dr ECG context saved.');
+  });
+  const profileBoard=$('profileBoardTheme'),profilePieces=$('profilePieceSet');
+  if(profileBoard&&$('boardTheme'))profileBoard.value=$('boardTheme').value;
+  if(profilePieces&&$('pieceSet'))profilePieces.value=$('pieceSet').value;
+  function syncProfileAppearance(){if(profileBoard&&$('boardTheme'))profileBoard.value=$('boardTheme').value;if(profilePieces&&$('pieceSet'))profilePieces.value=$('pieceSet').value;}
+  profileBoard?.addEventListener('change',()=>{if($('boardTheme')){$('boardTheme').value=profileBoard.value;$('boardTheme').dispatchEvent(new Event('change',{bubbles:true}));}syncLiveAppearance();});
+  profilePieces?.addEventListener('change',()=>{if($('pieceSet')){$('pieceSet').value=profilePieces.value;$('pieceSet').dispatchEvent(new Event('change',{bubbles:true}));}syncLiveAppearance();});
+  $('closeSetup')?.addEventListener('click',()=>{ $('setup').hidden=true;$('setupBackdrop').hidden=true;document.body.classList.remove('setup-open'); });
+  $('setupBackdrop')?.addEventListener('click',()=>{ $('setup').hidden=true;$('setupBackdrop').hidden=true;document.body.classList.remove('setup-open'); });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('setup').hidden){$('setup').hidden=true;$('setupBackdrop').hidden=true;document.body.classList.remove('setup-open');}});
+
+  ['liveBoardTheme','livePieceSet'].forEach(id=>{const control=$(id);if(!control)return;control.addEventListener('change',()=>{const target=$(id==='liveBoardTheme'?'boardTheme':'pieceSet');if(target){target.value=control.value;target.dispatchEvent(new Event('change',{bubbles:true}));}syncLiveAppearance();});});
+  ['boardTheme','pieceSet'].forEach(id=>{const control=$(id);if(control)control.addEventListener('change',syncLiveAppearance);});
+  document.querySelectorAll('[data-arena-tab]').forEach(button=>button.addEventListener('click',()=>{
+    const key=button.dataset.arenaTab;
+    document.querySelectorAll('[data-arena-tab]').forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-selected',String(active));});
+    document.querySelectorAll('[data-arena-panel]').forEach(panel=>{const active=panel.dataset.arenaPanel===key;panel.classList.toggle('active',active);panel.hidden=!active;});
+  }));
+  $('exitMatch')?.addEventListener('click',()=>{stopClock();clearTimeout(botTimer);botThinking=false;$('matchCard').hidden=true;$('setup').hidden=false;$('setupBackdrop').hidden=false;document.body.classList.add('setup-open');document.querySelector('.main')?.classList.remove('arena-active');});
+
+  ['strengthTabs','clockTabs','sideTabs','leaderTabs'].forEach(id=>{
+    const root=$(id);if(!root)return;
+    root.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      root.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+      if(id==='leaderTabs')renderLeaders(b.textContent.trim());
+    }));
+  });
+  function renderLeaders(filter){
+    const box=$('leaderRows');if(!box)return;
+    box.replaceChildren();
+    const note=document.createElement('p');note.className='muted preview-note';
+    note.textContent='Global chess rankings are not connected yet. This preview will not invent players or show sample standings.';
+    box.appendChild(note);
+    const row=document.createElement('div');row.className='leaderrow';
+    const person=document.createElement('div');person.className='person';
+    const icon=document.createElement('div');icon.className='personicon';icon.textContent=(localStorage.getItem('babloChessUsername')||'G').slice(0,1).toUpperCase();
+    const identity=document.createElement('div');const name=document.createElement('strong');name.textContent='@'+(localStorage.getItem('babloChessUsername')||'guest');
+    const label=document.createElement('small');label.textContent='Your local practice profile';identity.append(name,label);person.append(icon,identity);
+    const rating=document.createElement('span');rating.className='rating';rating.textContent=String(chessProgress.rating);
+    const trend=document.createElement('span');trend.className='trend';trend.textContent=chessProgress.games+' games';
+    row.append(person,rating,trend);box.appendChild(row);
+  }
+  renderLeaders('Overall');
+  if($('leaderRows')&&!$('leaderPreviewNote'))$('leaderRows').insertAdjacentHTML('beforebegin','<p class="muted preview-note" id="leaderPreviewNote">Illustrative preview data only — this is not a live or ranked leaderboard.</p>');
+
+  $('gameSound').addEventListener('click',()=>{
+    soundEnabled=!soundEnabled;
+    $('gameSound').textContent=soundEnabled?'♫ Sound on':'♫ Sound off';
+    $('gameSound').setAttribute('aria-pressed',String(soundEnabled));
+    if(soundEnabled){ensureAudio();playChessSound('move')}
+    toast(soundEnabled?'Move sounds enabled.':'Move sounds muted.');
+  });
+  ['analysisStart','analysisPrev','analysisNext','analysisEnd'].forEach(id=>$(id).addEventListener('click',()=>{
+    if(id==='analysisStart')analysisPly=0;
+    if(id==='analysisPrev')analysisPly=Math.max(0,analysisPly-1);
+    if(id==='analysisNext')analysisPly=Math.min(analysisMoves.length,analysisPly+1);
+    if(id==='analysisEnd')analysisPly=analysisMoves.length;
+    renderAnalysis();
+  }));
+  document.querySelectorAll('[data-page="analysis"]').forEach(button=>button.addEventListener('click',loadAnalysis));
+  $('startMatch').addEventListener('click',startMatch);
+  $('undoMove').addEventListener('click',()=>{
+    if(!match||botThinking||match.history().length===0){toast('There is no completed move to take back.');return}
+    if(resultLayer){resultLayer.remove();resultLayer=null;matchOver=false;matchStarted=true;startClock()}
+    stopClock();let removed=0;
+    const before=match.history({verbose:true});
+    if(before.length){const last=before[before.length-1];match.undo();removed++;if(last.color!==playerColor){const prior=match.history({verbose:true});if(prior.length&&prior[prior.length-1].color===playerColor){match.undo();removed++}}}
+    if(matchOver)matchOver=false;matchStarted=true;matchSelected=null;lastMatchMove=null;
+    if(match.history().length){const history=match.history({verbose:true});const last=history[history.length-1];lastMatchMove=last?[last.from,last.to]:null}
+    redrawMoveLog();drawMatch();startClock();toast(removed>1?'Last exchange taken back.':'Last move taken back.');
+  });
+  $('resetBoard').addEventListener('click',()=>{startMatch();toast('New local game started.')});
+  $('finishMatch').addEventListener('click',()=>{if(!match||matchOver)return;if(confirm('Resign this unranked local game?'))finishByResult(playerColor==='w'?'Dr ECG wins on resignation':'Dr ECG wins on resignation','You resigned. No rating or online result will be submitted.')});
+  $('drawOffer').addEventListener('click',()=>{if(!match||matchOver||botThinking)return;if(match.isDraw()){settleGame();return}const balance=materialScore(match,'w');if(match.history().length>=30&&Math.abs(balance)<=0.5){finishByResult('Draw agreed','Dr ECG accepted the draw after a balanced, extended game. This local result is not rated.')}else{$('botLine').textContent='“A draw? Not yet, doctor. The position still has unresolved business.”';toast('Dr ECG declines the draw for now.')}});
+
+  function resetLesson(kind='develop'){
+    lessonKind=kind;lessonSelected=null;lessonStep=0;lessonWaiting=false;lessonFree=false;lessonHistory=[];
+    lessonGame=kind==='fork'?new Chess(FORK_FEN):kind==='mate'?new Chess(MATE_FEN):new Chess();
+    $('lessonTitle').textContent=kind==='fork'?'Knight fork':kind==='mate'?'Checkmate in one':'Develop and castle';
+    $('lessonTag').textContent=kind==='fork'?'Tactical lesson':kind==='mate'?'Mate pattern':'Guided practice';
+    $('lessonNext').textContent=kind==='fork'?'Restart tactic':kind==='mate'?'Restart mate':'Next step →';
+    $('lessonNext').disabled=false;
+    if(kind==='fork'){
+      $('lessonObjective').textContent='OBJECTIVE · FORK THE KING AND QUEEN';
+      $('lessonExplanation').textContent='White to move. Ne7+ checks the king on g8 while attacking the queen on c8.';
+      $('lessonFeedback').textContent='Select the knight on c6, then choose a legal destination.';
+    }else if(kind==='mate'){
+      $('lessonStep').textContent='One move to mate';
+      $('lessonObjective').textContent='OBJECTIVE · CHECKMATE THE KING';
+      $('lessonExplanation').textContent='White to move. Find the queen move that gives checkmate. Check every escape square before committing.';
+      $('lessonFeedback').textContent='Look for a queen move that is protected by your king and covers the black king’s escape squares.';
+    }else{
+      $('lessonFeedback').textContent='Play the guided move directly on the board.';
+      updateLessonCopy();
+    }
+    renderLessonBoard();
+  }
+  function updateLessonCopy(){
+    if(lessonKind==='fork'||lessonKind==='mate')return;
+    if(lessonStep>=DEV_STEPS.length){
+      $('lessonStep').textContent='Lesson complete';
+      $('lessonObjective').textContent='OBJECTIVE · COMPLETE';
+      $('lessonExplanation').textContent='You practised central control, knight development, bishop development and kingside castling. Restart to practise the line again.';
+      $('lessonFeedback').textContent='Completed locally. Progress is not synced to an account.';
+      $('lessonNext').textContent='Restart lesson';$('lessonNext').disabled=false;return;
+    }
+    const st=DEV_STEPS[lessonStep];
+    $('lessonStep').textContent='Step '+(lessonStep+1)+' of '+DEV_STEPS.length;
+    $('lessonObjective').textContent='OBJECTIVE · '+st.objective;
+    $('lessonExplanation').textContent=st.text;
+    $('lessonNext').textContent='Next step →';$('lessonNext').disabled=!lessonWaiting;
+  }
+  function renderLessonBoard(){
+    drawBoard('lessonBoard',lessonGame,lessonClick,{selected:lessonSelected,lastMove:null,orientation:'w'});
+    const t=lessonGame.turn()==='w'?'White to move':'Black to move';
+    $('lessonTurn').textContent=lessonWaiting?'Move complete · continue when ready':(lessonFree?'Free play · '+t:t);
+    updateLessonCopy();
+  }
+  function lessonClick(sq){
+    if(!lessonGame||lessonWaiting&&lessonKind==='develop'&&!lessonFree)return;
+    const p=lessonGame.get(sq);
+    if(!lessonSelected){
+      if(!p||p.color!==lessonGame.turn()){toast('Select a piece belonging to the side to move.');return}
+      lessonSelected=sq;renderLessonBoard();return;
+    }
+    if(lessonSelected===sq){lessonSelected=null;renderLessonBoard();return}
+    const available=lessonGame.moves({square:lessonSelected,verbose:true});
+    const found=available.find(m=>m.to===sq);
+    if(!found){
+      if(p&&p.color===lessonGame.turn()){lessonSelected=sq;renderLessonBoard();return}
+      $('lessonFeedback').textContent='That is not a legal move. Choose one of the highlighted destinations.';return;
+    }
+    lessonHistory.push({fen:lessonGame.fen(),step:lessonStep,waiting:lessonWaiting,free:lessonFree,kind:lessonKind});
+    const from=lessonSelected;lessonSelected=null;const move=lessonGame.move({from,to:sq,promotion:'q'});
+    if(lessonKind==='mate'){
+      if(move.from==='g6'&&move.to==='g7'&&lessonGame.isCheckmate()){
+        lessonWaiting=true;$('lessonFeedback').textContent='Checkmate! Qg7# is protected by your king and covers the black king’s escape squares.';$('lessonFeedback').style.color='var(--green)';$('lessonNext').textContent='Restart mate';
+      }else{
+        lessonFree=true;$('lessonFeedback').textContent=lessonGame.isCheck()?'That gives check, but it is not checkmate. Check every legal escape square.':'That move is legal, but the king can still escape. Look for a forcing queen move.';$('lessonFeedback').style.color='var(--gold2)';
+      }
+      renderLessonBoard();return;
+    }
+    if(lessonKind==='fork'){
+      if(move.from==='c6'&&move.to==='e7'&&lessonGame.isCheck()){
+        lessonWaiting=true;$('lessonFeedback').textContent='Correct: Ne7+ checks the king and attacks the queen. That is a knight fork.';$('lessonFeedback').style.color='var(--green)';$('lessonNext').textContent='Restart tactic';
+      }else{
+        lessonFree=true;$('lessonFeedback').textContent='Legal move, but it missed the fork. Restart and look for a move that checks the king while attacking the queen.';$('lessonFeedback').style.color='var(--gold2)';
+      }
+      renderLessonBoard();
+      return;
+    }
+    if(!lessonFree&&lessonStep<DEV_STEPS.length){
+      const st=DEV_STEPS[lessonStep];
+      if(move.from===st.from&&move.to===st.to){
+        const reply=st.reply;
+        if(reply){try{lessonGame.move({from:reply.from,to:reply.to})}catch(e){}}
+        lessonWaiting=true;
+        $('lessonFeedback').textContent='Good move. '+st.text+' Tap Next step to continue.';$('lessonFeedback').style.color='var(--green)';
+      }else{
+        lessonFree=true;lessonWaiting=false;$('lessonFeedback').textContent='That move is legal, but it leaves the guided line. Keep exploring with legal moves or restart the lesson.';$('lessonFeedback').style.color='var(--gold2)';
+      }
+    }else{
+      $('lessonFeedback').textContent='Legal move played. Notice how the position changes.';$('lessonFeedback').style.color='var(--green)';
+    }
+    renderLessonBoard();
+  }
+  function stepBackLesson(){
+    const prev=lessonHistory.pop();if(!prev){toast('You are at the start of this lesson.');return}
+    lessonGame.load(prev.fen);lessonStep=prev.step;lessonWaiting=prev.waiting;lessonFree=prev.free;lessonKind=prev.kind;lessonSelected=null;
+    $('lessonFeedback').textContent='Previous position restored.';$('lessonFeedback').style.color='var(--gold2)';renderLessonBoard();
+  }
+  const lessonControls=$('lessonHint')?.parentElement;
+  if(lessonControls&&!$('lessonBack'))lessonControls.insertAdjacentHTML('afterbegin','<button class="secondary" id="lessonBack">← Back</button>');
+  $('lessonBack').addEventListener('click',stepBackLesson);
+  $('startLesson').addEventListener('click',()=>{resetLesson('develop');toast('Guided opening lesson ready.')});
+  $('startFork').addEventListener('click',()=>{resetLesson('fork');toast('Knight-fork tactic ready.')});
+  $('lockedLesson').addEventListener('click',()=>{resetLesson('mate');toast('Checkmate-in-one lesson ready.');});
+  $('lessonHint').addEventListener('click',()=>{
+    if(lessonKind==='mate')$('lessonFeedback').textContent='Hint: play Qg7#. Your king protects the queen, and the queen controls the black king’s escape squares.';
+    else if(lessonKind==='fork')$('lessonFeedback').textContent=lessonStep===0?'Hint: from c6, check which square lets the knight attack both the king and queen.':'The fork is shown on the board.';
+    else $('lessonFeedback').textContent=lessonFree?'You are in free play. Restart to return to the guided line.':lessonStep>=DEV_STEPS.length?'Lesson complete. Restart to practise again.':DEV_STEPS[lessonStep].hint;
+  });
+  $('lessonReset').addEventListener('click',()=>{resetLesson(lessonKind);toast('Lesson restarted.')});
+  $('lessonNext').addEventListener('click',()=>{
+    if(lessonKind==='fork'){resetLesson('fork');toast('Tactic restarted.');return}
+    if(lessonKind==='mate'){resetLesson('mate');toast('Checkmate lesson restarted.');return}
+    if(lessonStep>=DEV_STEPS.length){resetLesson('develop');return}
+    if(lessonFree){resetLesson('develop');toast('Guided line restarted.');return}
+    if(!lessonWaiting){toast('Play the guided move before going to the next step.');return}
+    lessonStep++;lessonWaiting=false;lessonSelected=null;
+    $('lessonFeedback').textContent=lessonStep>=DEV_STEPS.length?'Lesson complete.':'Position updated for the next guided move.';$('lessonFeedback').style.color='var(--green)';
+    if(lessonStep>=DEV_STEPS.length)recordLessonComplete();
+    renderLessonBoard();
+  });
+  resetLesson('develop');
+
+  function resetPuzzle(){
+    puzzleGame=new Chess(FORK_FEN);puzzleSelected=null;puzzleAttempts=0;puzzleHints=0;puzzleSolved=false;
+    $('attemptCount').textContent='0';$('puzzleHint').textContent='Show hint 1';$('puzzleFeedback').textContent='White to move. Find Ne7+.';$('puzzleFeedback').style.color='var(--muted)';
+    drawBoard('puzzleBoard',puzzleGame,puzzleClick,{orientation:'w'});
+  }
+  function puzzleClick(sq){
+    if(puzzleSolved)return;
+    const p=puzzleGame.get(sq);
+    if(!puzzleSelected){
+      if(!p||p.color!=='w'){toast('Select a white piece first.');return}
+      puzzleSelected=sq;drawBoard('puzzleBoard',puzzleGame,puzzleClick,{selected:puzzleSelected,orientation:'w'});return;
+    }
+    if(puzzleSelected===sq){puzzleSelected=null;drawBoard('puzzleBoard',puzzleGame,puzzleClick,{orientation:'w'});return}
+    const from=puzzleSelected,moves=puzzleGame.moves({square:from,verbose:true}),candidate=moves.find(m=>m.to===sq);
+    if(!candidate){if(p&&p.color==='w'){puzzleSelected=sq;drawBoard('puzzleBoard',puzzleGame,puzzleClick,{selected:puzzleSelected,orientation:'w'});return}toast('That is not a legal destination. Try a highlighted square.');return}
+    puzzleSelected=null;puzzleAttempts++;$('attemptCount').textContent=String(puzzleAttempts);
+    if(from==='c6'&&sq==='e7'){
+      const move=puzzleGame.move({from,to:sq});puzzleSolved=puzzleGame.isCheck();
+      drawBoard('puzzleBoard',puzzleGame,puzzleClick,{lastMove:[move.from,move.to],orientation:'w'});
+      $('puzzleFeedback').textContent=puzzleSolved?'Correct! Ne7+ checks the king on g8 and attacks the queen on c8 — a knight fork.':'The move was legal, but the expected check was not produced.';
+      $('puzzleFeedback').style.color=puzzleSolved?'var(--green)':'var(--gold2)';
+      if(puzzleSolved)recordPuzzleSolved();
+    }else{
+      drawBoard('puzzleBoard',puzzleGame,puzzleClick,{orientation:'w'});
+      $('puzzleFeedback').textContent='Legal move, but it misses the fork. Find a knight move that checks the king and attacks the queen.';
+      $('puzzleFeedback').style.color='var(--gold2)';
+    }
+  }
+  $('puzzleHint').addEventListener('click',()=>{
+    puzzleHints++;
+    $('puzzleHint').textContent='Show hint '+(puzzleHints+1);
+    $('puzzleFeedback').textContent=puzzleHints===1?'Hint: the knight on c6 can jump to a square that checks the king. Look for a second target.':'Try Ne7+: the knight checks the king on g8 while attacking the queen on c8.';
+    $('puzzleFeedback').style.color='var(--gold2)';
+  });
+  $('puzzleReveal').addEventListener('click',()=>{
+    if(puzzleSolved)return;
+    const move=puzzleGame.move({from:'c6',to:'e7'});puzzleSolved=!!move&&puzzleGame.isCheck();
+    drawBoard('puzzleBoard',puzzleGame,puzzleClick,{lastMove:move?[move.from,move.to]:null,orientation:'w'});
+    $('puzzleFeedback').textContent='Solution: Ne7+ — the knight checks the king and attacks the queen. Assisted completion saved on this device.';
+    $('puzzleFeedback').style.color='var(--green)';
+    if(puzzleSolved)recordPuzzleSolved();
+  });
+  $('puzzleReset').addEventListener('click',()=>{resetPuzzle();toast('Puzzle reset.')});
+  resetPuzzle();
+
+  // Validate that the lesson and puzzle both use a real legal tactic line.
+  const puzzleCheck=new Chess(FORK_FEN);const forkMove=puzzleCheck.move({from:'c6',to:'e7'});
+  if(!forkMove||!puzzleCheck.isCheck())throw new Error('The configured knight-fork position did not validate.');
+}
+bootChess().catch(error=>{
+  console.error('Bablo Chess initialization failed:',error);
+  toast('Chess rules could not load. Check your connection and refresh the preview.');
+});
+</script></body></html>
