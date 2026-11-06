@@ -1,6 +1,6 @@
 {
   "name": "Bablo Hub",
-  "short_name": "Bablo",
+  "short_name": "Bablo Hub",
   "description": "Practice, quizzes, the Programme Cup and chess for Bowen CoHES students.",
   "start_url": "./",
   "scope": "./",
