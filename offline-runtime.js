@@ -15,6 +15,14 @@
   async downloadedCourses(){const d=await db();return new Promise((resolve,reject)=>{const r=d.transaction(COURSES).objectStore(COURSES).getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error)})},
   async removeCourse(courseId){const id=String(courseId);await tx(COURSES,'readwrite',s=>s.delete(id));return new Promise(resolve=>{if(!navigator.serviceWorker||!navigator.serviceWorker.controller){resolve(false);return}const ch=new MessageChannel(),timer=setTimeout(()=>resolve(false),5000);ch.port1.onmessage=e=>{clearTimeout(timer);resolve(!!e.data.deleted)};navigator.serviceWorker.controller.postMessage({type:'BABLO_DELETE_COURSE',courseId:id},[ch.port2])})},
   async storage(){if(!navigator.storage||!navigator.storage.estimate)return null;return navigator.storage.estimate()},
+  async saveCurrentPage(){
+   const paths=new Set([location.pathname+location.search]);
+   for(const entry of performance.getEntriesByType('resource')){
+    try{const u=new URL(entry.name,location.href);if(u.origin===location.origin&&u.pathname!==location.pathname)paths.add(u.pathname+u.search)}catch(_){}
+   }
+   const id='page-'+location.pathname.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48);
+   return this.downloadCourse(id,[...paths]);
+  },
   precache(){return new Promise(resolve=>{if(!navigator.serviceWorker||!navigator.serviceWorker.controller){resolve(false);return}const ch=new MessageChannel();const timer=setTimeout(()=>resolve(false),15000);ch.port1.onmessage=e=>{clearTimeout(timer);resolve(e.data)};navigator.serviceWorker.controller.postMessage({type:'BABLO_PRECACHE'},[ch.port2])})}
  };
  window.BabloOffline=api;
@@ -26,5 +34,13 @@
  window.addEventListener('bablo:sync-ready',()=>{if(navigator.onLine)api.flushQueue().then(r=>window.dispatchEvent(new CustomEvent('bablo:sync-complete',{detail:r}))).catch(()=>{})});
  function mount(){if(!document.getElementById(badge.id)&&document.body)document.body.appendChild(badge);connection()}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
+ function addOfflineSave(){
+  if(location.pathname==='/'||location.pathname.endsWith('/index.html')||document.getElementById('bablo-save-page'))return;
+  const button=document.createElement('button');button.id='bablo-save-page';button.type='button';button.textContent='↓ Save this page offline';
+  button.style.cssText='position:fixed;z-index:9996;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);padding:9px 13px;border:1px solid #d9b45b;border-radius:999px;background:#171713;color:#f6f3e9;font:700 12px system-ui;box-shadow:0 3px 12px #0004;cursor:pointer';
+  button.addEventListener('click',async()=>{button.disabled=true;button.textContent='Saving…';try{const result=await api.saveCurrentPage();button.textContent=result.failed?'Saved '+result.saved+' · '+result.failed+' missed':'✓ Saved for offline use'}catch(_){button.textContent='Connect and retry'}setTimeout(()=>{button.disabled=false;button.textContent='↓ Save this page offline'},4000)});
+  document.body.appendChild(button);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addOfflineSave,{once:true});else addOfflineSave();
  if('serviceWorker'in navigator)navigator.serviceWorker.ready.then(()=>{if(navigator.onLine)api.precache()}).catch(()=>{});
 })();
