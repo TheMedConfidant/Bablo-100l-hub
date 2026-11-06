@@ -247,6 +247,14 @@ async function bootChess(){
   let resultLayer=null,matchStarted=false,matchOver=false,matchStartedAt=0,matchSaved=false;
   const CHESS_PROGRESS_KEY='babloChessProgress:v1';
   const BOT_RATING_ESTIMATE={Student:700,Intern:900,'House Officer':1100,Registrar:1300,Consultant:1500,Professor:1700};
+
+const CHESS_ACTIVE_KEY='babloChessActiveMatch:v1';
+function persistActiveMatch(){if(!match||matchOver||!matchStarted)return;try{localStorage.setItem(CHESS_ACTIVE_KEY,JSON.stringify({pgn:match.pgn(),strength,playerColor,matchMode,clockBase:Number.isFinite(clockBase)?clockBase:null,clockIncrement,clockEnabled,clocks:{w:Number.isFinite(clocks.w)?clocks.w:null,b:Number.isFinite(clocks.b)?clocks.b:null}}))}catch(e){}}
+function clearActiveMatch(){try{localStorage.removeItem(CHESS_ACTIVE_KEY)}catch(e){}}
+function restoreActiveMatch(){let saved;try{saved=JSON.parse(localStorage.getItem(CHESS_ACTIVE_KEY)||'null')}catch(e){}if(!saved||!saved.pgn)return false;try{stopClock();clearTimeout(botTimer);match=new Chess();match.loadPgn(saved.pgn);strength=TIERS.includes(saved.strength)?saved.strength:'Registrar';playerColor=saved.playerColor==='b'?'b':'w';matchMode=saved.matchMode||'Quick Match';clockBase=saved.clockBase===null?Infinity:Number(saved.clockBase)||600;clockIncrement=Number(saved.clockIncrement)||0;clockEnabled=!!saved.clockEnabled;clocks={w:saved.clocks?.w===null?clockBase:Number(saved.clocks?.w??clockBase),b:saved.clocks?.b===null?clockBase:Number(saved.clocks?.b??clockBase)};matchSelected=null;matchStarted=true;matchOver=false;matchSaved=false;botThinking=false;const h=match.history({verbose:true});lastMatchMove=h.length?[h[h.length-1].from,h[h.length-1].to]:null;$('setup').hidden=true;$('setupBackdrop').hidden=true;document.body.classList.remove('setup-open');$('matchCard').hidden=false;document.querySelector('.main')?.classList.add('arena-active');$('matchName').textContent=matchMode+' · Resumed local game';$('matchStrength').textContent=strength+' · Practice';redrawMoveLog();drawMatch();startClock();ensureEngine().catch(()=>{});if(match.turn()!==playerColor)scheduleBot();toast('Previous chess match restored on this device.');return true}catch(e){clearActiveMatch();return false}}
+window.addEventListener('pagehide',()=>{persistActiveMatch();stopClock()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){persistActiveMatch();stopClock()}else if(match&&matchStarted&&!matchOver){startClock();if(match.turn()!==playerColor&&!botThinking)scheduleBot()}});
+
   function loadChessProgress(){
     try{
       const value=JSON.parse(localStorage.getItem(CHESS_PROGRESS_KEY)||'null');
@@ -685,7 +693,8 @@ async function bootChess(){
     if(clockEnabled&&Number.isFinite(clocks[movingColor]))clocks[movingColor]+=clockIncrement;
     lastMatchMove=[move.from,move.to];matchSelected=null;redrawMoveLog();$('botLine').textContent=describeMove(move,fromBot);playChessSound(move.san.includes('#')?'end':match.isCheck()?'check':move.captured?'capture':'move');
     drawMatch();
-    if(match.isGameOver()){settleGame();return}
+    if(match.isGameOver()){clearActiveMatch();settleGame();return}
+    persistActiveMatch();
     if(match.turn()!==playerColor)scheduleBot();
   }
   function matchClick(sq){
@@ -714,6 +723,7 @@ async function bootChess(){
   }
   function finishByResult(title,detail){
     if(matchOver)return;
+    clearActiveMatch();
     const saved=recordLocalMatch(title,detail);
     matchOver=true;matchStarted=false;botThinking=false;clearTimeout(botTimer);botTimer=null;stopClock();matchSelected=null;drawMatch();showResult(title,detail,saved);
   }
@@ -847,6 +857,8 @@ async function bootChess(){
   }));
   document.querySelectorAll('[data-page="analysis"]').forEach(button=>button.addEventListener('click',loadAnalysis));
   $('startMatch').addEventListener('click',startMatch);
+const resumeMatchButton=document.createElement('button');resumeMatchButton.type='button';resumeMatchButton.className='secondary';resumeMatchButton.id='resumeSavedMatch';resumeMatchButton.textContent='↻ Resume saved match';resumeMatchButton.style.marginTop='9px';resumeMatchButton.style.width='100%';resumeMatchButton.addEventListener('click',()=>{if(!restoreActiveMatch())toast('No saved match is available on this device.')});$('startMatch').parentElement.appendChild(resumeMatchButton);try{resumeMatchButton.hidden=!localStorage.getItem(CHESS_ACTIVE_KEY)}catch(e){resumeMatchButton.hidden=true}
+
   $('undoMove').addEventListener('click',()=>{
     if(!match||botThinking||match.history().length===0){toast('There is no completed move to take back.');return}
     if(resultLayer){resultLayer.remove();resultLayer=null;matchOver=false;matchStarted=true;startClock()}
