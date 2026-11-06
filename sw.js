@@ -1,5 +1,5 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v26-full-hub-offline';
+const VERSION='bablo-offline-v27-arcade-navigation-fix';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./offline-runtime.js','./bablo-arcade.html','./arcade','./discover.html','./agr-101-food-security.html','./gst103-study-hub.html','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./chm-practicals-native.js','./challenge-arena.js','./chess/','./chess/index.html','./chess/stockfish-worker.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html','./chess-lab.html','./chess-lab/','./gst103-study-hub.html','./practicals/chm107-practical.html','./chm-practicals-native.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js'];
 const CHESS_EXTERNAL=['https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm','https://esm.sh/chess.js@1.4.0'];
 function isChessExternal(url){return CHESS_EXTERNAL.includes(url.href)}
@@ -25,13 +25,16 @@ self.addEventListener('fetch',e=>{
  const nav=q.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname==='/';
  if(nav){
   e.respondWith((async()=>{
-   const cached=await matchAny(q)||await matchAny('./index.html')||await matchAny('./');
-   if(cached){
-    e.waitUntil(timedFetch(q,9000,'reload').then(async r=>{if(r.ok){const v=await decorate(r);await save('./index.html',v);await save('./',v);await save(q,v)}}).catch(()=>{}));
-    return cached;
+   const isHubShell=u.pathname==='/'||u.pathname.endsWith('/index.html');
+   const cached=await matchAny(q);
+   const shellFallback=isHubShell?(await matchAny('./index.html')||await matchAny('./')):null;
+   if(cached||shellFallback){
+    const hit=cached||shellFallback;
+    e.waitUntil(timedFetch(q,9000,'reload').then(async r=>{if(r.ok){const v=await decorate(r);await save(q,v);if(isHubShell){await save('./index.html',v);await save('./',v)}}}).catch(()=>{}));
+    return hit;
    }
-   try{const r=await timedFetch(q,12000,'reload');if(r.ok){const v=await decorate(r);await save('./index.html',v);await save('./',v);await save(q,v);return v}return r}
-   catch(_){return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font:16px system-ui;background:#0a1020;color:white;padding:24px"><h2>Bablo Hub</h2><p>This device has not cached Bablo Hub yet. Connect briefly, open the app once, then it will be available offline.</p><button onclick="location.reload()">Try again</button></body>',{status:200,headers:{'Content-Type':'text/html; charset=utf-8'}})}
+   try{const r=await timedFetch(q,12000,'reload');if(r.ok){const v=await decorate(r);await save(q,v);if(isHubShell){await save('./index.html',v);await save('./',v)}return v}return r}
+   catch(_){return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font:16px system-ui;background:#0a1020;color:white;padding:24px"><h2>Bablo Hub</h2><p>This page is not saved on this device yet. Reconnect briefly and open it once to make it available offline.</p><button onclick="location.reload()">Try again</button></body>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8'}})}
   })());return;
  }
  const mathsAsset=/\/(?:mts-maths-topics|mts-maths-induction-extra)\.js$/.test(u.pathname);
