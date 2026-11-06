@@ -17,6 +17,16 @@
   async storage(){if(!navigator.storage||!navigator.storage.estimate)return null;return navigator.storage.estimate()},
   precache(){return new Promise(resolve=>{if(!navigator.serviceWorker||!navigator.serviceWorker.controller){resolve(false);return}const ch=new MessageChannel();const timer=setTimeout(()=>resolve(false),15000);ch.port1.onmessage=e=>{clearTimeout(timer);resolve(e.data)};navigator.serviceWorker.controller.postMessage({type:'BABLO_PRECACHE'},[ch.port2])})}
  };
+
+  async saveCurrentPage(){
+   const urls=new Set([location.pathname+location.search]);
+   for(const item of performance.getEntriesByType('resource')){
+    try{const u=new URL(item.name,location.href);if(u.origin===location.origin&&/\\.(?:js|css|html|json|woff2?|png|svg|webp)(?:$|\\?)/i.test(u.pathname))urls.add(u.pathname+u.search)}catch(_){}
+   }
+   const paths=[...urls];
+   const id='page-'+location.pathname.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48);
+   return this.downloadCourse(id,paths);
+  },
  window.BabloOffline=api;
  const badge=document.createElement('div');badge.id='bablo-network-state';badge.setAttribute('role','status');badge.setAttribute('aria-live','polite');badge.style.cssText='position:fixed;z-index:9997;top:calc(env(safe-area-inset-top,0px) + 8px);right:10px;padding:6px 10px;border-radius:999px;background:#17243b;color:#fff;border:1px solid rgba(240,189,67,.55);font:600 11px/1.2 system-ui;letter-spacing:.2px;box-shadow:0 3px 12px #0003;pointer-events:none;opacity:0;transition:opacity .2s';
  function connection(){const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;const weak=!!(c&&((c.effectiveType&&/2g|slow-2g/.test(c.effectiveType))||(c.rtt&&c.rtt>1800)||(c.downlink&&c.downlink<0.35)));if(!navigator.onLine){badge.textContent='Offline · saved content';badge.style.opacity='1'}else if(weak){badge.textContent='Weak network · data saved locally';badge.style.opacity='1'}else{badge.style.opacity='0'}window.dispatchEvent(new CustomEvent('bablo:connection',{detail:{online:navigator.onLine,weak}}))}
@@ -28,3 +38,13 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
  if('serviceWorker'in navigator)navigator.serviceWorker.ready.then(()=>{if(navigator.onLine)api.precache()}).catch(()=>{});
 })();
+
+ // Offer an explicit offline save on standalone study/game pages; keep it out of the main dashboard.
+ function addSaveControl(){
+  if(location.pathname==='/'||location.pathname.endsWith('/index.html')||document.getElementById('bablo-save-offline'))return;
+  const b=document.createElement('button');b.id='bablo-save-offline';b.type='button';b.textContent='↓ Save page offline';
+  b.style.cssText='position:fixed;z-index:9996;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);border:1px solid #d9b45b;border-radius:999px;padding:8px 12px;background:#171713;color:#f6f3e9;font:700 12px system-ui;box-shadow:0 3px 12px #0004;cursor:pointer;max-width:calc(100vw - 20px)';
+  b.addEventListener('click',async()=>{if(b.disabled)return;b.disabled=true;b.textContent='Saving page…';try{const r=await api.saveCurrentPage();b.textContent=r&&r.failed?'Saved '+r.saved+' · '+r.failed+' unavailable':'✓ Available offline';}catch(e){b.textContent='Could not save · retry online'}finally{setTimeout(()=>{b.disabled=false;b.textContent='↓ Save page offline'},4500)}});
+  document.body.appendChild(b);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addSaveControl,{once:true});else addSaveControl();
