@@ -4179,11 +4179,39 @@ function aboutView() {
   box.append(panel);
   mount(wrap(back('#/','Home'),box));
 }
+function offlineCourseManager(){
+ const box=h('div',{class:'stack'},h('p',{class:'muted small'},'Save course pages and their supporting question-data files on this device. Downloaded items remain available offline until you remove them.'));
+ const refresh=async()=>{
+  if(!window.BabloOffline){box.replaceChildren(h('p',{class:'muted small'},'Offline storage is still starting. Reopen Settings in a moment.'));return}
+  const saved=await window.BabloOffline.downloadedCourses().catch(()=>[]);
+  const rows=homeCourses().filter(c=>!c.pending&&!c.pending200).map(c=>{
+   const id='course-'+String(c.code).toLowerCase().replace(/[^a-z0-9_-]/g,'-');
+   const rec=saved.find(x=>x.id===id);
+   const assets=['./','./index.html','./offline-runtime.js'];
+   const code=String(c.code||'').toUpperCase();
+   if(code.includes('COS'))assets.push('./cos-101-plus-bank.js','./cos101plus-extracted.js');
+   if(code.includes('MTS')||code.includes('MTH')||code.includes('MTH101')||code.includes('MATH'))assets.push('./mts-maths-topics.js','./mts-maths-induction-extra.js');
+   if(code.includes('MLS'))assets.push('./mls101-data.js');
+   if(code.includes('PHY'))assets.push('./phy101-data.js','./practicals/phy107-practical.html');
+   if(code.includes('CHM'))assets.push('./thermochemistry-data.js','./practicals/chm107-practical.html','./chm-practicals-native.js');
+   if(code.includes('AGR'))assets.push('./agr-101-food-security.html');
+   if(code.includes('GST'))assets.push('./gst103-study-hub.html');
+   const status=rec?(rec.status==='ready'?'Saved · '+(rec.saved||0)+' files':rec.status==='partial'?'Partly saved · '+(rec.saved||0)+' files':'Preparing…'):'Not downloaded';
+   const action=rec?h('button',{class:'btn sm ghost',onclick:async()=>{if(!confirm('Remove the saved offline copy of '+c.label+' from this device?'))return;await window.BabloOffline.removeCourse(id);await refresh()}},'Remove'):h('button',{class:'btn sm primary',onclick:async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Saving…';try{const r=await window.BabloOffline.downloadCourse(id,assets);toast(r.failed?'Saved '+r.saved+'; '+r.failed+' could not be saved':'Course saved on this device.');}catch(_){toast('Could not save this course. Check storage and connection.')}await refresh()}},'Download');
+   return h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},h('span',null,h('b',null,c.label),h('small',{class:'muted'},status)),action);
+  });
+  const usage=await window.BabloOffline.storage().catch(()=>null);
+  box.replaceChildren(...rows,h('p',{class:'tiny muted'},usage&&usage.quota?'Device storage used: '+(usage.usage/1048576).toFixed(1)+' MB of '+(usage.quota/1048576).toFixed(0)+' MB':'Storage estimate unavailable.'));
+ };
+ refresh();
+ return h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('h2',null,'Offline course downloads'),h('button',{class:'btn sm ghost',onclick:refresh},'Refresh')),box);
+}
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Settings'),
+    offlineCourseManager(),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Appearance'),
       h('p', { class: 'tiny muted' }, 'Choose the Hub look that is easiest to read.'),
