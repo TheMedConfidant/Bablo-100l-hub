@@ -1768,6 +1768,23 @@ async function syncPastScores() {
   } catch (e) { /* try again on the next sign-in */ }
 }
 
+/* Retry account progress and eligible scores when connectivity returns. */
+let BABLO_SYNC_RETRY_T = null, BABLO_SYNC_BUSY = false;
+async function retryBabloAccountSync() {
+  if (!navigator.onLine || !signedIn() || BABLO_SYNC_BUSY) return;
+  BABLO_SYNC_BUSY = true;
+  try { await pushProgress(); await syncPastScores(); }
+  finally { BABLO_SYNC_BUSY = false; }
+}
+function scheduleBabloAccountSync() {
+  clearTimeout(BABLO_SYNC_RETRY_T);
+  BABLO_SYNC_RETRY_T = setTimeout(retryBabloAccountSync, 1200);
+}
+window.addEventListener('online', scheduleBabloAccountSync);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') scheduleBabloAccountSync();
+});
+
 /* anonymous usage events for the admin analytics: a device id and what happened, no names */
 function trackEvent(type, extra) {
   if (!LB.url || !DB.dev) return;
