@@ -49,17 +49,17 @@ self.addEventListener('fetch',e=>{
  })());
 });
 self.addEventListener('message',e=>{
- const d=e.data||{},source=e.source;
+ const d=e.data||{},source=e.source,reply=(e.ports&&e.ports[0])||source;
  if(d.type==='BABLO_PRECACHE'){
-  e.waitUntil((async()=>{const c=await caches.open(VERSION);let saved=0;for(const p of SHELL){try{const old=await c.match(p,{ignoreSearch:true});if(old){saved++;continue}const r=await timedFetch(p,12000);if(r.ok){await c.put(p,p==='./'||p==='./index.html'?await decorate(r):r);saved++}}catch(_){}}if(source)source.postMessage({type:'BABLO_PRECACHE_DONE',saved,total:SHELL.length})})());
+  e.waitUntil((async()=>{const c=await caches.open(VERSION);let saved=0;for(const p of SHELL){try{const old=await c.match(p,{ignoreSearch:true});if(old){saved++;continue}const r=await timedFetch(p,12000);if(r.ok){await c.put(p,p==='./'||p==='./index.html'?await decorate(r):r);saved++}}catch(_){}}if(reply)reply.postMessage({type:'BABLO_PRECACHE_DONE',saved,total:SHELL.length})})());
   return;
  }
  if(d.type==='BABLO_CACHE_URLS'){
-  e.waitUntil((async()=>{const id=String(d.courseId||'course').replace(/[^a-z0-9_-]/gi,'-').slice(0,60),cache=await caches.open('bablo-course-'+id);let saved=0,failed=0;const paths=Array.isArray(d.paths)?d.paths:[];for(const path of paths){try{const u=new URL(path,self.location.href);if(u.origin!==self.location.origin)throw new Error('Cross-origin resource');const r=await timedFetch(u.href,15000);if(!r.ok)throw new Error('HTTP '+r.status);await cache.put(u.href,r.clone());saved++;if(source)source.postMessage({type:'BABLO_CACHE_PROGRESS',courseId:id,saved,total:paths.length})}catch(_){failed++}}if(source)source.postMessage({type:'BABLO_CACHE_DONE',courseId:id,saved,failed,total:paths.length})})());
+  e.waitUntil((async()=>{const id=String(d.courseId||'course').replace(/[^a-z0-9_-]/gi,'-').slice(0,60),cache=await caches.open('bablo-course-'+id);let saved=0,failed=0;const paths=Array.isArray(d.paths)?d.paths:[];for(const path of paths){try{const u=new URL(path,self.location.href);if(u.origin!==self.location.origin)throw new Error('Cross-origin resource');const r=await timedFetch(u.href,15000);if(!r.ok)throw new Error('HTTP '+r.status);await cache.put(u.href,r.clone());saved++;if(reply)reply.postMessage({type:'BABLO_CACHE_PROGRESS',courseId:id,saved,total:paths.length})}catch(_){failed++}}if(reply)reply.postMessage({type:'BABLO_CACHE_DONE',courseId:id,saved,failed,total:paths.length})})());
   return;
  }
  if(d.type==='BABLO_DELETE_COURSE'){
-  e.waitUntil((async()=>{const id=String(d.courseId||'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60);const deleted=await caches.delete('bablo-course-'+id);if(source)source.postMessage({type:'BABLO_DELETE_DONE',courseId:id,deleted})})());
+  e.waitUntil((async()=>{const id=String(d.courseId||'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60);const deleted=await caches.delete('bablo-course-'+id);if(reply)reply.postMessage({type:'BABLO_DELETE_DONE',courseId:id,deleted})})());
  }
 });
 self.addEventListener('push',e=>{let d={title:'Bablo Hub',body:'',url:'./'};try{d=Object.assign(d,e.data.json())}catch(_){}e.waitUntil(self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'./'}}))});
