@@ -42,6 +42,19 @@ self.addEventListener('fetch',e=>{
   catch(_){return new Response('This resource has not been downloaded on this device yet. Reconnect briefly and open it once to save it for offline use.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}
  })());
 });
-self.addEventListener('message',e=>{if(!e.data||e.data.type!=='BABLO_PRECACHE')return;e.waitUntil((async()=>{const c=await caches.open(VERSION);let saved=0;for(const p of SHELL){try{const old=await c.match(p,{ignoreSearch:true});if(old){saved++;continue}const r=await timedFetch(p,12000);if(r.ok){await c.put(p,p==='./'||p==='./index.html'?await decorate(r):r);saved++}}catch(_){}}if(e.source)e.source.postMessage({type:'BABLO_PRECACHE_DONE',saved,total:SHELL.length})})())});
+self.addEventListener('message',e=>{
+ const d=e.data||{},source=e.source;
+ if(d.type==='BABLO_PRECACHE'){
+  e.waitUntil((async()=>{const c=await caches.open(VERSION);let saved=0;for(const p of SHELL){try{const old=await c.match(p,{ignoreSearch:true});if(old){saved++;continue}const r=await timedFetch(p,12000);if(r.ok){await c.put(p,p==='./'||p==='./index.html'?await decorate(r):r);saved++}}catch(_){}}if(source)source.postMessage({type:'BABLO_PRECACHE_DONE',saved,total:SHELL.length})})());
+  return;
+ }
+ if(d.type==='BABLO_CACHE_URLS'){
+  e.waitUntil((async()=>{const id=String(d.courseId||'course').replace(/[^a-z0-9_-]/gi,'-').slice(0,60),cache=await caches.open('bablo-course-'+id);let saved=0,failed=0;const paths=Array.isArray(d.paths)?d.paths:[];for(const path of paths){try{const u=new URL(path,self.location.href);if(u.origin!==self.location.origin)throw new Error('Cross-origin resource');const r=await timedFetch(u.href,15000);if(!r.ok)throw new Error('HTTP '+r.status);await cache.put(u.href,r.clone());saved++;if(source)source.postMessage({type:'BABLO_CACHE_PROGRESS',courseId:id,saved,total:paths.length})}catch(_){failed++}}if(source)source.postMessage({type:'BABLO_CACHE_DONE',courseId:id,saved,failed,total:paths.length})})());
+  return;
+ }
+ if(d.type==='BABLO_DELETE_COURSE'){
+  e.waitUntil((async()=>{const id=String(d.courseId||'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60);const deleted=await caches.delete('bablo-course-'+id);if(source)source.postMessage({type:'BABLO_DELETE_DONE',courseId:id,deleted})})());
+ }
+});
 self.addEventListener('push',e=>{let d={title:'Bablo Hub',body:'',url:'./'};try{d=Object.assign(d,e.data.json())}catch(_){}e.waitUntil(self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'./'}}))});
 self.addEventListener('notificationclick',e=>{e.notification.close();const t=e.notification.data&&e.notification.data.url||'./';e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(a=>{for(let i=0;i<a.length;i++)if('focus'in a[i])return a[i].focus();return clients.openWindow(t)}))});
