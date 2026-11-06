@@ -1950,7 +1950,11 @@ async function lbFetch() {
 
 /* ---------- shell + router ---------- */
 const app = document.getElementById('app'), navEl = document.getElementById('nav');
-let timerHandle = null, SESS = null, SETUP = null;
+const OFFLINE_SESSION_KEY='bablo100l:active-session:v1';
+function readOfflineSession(){try{const s=JSON.parse(localStorage.getItem(OFFLINE_SESSION_KEY)||'null');if(!s||!Array.isArray(s.qs)||!Array.isArray(s.answers)||s.qs.length!==s.answers.length||s.res)return null;return s;}catch(_){return null}}
+let timerHandle = null, SESS = readOfflineSession(), SETUP = null;
+function persistOfflineSession(){if(!SESS||SESS.res)return;try{localStorage.setItem(OFFLINE_SESSION_KEY,JSON.stringify(SESS));}catch(_){toast('Device storage is full. Your latest answer may not be saved.')}}
+function clearOfflineSession(){try{localStorage.removeItem(OFFLINE_SESSION_KEY)}catch(_){}}
 const stopTimer = () => { if (timerHandle) { clearInterval(timerHandle); timerHandle = null; } };
 const go = hash => { if (location.hash === hash) route(); else location.hash = hash; };
 let HUB_ROUTE_STACK = [location.hash || '#/'];
@@ -2027,6 +2031,8 @@ function scientificCalculatorView(){
   root.querySelector('#calcClear').onclick=()=>{input.value='';show();input.focus();};
   root.querySelector('#calcBack').onclick=()=>{const a=input.selectionStart??input.value.length,z=input.selectionEnd??a;if(a!==z)input.value=input.value.slice(0,a)+input.value.slice(z);else if(a>0)input.value=input.value.slice(0,a-1)+input.value.slice(z);input.focus();show();};
 }
+
+window.addEventListener('pagehide',()=>{persistOfflineSession()});
 
 function route() {
   stopTimer();
@@ -2354,7 +2360,7 @@ function startSession(o) {
   }
   const s = Core.buildSession(Object.assign({ bank: BANK, exclude: HIDDEN }, o));
   if (!s.n) { toast('No questions match that choice.'); return; }
-  s.opts = o; s.t0 = Date.now(); s.startVerse = pick(VERSES.start); SESS = s; go('#/run');
+  s.opts = o; s.t0 = Date.now(); s.startVerse = pick(VERSES.start); SESS = s; persistOfflineSession(); go('#/run');
 }
 
 ;
@@ -2421,21 +2427,22 @@ function runView() {
   const pickOpt = k => {
     const i = s.cur;
     if (practice) { s.answers[i] = k; } else s.answers[i] = s.answers[i] === k ? null : k;
-    render();
+    persistOfflineSession(); render();
   };
   const next = () => { if (s.cur < s.n - 1) { s.cur++; render(); } else finishSession(false); };
 
   function render() {
+    persistOfflineSession();
     const i = s.cur, q = s.qs[i], a = s.answers[i], done = practice && a != null;
     counter.textContent = 'Question ' + (i + 1) + ' of ' + s.n; bar.style.width = Math.round((answered() / s.n) * 100) + '%';
     const kids = [h('div', { class: 'row between wrapr' }, h('span', { class: 'chip brand' }, q.unit),
-      practice ? null : h('button', { class: 'btn sm ghost', 'aria-pressed': String(s.flags[i]), onclick: () => { s.flags[i] = !s.flags[i]; render(); } }, s.flags[i] ? '\u2691 Flagged' : '\u2690 Flag'))];
+      practice ? null : h('button', { class: 'btn sm ghost', 'aria-pressed': String(s.flags[i]), onclick: () => { s.flags[i] = !s.flags[i]; persistOfflineSession(); render(); } }, s.flags[i] ? '\u2691 Flagged' : '\u2690 Flag'))];
     kids.push(h('p', { class: 'qtext' }, fmt(q.text, q.subj)));
     if (q.flag) kids.push(h('div', { class: 'warnbox' }, 'This question\'s answer key is under review. Treat the answer with care.'));
     if (q.type === 'fill') {
       const inp = h('input', { type: 'text', value: a || '', placeholder: 'Type your answer', autocomplete: 'off', 'aria-label': 'Your answer' });
-      const check = () => { const v = inp.value.trim(); if (!v) { toast('Type an answer first.'); return; } s.answers[i] = v; render(); };
-      if (!practice) inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
+      const check = () => { const v = inp.value.trim(); if (!v) { toast('Type an answer first.'); return; } s.answers[i] = v; persistOfflineSession(); render(); };
+      if (!practice) inp.addEventListener('input', () => { const v = inp.value.trim(); s.answers[i] = v === '' ? null : v; persistOfflineSession(); bar.style.width = Math.round((answered() / s.n) * 100) + '%'; });
       else inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
       kids.push(h('div', { class: 'row' }, inp, practice ? h('button', { class: 'btn primary', onclick: check }, 'Check') : null));
       if (done) { /* feedback below */ }
@@ -2452,7 +2459,7 @@ function runView() {
       ? [h('button', { class: 'btn ghost', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Previous'), h('button', { class: 'btn primary', disabled: !done, onclick: next }, last ? 'Finish' : 'Next')]
       : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Back'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
   }
-  const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your progress in this attempt will be lost.', ok: 'Leave', danger: true })) { stopTimer(); SESS = null; go('#/course/' + s.course); } };
+  const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your saved attempt will be cleared from this device.', ok: 'Leave', danger: true })) { stopTimer(); clearOfflineSession(); SESS = null; go('#/course/' + s.course); } };
   const head = exam
     ? h('div', { class: 'exam-head' }, h('div', { class: 'row between' }, h('div', null, h('b', null, 'Mock examination \u2022 ' + c.label), h('div', { class: 'muted tiny' }, 'Candidate: ' + DB.profile.name)), timerEl))
     : h('div', { class: 'row between' }, h('b', null, c.label + (practice ? ' practice' : s.mode === 'mock' ? ' mock test' : ' quiz')), timerEl);
@@ -2468,13 +2475,13 @@ async function finishSession(auto, early) {
   const s = SESS; if (!s || s.res) return;
   if (!auto) {
     const un = s.n - s.answers.filter(a => a != null && a !== '').length;
-    if (early && s.answers.every(a => a == null)) { stopTimer(); SESS = null; go('#/course/' + s.course); return; }
+    if (early && s.answers.every(a => a == null)) { stopTimer(); clearOfflineSession(); SESS = null; go('#/course/' + s.course); return; }
     if (s.mode !== 'practice' || early) {
       const ok = await confirmBox({ title: s.mode === 'exam' ? 'Submit examination?' : s.mode === 'quiz' ? 'Submit quiz?' : 'Finish practice?', msg: un ? un + ' question' + (un === 1 ? ' is' : 's are') + ' unanswered and will count as wrong.' : 'You answered every question.', ok: 'Submit' });
       if (!ok) return;
     }
   }
-  stopTimer();
+  stopTimer(); clearOfflineSession();
   if (s.mode === 'practice') {                 // practice only scores what you attempted
     const keep = s.answers.map(a => a != null && a !== '');
     s.qs = s.qs.filter((_, i) => keep[i]); s.flags = s.flags.filter((_, i) => keep[i]); s.answers = s.answers.filter((_, i) => keep[i]); s.n = s.qs.length;
