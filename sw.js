@@ -1,6 +1,8 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v24-instant-campus';
-const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./offline-runtime.js','./bablo-arcade.html','./arcade','./discover.html','./agr-101-food-security.html','./gst103-study-hub.html','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./chm-practicals-native.js','./challenge-arena.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html'];
+const VERSION='bablo-offline-v25-chess-offline';
+const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./offline-runtime.js','./bablo-arcade.html','./arcade','./discover.html','./agr-101-food-security.html','./gst103-study-hub.html','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./chm-practicals-native.js','./challenge-arena.js','./chess/','./chess/index.html','./chess/stockfish-worker.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html'];
+const CHESS_EXTERNAL=['https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm','https://esm.sh/chess.js@1.4.0'];
+function isChessExternal(url){return CHESS_EXTERNAL.includes(url.href)}
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
 async function save(req,res){if(res&&res.ok&&res.type!=='opaque'){const c=await caches.open(VERSION);await c.put(req,res.clone());}}
@@ -18,7 +20,8 @@ self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.o
 self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
 self.addEventListener('fetch',e=>{
  const q=e.request,u=new URL(q.url);
- if(q.method!=='GET'||u.origin!==self.location.origin)return;
+ if(q.method!=='GET'||(u.origin!==self.location.origin&&!isChessExternal(u)))return;
+ if(u.origin!==self.location.origin){e.respondWith((async()=>{const cached=await matchAny(q);if(cached)return cached;try{const r=await timedFetch(q,12000);if(r.ok){const c=await caches.open(VERSION);await c.put(q,r.clone())}return r}catch(_){return new Response('Chess rules module is not saved on this device yet. Connect once and open Bablo Chess to prepare offline play.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})());return;}
  const nav=q.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname==='/';
  if(nav){
   e.respondWith((async()=>{
