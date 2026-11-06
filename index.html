@@ -1980,10 +1980,9 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href, onclick: e => { if (HUB_ROUTE_STACK.length > 1) { e.preventDefault(); history.back(); } } }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board']];
+  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board'], ['challenges', '#/challenge', 'Challenges', 'challenge']];
   const links = items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), h('span', null, label)));
-  links.push(h('button', { type:'button', class:'nav-menu-button', 'aria-label':'Open navigation menu', onclick:openHubMenu }, h('span',{class:'nav-menu-glyph'},'☰'), h('span',null,'Menu')));
   navEl.replaceChildren(h('div', { class: 'in' }, links));
   navEl.style.display = active !== null ? '' : 'none';
 }
@@ -2058,7 +2057,7 @@ function route() {
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
+  const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: 'challenges', home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
@@ -2233,6 +2232,9 @@ function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
+ const resumeCourse=DB.prev&&DB.prev.c?courseBy(DB.prev.c):null;
+ const resumeHref=resumeCourse?'#/course/'+resumeCourse.code:'#/courses';
+ const resumeText=resumeCourse?'Return to '+resumeCourse.title:'Open your course library and choose where to begin.';
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
@@ -2246,10 +2248,14 @@ function homeView() {
  ];
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
+   h('button',{class:'dashboard-icon-btn',type:'button',onclick:openHubMenu,'aria-label':'Open navigation menu'},'☰'),
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Your next move'),h('span',null,'A clear place to start')),h('div',{class:'dashboard-grid'},
+   dashboardCard('Continue learning',resumeText,'📖',resumeHref,'#D6A82B'),
+   dashboardCard('Today & upcoming','Timetable, tests and study reminders','◷','#/time','#53B6A5'))),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
