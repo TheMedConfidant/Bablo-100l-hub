@@ -1,8 +1,8 @@
 /* Bablo Hub offline support + startup error reporting. */
 const VERSION='bablo-offline-v28-complete-offline-pack';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./offline-runtime.js','./bablo-arcade.html','./arcade/','./arcade/index.html','./discover.html','./agr-101-food-security.html','./gst103-study-hub.html','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./chm-practicals-native.js','./challenge-arena.js','./chess/','./chess/index.html','./chess/stockfish-worker.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html','./chess-lab.html','./chess-lab/','./gst103-study-hub.html','./practicals/chm107-practical.html','./chm-practicals-native.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js'];
-const CHESS_EXTERNAL=['https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm','https://esm.sh/chess.js@1.4.0'];
-function isChessExternal(url){return CHESS_EXTERNAL.includes(url.href)}
+const CHESS_EXTERNAL=['https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm','https://esm.sh/chess.js@1.4.0','https://cdn.jsdelivr.net/npm/stockfish@19.0.1/stockfish-19-lite-single.js'];
+function isChessExternal(url){return CHESS_EXTERNAL.includes(url.href)||(url.origin==='https://cdn.jsdelivr.net'&&url.pathname.startsWith('/npm/stockfish@19.0.1/'))}
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
 async function save(req,res){if(res&&res.ok&&res.type!=='opaque'){const c=await caches.open(VERSION);await c.put(req,res.clone());}}
@@ -16,7 +16,7 @@ const runtimeTag='<script src="./offline-runtime.js" defer></script>';
  const h=new Headers(res.headers);h.delete('content-length');return new Response(html,{status:res.status,statusText:res.statusText,headers:h});
  }catch(e){return res}
 }
-self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(VERSION);for(const p of SHELL){try{const isHtml=p==='./'||p==='index.html'||p==='./index.html';const old=isHtml?null:await caches.match(p,{ignoreSearch:true});if(old&&!await c.match(p))await c.put(p,old)}catch(_){}}await Promise.all(SHELL.map(async p=>{try{const isHtml=p==='./'||p==='./index.html'||p==='index.html';const r=await timedFetch(p,isHtml?18000:7000);if(r.ok){const v=isHtml?await decorate(r):r;await c.put(p,v)}}catch(_){}}));await self.skipWaiting()})()));
+self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(VERSION);for(const p of SHELL){try{const isHtml=p==='./'||p==='index.html'||p==='./index.html';const old=isHtml?null:await caches.match(p,{ignoreSearch:true});if(old&&!await c.match(p))await c.put(p,old)}catch(_){}}await Promise.all(SHELL.map(async p=>{try{const isHtml=p==='./'||p==='./index.html'||p==='index.html';const r=await timedFetch(p,isHtml?18000:7000);if(r.ok){const v=isHtml?await decorate(r):r;await c.put(p,v)}}catch(_){}}));await Promise.all(CHESS_EXTERNAL.map(async p=>{try{const r=await timedFetch(p,15000);if(r.ok||r.type==='opaque')await c.put(p,r.clone())}catch(_){}}));await self.skipWaiting()})()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
 self.addEventListener('fetch',e=>{
  const q=e.request,u=new URL(q.url);
@@ -51,7 +51,7 @@ self.addEventListener('fetch',e=>{
 self.addEventListener('message',e=>{
  const d=e.data||{},source=e.source,reply=(e.ports&&e.ports[0])||source;
  if(d.type==='BABLO_PRECACHE'){
-  e.waitUntil((async()=>{const c=await caches.open(VERSION);let saved=0;for(const p of SHELL){try{const old=await c.match(p,{ignoreSearch:true});if(old){saved++;continue}const r=await timedFetch(p,12000);if(r.ok){await c.put(p,p==='./'||p==='./index.html'?await decorate(r):r);saved++}}catch(_){}}if(reply)reply.postMessage({type:'BABLO_PRECACHE_DONE',saved,total:SHELL.length})})());
+  e.waitUntil((async()=>{const c=await caches.open(VERSION);let saved=0;const pack=[...SHELL,...CHESS_EXTERNAL];for(const p of pack){try{const old=await c.match(p,{ignoreSearch:true});if(old){saved++;continue}const r=await timedFetch(p,15000);if(r.ok||r.type==='opaque'){await c.put(p,p==='./'||p==='./index.html'?await decorate(r):r);saved++}}catch(_){}}if(reply)reply.postMessage({type:'BABLO_PRECACHE_DONE',saved,total:pack.length})})());
   return;
  }
  if(d.type==='BABLO_CACHE_URLS'){
