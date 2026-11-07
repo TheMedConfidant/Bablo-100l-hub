@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#11110f"><title>Bablo Arcade</title>
+<style>
+:root{--bg:#10100f;--panel:#1b1b18;--line:#34342d;--gold:#d9b45b;--text:#f6f3e9;--muted:#aaa89d;--green:#a9d18e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#40351b 0,transparent 42%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:24px 18px 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:34px}.brand{font-weight:850;letter-spacing:.04em}.brand span{color:var(--gold)}.back{color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:8px 13px}
+.eyebrow{color:var(--gold);font-size:.75rem;letter-spacing:.18em;font-weight:800;text-transform:uppercase}.hero h1{font-size:clamp(2.2rem,7vw,4.4rem);line-height:1.02;margin:8px 0 12px}.hero p{color:var(--muted);max-width:620px;margin:0}.hero{margin-bottom:28px}.stats{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 30px}.pill{border:1px solid var(--line);background:#171713;border-radius:14px;padding:10px 14px;color:var(--muted)}.pill b{color:var(--text);margin-left:5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.card{background:linear-gradient(145deg,#22221d,#171714);border:1px solid var(--line);border-radius:20px;padding:20px;min-height:205px;display:flex;flex-direction:column}.icon{font-size:2rem}.card h2{margin:12px 0 4px;font-size:1.2rem}.card p{color:var(--muted);margin:0 0 18px;font-size:.92rem}.btn{margin-top:auto;background:var(--gold);color:#17140b;border:0;border-radius:12px;padding:11px 16px;font-weight:800}.btn.secondary{background:#292920;color:var(--text);border:1px solid #494638}.game{display:none;margin-top:22px;border:1px solid var(--line);background:var(--panel);border-radius:22px;padding:clamp(16px,4vw,28px)}.game.active{display:block}.gamehead{display:flex;justify-content:space-between;gap:12px;align-items:center}.game h2{margin:0}.close{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:10px;padding:7px 12px}.question{font-size:clamp(1.15rem,3vw,1.6rem);font-weight:750;margin:25px 0 18px}.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.answer{background:#292920;border:1px solid #4a493d;color:var(--text);border-radius:12px;padding:13px;text-align:left}.answer:disabled{opacity:.7}.track{height:12px;background:#333329;border-radius:99px;overflow:hidden;margin:20px 0 8px}.runner{height:100%;width:0;position:relative;background:linear-gradient(90deg,#a9d18e,var(--gold));transition:width .35s}.runner:after{content:'🏁';position:absolute;right:-10px;top:-17px;font-size:23px}.feedback{min-height:28px;color:var(--green);font-weight:700;margin:12px 0}.sub{color:var(--muted)}.memory{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;max-width:430px;margin:20px auto}.tile{aspect-ratio:1;border:1px solid #55503a;border-radius:12px;background:#292920;color:var(--gold);font-size:clamp(.72rem,2.5vw,1rem);font-weight:750;padding:7px;overflow-wrap:anywhere;line-height:1.2}.tile.done{background:#263126;border-color:#56724f;color:#bce0a8}.reaction-pad{width:100%;min-height:180px;border:0;border-radius:16px;background:#6b3030;color:white;font-size:1.2rem;font-weight:800;margin:20px 0}.reaction-pad.ready{background:#315d37}.reaction-pad:disabled{opacity:.9}.foot{color:#77766d;font-size:.8rem;margin-top:28px}
+@media(max-width:480px){.answers{grid-template-columns:1fr}.wrap{padding-top:16px}.card{min-height:185px}}
+
+/* Bablo Rush v2: persistent question + live campus run scene */
+.rush-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px;align-items:stretch;margin-top:16px}
+.rush-scene{position:relative;min-height:290px;overflow:hidden;border:1px solid #4a493d;border-radius:18px;background:linear-gradient(180deg,#829eae 0%,#d4c28d 56%,#65784b 57%,#354a35 100%);isolation:isolate}
+.rush-sky{position:absolute;inset:0 0 42% 0;background:linear-gradient(#8db0c2,#e2c99a)}
+.rush-sun{position:absolute;width:42px;height:42px;border-radius:50%;background:#f6d889;right:13%;top:14%;box-shadow:0 0 34px #f6d88988}
+.rush-cloud{position:absolute;top:20%;left:12%;font-size:2rem;opacity:.8}
+.rush-chapel{position:absolute;right:7%;bottom:35%;font-size:clamp(3rem,8vw,5rem);filter:drop-shadow(0 5px 2px #2226)}
+.rush-path{position:absolute;left:0;right:0;bottom:0;height:46%;background:linear-gradient(165deg,#b7a27c,#766b58);clip-path:polygon(35% 0,65% 0,100% 100%,0 100%)}
+.rush-path:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 38px,#ffffff25 39px 42px)}
+.rush-runner{position:absolute;left:10%;bottom:22%;font-size:3.2rem;transform:translateX(var(--run-x,0));transition:transform .45s cubic-bezier(.2,.8,.2,1);z-index:2;filter:drop-shadow(0 5px 2px #2228)}
+.rush-runner.running{animation:bablo-bounce .38s ease-in-out infinite alternate}
+@keyframes bablo-bounce{from{translate:0 0}to{translate:0 -7px}}
+.rush-scene-meta{position:absolute;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:8px;color:#172019;font-size:.78rem;font-weight:850;text-shadow:0 1px #fff8}
+.rush-progress{position:absolute;bottom:10px;left:12px;right:12px;height:8px;border-radius:99px;background:#17201955;overflow:hidden}
+.rush-progress span{display:block;width:0;height:100%;background:#f3d078;transition:width .4s}
+.rush-panel{border:1px solid var(--line);border-radius:18px;padding:16px;background:#151512}
+.rush-panel .question{margin:14px 0}
+.rush-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.rush-controls select{padding:9px 11px;border-radius:10px;border:1px solid #494638;background:#292920;color:var(--text)}
+.rush-panel .answers{grid-template-columns:1fr}
+@media(max-width:650px){.rush-layout{grid-template-columns:1fr;gap:10px}.rush-scene{min-height:205px}.rush-panel{padding:13px}.rush-panel .question{font-size:1.1rem;margin:10px 0}.rush-panel .answer{padding:11px}.rush-panel .answers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.rush-runner.running{animation:none}.rush-runner,.rush-progress span{transition:none}}
+
+
+/* Full-screen app-like page navigation */
+html,body{height:100%;overflow:hidden}
+.arcade-shell{height:100dvh;max-width:none;padding:0;overflow:hidden}
+.page-view{animation:page-enter .32s cubic-bezier(.2,.75,.25,1) both}
+@keyframes page-enter{from{opacity:0;transform:translateX(24px) scale(.99)}to{opacity:1;transform:translateX(0) scale(1)}}
+#homeview{height:100%;overflow-y:auto;padding:clamp(16px,3vw,30px);max-width:1100px;margin:auto}
+#homeview .top{margin-bottom:24px}
+#homeview .hero{margin-bottom:20px}
+#homeview .stats{margin:16px 0 20px}
+.game.active{display:block;position:fixed;inset:0;z-index:50;margin:0;border:0;border-radius:0;padding:clamp(12px,2.2vw,24px);height:100dvh;overflow:auto;background:radial-gradient(ellipse at 85% 0%,#3a301b 0,transparent 42%),#11110f;animation:page-enter .32s cubic-bezier(.2,.75,.25,1) both}
+.game.active .gamehead{position:sticky;top:0;z-index:5;background:#11110fee;padding:4px 0 12px;backdrop-filter:blur(10px)}
+.game.active#rush{display:flex;flex-direction:column}
+.game.active#rush .rush-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr)}
+.game.active#rush .rush-scene{height:100%;min-height:0}
+.game.active#rush .rush-panel{overflow:auto}
+.game.active#memory,.game.active#reaction{display:flex;flex-direction:column;justify-content:flex-start}
+.game.active#memory .memory{width:min(88vw,520px);max-width:520px}
+.close{color:var(--gold);border-color:#6b5b35;background:#211d13;padding:9px 14px}
+.rush-scene{min-height:0;background:linear-gradient(180deg,#7ea7bf 0%,#e1c99c 53%,#71884f 54%,#344b35 100%)}
+.rush-path:after{background:repeating-linear-gradient(180deg,transparent 0 28px,#ffffff30 29px 33px);animation:road-flow .42s linear infinite}
+@keyframes road-flow{to{background-position:0 33px}}
+.rush-runner{left:calc(8% + var(--run-progress,0)*.78%);transform:none;transition:left .18s linear}
+.rush-comment{position:relative;width:100%;height:42px;min-height:42px;margin:6px 0 4px;padding:8px 10px;border:1px solid #65532c;border-radius:10px;background:#211d13;color:#fff0c4;text-align:center;font-weight:750;font-size:.8rem;line-height:1.35;display:block;visibility:hidden;overflow:hidden;pointer-events:none}.rush-comment.show{visibility:visible}.rush-campus-block{position:absolute;left:4%;bottom:39%;font-size:2rem;opacity:.9;filter:drop-shadow(0 3px 2px #2225)}.rush-tree{position:absolute;bottom:34%;font-size:2rem;filter:drop-shadow(0 3px 2px #2225)}.rush-tree.one{left:22%}.rush-tree.two{right:28%;font-size:1.7rem}.rush-checkpoint{position:absolute;left:48%;bottom:36%;font-size:.65rem;font-weight:900;color:#172019;background:#f5d98b;border:2px solid #775d2c;border-radius:6px;padding:3px 6px;transform:rotate(-5deg)}.rush-momentum{height:7px;border-radius:99px;background:#333329;overflow:hidden;margin:7px 0}.rush-momentum span{display:block;height:100%;width:25%;background:linear-gradient(90deg,#a9d18e,#e7c35f);transition:width .25s}.rush-scene.checkpoint-hit .rush-checkpoint{animation:checkpoint-pop .45s ease}.rush-scene.finish-hit{animation:finish-flash .7s ease}@keyframes checkpoint-pop{50%{transform:rotate(0) scale(1.25)}}@keyframes finish-flash{50%{filter:brightness(1.25)}}
+.rush-scene-meta span:last-child{font-variant-numeric:tabular-nums}
+.rush-runner.running{animation:bablo-bounce .22s ease-in-out infinite alternate}
+.rush-cloud{animation:cloud-drift 8s linear infinite alternate}
+@keyframes cloud-drift{to{transform:translateX(32px)}}
+@media(max-width:650px){
+ .game.active{padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+ .game.active#rush .gamehead{flex:0 0 auto}
+ .game.active#rush .rush-controls{flex:0 0 auto;margin:4px 0 8px}
+ .game.active#rush .rush-layout{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
+ .game.active#rush .rush-scene{height:29dvh;min-height:155px;flex:0 0 29dvh}
+ .game.active#rush .rush-panel{flex:1;min-height:0;overflow:auto;padding:12px}
+ .rush-panel .question{font-size:1rem;line-height:1.3;margin:8px 0}
+ .rush-panel .answers{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .rush-panel .answer{padding:10px;font-size:.9rem}
+ .rush-runner{font-size:2.6rem}
+}
+@media(prefers-reduced-motion:reduce){.page-view,.rush-path:after,.rush-cloud{animation:none!important}.rush-runner.running{animation:none}}
+
+</style></head>
+<body><main class="wrap arcade-shell">
+<div id="homeview" class="page-view"><header class="top"><div class="brand">BABLO <span>ARCADE</span></div><a class="back" href="/">← Back to Hub</a></header>
+<section class="hero"><div class="eyebrow">Play • Think • Compete</div><h1>Your next<br><span style="color:var(--gold)">move starts here.</span></h1><p>Quick games built for sharp minds. Play a round, beat your best score, and keep improving.</p></section>
+<div class="stats"><div class="pill">⭐ Best Rush score <b id="best">0</b></div><div class="pill">🧠 Memory pairs <b id="pairs">0</b></div><div class="pill">⚡ Best reaction <b id="reactionbest">—</b></div><div class="pill">✨ XP <b id="xp">0</b></div><div class="pill">🏅 Level <b id="level">1</b></div></div>
+<section class="game" id="achievements" style="display:block;margin:0 0 22px"><div class="gamehead"><h2>🏆 Your achievements</h2><span class="sub" id="achievementcount">0 unlocked</span></div><p class="sub" style="margin-bottom:10px">Earn XP as you play. Progress is saved on this device.</p><div id="badgelist" class="stats" style="margin:0"></div></section>
+<section class="grid" id="catalog">
+<article class="card"><div class="icon">🏁</div><h2>Bablo Rush</h2><p>Answer fast and accurately to race towards the finish. Every correct answer moves you forward.</p><button class="btn" onclick="openGame('rush')">Play Bablo Rush →</button></article>
+<article class="card"><div class="icon">🧩</div><h2>Memory Matrix</h2><p>Flip the tiles, remember what you saw, and match all the pairs with as few moves as possible.</p><button class="btn secondary" onclick="openGame('memory')">Play Memory Matrix →</button></article>
+<article class="card"><div class="icon">⚡</div><h2>Reaction Arena</h2><p>Wait for the signal, then tap as quickly as you can. False starts do not count.</p><button class="btn secondary" onclick="openGame('reaction')">Test your reflexes →</button></article>
+</section></div>
+<section class="game page-view" id="rush"><div class="gamehead"><h2>🏁 Bablo Rush</h2><button class="close" onclick="closeGames()">← Arcade</button></div><div class="sub" id="rushstatus">Choose your runner and course. Keep answering to reach chapel.</div><div class="rush-controls"><label for="rushavatar" class="sub">Runner</label><select id="rushavatar" aria-label="Choose runner"><option value="🏃‍♂️">Boy</option><option value="🏃‍♀️">Girl</option></select><label for="rushcourse" class="sub">Course</label><select id="rushcourse"><option value="all">All available courses</option></select></div><div class="rush-layout"><div class="rush-scene" aria-label="A student running along a campus path towards chapel"><div class="rush-sky"></div><div class="rush-sun"></div><div class="rush-cloud">☁️</div><div class="rush-campus-block" aria-hidden="true">🏫</div><div class="rush-tree one" aria-hidden="true">🌳</div><div class="rush-tree two" aria-hidden="true">🌴</div><div class="rush-checkpoint" aria-hidden="true">CHECKPOINT</div><div class="rush-chapel" aria-hidden="true">⛪</div><div class="rush-path"></div><div class="rush-scene-meta"><span>🏫 CAMPUS RUN</span><span id="rushdistance">CHAPEL: 0%</span></div><div class="rush-runner" id="rushrunner">🏃‍♂️</div><div class="rush-progress"><span id="rushsceneprogress"></span></div></div><div class="rush-panel"><div class="rush-comment" id="rushcomment" role="status" aria-live="polite"></div><div class="sub" id="rushclock">45 seconds • 5 questions</div><div class="sub">MOMENTUM</div><div class="rush-momentum"><span id="rushmomentum"></span></div><div class="question" id="qtext">Ready to race?</div><div class="answers" id="answers"></div><div class="feedback" id="rushfeedback" aria-live="polite"></div><button class="btn" id="rushstart" onclick="startRush()">Start race</button></div></div></section>
+<section class="game page-view" id="memory"><div class="gamehead"><h2>🧩 Memory Matrix</h2><button class="close" onclick="closeGames()">Close</button></div><p class="sub">Match a scientific term with its meaning. Every round teaches something.</p><div class="rush-controls"><label class="sub" for="memsubject">Study deck</label><select id="memsubject" onchange="startMemory()"><option value="mixed">Mixed Science</option><option value="anatomy">Anatomy</option><option value="biology">Biology</option><option value="chemistry">Chemistry</option><option value="physics">Physics</option><option value="maths">Mathematics</option></select></div><div class="sub" id="memstatus">Moves: 0 · Matched: 0/6 · Time: 0s</div><div class="memory" id="memorygrid"></div><div class="feedback" id="memfeedback" aria-live="polite"></div><button class="btn" onclick="startMemory()">New game</button></section>
+<section class="game page-view" id="reaction"><div class="gamehead"><h2>⚡ Reaction Arena</h2><button class="close" onclick="closeGames()">Close</button></div><p class="sub">Choose a mode and test more than one kind of reflex.</p><div class="rush-controls"><label class="sub" for="reactionmode">Mode</label><select id="reactionmode" onchange="setReactionMode()"><option value="signal">Signal Rush</option><option value="colour">Colour Instinct</option><option value="maths">Quick Maths</option><option value="pattern">Pattern Breaker</option><option value="streak">Reflex Streak</option></select></div><div class="sub" id="reactionhint">Wait for green, then tap. Early taps count as false starts.</div><div id="patternbox" class="sub" style="display:none;margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px;text-align:center;font-size:1.35rem;font-weight:800"></div><div class="rush-controls" id="patternchoices" style="display:none"><button class="btn secondary" onclick="answerPattern(true)">YES, IT WAS THERE</button><button class="btn secondary" onclick="answerPattern(false)">NO, IT WASN’T</button></div><div id="mathprompt" class="question" style="display:none"></div><input id="mathanswer" type="number" inputmode="numeric" placeholder="Your answer" style="display:none;width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#292920;color:var(--text)"><button class="reaction-pad" id="reactpad" onclick="tapReaction()" disabled>Press Start</button><div class="feedback" id="reactfeedback"></div><button class="btn" id="reactstart" onclick="startReaction()">Start test</button></section>
+
+</main>
+<script src="/mts-maths-topics.js"></script>
+<script src="/mts-maths-induction-extra.js"></script>
+<script src="/cos101plus-extracted.js"></script>
+<script src="/mls101-data.js"></script>
+<script src="/phy101-data.js"></script>
+<script src="/thermochemistry-data.js"></script>
+<script>
+window.__BANK__=window.__BANK__||[];
+if(window.__PHY101_PACK__&&Array.isArray(window.__PHY101_PACK__.questions))window.__BANK__.push(...window.__PHY101_PACK__.questions);
+if(window.__CHM101_THERMO_PACK__&&Array.isArray(window.__CHM101_THERMO_PACK__.questions))window.__BANK__.push(...window.__CHM101_THERMO_PACK__.questions.map((q,i)=>({i:'CHM101-THERMO-'+String(i+1).padStart(3,'0'),c:'CHM101',u:'Thermochemistry',s:'mcq',q:q.q,o:q.o,a:q.a,e:q.e||''})));
+</script>
+<script>
+const $=id=>document.getElementById(id);let rushIndex=0,rushScore=0,rushCorrect=0,rushTimer=null,rushAdvanceTimer=null,rushFinished=false,rushSeconds=30,rushQuestions=[],rushQuestionTotal=5,memFirst=null,memLock=false,memMoves=0,memMatches=0,memTimer=null,memElapsed=0,reactionTimer=null,reactionStart=0,reactionState='idle',reactionMode='signal',reactionRound=0,reactionMathAnswer=0,rushMotionTimer=null,rushTravel=0,rushSpeed=2.15,rushLastTick=0,colourTarget='GREEN',colourStep=0,colourTotal=8;
+const questions=[
+{q:'Which organelle is the main site of ATP production?',a:['Mitochondrion','Ribosome','Golgi apparatus','Lysosome'],c:0},
+{q:'What is the SI unit of force?',a:['Joule','Newton','Watt','Pascal'],c:1},
+{q:'Which number is a prime number?',a:['21','27','29','33'],c:2},
+{q:'Which gas do plants absorb during photosynthesis?',a:['Oxygen','Nitrogen','Carbon dioxide','Hydrogen'],c:2},
+{q:'What is the derivative of x²?',a:['x','2x','x²','2'],c:1},
+{q:'Which blood cells primarily transport oxygen?',a:['Platelets','White blood cells','Red blood cells','Plasma cells'],c:2},
+{q:'What is the largest planet in our solar system?',a:['Earth','Saturn','Jupiter','Neptune'],c:2}
+];
+const badges={firstRush:{name:'First Finish',icon:'🏁',desc:'Complete your first Bablo Rush race.',xp:20},rushCentury:{name:'Century Club',icon:'💯',desc:'Score 100 points in one Rush race.',xp:25},rushPerfect:{name:'Flawless Run',icon:'🎯',desc:'Answer every Rush question correctly.',xp:35},firstMemory:{name:'Memory Starter',icon:'🧩',desc:'Complete Memory Matrix once.',xp:20},memorySharp:{name:'Sharp Memory',icon:'🧠',desc:'Complete Memory Matrix in 14 moves or fewer.',xp:30},firstReaction:{name:'Quick Reflex',icon:'⚡',desc:'Complete your first Reaction Arena test.',xp:20},reflex300:{name:'Lightning Tap',icon:'🌩️',desc:'Record a reaction time below 300 ms.',xp:35}};
+function earned(){try{return JSON.parse(localStorage.arcadeBadges||'[]')}catch(e){return[]}}
+function refreshProgress(){const xp=+(localStorage.arcadeXP||0),unlocked=earned();$('xp').textContent=xp;$('level').textContent=Math.floor(xp/100)+1;$('achievementcount').textContent=unlocked.length+' / '+Object.keys(badges).length+' unlocked';$('badgelist').innerHTML=Object.entries(badges).map(([id,b])=>'<div class="pill" style="min-width:210px;opacity:'+(unlocked.includes(id)?'1':'.48')+'">'+b.icon+' <b>'+b.name+'</b><div style="font-size:.78rem;margin-top:4px">'+b.desc+'</div><div style="font-size:.75rem;color:var(--gold);margin-top:3px">'+(unlocked.includes(id)?'Unlocked':'Locked')+' · '+b.xp+' XP</div></div>').join('')}
+function awardXP(amount,ids=[]){let unlocked=earned(),gain=0;ids.forEach(id=>{if(badges[id]&&!unlocked.includes(id)){unlocked.push(id);gain+=badges[id].xp}});localStorage.arcadeBadges=JSON.stringify(unlocked);gain+=amount;localStorage.arcadeXP=+(localStorage.arcadeXP||0)+gain;refreshProgress();return gain}
+function answerIndex(q){const raw=q.a;if(Number.isInteger(raw))return raw;if(/^[A-D]$/i.test(String(raw)))return String(raw).toUpperCase().charCodeAt(0)-65;return q.o.findIndex(v=>String(v).trim()===String(raw).trim())}
+function usableBank(){return (window.__BANK__||[]).filter(q=>q&&q.q&&Array.isArray(q.o)&&q.o.length>1&&Number.isInteger(answerIndex(q))&&answerIndex(q)>=0&&answerIndex(q)<q.o.length)}
+function populateRushCourses(){const el=$('rushcourse');if(!el)return;const bank=usableBank(),courses=[...new Set(bank.map(q=>String(q.c||'').trim()).filter(Boolean))].sort();el.innerHTML='<option value="all">All available courses ('+bank.length+' questions)</option>'+courses.map(c=>'<option value="'+c.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+c+'</option>').join('')}
+function openGame(id){history.pushState({arcadeGame:id},'','#'+id);document.getElementById('homeview').style.display='none';document.querySelectorAll('.game').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');if(id==='memory'&&!$('memorygrid').children.length)startMemory();if(id==='rush')populateRushCourses()}
+function closeGames(){clearInterval(memTimer);clearTimeout(reactionTimer);clearInterval(rushTimer);clearTimeout(rushAdvanceTimer);stopRushMotion();clearTimeout(reactionTimer);document.querySelectorAll('.game').forEach(x=>x.classList.remove('active'));document.getElementById('homeview').style.display='block';if(location.hash)history.replaceState({},'',location.pathname+location.search)}
+window.addEventListener('popstate',()=>{clearInterval(rushTimer);clearTimeout(rushAdvanceTimer);stopRushMotion();clearTimeout(reactionTimer);document.querySelectorAll('.game').forEach(x=>x.classList.remove('active'));document.getElementById('homeview').style.display='block'});
+const rushComments=['Chai 😭 you don miss chapel, na paddock remain 😂','Get in joor, chapel is locked in!','No wonder you’re early — you’re in a chapel unit 😭','Wow 😲 you made it! The VC just suspended some guys that missed chapel 😂','Abeg run! The opening hymn don start!','Even the choir don dey look for you 😂','Omo, this your speed fit earn you front-row seat!'];let rushCommentTimer=null;
+function showRushComment(message){const box=$('rushcomment');if(!box)return;box.textContent=message||rushComments[Math.floor(Math.random()*rushComments.length)];box.classList.add('show');clearTimeout(rushCommentTimer);rushCommentTimer=setTimeout(()=>box.classList.remove('show'),2600)}
+function setRushTravel(v){const previous=rushTravel;rushTravel=Math.max(0,Math.min(100,v));$('rushrunner').dataset.travel=String(rushTravel);$('rushrunner').style.setProperty('--run-progress',rushTravel);$('rushsceneprogress').style.width=rushTravel+'%';$('rushdistance').textContent='CHAPEL: '+Math.floor(rushTravel)+'%';$('rushmomentum').style.width=Math.min(100,Math.round(rushSpeed/4.2*100))+'%';if(previous<50&&rushTravel>=50){$('rush').querySelector('.rush-scene').classList.add('checkpoint-hit');showRushComment('Halfway checkpoint! Chapel no too far again 🔥');setTimeout(()=>$('rush').querySelector('.rush-scene').classList.remove('checkpoint-hit'),500)}}
+function stopRushMotion(){clearInterval(rushMotionTimer);rushMotionTimer=null}
+function startRushMotion(){stopRushMotion();rushLastTick=performance.now();rushMotionTimer=setInterval(()=>{if(rushFinished)return;const now=performance.now(),dt=Math.min(.25,(now-rushLastTick)/1000);rushLastTick=now;setRushTravel(rushTravel+rushSpeed*dt);if(rushTravel>=100)finishRush(true)},100)}
+function startRush(){clearInterval(rushTimer);clearTimeout(rushAdvanceTimer);stopRushMotion();rushFinished=false;rushCorrect=0;const selected=$('rushcourse').value;let pool=usableBank().filter(q=>selected==='all'||String(q.c||'').trim()===selected);if(!pool.length){$('rushfeedback').textContent='No course questions are available yet. Check your connection and reload Bablo Arcade.';return}for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}rushQuestions=pool.slice(0,Math.min(5,pool.length));rushQuestionTotal=rushQuestions.length;rushIndex=0;rushScore=0;rushSeconds=45;rushTravel=0;rushSpeed=2.15;$('rushstart').style.display='none';$('rushfeedback').textContent='';showRushComment('Chapel dey call! Make we move! 🏃');$('rushrunner').textContent=$('rushavatar').value;setRushTravel(0);$('rushrunner').classList.add('running');$('rushclock').textContent='45 seconds • '+rushQuestionTotal+' questions';showQuestion();startRushMotion();rushTimer=setInterval(()=>{rushSeconds--;$('rushclock').textContent='Time left: '+rushSeconds+'s • Score: '+rushScore;if(rushSeconds===20)showRushComment('20 seconds remain! No go miss am 😭');if(rushSeconds===8)showRushComment('Chai 😭 chapel don almost lock!');if(rushSeconds<=0)finishRush(false)},1000)}
+function finishRush(reached=false){if(rushFinished)return;rushFinished=true;clearInterval(rushTimer);stopRushMotion();clearTimeout(rushAdvanceTimer);$('rushrunner').classList.remove('running');if(reached)$('rush').querySelector('.rush-scene').classList.add('finish-hit');$('rushclock').textContent='Race finished • '+rushCorrect+'/'+rushQuestionTotal+' correct';const madeIt=!!reached||rushTravel>=100;$('qtext').textContent=madeIt?'🏁 You made it to chapel!':'🏁 Race over — chapel is still ahead!';showRushComment(madeIt?'Wow 😲 you made it! The VC just suspended some guys that missed chapel 😂':'Chai 😭 you don miss chapel, na paddock remain 😂');$('answers').innerHTML='';const gain=awardXP(5+Math.floor(rushScore/20),['firstRush',...(rushScore>=100?['rushCentury']:[]),...(rushCorrect===rushQuestionTotal&&rushQuestionTotal>0?['rushPerfect']:[])]);$('rushfeedback').textContent='You scored '+rushScore+' points and earned '+gain+' XP.';let best=+(localStorage.rushBest||0);if(rushScore>best){localStorage.rushBest=rushScore;best=rushScore}$('best').textContent=best;$('rushstart').textContent='Race again';$('rushstart').style.display='inline-block';$('rushstatus').textContent='Final score: '+rushScore+' • Best: '+best}
+function showQuestion(){if(rushFinished)return;if(rushIndex>=rushQuestionTotal){$('qtext').textContent='Questions complete! Keep running to chapel!';$('answers').innerHTML='';$('rushfeedback').textContent='You’ve answered all the questions. Your momentum is carrying you forward!';return}
+const q=rushQuestions[rushIndex],choices=q.o.map(String),correct=answerIndex(q);$('qtext').textContent=(rushIndex+1)+'. '+q.q;$('rushstatus').textContent='Question '+(rushIndex+1)+' of '+rushQuestionTotal+' • '+(q.c||'Hub question')+' · '+(q.u||'General');$('answers').innerHTML='';choices.forEach((v,i)=>{let b=document.createElement('button');b.className='answer';b.textContent=v;b.onclick=()=>answerRush(i,correct,q);$('answers').appendChild(b)})}
+function answerRush(i,c,q){document.querySelectorAll('#answers button').forEach(b=>b.disabled=true);const explanation=q.e||q.explanation||'';let pct=Math.min(100,Math.round((rushIndex+1)/rushQuestionTotal*100));if(i===c){rushCorrect++;showRushComment(rushComments[Math.floor(Math.random()*rushComments.length)]);const bonus=Math.min(10,Math.max(0,rushSeconds-20));rushScore+=20+bonus;$('rushfeedback').textContent='Correct! +'+(20+bonus)+' points'+(explanation?' — '+explanation:'');}else{showRushComment('Oya now 😭 no let chapel leave you behind!');$('rushfeedback').textContent='Not quite. Correct answer: '+q.o[c]+(explanation?' — '+explanation:'');}rushSpeed=i===c?Math.min(4.2,rushSpeed+.72):Math.max(.65,rushSpeed-.55);$('rushmomentum').style.width=Math.min(100,Math.round(rushSpeed/4.2*100))+'%';$('rushclock').textContent='Time left: '+rushSeconds+'s • Score: '+rushScore;rushIndex++;clearTimeout(rushAdvanceTimer);rushAdvanceTimer=setTimeout(showQuestion,1200)}
+const memoryDecks={
+ anatomy:[['Neuron','Nerve cell'],['Femur','Thigh bone'],['Alveoli','Gas exchange'],['Atrium','Receives blood'],['Nephron','Kidney unit'],['Tendon','Muscle to bone']],
+ biology:[['Mitosis','Cell division'],['Chlorophyll','Captures light'],['Osmosis','Water movement'],['Ribosome','Protein synthesis'],['Stomata','Leaf pores'],['Enzyme','Biological catalyst']],
+ chemistry:[['Anode','Oxidation site'],['Mole','6.022×10²³ entities'],['Catalyst','Speeds reaction'],['Isotope','Same protons'],['Cation','Positive ion'],['pH 7','Neutral solution']],
+ physics:[['Newton','Force unit'],['Joule','Energy unit'],['Ohm','Resistance unit'],['Inertia','Resists motion change'],['Watt','Power unit'],['Velocity','Speed with direction']],
+ maths:[['Derivative','Rate of change'],['Integral','Accumulated quantity'],['Prime','Two factors only'],['π','Circle constant'],['Slope','Rise over run'],['Vector','Magnitude + direction']],
+ mixed:[['Mitochondrion','ATP production'],['Newton','Force unit'],['Osmosis','Water movement'],['Anode','Oxidation site'],['Derivative','Rate of change'],['Alveoli','Gas exchange']]
+};
+function updateMemoryStatus(){$('memstatus').textContent='Moves: '+memMoves+' · Matched: '+memMatches+'/6 · Time: '+memElapsed+'s'}
+function startMemory(){
+ clearInterval(memTimer);const deck=memoryDecks[$('memsubject').value]||memoryDecks.mixed;
+ const cards=deck.flatMap((pair,i)=>[{id:i,label:pair[0]},{id:i,label:pair[1]}]);
+ for(let i=cards.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cards[i],cards[j]]=[cards[j],cards[i]]}
+ memFirst=null;memLock=false;memMoves=0;memMatches=0;memElapsed=0;$('memfeedback').textContent='';$('memorygrid').innerHTML='';
+ cards.forEach((card,i)=>{let b=document.createElement('button');b.className='tile';b.dataset.pair=String(card.id);b.dataset.label=card.label;b.textContent='?';b.setAttribute('aria-label','Hidden card '+(i+1));b.onclick=()=>flipTile(b);$('memorygrid').appendChild(b)});
+ updateMemoryStatus();memTimer=setInterval(()=>{memElapsed++;updateMemoryStatus()},1000);
+}
+function flipTile(b){
+ if(memLock||b.classList.contains('done')||b===memFirst||b.textContent!=='?')return;
+ b.textContent=b.dataset.label;b.setAttribute('aria-label',b.dataset.label);
+ if(!memFirst){memFirst=b;return}
+ memMoves++;updateMemoryStatus();
+ if(memFirst.dataset.pair===b.dataset.pair){
+  memFirst.classList.add('done');b.classList.add('done');memFirst.disabled=true;b.disabled=true;memFirst=null;memMatches++;updateMemoryStatus();
+  if(memMatches===6){clearInterval(memTimer);const gain=awardXP(8,['firstMemory',...(memMoves<=14?['memorySharp']:[])]);$('memfeedback').textContent='Matrix solved in '+memMoves+' moves and '+memElapsed+' seconds. +'+gain+' XP';localStorage.memPairs=+(localStorage.memPairs||0)+6;$('pairs').textContent=localStorage.memPairs||0}
+ }else{
+  memLock=true;let prev=memFirst;memFirst=null;
+  setTimeout(()=>{prev.textContent='?';b.textContent='?';prev.setAttribute('aria-label','Hidden card');b.setAttribute('aria-label','Hidden card');memLock=false},900);
+ }
+}
+function setReactionMode(){
+ clearTimeout(reactionTimer);reactionState='idle';$('reactstart').disabled=false;reactionMode=$('reactionmode').value;
+ const hints={signal:'Wait for the green signal, then tap once.',colour:'Watch the target colour. Tap only when it appears; ignore decoys.',maths:'Solve the multiplication question, enter your answer, then tap Submit.',pattern:'Memorise four symbols. Then identify whether the target was in the sequence.',streak:'Complete five green-signal reactions in a row. A false start resets the run.'};
+ $('reactionhint').textContent=hints[reactionMode];$('mathprompt').style.display=reactionMode==='maths'?'block':'none';$('mathanswer').style.display=reactionMode==='maths'?'block':'none';$('mathanswer').value='';$('patternbox').style.display='none';$('patternchoices').style.display='none';$('reactpad').style.display='block';$('reactpad').disabled=true;$('reactpad').classList.remove('ready');$('reactpad').style.background='';$('reactpad').textContent=reactionMode==='maths'?'Submit answer':'Press Start';$('reactstart').disabled=false;$('reactfeedback').textContent='';
+}
+function reactionFinish(message,ms,points){reactionState='done';$('reactfeedback').textContent=message;$('reactpad').disabled=true;$('reactpad').textContent='Round complete';$('reactstart').disabled=false;if(points>0){const gain=awardXP(points,['firstReaction',...(ms!==null&&ms<300?['reflex300']:[])]);$('reactfeedback').textContent+=' • +'+gain+' XP'}if(ms!==null){let best=+(localStorage.reactionBest||99999);if(ms<best){localStorage.reactionBest=ms;best=ms}$('reactionbest').textContent=best+' ms'}}
+function startReaction(){
+ clearTimeout(reactionTimer);reactionState='idle';$('patternchoices').style.display='none';reactionMode=$('reactionmode').value;reactionRound=0;reactionState='waiting';$('reactstart').disabled=true;$('reactpad').disabled=false;$('reactpad').classList.remove('ready');$('reactpad').style.background='';$('reactfeedback').textContent='';$('patternbox').style.display='none';$('patternchoices').style.display='none';$('reactpad').style.display='block';
+ if(reactionMode==='maths'){const a=2+Math.floor(Math.random()*12),b=2+Math.floor(Math.random()*12);reactionMathAnswer=a*b;$('mathprompt').style.display='block';$('mathanswer').style.display='block';$('mathprompt').textContent='Quick Maths: '+a+' × '+b+' = ?';$('mathanswer').value='';$('reactpad').disabled=false;$('reactpad').textContent='Submit answer';reactionStart=performance.now();reactionState='math';return}
+ if(reactionMode==='pattern'){const set=['🟡','🔵','🟣','🟢'];const seq=Array.from({length:4},()=>set[Math.floor(Math.random()*set.length)]);const yes=Math.random()<.5;const target=yes?seq[Math.floor(Math.random()*seq.length)]:['🟠','🔴','⚫','⚪'][Math.floor(Math.random()*4)];$('patternbox').style.display='block';$('patternbox').textContent='MEMORISE:  '+seq.join('  ');$('reactpad').style.display='none';reactionTimer=setTimeout(()=>{$('patternbox').textContent='TARGET:  '+target+'\nWas it in the sequence?';$('patternchoices').style.display='flex';$('patternchoices').dataset.correct=String(yes);reactionStart=performance.now();reactionState='pattern'},2200);return}
+ if(reactionMode==='colour'){startColourInstinct();return}
+ const cue=()=>{reactionState='waiting';$('reactpad').classList.remove('ready');$('reactpad').style.background='#8b3535';$('reactpad').textContent='Wait for green…';reactionTimer=setTimeout(()=>{reactionState='ready';reactionStart=performance.now();$('reactpad').classList.add('ready');$('reactpad').style.background='#27783b';$('reactpad').textContent='GREEN — TAP!'},1100+Math.random()*2400)};cue();
+}
+const colourPalette=[{name:'RED',bg:'#c43d3d'},{name:'BLUE',bg:'#2867b2'},{name:'GREEN',bg:'#27834a'},{name:'YELLOW',bg:'#d5b52d'}];
+function startColourInstinct(){
+ colourTarget=colourPalette[Math.floor(Math.random()*colourPalette.length)].name;colourStep=0;colourTotal=8;
+ const cues=[colourTarget,colourTarget,...Array.from({length:6},()=>{let c;do{c=colourPalette[Math.floor(Math.random()*colourPalette.length)].name}while(c===colourTarget);return c})];
+ for(let i=cues.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cues[i],cues[j]]=[cues[j],cues[i]]}
+ colourSequence=cues;$('reactionhint').textContent='Tap only when the cue matches '+colourTarget+'. Ignore every other colour.';$('reactfeedback').textContent='TARGET: '+colourTarget+' • 0/2 targets';showColourCue()
+}
+function showColourCue(){
+ if(reactionState==='done'||reactionState==='idle')return;
+ if(colourStep>=colourTotal){reactionFinish('Colour Instinct cleared! You identified both target cues.',null,10);return}
+ const cue=colourPalette.find(c=>c.name===colourSequence[colourStep]);
+ reactionState=cue.name===colourTarget?'colour-target':'colour-decoy';$('reactpad').disabled=false;$('reactpad').style.background=cue.bg;$('reactpad').textContent=cue.name+(reactionState==='colour-target'?' — TAP!':' — IGNORE');
+ if(reactionState==='colour-target')reactionStart=performance.now();
+ reactionTimer=setTimeout(()=>{if(reactionState==='colour-target'){reactionFinish('You missed a target cue. Try again!',null,0);return}if(reactionState==='colour-decoy'){colourStep++;$('reactfeedback').textContent='TARGET: '+colourTarget+' • cue '+colourStep+'/'+colourTotal;showColourCue()}},reactionState==='colour-target'?1350:850)
+}
+function answerPattern(answer){if(reactionState!=='pattern')return;const ms=Math.round(performance.now()-reactionStart),correct=answer===($('patternchoices').dataset.correct==='true');$('patternchoices').style.display='none';$('reactpad').disabled=true;reactionFinish(correct?'Correct pattern recall!':'Not quite — keep practising pattern recall.',ms,correct?8:0)}
+function tapReaction(){
+ if(reactionMode==='maths'&&reactionState==='math'){const ms=Math.round(performance.now()-reactionStart),correct=Number($('mathanswer').value)===reactionMathAnswer;reactionFinish(correct?'Correct!':'Not quite — answer: '+reactionMathAnswer,ms,correct?8:0);return}
+ if(reactionState==='colour-target'){clearTimeout(reactionTimer);colourStep++;$('reactfeedback').textContent='Correct target! '+colourSequence.slice(0,colourStep).filter(c=>c===colourTarget).length+'/2 targets';$('reactpad').disabled=true;$('reactpad').textContent='Next cue…';reactionState='colour-between';reactionTimer=setTimeout(()=>{if(reactionState==='colour-between')showColourCue()},350);return}
+ if(reactionState==='colour-decoy'){clearTimeout(reactionTimer);reactionFinish('That was a decoy. Wait for '+colourTarget+'.',null,0);return}
+ if(reactionState==='waiting'){clearTimeout(reactionTimer);reactionState='idle';$('reactfeedback').textContent='Too soon! Wait for the cue.';$('reactpad').textContent='False start';$('reactpad').disabled=true;$('reactstart').disabled=false;return}
+ if(reactionState!=='ready')return;
+ const ms=Math.round(performance.now()-reactionStart);
+ if(reactionMode==='streak'&&++reactionRound<5){$('reactfeedback').textContent='Round '+reactionRound+'/5 complete — next signal coming…';$('reactpad').disabled=true;$('reactpad').classList.remove('ready');$('reactpad').textContent='Get ready';reactionState='between';reactionTimer=setTimeout(()=>{reactionState='waiting';$('reactpad').disabled=false;$('reactpad').style.background='#8b3535';$('reactpad').textContent='Wait for green…';reactionTimer=setTimeout(()=>{reactionState='ready';reactionStart=performance.now();$('reactpad').classList.add('ready');$('reactpad').style.background='#27783b';$('reactpad').textContent='GREEN — TAP!'},900+Math.random()*1700)},500);return}
+ if(reactionMode==='streak'){reactionFinish('Five-signal streak completed! Last reaction: '+ms+' ms.',ms,15);return}
+ reactionFinish('Reaction time: '+ms+' ms.',ms,5);
+}
+$('mathanswer').addEventListener('keydown',e=>{if(e.key==='Enter'&&reactionState==='math')tapReaction()});
+setReactionMode();$('best').textContent=localStorage.rushBest||0;$('pairs').textContent=localStorage.memPairs||0;if(localStorage.reactionBest)$('reactionbest').textContent=localStorage.reactionBest+' ms';populateRushCourses();refreshProgress();
+</script></body></html>
