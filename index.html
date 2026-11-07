@@ -729,6 +729,20 @@ button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
 @media(prefers-reduced-motion:reduce){
  .choice,.prog>i{transition:none!important}
 }
+
+/* Dashboard workflow refit: one obvious next action, then grouped destinations. */
+.dashboard-focus{margin:4px 0 22px}
+.dashboard-resume,.dashboard-time-link>a{display:flex;align-items:center;gap:13px;min-width:0;padding:15px;border:1px solid color-mix(in srgb,var(--gold) 48%,var(--line));border-radius:17px;background:linear-gradient(115deg,color-mix(in srgb,var(--gold) 12%,var(--surface)),var(--surface) 78%);color:var(--ink);text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,.045)}
+.dashboard-resume-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:13px;background:var(--gold-soft);color:var(--gold);font-weight:900}
+.dashboard-resume-copy{display:block;flex:1;min-width:0}
+.dashboard-resume-copy b,.dashboard-resume-copy small,.dashboard-time-link b,.dashboard-time-link small{display:block}
+.dashboard-resume-copy b,.dashboard-time-link b{font-size:14px;color:var(--ink)}
+.dashboard-resume-copy small,.dashboard-time-link small{font-size:11px;line-height:1.4;color:var(--ink2);margin-top:3px}
+.dashboard-time-link{margin-top:20px}
+.dashboard-time-link>a{border-color:var(--line);background:var(--surface)}
+.dashboard-time-link>a>span:first-child{font-size:23px;color:var(--gold)}
+.dashboard-time-link>a>span:nth-child(2){flex:1;min-width:0}
+@media(min-width:760px){.dashboard-resume{max-width:100%}}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
@@ -2340,30 +2354,35 @@ function homeView() {
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
  const resumeCourse=DB.prev&&DB.prev.c?courseBy(DB.prev.c):null;
  const resumeHref=resumeCourse?'#/course/'+resumeCourse.code:'#/courses';
- const resumeText=resumeCourse?'Return to '+resumeCourse.title:'Open your course library and choose where to begin.';
- const studyCards=[
-  dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
-  dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
-  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
+ const resumeText=resumeCourse?'Continue '+resumeCourse.title:'Choose a course from your library to begin.';
+ const quickStudy=[
+  dashboardCard('Course library','Open notes, flashcards and question banks','📚','#/courses','#D6A82B'),
+  dashboardCard('Practical resources','PHY, CHEM, BIO and COS laboratory work','🧪','#/lab','#53B6A5')
  ];
- const communityCards=[
-  dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
-  dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
-  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
-  dashboardCard('Arcade','Bablo Rush, Memory Matrix and Reaction Arena','🎮','/arcade/','#D6A82B')
+ const progress=[
+  dashboardCard('Weak topics',weak+' topics to revisit','🎯','#/weak','#D6A82B'),
+  dashboardCard('Course analytics','Review performance by course','📊','#/courses','#53B6A5'),
+  dashboardCard('CGPA tracker','Calculate and monitor your grades','📈','#/gpa','#53B6A5')
+ ];
+ const community=[
+  dashboardCard('Challenge Arena','Take part in live quiz challenges','⚔️','#/challenge','#D6A82B'),
+  dashboardCard('Friends & socials','Student posts and conversations','👥','#/social','#8D83D8'),
+  dashboardCard('Programme Cup','Competition and qualification updates','🏆','#/cup','#D6A82B'),
+  dashboardCard('Bablo Arcade','Bablo Rush, Memory Matrix and Reaction Arena','🎮','/arcade/','#D6A82B')
  ];
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('button',{class:'dashboard-icon-btn',type:'button',onclick:openHubMenu,'aria-label':'Open navigation menu'},'☰'),
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
-  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
+  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Your learning, practice and progress in one place.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Your next move'),h('span',null,'A clear place to start')),h('div',{class:'dashboard-grid'},
-   dashboardCard('Continue learning',resumeText,'📖',resumeHref,'#D6A82B'),
-   dashboardCard('Today & upcoming','Timetable, tests and study reminders','◷','#/time','#53B6A5'))),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
+  h('section',{class:'dashboard-focus'},h('div',{class:'dashboard-section-head'},h('h2',null,'Pick up where you left off'),h('span',null,'Your next study step')),
+   h('a',{class:'dashboard-resume',href:resumeHref},h('span',{class:'dashboard-resume-icon'},'▶'),h('span',{class:'dashboard-resume-copy'},h('b',null,resumeCourse?'Continue learning':'Start learning'),h('small',null,resumeText)),h('span',{class:'dashboard-card-arrow'},'›'))),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study resources'),h('span',null,'Learn and practise')),h('div',{class:'dashboard-grid'},...quickStudy)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Your progress'),h('span',null,'Know what to work on next')),h('div',{class:'dashboard-grid'},...progress)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Learn together'),h('span',null,'Community and challenges')),h('div',{class:'dashboard-grid'},...community)),
+  h('section',{class:'dashboard-time-link'},h('a',{href:'#/time'},h('span',null,'◷'),h('span',null,h('b',null,'Time & productivity'),h('small',null,'Timetable, upcoming tests and reminders')),h('span',{class:'dashboard-card-arrow'},'›'))),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
  ));
 }
