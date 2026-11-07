@@ -2415,7 +2415,7 @@ function homeView() {
  ];
  const progress=[
   dashboardCard('Weak topics',weak+' topics to revisit','🎯','#/weak','#D6A82B'),
-  dashboardCard('Course analytics','Review performance by course','📊','#/analytics','#53B6A5'),
+  dashboardCard('Course analytics','Review accuracy and progress by course','📊','#/analytics','#53B6A5'),
   dashboardCard('CGPA tracker','Calculate and monitor your grades','📈','#/gpa','#53B6A5')
  ];
  const community=[
@@ -2513,55 +2513,36 @@ function courseView(code) {
       h('section', { class: 'stack' }, h('h2', null, 'Topics'), h('p', { class: 'muted small' }, 'Tap a topic to practise it, or open a quiz and tick several.'), h('div', { class: 'rows' }, rows)))));
 }
 function analyticsHubView() {
-  const courses=homeCourses().filter(c=>isAvail(c)&&canAccessCourse(c.code));
-  const history=(DB.history||[]).slice().sort((a,b)=>a.ts-b.ts);
-  const avg=history.length?Math.round(history.reduce((n,x)=>n+(Number(x.pct)||0),0)/history.length):0;
-  const totalSecs=history.reduce((n,x)=>n+(Number(x.secs)||0),0);
-  const duration=(()=>{const m=Math.round(totalSecs/60);return m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'m';})();
-  const card=c=>{
-    const sessions=history.filter(x=>x.course===c.code);
-    const score=sessions.length?Math.round(sessions.reduce((n,x)=>n+(Number(x.pct)||0),0)/sessions.length):null;
-    return h('a',{class:'dashboard-card',href:'#/analytics/'+c.code},
-      h('span',{class:'dashboard-card-icon'},'📊'),
-      h('span',{class:'dashboard-card-copy'},h('b',null,c.label+' · '+c.title),
-        h('small',null,sessions.length+' sessions · '+(score===null?'No score yet':'average '+score+'%'))),
-      h('span',{class:'dashboard-card-arrow'},'›'));
-  };
-  mount(wrap(back('#/','Dashboard'),h('div',{class:'stack-l'},
-    h('div',{class:'stack'},h('h1',null,'Learning analytics'),h('p',{class:'muted'},'Track attempts, accuracy, study time and topic mastery across your courses.')),
-    h('section',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:'10px'}},
-      h('div',{class:'panel stack'},h('span',{class:'tiny muted'},'Completed sessions'),h('b',{style:{fontSize:'1.5rem'}},String(history.length))),
-      h('div',{class:'panel stack'},h('span',{class:'tiny muted'},'Average score'),h('b',{style:{fontSize:'1.5rem'}},history.length?avg+'%':'—')),
-      h('div',{class:'panel stack'},h('span',{class:'tiny muted'},'Recorded study time'),h('b',{style:{fontSize:'1.5rem'}},duration))),
-    h('section',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,'By course'),h('span',{class:'tiny muted'},'Open a course for topic-level detail')),
-      h('div',{class:'dashboard-grid'},...courses.map(card))),
-    h('p',{class:'tiny muted'},'Progress is currently calculated from activity stored on this device. Sign-in score syncing is separate; cross-device topic-stat syncing is not yet enabled.')
-  )));
-}
-
-function globalAnalyticsView() {
  const history=DB.history||[],stats=DB.stats||{};
- const courses=(typeof homeCourses==='function'?homeCourses():COURSES).filter(c=>!c.pending200&&BYC[c.code]);
+ const courses=homeCourses().filter(c=>isAvail(c)&&canAccessCourse(c.code));
  const rows=courses.map(c=>{
   const qs=BANK.filter(q=>q.c===c.code);let attempts=0,correct=0;
   qs.forEach(q=>{const v=stats[q.i]||[0,0];attempts+=Number(v[0])||0;correct+=Number(v[1])||0;});
   const sessions=history.filter(x=>x.course===c.code);
-  return {c,attempts,correct,accuracy:attempts?Math.round(correct/attempts*100):null,sessions:sessions.length};
+  const score=sessions.length?Math.round(sessions.reduce((n,x)=>n+(Number(x.pct)||0),0)/sessions.length):null;
+  return {c,attempts,correct,accuracy:attempts?Math.round(correct/attempts*100):null,sessions:sessions.length,score};
  }).sort((a,b)=>b.sessions-a.sessions||b.attempts-a.attempts);
- const attempts=rows.reduce((n,x)=>n+x.attempts,0),correct=rows.reduce((n,x)=>n+x.correct,0);
- const metric=(label,value,sub)=>h('div',{class:'panel stack',style:{padding:'14px',gap:'4px'}},h('span',{class:'tiny muted'},label),h('b',{style:{fontSize:'1.5rem'}},String(value)),h('span',{class:'tiny muted'},sub));
- mount(wrap(back('#/','Home'),h('div',{class:'stack-l'},
-  h('div',{class:'stack'},h('h1',null,'Learning analytics'),h('p',{class:'muted'},'Your course-by-course view of practice, accuracy and study activity. Data shown here is currently saved on this device.')),
-  h('section',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(135px,1fr))',gap:'10px'}},
-   metric('Tracked accuracy',attempts?Math.round(correct/attempts*100)+'%':'—',attempts+' question attempts'),
-   metric('Practice sessions',history.length,'Across all courses'),
-   metric('Courses with activity',rows.filter(x=>x.sessions||x.attempts).length,'Recorded activity')),
-  h('section',{class:'stack'},h('h2',null,'Course performance'),
-   ...(rows.length?rows.map(x=>h('a',{class:'dashboard-card',href:'#/analytics/'+x.c.code},
-    h('span',{class:'dashboard-card-icon'},'📘'),h('span',{class:'dashboard-card-copy'},
-     h('b',null,x.c.label+' · '+x.c.title),h('small',null,(x.accuracy===null?'No tracked answers':x.accuracy+'% accuracy')+' · '+x.sessions+' sessions · '+x.attempts+' answers')),
-    h('span',{class:'dashboard-card-arrow'},'›'))):[h('div',{class:'panel'},h('p',{class:'muted small'},'No course activity yet. Complete a practice session to begin.'))])),
-  h('p',{class:'tiny muted'},'Open any course for topic mastery, weak areas and recent session trends.'))));
+ const totalAttempts=rows.reduce((n,x)=>n+x.attempts,0),totalCorrect=rows.reduce((n,x)=>n+x.correct,0);
+ const totalSecs=history.reduce((n,x)=>n+(Number(x.secs)||0),0);
+ const duration=(()=>{const m=Math.round(totalSecs/60);return m<60?m+' min':Math.floor(m/60)+'h '+(m%60)+'m';})();
+ const metric=(label,value,sub)=>h('div',{class:'panel stack',style:{padding:'14px',gap:'4px'}},
+  h('span',{class:'tiny muted'},label),h('b',{style:{fontSize:'1.5rem'}},String(value)),h('span',{class:'tiny muted'},sub));
+ const cards=rows.map(x=>h('a',{class:'dashboard-card',href:'#/analytics/'+x.c.code},
+  h('span',{class:'dashboard-card-icon'},'📊'),h('span',{class:'dashboard-card-copy'},
+   h('b',null,x.c.label+' · '+x.c.title),
+   h('small',null,x.sessions+' sessions · '+(x.score===null?'No session score': 'average '+x.score+'%')+' · '+(x.accuracy===null?'No tracked answers':x.accuracy+'% question accuracy'))),
+  h('span',{class:'dashboard-card-arrow'},'›')));
+ mount(wrap(back('#/','Dashboard'),h('div',{class:'stack-l'},
+  h('div',{class:'stack'},h('h1',null,'Learning analytics'),h('p',{class:'muted'},'Track question accuracy, completed sessions, study time and topic mastery across your courses.')),
+  h('section',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:'10px'}},
+   metric('Question accuracy',totalAttempts?Math.round(totalCorrect/totalAttempts*100)+'%':'—',totalAttempts+' tracked answers'),
+   metric('Completed sessions',history.length,'Across your courses'),
+   metric('Recorded study time',duration,'From completed sessions'),
+   metric('Courses with activity',rows.filter(x=>x.sessions||x.attempts).length,'With saved practice')),
+  h('section',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,'By course'),h('span',{class:'tiny muted'},'Open a course for topic-level detail')),
+   h('div',{class:'dashboard-grid'},...(cards.length?cards:[h('div',{class:'panel'},h('p',{class:'small muted'},'No course activity yet. Complete a practice session to start building your analytics.'))]))),
+  h('p',{class:'tiny muted'},'Progress is currently calculated from activity stored on this device. Cross-device topic-stat syncing is not yet enabled.')
+  )));
 }
 function courseAnalyticsView(code) {
   const c = courseBy(code);
@@ -4422,7 +4403,7 @@ function bonusView(code) {
       h('p',null,ch.story),
       h('div',{class:'stack'},...ch.ideas.map(x=>h('p',{class:'small',style:{margin:0}},'• '+x))),
       h('div',{class:'warnbox'},h('b',null,'How it connects'),h('p',{class:'small',style:{margin:'5px 0 0'}},ch.link))));
-    const cosSections=unitsOf('COS').filter(u=>/^COS \\d{2}/.test(u.name));
+    const cosSections=unitsOf('COS').filter(u=>/^COS \d{2}/.test(u.name));
     const sectionFor=(event)=>{
       const text=String(event).toLowerCase();
       const prefix=/count|abacus|tally/.test(text)?'COS 01':/logic|boolean|turing|shannon|zuse/.test(text)?'COS 03':/generation|eniac|transistor|fortran|cobol|ibm|microprocessor|altair|macintosh/.test(text)?'COS 04':'COS 02';
