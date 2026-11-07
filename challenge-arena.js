@@ -163,6 +163,7 @@ async function offlineFinish(){
     h('button',{class:'secondary',onclick:dashboard},'Return to Arena')));
   frame(result);
 }
+function openWifiBattle(){if(window.BabloWifiChallenge){window.BabloWifiChallenge.open();return;}const s=document.createElement('script');s.src='./wifi-challenge.js';s.onload=()=>window.BabloWifiChallenge&&window.BabloWifiChallenge.open();s.onerror=()=>toast('Local Wi-Fi battle module could not load.');document.head.append(s);}
 function dashboard(){
   CA.tab='overview';
   const nav=['Discover','My Challenges','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t)},t));
@@ -172,7 +173,8 @@ function dashboard(){
     h('button',{onclick:()=>createPanel('quick_duel')},'＋ Create challenge'),
     h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'),
     h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges'),
-    h('button',{class:'secondary',onclick:offlineStartPanel},'📴 Offline practice')
+    h('button',{class:'secondary',onclick:offlineStartPanel},'🏁 Ghost Race'),
+    h('button',{class:'secondary',onclick:openWifiBattle},'📡 Local Wi-Fi Battle')
   );
   const rooms=h('section',{class:'cd-panel'});
   rooms.append(h('h3',null,'Your active challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your challenges…'));
