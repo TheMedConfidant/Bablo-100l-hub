@@ -163,6 +163,7 @@ async function offlineFinish(){
     h('button',{class:'secondary',onclick:dashboard},'Return to Arena')));
   frame(result);
 }
+function openCourseAnalytics(){if(window.BabloCourseAnalytics){window.BabloCourseAnalytics.open();return;}const s=document.createElement('script');s.src='./course-analytics.js';s.onload=()=>window.BabloCourseAnalytics&&window.BabloCourseAnalytics.open();s.onerror=()=>toast('Course analytics could not load.');document.head.append(s);}
 function openWifiBattle(){if(window.BabloWifiChallenge){window.BabloWifiChallenge.open();return;}const s=document.createElement('script');s.src='./wifi-challenge.js';s.onload=()=>window.BabloWifiChallenge&&window.BabloWifiChallenge.open();s.onerror=()=>toast('Local Wi-Fi battle module could not load.');document.head.append(s);}
 function dashboard(){
   CA.tab='overview';
@@ -174,7 +175,8 @@ function dashboard(){
     h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'),
     h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges'),
     h('button',{class:'secondary',onclick:offlineStartPanel},'🏁 Ghost Race'),
-    h('button',{class:'secondary',onclick:openWifiBattle},'📡 Local Wi-Fi Battle')
+    h('button',{class:'secondary',onclick:openWifiBattle},'📡 Local Wi-Fi Battle'),
+    h('button',{class:'secondary',onclick:openCourseAnalytics},'📊 Course Analytics')
   );
   const rooms=h('section',{class:'cd-panel'});
   rooms.append(h('h3',null,'Your active challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your challenges…'));
