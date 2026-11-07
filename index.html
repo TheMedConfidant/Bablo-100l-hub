@@ -2853,15 +2853,35 @@ function boardView() {
 /* ---------- me ---------- */
 function meView() {
   const p = DB.profile || {};
+  const account = DB.account || {};
+  const babloId = String(account.uid || account.uniqueId || p.uid || '—');
+  const username = String(p.username || account.username || '');
+  const displayName = String(p.nick || p.display_name || p.name || 'Learner');
+  const accountType = signedIn() && !p.isGuest ? 'Student account' : 'Guest account';
+  const membership = (account.premium || p.premium) ? 'Premium' : 'Standard';
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
+  const identityRow = (label, value, action) => h('div', { class: 'row between wrapr', style: { padding: '10px 0', borderBottom: '1px solid var(--line)', gap: '12px' } },
+    h('span', { class: 'small muted' }, label), h('span', { style: { fontWeight: '750', textAlign: 'right', overflowWrap: 'anywhere' } }, value || 'Not set'), action || null);
+  const identity = h('section', { class: 'panel stack' },
+    h('div', { class: 'row between wrapr' }, h('div', null, h('h2', null, 'Your Bablo identity'), h('p', { class: 'tiny muted' }, 'Your account details at a glance.')), h('span', { class: 'chip gold' }, membership)),
+    identityRow('Bablo ID', babloId, babloId !== '—' ? h('button', { class: 'btn sm ghost', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(babloId); toast('Bablo ID copied.'); } catch (e) { toast('Copy unavailable on this device.'); } } }, 'Copy') : null),
+    identityRow('Username', username ? '@' + username : (signedIn() ? 'Loading username…' : 'Guest')),
+    identityRow('Full name', p.name || 'Not set'),
+    identityRow('Display name', displayName),
+    identityRow('Programme', p.programme || 'Independent'),
+    identityRow('Account type', accountType),
+    identityRow('Membership', membership)
+  );
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity and leaderboard details.'),
+    h('p', { class: 'muted small' }, 'Your Bablo identity, student details and leaderboard information.'),
+    identity,
     h('section', { class: 'panel stack' },
+      h('h2', null, 'Edit profile'),
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
-      h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
+      h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname / display name'), nick),
       h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('button', { class: 'btn primary block', onclick: () => {
         const n = name.value.trim();
@@ -2872,9 +2892,10 @@ function meView() {
           programme: prog.value,
           level: '100L'
         });
-        save(); toast('Profile saved.');
+        save(); toast('Profile saved.'); meView();
       } }, 'Save profile'))
   )));
+  if (signedIn() && !username) ensureChessIdentity();
 }
 
 
