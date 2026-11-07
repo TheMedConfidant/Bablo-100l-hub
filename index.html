@@ -2517,7 +2517,7 @@ function analyticsHubView() {
  const courses=COURSES.slice(); // Analytics is a global overview: include every catalog course, not only this student's programme.
  const rows=courses.map(c=>{
   const qs=BANK.filter(q=>q.c===c.code);let attempts=0,correct=0;
-  qs.forEach(q=>{const v=stats[q.i]||[0,0];attempts+=Number(v[0])||0;correct+=Number(v[1])||0;});
+  qs.forEach(q=>{const v=stats[q.id]||[0,0];attempts+=Number(v[0])||0;correct+=Number(v[1])||0;});
   const sessions=history.filter(x=>x.course===c.code);
   const score=sessions.length?Math.round(sessions.reduce((n,x)=>n+(Number(x.pct)||0),0)/sessions.length):null;
   return {c,attempts,correct,accuracy:attempts?Math.round(correct/attempts*100):null,sessions:sessions.length,score};
@@ -2554,7 +2554,7 @@ function courseAnalyticsView(code) {
   const topicRows = units.map(u => {
     const qs = questions.filter(q => q.u === u.name);
     let answered = 0, correct = 0;
-    qs.forEach(q => { const st = stats[q.i] || [0,0]; answered += Number(st[0]) || 0; correct += Number(st[1]) || 0; });
+    qs.forEach(q => { const st = stats[q.id] || [0,0]; answered += Number(st[0]) || 0; correct += Number(st[1]) || 0; });
     return { name:u.name, total:qs.length, answered, correct, pct:answered ? Math.round(correct/answered*100) : null };
   });
   const answered = topicRows.reduce((n,x)=>n+x.answered,0);
@@ -2938,7 +2938,7 @@ function meView() {
 function weakTopics() {
   const agg = {};
   BANK.forEach(q => {
-    const st = DB.stats && DB.stats[q.i]; if (!st || !st[0]) return;
+    const st = DB.stats && DB.stats[q.id]; if (!st || !st[0]) return;
     const k = q.c + '|' + q.u; const a = agg[k] || (agg[k] = { course: q.c, unit: q.u, seen: 0, right: 0 });
     a.seen += st[0]; a.right += st[1];
   });
