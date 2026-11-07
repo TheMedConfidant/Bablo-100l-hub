@@ -2191,27 +2191,48 @@ function examScheduleDate(row) {
   return new Date(row.scheduled_date + 'T00:00:00+01:00').toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
 }
 function maybeExamSchedulePush(rows) {
-  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
   DB.examPushSent = DB.examPushSent || {};
-  const now = Date.now();
-  rows.forEach(row => {
-    if (!row.scheduled_date) return;
-    const exam = new Date(row.scheduled_date + 'T09:00:00+01:00').getTime();
-    const remaining = exam - now;
-    if (remaining <= 0) return;
-    const stages = [{ key:'7d', window:7*86400000, min:6*86400000, label:'is in 7 days' },
-      { key:'1d', window:24*3600000, min:23*3600000, label:'is tomorrow' },
-      { key:'1h', window:3600000, min:0, label:'starts in about an hour' }];
-    stages.forEach(stage => {
-      const key = row.id + ':' + stage.key;
-      if (DB.examPushSent[key] || remaining > stage.window || remaining <= stage.min) return;
-      try {
-        new Notification(row.course_code + (row.assessment_type === 'Exam' ? ' exam' : ' test') + ' ' + stage.label,
-          { body:'Scheduled for ' + examScheduleDate(row) + '. Open Bablo Hub for your study resources.', icon:'icon-192.png', tag:'exam-' + key });
-        DB.examPushSent[key] = true; save();
-      } catch (e) {}
-    });
+  const now = Date.now(), grace = 12*60*60*1000;
+  const validRows = (rows||[]).filter(row => {
+    if(!row.scheduled_date)return false;
+    const t=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
+    return Number.isFinite(t)&&t+grace>now;
   });
+  const activeKeys = new Set(validRows.map(row=>String(row.id)+':'+row.scheduled_date));
+  Object.keys(DB.examPushSent).forEach(key=>{
+    if(![...activeKeys].some(active=>key.startsWith(active+':')))delete DB.examPushSent[key];
+  });
+  navigator.serviceWorker.ready.then(async reg=>{
+    try{
+      const existing=await reg.getNotifications();
+      existing.forEach(n=>{
+        if(!String(n.tag||'').startsWith('exam-'))return;
+        const data=n.data||{},expires=Number(data.expiresAt);
+        if((data.scheduleKey&&!activeKeys.has(data.scheduleKey))||(expires&&expires<=now))n.close();
+      });
+    }catch(_){}
+    validRows.forEach(row=>{
+      const exam=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
+      const remaining=exam-now;
+      const stages=[
+        {key:'7d',window:7*86400000,min:6*86400000,label:'is in 7 days'},
+        {key:'1d',window:24*3600000,min:23*3600000,label:'is tomorrow'},
+        {key:'1h',window:3600000,min:0,label:'starts in about an hour'}
+      ];
+      stages.forEach(stage=>{
+        const scheduleKey=String(row.id)+':'+row.scheduled_date;
+        const key=scheduleKey+':'+stage.key;
+        if(DB.examPushSent[key]||remaining>stage.window||remaining<=stage.min)return;
+        const tag='exam-'+String(row.id)+'-'+row.scheduled_date+'-'+stage.key;
+        reg.showNotification(row.course_code+(row.assessment_type==='Exam'?' exam':' test')+' '+stage.label,{
+          body:'Scheduled for '+examScheduleDate(row)+'. Open Bablo Hub for your study resources.',
+          icon:'icon-192.png',badge:'icon-192.png',tag,timestamp:now,
+          data:{url:'./',scheduleKey,expiresAt:exam+grace}
+        }).then(()=>{DB.examPushSent[key]=true;save()}).catch(()=>{});
+      });
+    });
+  }).catch(()=>{});
 }
 function sharedExamSchedulePanel() {
   const panel = h('section', { class:'panel stack', id:'shared-exam-schedule' },
