@@ -57,6 +57,70 @@ function style(){if($('#cd-style'))return;let s=document.createElement('style');
 `;document.head.append(s);}
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
 function stat(n,t){return h('div',{class:'cd-stat'},h('b',null,n),h('span',{class:'muted'},t))}
+let OFFLINE_MATCH=null;
+function offlineStartPanel(){
+  const cs=courses();
+  frame(h('div',null,hero(),h('section',{class:'cd-panel'},
+    h('h2',null,'Offline practice challenge'),
+    h('p',{class:'muted'},'Runs entirely on this device. No sign-in, mobile data or Wi-Fi required. Results are saved locally and can sync with your account when you reconnect.'),
+    h('label',null,'Course'),
+    h('select',{id:'cd-offline-course'},...cs.map(c=>h('option',{value:c},c))),
+    h('label',null,'Number of questions'),
+    h('select',{id:'cd-offline-count'},...[5,10,15,20,30].map(n=>h('option',{value:n,selected:n===10},n+' questions'))),
+    h('label',null,'Time limit'),
+    h('select',{id:'cd-offline-time'},...[[0,'No timer'],[5,'5 minutes'],[10,'10 minutes'],[20,'20 minutes'],[30,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),
+    h('div',{class:'cd-quick'},h('button',{onclick:offlineBegin},'Start offline challenge'),h('button',{class:'secondary',onclick:dashboard},'Back')))));
+}
+function offlineBegin(){
+  const course=$('#cd-offline-course').value,count=Number($('#cd-offline-count').value),mins=Number($('#cd-offline-time').value);
+  const pool=questions().filter(q=>String(q.c||'').trim()===course&&q.q&&Array.isArray(q.o)&&q.o.length>1);
+  if(pool.length<count){toast('Only '+pool.length+' usable questions are available for '+course+'.');return;}
+  const picked=[...pool].sort(()=>Math.random()-.5).slice(0,count).map(q=>{
+    const choices=q.o.map(String),raw=q.a;
+    let answer=typeof raw==='number'?raw:(/^[A-D]$/i.test(String(raw))?String(raw).toUpperCase().charCodeAt(0)-65:choices.findIndex(v=>v.trim()===String(raw).trim()));
+    if(answer<0)answer=Number.parseInt(raw,10);
+    return {prompt:cleanText(q.q),choices:choices.map(cleanText),answer,explanation:cleanText(q.explanation||q.e||''),topic:cleanText(q.u||q.topic||'')};
+  }).filter(q=>Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length);
+  if(picked.length<count){toast('Some questions have incomplete answer keys. Try another course or question count.');return;}
+  OFFLINE_MATCH={course,questions:picked,index:0,correct:0,answers:[],started:Date.now(),end:mins?Date.now()+mins*60000:0,minutes:mins,done:false,timer:null};
+  offlineRenderQuestion();
+}
+function offlineRenderQuestion(){
+  const m=OFFLINE_MATCH;if(!m)return;
+  if(m.index>=m.questions.length){offlineFinish();return;}
+  const q=m.questions[m.index];m.done=false;
+  frame(h('div',null,hero(),h('section',{class:'cd-panel'},
+    h('div',{class:'cd-row'},h('b',null,'Offline · Question '+(m.index+1)+' / '+m.questions.length),h('strong',{id:'cd-offline-clock'},'')),
+    h('p',{class:'muted'},m.course+' · '+(q.topic||'General')),
+    h('div',{class:'cd-q'},q.prompt),
+    h('div',{id:'cd-offline-options'},...q.choices.map((choice,i)=>h('button',{class:'cd-choice',onclick:()=>offlineAnswer(i)},String.fromCharCode(65+i)+'. '+choice))),
+    h('div',{id:'cd-offline-feedback'}),
+    h('button',{id:'cd-offline-next',disabled:true,onclick:()=>{m.index++;offlineRenderQuestion()}},'Next question'))));
+  clearInterval(m.timer);
+  if(m.end)m.timer=setInterval(()=>{const left=Math.max(0,m.end-Date.now()),el=$('#cd-offline-clock');if(el)el.textContent=Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0');if(!left)offlineFinish()},400);
+  else {const el=$('#cd-offline-clock');if(el)el.textContent='No timer';}
+}
+function offlineAnswer(i){
+  const m=OFFLINE_MATCH;if(!m||m.done)return;m.done=true;
+  const q=m.questions[m.index],correct=i===q.answer;if(correct)m.correct++;
+  m.answers.push({selected:i,correct});
+  $('#cd-offline-options').querySelectorAll('button').forEach((button,j)=>{button.disabled=true;if(j===q.answer)button.style.borderColor='#65c58a';if(j===i&&!correct)button.style.borderColor='#e57373'});
+  const feedback=$('#cd-offline-feedback');
+  feedback.append(h('p',{class:'cd-row'},correct?'Correct':'Not quite · Correct answer: '+String.fromCharCode(65+q.answer)),q.explanation?h('p',{class:'muted'},'Explanation: '+q.explanation):null);
+  $('#cd-offline-next').disabled=false;
+}
+async function offlineFinish(){
+  const m=OFFLINE_MATCH;if(!m)return;clearInterval(m.timer);OFFLINE_MATCH=null;
+  const secs=Math.max(1,Math.round((Date.now()-m.started)/1000)),pct=Math.round(m.correct/m.questions.length*100),entry={ts:Date.now(),course:m.course,mode:'quiz',n:m.questions.length,correct:m.correct,pct,secs,offline:true};
+  DB.history=DB.history||[];DB.history.push(entry);DB.history=DB.history.slice(-300);
+  try{save();if(window.BabloOffline)await window.BabloOffline.saveLocal('offline-challenge-history',DB.history.filter(x=>x.offline).slice(-100));}catch(_){}
+  frame(h('div',null,hero(),h('section',{class:'cd-panel'},
+    h('h2',null,'Offline challenge complete'),
+    h('div',{class:'cd-stats'},stat(m.correct+'/'+m.questions.length,'Correct answers'),stat(pct+'%','Accuracy'),stat(Math.floor(secs/60)+'m '+(secs%60)+'s','Time used'),stat('Saved','On this device')),
+    h('p',{class:'muted'},'Your result is in local learning history. If you are signed in, it will sync when you reconnect.'),
+    h('button',{onclick:offlineStartPanel},'Play again'),
+    h('button',{class:'secondary',onclick:dashboard},'Return to Arena'))));
+}
 function dashboard(){
   CA.tab='overview';
   const nav=['Discover','My Challenges','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t)},t));
@@ -65,7 +129,8 @@ function dashboard(){
   actions.append(
     h('button',{onclick:()=>createPanel('quick_duel')},'＋ Create challenge'),
     h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'),
-    h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges')
+    h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges'),
+    h('button',{class:'secondary',onclick:offlineStartPanel},'📴 Offline practice')
   );
   const rooms=h('section',{class:'cd-panel'});
   rooms.append(h('h3',null,'Your active challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your challenges…'));
