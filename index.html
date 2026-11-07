@@ -2057,7 +2057,7 @@ function route() {
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: 'challenges', home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
+  const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: 'challenges', home: 'home', course: 'home', analytics: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
@@ -2065,6 +2065,7 @@ function route() {
     else if (v === 'courses') coursesCatalogueView();
     else if (v === 'time') timeHubView();
     else if (v === 'arcade') arcadeHubView();
+    else if (v === 'analytics') courseAnalyticsView(seg[1]);
     else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
@@ -2351,12 +2352,89 @@ function courseView(code) {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
+      h('button', { class: 'btn block', onclick: () => go('#/analytics/' + code) }, '📊 Course analytics'),
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
         h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
         weakN ? h('button', { class: 'btn block', onclick: () => startWeak(code) }, 'Weak-spot practice (' + weakN + ')') : null),
       h('section', { class: 'stack' }, h('h2', null, 'Topics'), h('p', { class: 'muted small' }, 'Tap a topic to practise it, or open a quiz and tick several.'), h('div', { class: 'rows' }, rows)))));
 }
+function courseAnalyticsView(code) {
+  const c = courseBy(code);
+  if (!c || !isAvail(c) || !canAccessCourse(code)) { go('#/courses'); return; }
+  const questions = BANK.filter(q => q.c === code);
+  const units = unitsOf(code);
+  const history = (DB.history || []).filter(x => x.course === code).slice().sort((a,b) => a.ts-b.ts);
+  const stats = DB.stats || {};
+  const topicRows = units.map(u => {
+    const qs = questions.filter(q => q.u === u.name);
+    let answered = 0, correct = 0;
+    qs.forEach(q => { const st = stats[q.i] || [0,0]; answered += Number(st[0]) || 0; correct += Number(st[1]) || 0; });
+    return { name:u.name, total:qs.length, answered, correct, pct:answered ? Math.round(correct/answered*100) : null };
+  });
+  const answered = topicRows.reduce((n,x)=>n+x.answered,0);
+  const correct = topicRows.reduce((n,x)=>n+x.correct,0);
+  const accuracy = answered ? Math.round(correct/answered*100) : 0;
+  const sessions = history.length;
+  const totalSeconds = history.reduce((n,x)=>n+(Number(x.secs)||0),0);
+  const avgScore = sessions ? Math.round(history.reduce((n,x)=>n+(Number(x.pct)||0),0)/sessions) : 0;
+  const formatDuration = seconds => {
+    const mins=Math.round(seconds/60);
+    return mins < 60 ? mins+' min' : Math.floor(mins/60)+'h '+(mins%60)+'m';
+  };
+  const metric = (label,value,sub) => h('div',{class:'panel stack',style:{padding:'14px',gap:'4px',minWidth:'0'}},
+    h('span',{class:'tiny muted'},label),h('b',{style:{fontSize:'1.55rem',fontVariantNumeric:'tabular-nums'}},String(value)),
+    h('span',{class:'tiny muted'},sub||''));
+  const weak = topicRows.filter(x=>x.answered>=3 && x.pct<70).sort((a,b)=>a.pct-b.pct);
+  const recent = history.slice(-7);
+  const maxPct = Math.max(100,...recent.map(x=>Number(x.pct)||0));
+  const modeCounts = {};
+  history.forEach(x=>{const k=x.mode||'practice';modeCounts[k]=(modeCounts[k]||0)+1;});
+  const trend = recent.length ? h('div',{class:'panel stack'},
+    h('div',{class:'row between wrapr'},h('h2',null,'Recent session trend'),h('span',{class:'tiny muted'},'Last '+recent.length+' sessions')),
+    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,minmax(0,1fr))',gap:'8px',alignItems:'end',minHeight:'130px'}},
+      ...recent.map((x,i)=>h('div',{class:'stack',style:{gap:'5px',alignItems:'center',minWidth:'0'}},
+        h('b',{class:'tiny'},(Number(x.pct)||0)+'%'),
+        h('div',{title:(x.mode||'Practice')+' · '+new Date(x.ts).toLocaleDateString(),style:{height:'88px',width:'100%',display:'flex',alignItems:'end',background:'var(--surface2)',borderRadius:'8px',overflow:'hidden'}},
+          h('i',{style:{display:'block',width:'100%',height:Math.max(4,Math.min(100,(Number(x.pct)||0)))+'%',background:'var(--brand)',borderRadius:'6px 6px 0 0'}})),
+        h('span',{class:'tiny muted'},'S'+(history.length-recent.length+i+1)))))) : h('div',{class:'panel'},h('p',{class:'muted small'},'Complete a practice session to start your progress trend.'));
+  const topicCard = t => h('div',{class:'panel stack',style:{padding:'12px',gap:'8px'}},
+    h('div',{class:'row between wrapr'},h('b',null,t.name),h('span',{class:'chip '+(t.pct===null?'':t.pct<50?'bad':t.pct<70?'gold':'ok')},t.pct===null?'Not started':t.pct+'%')),
+    h('div',{class:'bar'},h('i',{style:{width:(t.pct===null?0:t.pct)+'%'}})),
+    h('div',{class:'row between'},h('span',{class:'tiny muted'},t.answered+' answered · '+t.total+' questions'),h('button',{class:'btn sm primary',onclick:()=>startSession({course:code,mode:'practice',units:[t.name],n:Math.min(20,Math.max(1,t.total)),order:'shuffle',timerKind:'up',minutes:0})},'Practise')));
+  const modeText=Object.keys(modeCounts).length?Object.entries(modeCounts).map(([k,v])=>k+': '+v).join(' · '):'No sessions yet';
+  const insights = [];
+  if(!sessions) insights.push('Start with a short practice session. Your course dashboard will build from your attempts on this device.');
+  else {
+    if(weak.length) insights.push(weak.length+' topic'+(weak.length===1?'':'s')+' currently below 70% accuracy. Start with '+weak[0].name+'.');
+    else if(answered>=10) insights.push('Your tracked topic accuracy is at least 70%. Keep testing across all topics.');
+    if(history.length>=2) {
+      const prev=history.slice(-6,-3), latest=history.slice(-3);
+      if(prev.length && latest.length) {
+        const a=prev.reduce((n,x)=>n+(Number(x.pct)||0),0)/prev.length;
+        const b=latest.reduce((n,x)=>n+(Number(x.pct)||0),0)/latest.length;
+        insights.push('Your latest-session average is '+(b>=a?'up ':'down ')+Math.abs(Math.round(b-a))+' percentage points versus the preceding sessions.');
+      }
+    }
+  }
+  mount(wrap(back('#/course/'+code,c.label),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('h1',null,c.label+' analytics'),h('p',{class:'muted'},'Your course performance, calculated from practice and quiz activity saved on this device.')),
+    h('section',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(135px,1fr))',gap:'10px'}},
+      metric('Tracked accuracy',answered?accuracy+'%':'—',answered+' answered question attempts'),
+      metric('Sessions',sessions,modeText),
+      metric('Average session score',sessions?avgScore+'%':'—','Across '+sessions+' completed sessions'),
+      metric('Study time',formatDuration(totalSeconds),'Recorded session time'),
+      metric('Questions in bank',questions.length,units.length+' topics'),
+      metric('Topics to revisit',weak.length,'At least 3 answers and below 70%')),
+    h('section',{class:'stack'},h('h2',null,'Performance insights'),...insights.map(x=>h('div',{class:'warnbox'},x))),
+    trend,
+    h('section',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,'Topic mastery'),h('span',{class:'tiny muted'},'Based on answered questions')),
+      ...topicRows.map(topicCard)),
+    h('section',{class:'panel stack'},h('h2',null,'Next step'),
+      h('p',{class:'muted small'},weak.length?'Target your lowest-performing topic first, then retest it later.':'Keep practising across the course so the topic map becomes more reliable.'),
+      h('button',{class:'btn primary block',onclick:()=>weak.length?startSession({course:code,mode:'practice',units:[weak[0].name],n:Math.min(20,Math.max(1,questions.filter(q=>q.u===weak[0].name).length)),order:'shuffle',timerKind:'up',minutes:0}):go('#/setup/'+code+'/practice')},weak.length?'Practise weakest topic':'Start course practice')))));
+}
+
 function startWeak(code) {
   startSession({ course: code, mode: 'practice', n: 20, order: 'shuffle', timerKind: 'up', minutes: 0, ids: DB.missed });
 }
