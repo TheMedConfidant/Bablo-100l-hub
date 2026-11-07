@@ -625,6 +625,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 /* Bablo Hub full-app dashboard refresh: lightweight glass-inspired surfaces. */
 .dashboard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
 .dashboard-top .brand{min-width:0}.dashboard-top-actions{display:flex;align-items:center;gap:8px}
+.dashboard-notification-wrap{position:relative;display:inline-grid}.dashboard-notification-badge{position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;border:2px solid var(--surface);border-radius:99px;background:#d92d42;color:#fff;font-size:9px;font-weight:900;display:grid;place-items:center;line-height:1}
 .dashboard-icon-btn,.dashboard-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-weight:800}
 .dashboard-avatar{border-color:var(--gold);background:var(--gold-soft);color:#17120a;border-radius:50%}
 .dashboard-welcome{border:1px solid rgba(212,175,55,.55);border-radius:22px;padding:22px;margin:10px 0 24px;background:linear-gradient(120deg,rgba(212,175,55,.16),var(--surface) 68%);box-shadow:0 6px 20px rgba(0,0,0,.08)}
@@ -2280,7 +2281,7 @@ function openHubMenu(){
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
     group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
-    group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Send feedback','#/feedback','✉')]),
+    group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Chess','#/chess','♟'),link('Send feedback','#/feedback','✉')]),
     group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
     group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
     group('ADMINISTRATION',[link('Admin Panel','#/admin','🛠')]),
@@ -2371,6 +2372,14 @@ function sharedExamSchedulePanel() {
   });
   return panel;
 }
+function unreadNotificationCount(){
+ const now=Date.now(),DAY=86400000,read=DB.readNotices||{},dismissed=DB.dismissedNotices||{};let count=0;
+ const add=id=>{if(!read[id]&&!dismissed[id])count++;};
+ (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts&&now-ts<=30*DAY)add('quiz-'+ts);});
+ const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
+ const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
+ return count;
+}
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
@@ -2391,7 +2400,7 @@ function homeView() {
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('button',{class:'dashboard-icon-btn',type:'button',onclick:openHubMenu,'aria-label':'Open navigation menu'},'☰'),
-   h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
+   h('span',{class:'dashboard-notification-wrap'},h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'+(unreadNotificationCount()?' · '+unreadNotificationCount()+' unread':'')},'♧'),unreadNotificationCount()?h('span',{class:'dashboard-notification-badge','aria-hidden':'true'},unreadNotificationCount()>9?'9+':String(unreadNotificationCount())):null),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
