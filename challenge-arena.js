@@ -181,6 +181,7 @@ function profilePanel(){
   frame(h('div',null,hero(),h('div',{class:'cd-tabs'},h('button',{class:'secondary',onclick:dashboard},'← Challenge Arena')),panel));
 }
 function dashboard(){
+  stopPresence();
   CA.tab='overview';
   const nav=['Discover','My Challenges','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t)},t));
   const content=h('div',{class:'challenge-home'});
