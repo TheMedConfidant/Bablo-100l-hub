@@ -1792,9 +1792,9 @@ async function hubCall(fn, body) {
   return r.json();
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
-function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium, isGuest: !!j.isGuest }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, isGuest: !!j.isGuest, premium: !!j.premium, level: '100L', uid: j.uniqueId }; save(); }
 let CHESS_IDENTITY_BUSY = false;
-async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
+async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; DB.profile.isGuest=!!j.isGuest; DB.account.isGuest=!!j.isGuest; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
 async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
 async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
@@ -2857,7 +2857,8 @@ function meView() {
   const babloId = String(account.uid || account.uniqueId || p.uid || '—');
   const username = String(p.username || account.username || '');
   const displayName = String(p.nick || p.display_name || p.name || 'Learner');
-  const accountType = signedIn() && !p.isGuest ? 'Student account' : 'Guest account';
+  const isGuest = !!(p.isGuest ?? account.isGuest ?? String(p.programme || '').toLowerCase().startsWith('guest'));
+  const accountType = signedIn() ? (isGuest ? 'Guest account' : 'Student account') : 'Guest session';
   const membership = (account.premium || p.premium) ? 'Premium' : 'Standard';
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
@@ -2867,7 +2868,7 @@ function meView() {
   const identity = h('section', { class: 'panel stack' },
     h('div', { class: 'row between wrapr' }, h('div', null, h('h2', null, 'Your Bablo identity'), h('p', { class: 'tiny muted' }, 'Your account details at a glance.')), h('span', { class: 'chip gold' }, membership)),
     identityRow('Bablo ID', babloId, babloId !== '—' ? h('button', { class: 'btn sm ghost', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(babloId); toast('Bablo ID copied.'); } catch (e) { toast('Copy unavailable on this device.'); } } }, 'Copy') : null),
-    identityRow('Username', username ? '@' + username : (signedIn() ? 'Loading username…' : 'Guest')),
+    identityRow('Username', username ? '@' + username : (signedIn() ? 'Username not assigned yet' : 'Not available for guest session')),
     identityRow('Full name', p.name || 'Not set'),
     identityRow('Display name', displayName),
     identityRow('Programme', p.programme || 'Independent'),
