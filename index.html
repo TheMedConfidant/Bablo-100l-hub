@@ -2436,7 +2436,6 @@ function homeView() {
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study resources'),h('span',null,'Learn and practise')),h('div',{class:'dashboard-grid'},...quickStudy)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Your progress'),h('span',null,'Know what to work on next')),h('div',{class:'dashboard-grid'},...progress)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Learn together'),h('span',null,'Community and challenges')),h('div',{class:'dashboard-grid'},...community)),
-  h('section',{class:'dashboard-time-link'},h('a',{href:'#/time'},h('span',null,'◷'),h('span',null,h('b',null,'Time & productivity'),h('small',null,'Timetable, upcoming tests and reminders')),h('span',{class:'dashboard-card-arrow'},'›'))),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
  ));
 }
@@ -2514,7 +2513,7 @@ function courseView(code) {
 }
 function analyticsHubView() {
  const history=DB.history||[],stats=DB.stats||{};
- const courses=[...COURSES,...(COURSES_200||[])].filter((c,i,a)=>a.findIndex(x=>x.code===c.code)===i); // All listed 100L and 200L courses, not just this student's programme.
+ const courses=COURSES.filter((c,i,a)=>a.findIndex(x=>x.code===c.code)===i); // Keep analytics scoped to the 100L catalogue.
  const rows=courses.map(c=>{
   const qs=BANK.filter(q=>q.c===c.code);let attempts=0,correct=0;
   qs.forEach(q=>{const v=stats[q.i]||[0,0];attempts+=Number(v[0])||0;correct+=Number(v[1])||0;});
@@ -2533,7 +2532,7 @@ function analyticsHubView() {
    h('small',null,x.sessions+' sessions · '+(x.score===null?'No session score': 'average '+x.score+'%')+' · '+(x.qs===0?'Question bank not loaded':x.accuracy===null?'No tracked answers':x.accuracy+'% question accuracy'))),
   h('span',{class:'dashboard-card-arrow'},'›')));
  mount(wrap(back('#/','Dashboard'),h('div',{class:'stack-l'},
-  h('div',{class:'stack'},h('h1',null,'Learning analytics'),h('p',{class:'muted'},'Track question accuracy, completed sessions, study time and topic mastery across your courses.')),
+  h('div',{class:'stack'},h('h1',null,'Learning analytics'),h('p',{class:'muted'},'Review your course activity, question accuracy and topic mastery.')),
   h('section',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:'10px'}},
    metric('Question accuracy',totalAttempts?Math.round(totalCorrect/totalAttempts*100)+'%':'—',totalAttempts+' tracked answers'),
    metric('Completed sessions',history.length,'Across your courses'),
@@ -3627,7 +3626,7 @@ function adminView() {
       loadAlertForm(pass.value, out);
     } catch (e) { out.replaceChildren(h('p', { class: 'muted' }, 'Could not reach the server.')); }
   };
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin'), h('section', { class: 'panel stack' }, pass, h('button', { class: 'btn primary block', onclick: go2 }, 'Sign in to Admin')), out)));
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin console'), h('section', { class: 'panel stack' }, pass, h('button', { class: 'btn primary block', onclick: go2 }, 'Sign in to Admin')), out)));
 }
 
 /* ---------- admin: every action needs the signed-in admin session and the passcode (checked on the server) ---------- */
