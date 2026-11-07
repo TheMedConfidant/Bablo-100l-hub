@@ -64,7 +64,7 @@
         try { client.capture(item.event, item.properties); } catch (_) {}
       }
       try {
-        var page = (location.hash.replace(/^#\\/?/, '').split('?')[0].split('/')[0] || 'home');
+        var page = (location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] || 'home');
         send('page_view', { page: page });
       } catch (_) {}
     };
