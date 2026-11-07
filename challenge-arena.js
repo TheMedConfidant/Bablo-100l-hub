@@ -165,6 +165,21 @@ async function offlineFinish(){
 }
 function openCourseAnalytics(){if(window.BabloCourseAnalytics){window.BabloCourseAnalytics.open();return;}const s=document.createElement('script');s.src='./course-analytics.js';s.onload=()=>window.BabloCourseAnalytics&&window.BabloCourseAnalytics.open();s.onerror=()=>toast('Course analytics could not load.');document.head.append(s);}
 function openWifiBattle(){if(window.BabloWifiChallenge){window.BabloWifiChallenge.open();return;}const s=document.createElement('script');s.src='./wifi-challenge.js';s.onload=()=>window.BabloWifiChallenge&&window.BabloWifiChallenge.open();s.onerror=()=>toast('Local Wi-Fi battle module could not load.');document.head.append(s);}
+function profilePanel(){
+  const a=(DB&&DB.account)||{};
+  const pick=(...keys)=>{for(const k of keys){const v=a[k];if(v!==undefined&&v!==null&&String(v).trim())return String(v)}return 'Not available'};
+  const uid=pick('unique_id','uniqueId','uid');
+  const panel=h('section',{class:'cd-panel'});
+  panel.append(h('div',{class:'cd-eyebrow'},'YOUR BABLO IDENTITY'),h('h2',null,'My Profile'),h('p',{class:'muted'},'Your account identity used across Bablo Hub challenges and connected experiences.'));
+  const grid=h('div',{class:'cd-profile-grid'});
+  const guest=(a.is_guest??a.isGuest)===true;
+  const items=[['Bablo ID',uid],['Username',pick('username','handle')],['Full name',pick('full_name','fullName','name')],['Display name',pick('nickname','nick','display_name')],['Programme',pick('programme')],['Account type',guest?'Guest':'Student'],['Membership',a.premium?'Premium':'Standard']];
+  items.forEach(([label,value])=>grid.append(h('article',{class:'cd-profile-item'},h('span',{class:'muted'},label),h('strong',null,value))));
+  panel.append(grid);
+  const copy=h('button',{class:'secondary',onclick:async()=>{try{await navigator.clipboard.writeText(uid);copy.textContent='Copied!';setTimeout(()=>copy.textContent='Copy Bablo ID',1600)}catch(_){copy.textContent='Select the ID above to copy'}}},'Copy Bablo ID');
+  panel.append(copy,h('p',{class:'muted'},'Keep your Bablo ID available when adding friends or recovering access. Never share your password or session token.'));
+  frame(h('div',null,hero(),h('div',{class:'cd-tabs'},h('button',{class:'secondary',onclick:dashboard},'← Challenge Arena')),panel));
+}
 function dashboard(){
   CA.tab='overview';
   const nav=['Discover','My Challenges','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t)},t));
@@ -176,7 +191,8 @@ function dashboard(){
     h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges'),
     h('button',{class:'secondary',onclick:offlineStartPanel},'🏁 Ghost Race'),
     h('button',{class:'secondary',onclick:openWifiBattle},'📡 Local Wi-Fi Battle'),
-    h('button',{class:'secondary',onclick:openCourseAnalytics},'📊 Course Analytics')
+    h('button',{class:'secondary',onclick:openCourseAnalytics},'📊 Course Analytics'),
+    h('button',{class:'secondary',onclick:profilePanel},'👤 My Profile')
   );
   const rooms=h('section',{class:'cd-panel'});
   rooms.append(h('h3',null,'Your active challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your challenges…'));
