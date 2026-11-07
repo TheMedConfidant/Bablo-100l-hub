@@ -1735,14 +1735,51 @@ async function signIn(id, password) {
   return { ok: true, uniqueId: j.uniqueId };
 }
 async function signOut() { try { if (signedIn()) await hubCall('hub_logout', { p_token: DB.account.token }); } catch (e) { /* ignore */ } DB.account = null; save(); }
-/* progress: what this device knows, saved to the account so nothing is lost */
-function localProgress() { return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {}, ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null }; }
+/* Account progress uses per-device counters so one phone cannot overwrite another. */
+function mergeCounterMaps(a, b) {
+  const out = Object.assign({}, a || {});
+  Object.keys(b || {}).forEach(id => {
+    const x = Array.isArray(out[id]) ? out[id] : [0, 0], y = Array.isArray(b[id]) ? b[id] : [0, 0];
+    out[id] = [Math.max(+x[0] || 0, +y[0] || 0), Math.max(+x[1] || 0, +y[1] || 0)];
+  });
+  return out;
+}
+function rebuildAggregateStats() {
+  const total = Object.assign({}, DB.statsLegacy || {});
+  Object.keys(DB.statsByDevice || {}).forEach(device => {
+    const rows = DB.statsByDevice[device] || {};
+    Object.keys(rows).forEach(id => {
+      const x = Array.isArray(total[id]) ? total[id] : [0, 0], y = rows[id] || [0, 0];
+      total[id] = [(+x[0] || 0) + (+y[0] || 0), (+x[1] || 0) + (+y[1] || 0)];
+    });
+  });
+  DB.stats = total;
+}
+function ensureDeviceStats() {
+  if (!DB.statsLegacy && !DB.statsByDevice) DB.statsLegacy = Object.assign({}, DB.stats || {});
+  DB.statsLegacy = DB.statsLegacy || {};
+  DB.statsByDevice = DB.statsByDevice || {};
+  DB.statsByDevice[DB.dev] = DB.statsByDevice[DB.dev] || {};
+  rebuildAggregateStats();
+}
+function localProgress() {
+  ensureDeviceStats();
+  return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {},
+    statsLegacy: DB.statsLegacy || {}, statsByDevice: DB.statsByDevice || {},
+    ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null };
+}
 function mergeRemote(p) {
   const seen = {}; (DB.history || []).forEach(h => { seen[h.ts] = true; });
   (p.history || []).forEach(h => { if (!seen[h.ts]) DB.history.push(h); });
   DB.history.sort((a, b) => a.ts - b.ts); DB.history = DB.history.slice(-300);
   DB.missed = Object.assign({}, p.missed || {}, DB.missed || {});
-  DB.stats = Object.assign({}, p.stats || {}, DB.stats || {});
+  ensureDeviceStats();
+  const remoteLegacy = p.statsLegacy || (!p.statsByDevice ? (p.stats || {}) : {});
+  DB.statsLegacy = mergeCounterMaps(DB.statsLegacy, remoteLegacy);
+  Object.keys(p.statsByDevice || {}).forEach(device => {
+    DB.statsByDevice[device] = mergeCounterMaps(DB.statsByDevice[device], p.statsByDevice[device]);
+  });
+  rebuildAggregateStats();
   DB.ubest = Object.assign({}, p.ubest || {}, DB.ubest || {});
   DB.gpa = Object.assign({}, p.gpa || {}, DB.gpa || {});
   if (p.chess && (!DB.chess || (p.chess.games || []).length > (DB.chess.games || []).length)) DB.chess = p.chess;
@@ -2626,7 +2663,7 @@ function recordAttempt(s) {
   const per = {};
   s.qs.forEach((q, i) => {
     const a = s.answers[i], ok = Core.isCorrect(q, a);
-    if (a != null && a !== '') { DB.stats = DB.stats || {}; const st = DB.stats[q.id] || (DB.stats[q.id] = [0, 0]); st[0] += 1; if (ok) st[1] += 1; }
+    if (a != null && a !== '') { ensureDeviceStats(); const st = DB.statsByDevice[DB.dev][q.id] || (DB.statsByDevice[DB.dev][q.id] = [0, 0]); st[0] += 1; if (ok) st[1] += 1; rebuildAggregateStats(); }
     if (a != null && a !== '') { if (ok) delete DB.missed[q.id]; else DB.missed[q.id] = (DB.missed[q.id] || 0) + 1; }
     const p = per[q.unit] || (per[q.unit] = { n: 0, c: 0 }); p.n++; if (ok) p.c++;
   });
