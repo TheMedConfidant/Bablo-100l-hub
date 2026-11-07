@@ -59,52 +59,85 @@ function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'}
 function stat(n,t){return h('div',{class:'cd-stat'},h('b',null,n),h('span',{class:'muted'},t))}
 
 let OFFLINE_MATCH=null;
+function ghostKey(course,count){return 'bablo-ghost-v1:'+course+':'+count;}
+function ghostFingerprint(q){return JSON.stringify([cleanText(q.q),...(q.o||[]).map(cleanText)]);}
+function ghostEncode(data){const bytes=new TextEncoder().encode(JSON.stringify(data));let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');}
+function ghostDecode(code){const raw=atob(String(code).trim().replace(/-/g,'+').replace(/_/g,'/'));const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));return JSON.parse(new TextDecoder().decode(bytes));}
 function offlineStartPanel(){
   const cs=courses();
   frame(h('div',null,hero(),h('section',{class:'cd-panel'},
-    h('h2',null,'Offline practice challenge'),
-    h('p',{class:'muted'},'Runs on this device without mobile data or Wi-Fi. Results are saved locally and can sync when you reconnect.'),
+    h('h2',null,'Ghost Race · Offline Arena'),
+    h('p',{class:'muted'},'Race your personal best or import a friend’s ghost run. Both players answer the same question sequence; the ghost advances at their recorded pace. No internet is needed during the race.'),
     h('label',null,'Course'),
     h('select',{id:'cd-offline-course'},...cs.map(c=>h('option',{value:c},c))),
     h('label',null,'Number of questions'),
     h('select',{id:'cd-offline-count'},...[5,10,15,20,30].map(n=>h('option',{value:n,selected:n===10},n+' questions'))),
+    h('label',null,'Race opponent'),
+    h('select',{id:'cd-ghost-mode'},h('option',{value:'pb'},'My personal best'),h('option',{value:'friend'},'A friend’s ghost code')),
+    h('label',null,'Friend ghost code (only for friend races)'),
+    h('textarea',{id:'cd-ghost-code',rows:3,placeholder:'Paste a ghost code shared by a friend'}),
     h('label',null,'Time limit'),
     h('select',{id:'cd-offline-time'},...[[0,'No timer'],[5,'5 minutes'],[10,'10 minutes'],[20,'20 minutes'],[30,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),
-    h('div',{class:'cd-quick'},h('button',{onclick:offlineBegin},'Start offline challenge'),h('button',{class:'secondary',onclick:dashboard},'Back')))));
+    h('div',{class:'cd-quick'},h('button',{onclick:offlineBegin},'Start ghost race'),h('button',{class:'secondary',onclick:dashboard},'Back')))));
 }
 function offlineBegin(){
-  const course=$('#cd-offline-course').value,count=Number($('#cd-offline-count').value),mins=Number($('#cd-offline-time').value);
+  const course=$('#cd-offline-course').value,count=Number($('#cd-offline-count').value),mins=Number($('#cd-offline-time').value),mode=$('#cd-ghost-mode').value;
+  let ghost=null;
+  if(mode==='pb'){
+    try{ghost=JSON.parse(localStorage.getItem(ghostKey(course,count))||'null');}catch(_){}
+    if(!ghost){toast('No personal best yet. Complete one run first to create your ghost.');return;}
+  }else{
+    try{ghost=ghostDecode($('#cd-ghost-code').value);}
+    catch(_){toast('That ghost code could not be read. Check the copied code.');return;}
+    if(ghost.v!==1||ghost.course!==course||ghost.count!==count||!Array.isArray(ghost.fingerprints)||!Array.isArray(ghost.durations)||ghost.fingerprints.length!==count||ghost.durations.length!==count){toast('This ghost does not match the selected course or question count.');return;}
+  }
   const pool=questions().filter(q=>String(q.c||'').trim()===course&&q.q&&Array.isArray(q.o)&&q.o.length>1);
-  if(pool.length<count){toast('Only '+pool.length+' usable questions are available for '+course+'.');return;}
-  const picked=[...pool].sort(()=>Math.random()-.5).slice(0,count).map(q=>{
+  const indexed=new Map(pool.map(q=>[ghostFingerprint(q),q]));
+  let picked;
+  if(ghost){picked=ghost.fingerprints.map(fp=>indexed.get(fp)).filter(Boolean);if(picked.length!==count){toast('This device is missing one or more questions from that ghost run. Download the course content first.');return;}}
+  else picked=[...pool].sort(()=>Math.random()-.5).slice(0,count);
+  if(picked.length<count){toast('Not enough usable questions are available for '+course+'.');return;}
+  picked=picked.map(q=>{
     const choices=q.o.map(String),raw=q.a;
     let answer=typeof raw==='number'?raw:(/^[A-D]$/i.test(String(raw))?String(raw).toUpperCase().charCodeAt(0)-65:choices.findIndex(v=>v.trim()===String(raw).trim()));
     if(answer<0)answer=Number.parseInt(raw,10);
-    return {prompt:cleanText(q.q),choices:choices.map(cleanText),answer,explanation:cleanText(q.explanation||q.e||''),topic:cleanText(q.u||q.topic||'')};
+    return {prompt:cleanText(q.q),choices:choices.map(cleanText),answer,explanation:cleanText(q.explanation||q.e||''),topic:cleanText(q.u||q.topic||''),fingerprint:ghostFingerprint(q)};
   }).filter(q=>Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length);
   if(picked.length<count){toast('Some questions have incomplete answer keys. Try another course or question count.');return;}
-  OFFLINE_MATCH={course,questions:picked,index:0,correct:0,answers:[],started:Date.now(),end:mins?Date.now()+mins*60000:0,done:false,timer:null};
+  OFFLINE_MATCH={course,questions:picked,index:0,correct:0,answers:[],durations:[],started:Date.now(),questionStarted:Date.now(),end:mins?Date.now()+mins*60000:0,done:false,timer:null,ghost:ghost||null,ghostMode:mode};
   offlineRenderQuestion();
+}
+function offlineGhostStatus(){
+  const m=OFFLINE_MATCH,el=$('#cd-ghost-status');if(!m||!el)return;
+  if(!m.ghost){el.textContent='No ghost opponent · this run will set your first personal best.';return;}
+  const target=m.ghost.durations.slice(0,m.index).reduce((a,b)=>a+b,0),elapsed=Math.max(0,Date.now()-m.started);
+  const diff=elapsed-target;
+  el.textContent=diff<=0?'You are '+Math.ceil(Math.abs(diff)/1000)+'s ahead of the ghost':'Ghost is '+Math.ceil(diff/1000)+'s ahead';
 }
 function offlineRenderQuestion(){
   const m=OFFLINE_MATCH;if(!m)return;
   if(m.index>=m.questions.length){offlineFinish();return;}
-  const q=m.questions[m.index];m.done=false;
+  const q=m.questions[m.index];m.done=false;m.questionStarted=Date.now();
   frame(h('div',null,hero(),h('section',{class:'cd-panel'},
-    h('div',{class:'cd-row'},h('b',null,'Offline · Question '+(m.index+1)+' / '+m.questions.length),h('strong',{id:'cd-offline-clock'},'')),
+    h('div',{class:'cd-row'},h('b',null,'Ghost Race · Question '+(m.index+1)+' / '+m.questions.length),h('strong',{id:'cd-offline-clock'},'')),
+    h('p',{id:'cd-ghost-status',class:'muted'},'Tracking ghost pace…'),
     h('p',{class:'muted'},m.course+' · '+(q.topic||'General')),
     h('div',{class:'cd-q'},q.prompt),
     h('div',{id:'cd-offline-options'},...q.choices.map((choice,i)=>h('button',{class:'cd-choice',onclick:()=>offlineAnswer(i)},String.fromCharCode(65+i)+'. '+choice))),
     h('div',{id:'cd-offline-feedback'}),
     h('button',{id:'cd-offline-next',disabled:true,onclick:()=>{m.index++;offlineRenderQuestion()}},'Next question'))));
   clearInterval(m.timer);
-  if(m.end)m.timer=setInterval(()=>{const left=Math.max(0,m.end-Date.now()),el=$('#cd-offline-clock');if(el)el.textContent=Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0');if(!left)offlineFinish()},400);
-  else {const el=$('#cd-offline-clock');if(el)el.textContent='No timer';}
+  m.timer=setInterval(()=>{
+    const elapsed=Date.now()-m.started,left=m.end?Math.max(0,m.end-Date.now()):0,clock=$('#cd-offline-clock');
+    if(clock)clock.textContent=m.end?Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0'):Math.floor(elapsed/60000)+':'+String(Math.floor(elapsed/1000)%60).padStart(2,'0');
+    offlineGhostStatus();if(m.end&&!left)offlineFinish();
+  },400);
+  offlineGhostStatus();
 }
 function offlineAnswer(i){
   const m=OFFLINE_MATCH;if(!m||m.done)return;m.done=true;
   const q=m.questions[m.index],correct=i===q.answer;if(correct)m.correct++;
-  m.answers.push({selected:i,correct});
+  m.durations.push(Math.max(250,Date.now()-m.questionStarted));m.answers.push({selected:i,correct});
   $('#cd-offline-options').querySelectorAll('button').forEach((button,j)=>{button.disabled=true;if(j===q.answer)button.style.borderColor='#65c58a';if(j===i&&!correct)button.style.borderColor='#e57373'});
   const feedback=$('#cd-offline-feedback');
   feedback.append(h('p',{class:'cd-row'},correct?'Correct':'Not quite · Correct answer: '+String.fromCharCode(65+q.answer)),q.explanation?h('p',{class:'muted'},'Explanation: '+q.explanation):null);
@@ -112,15 +145,23 @@ function offlineAnswer(i){
 }
 async function offlineFinish(){
   const m=OFFLINE_MATCH;if(!m)return;clearInterval(m.timer);OFFLINE_MATCH=null;
-  const secs=Math.max(1,Math.round((Date.now()-m.started)/1000)),pct=Math.round(m.correct/m.questions.length*100),entry={ts:Date.now(),course:m.course,mode:'quiz',n:m.questions.length,correct:m.correct,pct,secs,offline:true};
+  const secs=Math.max(1,Math.round((Date.now()-m.started)/1000)),pct=Math.round(m.correct/m.questions.length*100),entry={ts:Date.now(),course:m.course,mode:'ghost-race',n:m.questions.length,correct:m.correct,pct,secs,offline:true};
+  const record={v:1,course:m.course,count:m.questions.length,score:m.correct,pct,secs,fingerprints:m.questions.map(q=>q.fingerprint),durations:m.durations};
+  let isPB=false;
+  try{const key=ghostKey(m.course,m.questions.length),old=JSON.parse(localStorage.getItem(key)||'null');if(!old||record.score>old.score||(record.score===old.score&&record.secs<old.secs)){localStorage.setItem(key,JSON.stringify(record));isPB=true;}}catch(_){}
   DB.history=DB.history||[];DB.history.push(entry);DB.history=DB.history.slice(-300);
   try{save();if(window.BabloOffline)await window.BabloOffline.saveLocal('offline-challenge-history',DB.history.filter(x=>x.offline).slice(-100));}catch(_){}
-  frame(h('div',null,hero(),h('section',{class:'cd-panel'},
-    h('h2',null,'Offline challenge complete'),
-    h('div',{class:'cd-stats'},stat(m.correct+'/'+m.questions.length,'Correct answers'),stat(pct+'%','Accuracy'),stat(Math.floor(secs/60)+'m '+(secs%60)+'s','Time used'),stat('Saved','On this device')),
-    h('p',{class:'muted'},'Your result is in local learning history. If you are signed in, it will sync when you reconnect.'),
-    h('button',{onclick:offlineStartPanel},'Play again'),
-    h('button',{class:'secondary',onclick:dashboard},'Return to Arena'))));
+  const shareCode=ghostEncode(record);
+  const result=h('div',null,hero(),h('section',{class:'cd-panel'},
+    h('h2',null,'Ghost race complete'),
+    h('div',{class:'cd-stats'},stat(m.correct+'/'+m.questions.length,'Correct answers'),stat(pct+'%','Accuracy'),stat(Math.floor(secs/60)+'m '+(secs%60)+'s','Time used'),stat(isPB?'NEW PB':'Saved','Personal best')),
+    h('p',{class:'muted'},m.ghost?(m.ghost.score===m.correct?(secs<=m.ghost.secs?'You beat the ghost on time.':'You matched the ghost score.'):(m.correct>m.ghost.score?'You beat the ghost score.':'The ghost scored higher this time.')):'Your first run is saved. Race it next time to chase your personal best.'),
+    h('label',null,'Share this ghost with a friend'),
+    h('textarea',{id:'cd-ghost-share',rows:3,readonly:true},shareCode),
+    h('button',{onclick:()=>{const el=$('#cd-ghost-share');el.select();if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(shareCode).then(()=>toast('Ghost code copied.')).catch(()=>toast('Select and copy the ghost code.'));else toast('Select and copy the ghost code.');}},'Copy ghost code'),
+    h('button',{onclick:offlineStartPanel},'Race again'),
+    h('button',{class:'secondary',onclick:dashboard},'Return to Arena')));
+  frame(result);
 }
 function dashboard(){
   CA.tab='overview';
