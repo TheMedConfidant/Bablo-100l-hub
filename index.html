@@ -2539,6 +2539,30 @@ function analyticsHubView() {
   )));
 }
 
+function globalAnalyticsView() {
+ const history=DB.history||[],stats=DB.stats||{};
+ const courses=(typeof homeCourses==='function'?homeCourses():COURSES).filter(c=>!c.pending200&&BYC[c.code]);
+ const rows=courses.map(c=>{
+  const qs=BANK.filter(q=>q.c===c.code);let attempts=0,correct=0;
+  qs.forEach(q=>{const v=stats[q.i]||[0,0];attempts+=Number(v[0])||0;correct+=Number(v[1])||0;});
+  const sessions=history.filter(x=>x.course===c.code);
+  return {c,attempts,correct,accuracy:attempts?Math.round(correct/attempts*100):null,sessions:sessions.length};
+ }).sort((a,b)=>b.sessions-a.sessions||b.attempts-a.attempts);
+ const attempts=rows.reduce((n,x)=>n+x.attempts,0),correct=rows.reduce((n,x)=>n+x.correct,0);
+ const metric=(label,value,sub)=>h('div',{class:'panel stack',style:{padding:'14px',gap:'4px'}},h('span',{class:'tiny muted'},label),h('b',{style:{fontSize:'1.5rem'}},String(value)),h('span',{class:'tiny muted'},sub));
+ mount(wrap(back('#/','Home'),h('div',{class:'stack-l'},
+  h('div',{class:'stack'},h('h1',null,'Learning analytics'),h('p',{class:'muted'},'Your course-by-course view of practice, accuracy and study activity. Data shown here is currently saved on this device.')),
+  h('section',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(135px,1fr))',gap:'10px'}},
+   metric('Tracked accuracy',attempts?Math.round(correct/attempts*100)+'%':'—',attempts+' question attempts'),
+   metric('Practice sessions',history.length,'Across all courses'),
+   metric('Courses with activity',rows.filter(x=>x.sessions||x.attempts).length,'Recorded activity')),
+  h('section',{class:'stack'},h('h2',null,'Course performance'),
+   ...(rows.length?rows.map(x=>h('a',{class:'dashboard-card',href:'#/analytics/'+x.c.code},
+    h('span',{class:'dashboard-card-icon'},'📘'),h('span',{class:'dashboard-card-copy'},
+     h('b',null,x.c.label+' · '+x.c.title),h('small',null,(x.accuracy===null?'No tracked answers':x.accuracy+'% accuracy')+' · '+x.sessions+' sessions · '+x.attempts+' answers')),
+    h('span',{class:'dashboard-card-arrow'},'›'))):[h('div',{class:'panel'},h('p',{class:'muted small'},'No course activity yet. Complete a practice session to begin.'))])),
+  h('p',{class:'tiny muted'},'Open any course for topic mastery, weak areas and recent session trends.'))));
+}
 function courseAnalyticsView(code) {
   const c = courseBy(code);
   if (!c || !isAvail(c) || !canAccessCourse(code)) { go('#/courses'); return; }
@@ -4398,19 +4422,34 @@ function bonusView(code) {
       h('p',null,ch.story),
       h('div',{class:'stack'},...ch.ideas.map(x=>h('p',{class:'small',style:{margin:0}},'• '+x))),
       h('div',{class:'warnbox'},h('b',null,'How it connects'),h('p',{class:'small',style:{margin:'5px 0 0'}},ch.link))));
-    const timeline=B.timeline.map(([year,event,detail])=>h('div',{class:'cos-timeline-item'},
-      h('span',{class:'cos-timeline-year'},year),
-      h('div',{class:'stack',style:{gap:'3px'}},h('b',null,event),h('p',{class:'small muted',style:{margin:0}},detail))));
-    const pioneers=B.pioneers.map(([name,year,work])=>h('div',{class:'row between wrapr',style:{padding:'10px 0',borderBottom:'1px solid var(--line)',gap:'8px'}},
-      h('div',{class:'stack',style:{gap:'2px',flex:'1',minWidth:'0'}},h('b',null,name),h('small',{class:'muted'},work)),
-      h('span',{class:'chip gold'},year)));
+    const cosSections=unitsOf('COS').filter(u=>/^COS \\d{2}/.test(u.name));
+    const sectionFor=(event)=>{
+      const text=String(event).toLowerCase();
+      const prefix=/count|abacus|tally/.test(text)?'COS 01':/logic|boolean|turing|shannon|zuse/.test(text)?'COS 03':/generation|eniac|transistor|fortran|cobol|ibm|microprocessor|altair|macintosh/.test(text)?'COS 04':'COS 02';
+      return cosSections.find(u=>u.name.startsWith(prefix))||cosSections[0];
+    };
+    const practiseSection=u=>{if(u)startSession({course:'COS',mode:'practice',units:[u.name],n:Math.min(20,u.count),order:'shuffle',timerKind:'up',minutes:0});};
+    const timeline=B.timeline.map(([year,event,detail])=>{
+      const target=sectionFor(event);
+      return h('div',{class:'cos-timeline-item'},
+       h('span',{class:'cos-timeline-year'},year),
+       h('div',{class:'stack',style:{gap:'3px'}},h('b',null,event),h('p',{class:'small muted',style:{margin:0}},detail),
+        target?h('button',{class:'btn sm ghost',onclick:()=>practiseSection(target)},'Practise '+target.name):null));
+    });
+    const pioneers=B.pioneers.map(([name,year,work])=>{
+      const target=sectionFor(name+' '+work);
+      return h('div',{class:'row between wrapr',style:{padding:'10px 0',borderBottom:'1px solid var(--line)',gap:'8px'}},
+       h('div',{class:'stack',style:{gap:'2px',flex:'1',minWidth:'0'}},h('b',null,name),h('small',{class:'muted'},work),
+        target?h('button',{class:'btn sm ghost',onclick:()=>practiseSection(target)},'Practise linked section'):null),
+       h('span',{class:'chip gold'},year));
+    });
     mount(wrap(back('#/course/COS','COS 101'),h('div',{class:'stack-l'},
       h('header',{class:'stack'},h('span',{class:'chip gold'},'BONUS REVISION'),h('h1',null,B.title),h('p',{class:'muted'},B.intro)),
       h('section',{class:'panel stack'},h('h2',null,'The whole story in six chapters'),h('p',{class:'small muted'},'Read in order: each chapter explains the problem that led to the next breakthrough.'),...chapters),
       h('section',{class:'panel stack'},h('h2',null,'The timeline · in chronological order'),h('p',{class:'small muted'},'Follow the dates from early counting tools to modern computing. Dates for ancient devices are approximate.'),h('div',{class:'cos-timeline'},...timeline)),
       h('section',{class:'panel stack'},h('h2',null,'The pioneers · who and what'),...pioneers),
       h('section',{class:'panel stack'},h('h2',null,'Fast recall before the test'),...B.recall.map(x=>h('p',{class:'small',style:{margin:0}},'• '+x))),
-      h('section',{class:'panel stack'},h('h2',null,'Now test the story'),h('p',{class:'small muted'},'The COS question bank is now divided into six connected revision sections. Practise a section or take the full bank.'),
+      h('section',{class:'panel stack'},h('h2',null,'Now test the story'),h('p',{class:'small muted'},'The question bank is organised into twelve focused sections. Use the section links below; the six story chapters above show how the ideas connect.'),
         ...unitsOf('COS').map((u,i)=>h('button',{class:'btn block',onclick:()=>startSession({course:'COS',mode:'practice',units:[u.name],n:Math.min(20,u.count),order:'shuffle',timerKind:'up',minutes:0})},u.name+' · '+u.count+' questions')),
         h('button',{class:'btn gold block',onclick:()=>go('#/setup/COS/practice')},'Practise the full COS bank')),
       h('p',{class:'tiny muted'},'Revision aid based on the current COS 101 +++ question-bank themes. Confirm lecturer-specific emphasis against your course materials.')
