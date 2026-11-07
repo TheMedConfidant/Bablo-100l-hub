@@ -2368,9 +2368,15 @@ function courseAnalyticsView(code) {
   const stats = DB.stats || {};
   const topicRows = units.map(u => {
     const qs = questions.filter(q => q.u === u.name);
-    let answered = 0, correct = 0;
-    qs.forEach(q => { const st = stats[q.i] || [0,0]; answered += Number(st[0]) || 0; correct += Number(st[1]) || 0; });
-    return { name:u.name, total:qs.length, answered, correct, pct:answered ? Math.round(correct/answered*100) : null };
+    let answered = 0, correct = 0, covered = 0;
+    qs.forEach(q => {
+      const st = stats[q.i] || [0,0];
+      const attempts = Number(st[0]) || 0;
+      if (attempts > 0) covered++;
+      answered += attempts;
+      correct += Number(st[1]) || 0;
+    });
+    return { name:u.name, total:qs.length, covered, answered, correct, pct:answered ? Math.round(correct/answered*100) : null };
   });
   const answered = topicRows.reduce((n,x)=>n+x.answered,0);
   const correct = topicRows.reduce((n,x)=>n+x.correct,0);
@@ -2385,7 +2391,9 @@ function courseAnalyticsView(code) {
   const metric = (label,value,sub) => h('div',{class:'panel stack',style:{padding:'14px',gap:'4px',minWidth:'0'}},
     h('span',{class:'tiny muted'},label),h('b',{style:{fontSize:'1.55rem',fontVariantNumeric:'tabular-nums'}},String(value)),
     h('span',{class:'tiny muted'},sub||''));
-  const weak = topicRows.filter(x=>x.answered>=3 && x.pct<70).sort((a,b)=>a.pct-b.pct);
+  // Require evidence from at least three distinct questions; repeated attempts on one item
+  // should not make an entire topic look mastered or weak.
+  const weak = topicRows.filter(x=>x.covered>=3 && x.pct<70).sort((a,b)=>a.pct-b.pct);
   const recent = history.slice(-7);
   const maxPct = Math.max(100,...recent.map(x=>Number(x.pct)||0));
   const modeCounts = {};
@@ -2401,7 +2409,7 @@ function courseAnalyticsView(code) {
   const topicCard = t => h('div',{class:'panel stack',style:{padding:'12px',gap:'8px'}},
     h('div',{class:'row between wrapr'},h('b',null,t.name),h('span',{class:'chip '+(t.pct===null?'':t.pct<50?'bad':t.pct<70?'gold':'ok')},t.pct===null?'Not started':t.pct+'%')),
     h('div',{class:'bar'},h('i',{style:{width:(t.pct===null?0:t.pct)+'%'}})),
-    h('div',{class:'row between'},h('span',{class:'tiny muted'},t.answered+' answered · '+t.total+' questions'),h('button',{class:'btn sm primary',onclick:()=>startSession({course:code,mode:'practice',units:[t.name],n:Math.min(20,Math.max(1,t.total)),order:'shuffle',timerKind:'up',minutes:0})},'Practise')));
+    h('div',{class:'row between wrapr'},h('span',{class:'tiny muted'},t.covered+'/'+t.total+' distinct questions tried · '+t.answered+' attempts'),h('button',{class:'btn sm primary',onclick:()=>startSession({course:code,mode:'practice',units:[t.name],n:Math.min(20,Math.max(1,t.total)),order:'shuffle',timerKind:'up',minutes:0})},'Practise')));
   const modeText=Object.keys(modeCounts).length?Object.entries(modeCounts).map(([k,v])=>k+': '+v).join(' · '):'No sessions yet';
   const insights = [];
   if(!sessions) insights.push('Start with a short practice session. Your course dashboard will build from your attempts on this device.');
@@ -2425,10 +2433,10 @@ function courseAnalyticsView(code) {
       metric('Average session score',sessions?avgScore+'%':'—','Across '+sessions+' completed sessions'),
       metric('Study time',formatDuration(totalSeconds),'Recorded session time'),
       metric('Questions in bank',questions.length,units.length+' topics'),
-      metric('Topics to revisit',weak.length,'At least 3 answers and below 70%')),
+      metric('Topics to revisit',weak.length,'3+ distinct questions tried and below 70%')),
     h('section',{class:'stack'},h('h2',null,'Performance insights'),...insights.map(x=>h('div',{class:'warnbox'},x))),
     trend,
-    h('section',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,'Topic mastery'),h('span',{class:'tiny muted'},'Based on answered questions')),
+    h('section',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,'Topic mastery'),h('span',{class:'tiny muted'},'Accuracy across attempts · coverage counts distinct questions')),
       ...topicRows.map(topicCard)),
     h('section',{class:'panel stack'},h('h2',null,'Next step'),
       h('p',{class:'muted small'},weak.length?'Target your lowest-performing topic first, then retest it later.':'Keep practising across the course so the topic map becomes more reliable.'),
@@ -2754,10 +2762,10 @@ function weakTopics() {
   const agg = {};
   BANK.forEach(q => {
     const st = DB.stats && DB.stats[q.i]; if (!st || !st[0]) return;
-    const k = q.c + '|' + q.u; const a = agg[k] || (agg[k] = { course: q.c, unit: q.u, seen: 0, right: 0 });
-    a.seen += st[0]; a.right += st[1];
+    const k = q.c + '|' + q.u; const a = agg[k] || (agg[k] = { course: q.c, unit: q.u, seen: 0, right: 0, questionIds: new Set() });
+    a.seen += st[0]; a.right += st[1]; a.questionIds.add(q.i);
   });
-  return Object.values(agg).filter(a => a.seen >= 3).map(a => Object.assign(a, { pct: Math.round((a.right / a.seen) * 100) }))
+  return Object.values(agg).filter(a => a.seen >= 3 && a.questionIds.size >= 3).map(a => Object.assign(a, { distinct: a.questionIds.size, pct: Math.round((a.right / a.seen) * 100) }))
     .sort((a, b) => a.pct - b.pct || b.seen - a.seen);
 }
 function weakView() {
@@ -2771,7 +2779,7 @@ function weakView() {
     return h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
       h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, t.unit), h('span', { class: 'chip', style: { marginLeft: '8px' } }, c ? c.label : t.course)), h('span', { class: 'chip ' + (t.pct < 50 ? 'bad' : 'gold') }, t.pct + '%')),
       h('div', { class: 'bar', style: { '--c': c ? c.color : 'var(--brand)' } }, h('i', { style: { width: t.pct + '%' } })),
-      h('div', { class: 'row between' }, h('span', { class: 'tiny muted' }, plural(t.seen, 'answer') + ' so far'),
+      h('div', { class: 'row between' }, h('span', { class: 'tiny muted' }, plural(t.seen, 'attempt') + ' across ' + plural(t.distinct, 'question')),
         h('button', { class: 'btn sm primary', onclick: () => startSession({ course: t.course, mode: 'practice', units: [t.unit], n: 20, order: 'shuffle', timerKind: 'up', minutes: 0 }) }, 'Practise this topic')));
   };
   const body = [];
