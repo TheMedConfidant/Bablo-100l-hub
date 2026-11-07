@@ -11,7 +11,9 @@ async function decorate(res){
  try{let html=await res.text();if(!html.includes('id="app"')||html.includes('bablo-startup-guard'))return new Response(html,{status:res.status,headers:res.headers});
  const guard=`<script id="bablo-startup-guard">(function(){function show(t,d){if(document.getElementById('bablo-startup-error'))return;var x=document.createElement('div');x.id='bablo-startup-error';x.style.cssText='position:fixed;z-index:2147483647;inset:0;background:#0a1020;color:white;padding:26px 20px;font:16px/1.5 system-ui;overflow:auto';var h=document.createElement('h2');h.textContent=t;x.appendChild(h);var p=document.createElement('p');p.textContent=d;x.appendChild(p);var b=document.createElement('button');b.textContent='Try again';b.style.cssText='padding:12px 18px;border:0;border-radius:10px;background:#f0bd43;color:#111;font-weight:bold';b.onclick=function(){location.reload()};x.appendChild(b);document.body.appendChild(x)}window.addEventListener('error',function(e){show('Bablo Hub startup error',String(e.message||'Script error')+(e.filename?' • '+e.filename.split('/').pop():'')+(e.lineno?':'+e.lineno:''))});window.addEventListener('unhandledrejection',function(e){show('Bablo Hub startup error',String(e.reason&&e.reason.message||e.reason||'Promise failed'))});setTimeout(function(){var a=document.getElementById('app');if(a&&!a.children.length)show('Bablo Hub did not finish loading','The app failed to render. Tap Try again; if it repeats, send us this screen.')},25000)})();</script>`;
  html=html.replace(/<body([^>]*)>/i,m=>m+guard);
-const analyticsTag='<script src="./posthog-analytics.js" defer></script>';\n if(!html.includes('posthog-analytics.js'))html=html.replace(/<\\/body>/i,analyticsTag+'</body>');\n const runtimeTag='<script src="./offline-runtime.js" defer></script>';
+const analyticsTag='<script src="./posthog-analytics.js" defer></script>';
+ if(!html.includes('posthog-analytics.js'))html=html.replace(/<\/body>/i,analyticsTag+'</body>');
+ const runtimeTag='<script src="./offline-runtime.js" defer></script>';
  if(!html.includes('offline-runtime.js'))html=html.replace(/<\/body>/i,runtimeTag+'</body>');
  const h=new Headers(res.headers);h.delete('content-length');return new Response(html,{status:res.status,statusText:res.statusText,headers:h});
  }catch(e){return res}
@@ -20,7 +22,8 @@ self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.o
 self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
 self.addEventListener('fetch',e=>{
  const q=e.request,u=new URL(q.url);
- if(q.method!=='GET'||(u.origin!==self.location.origin&&!isChessExternal(u)))return;\n if(u.origin===self.location.origin&&u.pathname==='/api/posthog-config')return;
+ if(q.method!=='GET'||(u.origin!==self.location.origin&&!isChessExternal(u)))return;
+ if(u.origin===self.location.origin&&u.pathname==='/api/posthog-config')return;
  if(u.origin!==self.location.origin){e.respondWith((async()=>{const cached=await matchAny(q);if(cached)return cached;try{const r=await timedFetch(q,12000);if(r.ok){const c=await caches.open(VERSION);await c.put(q,r.clone())}return r}catch(_){return new Response('Chess rules module is not saved on this device yet. Connect once and open Bablo Chess to prepare offline play.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})());return;}
  const nav=q.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname==='/';
  if(nav){
