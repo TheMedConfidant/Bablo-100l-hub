@@ -2218,12 +2218,17 @@ function sharedExamSchedulePanel() {
     h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')));
   panel.append(h('p',{class:'small muted'},'Loading shared schedule…'));
   fetchPublicExamSchedule().then(rows => {
-    const items = rows.slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
+    const now=Date.now(),grace=12*60*60*1000;
+    const active=rows.filter(row=>{
+      if(!row.scheduled_date)return row.date_status==='tentative';
+      const starts=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
+      return Number.isFinite(starts)&&starts+grace>now;
+    }).sort((a,b)=>(a.scheduled_date||'9999-12-31').localeCompare(b.scheduled_date||'9999-12-31'));
     panel.replaceChildren(
       h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')),
-      ...items.map(row => h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
+      ...(active.length?active.map(row=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
         h('span',null,h('b',null,row.course_code+' · '+row.assessment_type),h('small',{class:'muted'},row.note||'')),
-        h('span',{class:'chip'},examScheduleDate(row))))
+        h('span',{class:'chip'},examScheduleDate(row)))):[h('p',{class:'small muted'},'No upcoming tests or exams are currently scheduled.')])
     );
   });
   return panel;
@@ -4131,36 +4136,53 @@ function holdPage(title, withPoll) {
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function notificationsView() {
   const box=h('div',{class:'stack-l notifications-page'});
-  const now=Date.now(),today=new Date();today.setHours(0,0,0,0);
+  const now=Date.now(),DAY=86400000;
+  const QUIZ_TTL=30*DAY,EVENT_GRACE=60*60*1000,EXAM_GRACE=12*60*60*1000;
   const notices=[];
-  const add=(id,type,title,body,href,when,icon)=>{
-    notices.push({id,type,title,body,href,when:when||now,icon:icon||'•'});
+  const read=DB.readNotices||{};
+  const dismissed=DB.dismissedNotices||{};
+  DB.readNotices=read;DB.dismissedNotices=dismissed;
+  const add=(id,type,title,body,href,when,icon,expiresAt)=>{
+    if(dismissed[id]||(expiresAt&&expiresAt<=now))return;
+    notices.push({id,type,title,body,href,when:when||now,icon:icon||'•',expiresAt:expiresAt||null});
   };
-  (DB.history||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8).forEach(e=>{
+  (DB.history||[]).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)).forEach(e=>{
+    const ts=Number(e.ts)||0;
+    if(!ts||now-ts>QUIZ_TTL)return;
     const pct=Number(e.pct||0);
-    add('quiz-'+e.ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
+    add('quiz-'+ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
       (e.correct??'—')+' correct out of '+(e.n??'—')+' · '+(Number.isFinite(pct)?Math.round(pct)+'%':'Score recorded'),
-      '#/board',e.ts,'✓');
+      '#/board',ts,'✓',ts+QUIZ_TTL);
   });
   const missed=DB.missed||{};
   const missedIds=Object.keys(missed).filter(k=>missed[k]);
   const missedQs=missedIds.map(id=>(window.__BANK__||[]).find(q=>q.i===id)).filter(Boolean);
   const weakCourses=[...new Set(missedQs.map(q=>q.c).filter(Boolean))];
-  if(missedIds.length)add('weak-topics','Study focus','Topics to revisit',
-    missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.','#/weak',now,'↗');
+  if(missedIds.length)add('weak-topics-'+missedIds.length,'Study focus','Topics to revisit',
+    missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
+    '#/weak',now,'↗',now+14*DAY);
   const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
     const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
-    return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-3600000;
+    return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-EVENT_GRACE;
   }).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,8);
   events.forEach(ev=>{
     const dt=new Date(ev.date+'T'+(ev.time||'00:00'));
-    const diff=dt.getTime()-now;
-    const timing=diff<3600000?'Starting soon':diff<86400000?'Today':diff<172800000?'Tomorrow':dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
-    add('event-'+ev.id,'Schedule',ev.title,timing+' · '+(ev.time||'Time not set')+(ev.note?' · '+ev.note:''),'#/plan',dt.getTime(),'◷');
+    const when=dt.getTime(),diff=when-now;
+    const timing=diff<0?'Just happened':diff<3600000?'Starting soon':diff<86400000?'Today':diff<172800000?'Tomorrow':dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
+    add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'),'Schedule',ev.title,
+      timing+' · '+(ev.time||'Time not set')+(ev.note?' · '+ev.note:''),'#/plan',when,'◷',when+EVENT_GRACE);
   });
-  const read=DB.readNotices||{};
   const unread=notices.filter(n=>!read[n.id]).length;
-  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{DB.readNotices=DB.readNotices||{};notices.forEach(n=>DB.readNotices[n.id]=true);save();notificationsView();}},'Mark all as read');
+  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{
+    DB.readNotices=DB.readNotices||{};
+    notices.forEach(n=>DB.readNotices[n.id]=Date.now());
+    save();notificationsView();
+  }},'Mark all as read');
+  const clearRead=h('button',{class:'btn sm ghost',onclick:()=>{
+    DB.dismissedNotices=DB.dismissedNotices||{};
+    notices.filter(n=>read[n.id]).forEach(n=>DB.dismissedNotices[n.id]=Date.now());
+    save();notificationsView();
+  }},'Clear read');
   const groups=['All','Schedule','Academic progress','Study focus'];
   let selected='All';
   const list=h('div',{class:'stack',id:'notice-list'});
@@ -4168,29 +4190,61 @@ function notificationsView() {
     const filtered=notices.filter(n=>selected==='All'||n.type===selected);
     list.replaceChildren(...(filtered.length?filtered.map(n=>{
       const isRead=!!read[n.id];
-      return h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':'')},
+      const card=h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':''),'data-notice-id':n.id},
         h('span',{class:'notice-icon'},n.icon),
-        h('span',{class:'notice-copy'},h('span',{class:'notice-meta'},n.type+' · '+new Date(n.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),h('b',null,n.title),h('span',{class:'small muted'},n.body)),
+        h('span',{class:'notice-copy'},
+          h('span',{class:'notice-meta'},n.type+' · '+new Date(n.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),
+          h('b',null,n.title),h('span',{class:'small muted'},n.body)),
         h('span',{class:'notice-dot','aria-label':isRead?'Read':'Unread'},isRead?'':'●'));
-    }):[h('section',{class:'panel stack'},h('b',null,'You’re all caught up'),h('p',{class:'small muted'},selected==='All'?'New quiz results, schedule reminders and study prompts will appear here as they happen.':'No '+selected.toLowerCase()+' notifications right now.'))]));
+      const dismiss=h('button',{class:'notice-dismiss',type:'button','aria-label':'Dismiss notification',onclick:()=>{
+        DB.dismissedNotices=DB.dismissedNotices||{};
+        DB.dismissedNotices[n.id]=Date.now();
+        save();
+        const index=notices.findIndex(x=>x.id===n.id);
+        if(index>=0)notices.splice(index,1);
+        render();
+      }},'×');
+      return h('div',{class:'notice-item'},card,dismiss);
+    }):[h('section',{class:'panel stack'},h('b',null,'You’re all caught up'),h('p',{class:'small muted'},selected==='All'?'New quiz results, upcoming events and study prompts will appear here.':'No '+selected.toLowerCase()+' notifications right now.'))]));
   };
-  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();}},g)));
-  notices.forEach(n=>{if(!read[n.id]){ /* keep unread until opened or marked read */ }});
-  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),
-    sharedExamSchedulePanel(), filters, list
-  );
+  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{
+    selected=g;
+    filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));
+    render();
+  }},g)));
+  const activeIds=new Set(notices.map(n=>n.id));
+  Object.keys(read).forEach(id=>{if(!activeIds.has(id))delete read[id];});
+  Object.keys(dismissed).forEach(id=>{if(!activeIds.has(id)&&Number(dismissed[id])&&now-Number(dismissed[id])>90*DAY)delete dismissed[id];});
+  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),
+    h('div',{class:'row wrapr'},markAll,clearRead)),
+    sharedExamSchedulePanel(),filters,list);
   render();
-  fetchPublicExamSchedule().then(rows => {
-    rows.forEach(row => {
-      const dateLabel = examScheduleDate(row);
-      const when = row.scheduled_date ? new Date(row.scheduled_date + 'T09:00:00+01:00').getTime() : now;
-      add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
+  fetchPublicExamSchedule().then(rows=>{
+    rows.forEach(row=>{
+      const hasDate=!!row.scheduled_date;
+      const when=hasDate?new Date(row.scheduled_date+'T09:00:00+01:00').getTime():now;
+      const expiresAt=hasDate?when+EXAM_GRACE:now+7*DAY;
+      const id='shared-exam-'+row.id+'-'+(row.scheduled_date||'tentative');
+      add(id,'Schedule',row.course_code+' · '+row.assessment_type,
+        (hasDate?examScheduleDate(row):'Date to be confirmed')+' · '+(row.note||'Shared academic schedule'),
+        '#/plan',when,'📅',expiresAt);
     });
     notices.sort((a,b)=>(a.when||0)-(b.when||0));
     render();
   });
   mount(wrap(back('#/','Home'),box));
-  list.addEventListener('click',e=>{const card=e.target.closest('.notice-card');if(!card)return;const item=notices.find(n=>n.href===card.getAttribute('href')&& !read[n.id]);if(item){DB.readNotices=DB.readNotices||{};DB.readNotices[item.id]=true;save();}});
+  list.addEventListener('click',e=>{
+    const card=e.target.closest('.notice-card');
+    if(!card)return;
+    const id=card.getAttribute('data-notice-id');
+    if(!id)return;
+    DB.readNotices=DB.readNotices||{};
+    DB.readNotices[id]=Date.now();
+    save();
+  });
+  if('serviceWorker' in navigator)navigator.serviceWorker.ready.then(reg=>{
+    if(reg.active)reg.active.postMessage({type:'BABLO_CLEAN_NOTIFICATIONS'});
+  }).catch(()=>{});
 }
 function aboutView() {
   const box=h('div',{class:'stack-l'});
@@ -4771,4 +4825,10 @@ setTimeout(liveNotice, 1200);
  .dashboard-card-copy small{font-size:10px}
 }
 @media(min-width:760px){.dashboard-module-section .dashboard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+<style>
+.notice-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:stretch}
+.notice-dismiss{align-self:center;min-width:38px;min-height:38px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--muted);font-size:21px;line-height:1;cursor:pointer}
+.notice-dismiss:focus-visible{outline:3px solid var(--focus,#60A5FA);outline-offset:2px}
+@media(max-width:360px){.notice-item{gap:5px}.notice-dismiss{min-width:34px}}
 </style>
