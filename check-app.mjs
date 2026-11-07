@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
+import vm from "node:vm";
 
 let failed = false;
 const pass = (s) => console.log(`PASS: ${s}`);
@@ -47,6 +48,42 @@ if (html) {
   else fail("Calendar navigation active state regression detected");
   if (/function localDateKey\(/.test(html)) pass("Calendar uses a local-date helper");
   else fail("Calendar local-date helper missing");
+}
+if (html) {
+  function extractFunction(name) {
+    const start = html.indexOf(`function ${name}(`);
+    assert.notEqual(start, -1, `Missing function: ${name}`);
+    const open = html.indexOf("{", start);
+    let depth = 0, quote = "", escaped = false;
+    for (let i = open; i < html.length; i++) {
+      const ch = html[i];
+      if (quote) {
+        if (escaped) escaped = false;
+        else if (ch === "\\\\") escaped = true;
+        else if (ch === quote) quote = "";
+        continue;
+      }
+      if (ch === "'" || ch === '"' || ch === "`") { quote = ch; continue; }
+      if (ch === "{") depth++;
+      if (ch === "}" && --depth === 0) return html.slice(start, i + 1);
+    }
+    throw new Error(`Unclosed function: ${name}`);
+  }
+  try {
+    const context = { DB: { statsLegacy: { legacyQ: [2, 1] }, statsByDevice: {
+      phoneA: { sharedQ: [3, 2], phoneQ: [1, 1] },
+      phoneB: { sharedQ: [2, 1], tabletQ: [4, 3] }
+    } } };
+    vm.createContext(context);
+    vm.runInContext(extractFunction("mergeCounterMaps") + "\\n" + extractFunction("rebuildAggregateStats"), context);
+    const merged = context.mergeCounterMaps({ q: [2, 1] }, { q: [3, 2], r: [1, 0] });
+    assert.deepEqual(JSON.parse(JSON.stringify(merged)), { q: [3, 2], r: [1, 0] });
+    context.rebuildAggregateStats();
+    assert.deepEqual(JSON.parse(JSON.stringify(context.DB.stats)), {
+      legacyQ: [2, 1], sharedQ: [5, 3], phoneQ: [1, 1], tabletQ: [4, 3]
+    });
+    pass("Cross-device counters merge without discarding other devices or legacy progress");
+  } catch (e) { fail(`Cross-device analytics test: ${e.message}`); }
 }
 for (const p of ["robots.txt", "sitemap.xml"]) {
   try {
