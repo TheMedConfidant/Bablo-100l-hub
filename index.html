@@ -2415,7 +2415,7 @@ function homeView() {
  ];
  const progress=[
   dashboardCard('Weak topics',weak+' topics to revisit','🎯','#/weak','#D6A82B'),
-  dashboardCard('Course analytics','Review accuracy and progress by course','📊','#/analytics','#53B6A5'),
+  dashboardCard('Course analytics','Compare progress across every course','📊','#/analytics','#53B6A5'),
   dashboardCard('CGPA tracker','Calculate and monitor your grades','📈','#/gpa','#53B6A5')
  ];
  const community=[
@@ -2514,7 +2514,7 @@ function courseView(code) {
 }
 function analyticsHubView() {
  const history=DB.history||[],stats=DB.stats||{};
- const courses=homeCourses().filter(c=>isAvail(c)&&canAccessCourse(c.code));
+ const courses=COURSES.slice(); // Analytics is a global overview: include every catalog course, not only this student's programme.
  const rows=courses.map(c=>{
   const qs=BANK.filter(q=>q.c===c.code);let attempts=0,correct=0;
   qs.forEach(q=>{const v=stats[q.i]||[0,0];attempts+=Number(v[0])||0;correct+=Number(v[1])||0;});
@@ -2546,7 +2546,7 @@ function analyticsHubView() {
 }
 function courseAnalyticsView(code) {
   const c = courseBy(code);
-  if (!c || !isAvail(c) || !canAccessCourse(code)) { go('#/courses'); return; }
+  if (!c) { go('#/courses'); return; } // Analytics is read-only and visible across the full course catalogue.
   const questions = BANK.filter(q => q.c === code);
   const units = unitsOf(code);
   const history = (DB.history || []).filter(x => x.course === code).slice().sort((a,b) => a.ts-b.ts);
@@ -2586,7 +2586,7 @@ function courseAnalyticsView(code) {
   const topicCard = t => h('div',{class:'panel stack',style:{padding:'12px',gap:'8px'}},
     h('div',{class:'row between wrapr'},h('b',null,t.name),h('span',{class:'chip '+(t.pct===null?'':t.pct<50?'bad':t.pct<70?'gold':'ok')},t.pct===null?'Not started':t.pct+'%')),
     h('div',{class:'bar'},h('i',{style:{width:(t.pct===null?0:t.pct)+'%'}})),
-    h('div',{class:'row between'},h('span',{class:'tiny muted'},t.answered+' answered · '+t.total+' questions'),h('button',{class:'btn sm primary',onclick:()=>startSession({course:code,mode:'practice',units:[t.name],n:Math.min(20,Math.max(1,t.total)),order:'shuffle',timerKind:'up',minutes:0})},'Practise')));
+    h('div',{class:'row between'},h('span',{class:'tiny muted'},t.answered+' answered · '+t.total+' questions'),canAccessCourse(code)?h('button',{class:'btn sm primary',onclick:()=>startSession({course:code,mode:'practice',units:[t.name],n:Math.min(20,Math.max(1,t.total)),order:'shuffle',timerKind:'up',minutes:0})},'Practise'):h('span',{class:'tiny muted'},'Analytics preview')));
   const modeText=Object.keys(modeCounts).length?Object.entries(modeCounts).map(([k,v])=>k+': '+v).join(' · '):'No sessions yet';
   const insights = [];
   if(!sessions) insights.push('Start with a short practice session. Your course dashboard will build from your attempts on this device.');
@@ -2617,7 +2617,7 @@ function courseAnalyticsView(code) {
       ...topicRows.map(topicCard)),
     h('section',{class:'panel stack'},h('h2',null,'Next step'),
       h('p',{class:'muted small'},weak.length?'Target your lowest-performing topic first, then retest it later.':'Keep practising across the course so the topic map becomes more reliable.'),
-      h('button',{class:'btn primary block',onclick:()=>weak.length?startSession({course:code,mode:'practice',units:[weak[0].name],n:Math.min(20,Math.max(1,questions.filter(q=>q.u===weak[0].name).length)),order:'shuffle',timerKind:'up',minutes:0}):go('#/setup/'+code+'/practice')},weak.length?'Practise weakest topic':'Start course practice')))));
+      canAccessCourse(code)?h('button',{class:'btn primary block',onclick:()=>weak.length?startSession({course:code,mode:'practice',units:[weak[0].name],n:Math.min(20,Math.max(1,questions.filter(q=>q.u===weak[0].name).length)),order:'shuffle',timerKind:'up',minutes:0}):go('#/setup/'+code+'/practice')},weak.length?'Practise weakest topic':'Start course practice'):h('p',{class:'tiny muted'},'This is a read-only analytics view. Practice access follows your programme and course availability.')))));
 }
 
 function startWeak(code) {
