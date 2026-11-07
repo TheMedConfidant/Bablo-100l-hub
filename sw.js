@@ -1,8 +1,9 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v32-posthog-analytics';
+const VERSION='bablo-offline-v33-notification-expiry';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./offline-runtime.js','./posthog-analytics.js','./bablo-arcade.html','./arcade/','./arcade/index.html','./discover.html','./agr-101-food-security.html','./gst103-study-hub.html','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./chm-practicals-native.js','./challenge-arena.js','./chess/','./chess/index.html','./chess/stockfish-worker.js','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html','./chess-lab.html','./chess-lab/','./practicals/exp1-page.jpg','./practicals/exp1-readings.jpg','./practicals/exp2-page.jpg','./practicals/exp3-page.jpg','./practicals/exp4-page.jpg','./practicals/exp4-readings.jpg','./practicals/exp5-page.jpg','./practicals/exp5-procedure.jpg','./gst103-study-hub.html','./practicals/chm107-practical.html','./chm-practicals-native.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js'];
 const CHESS_EXTERNAL=['https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm','https://esm.sh/chess.js@1.4.0','https://cdn.jsdelivr.net/npm/stockfish@19.0.1/stockfish-19-lite-single.js','https://cdn.jsdelivr.net/npm/stockfish@19.0.1/stockfish-19-lite-single.wasm'];
 function isChessExternal(url){return CHESS_EXTERNAL.includes(url.href)||(url.origin==='https://cdn.jsdelivr.net'&&url.pathname.startsWith('/npm/stockfish@19.0.1/'))}
+async function cleanupExpiredNotifications(){try{if(!self.registration.getNotifications)return;const items=await self.registration.getNotifications();items.forEach(n=>{const expires=Number(n.data&&n.data.expiresAt);if(expires&&expires<=Date.now())n.close()})}catch(_){}}
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
 async function save(req,res){if(res&&res.ok&&res.type!=='opaque'){const c=await caches.open(VERSION);await c.put(req,res.clone());}}
@@ -19,7 +20,7 @@ const analyticsTag='<script src="./posthog-analytics.js" defer></script>';
  }catch(e){return res}
 }
 self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(VERSION);for(const p of SHELL){try{const isHtml=p==='./'||p==='index.html'||p==='./index.html';const old=isHtml?null:await caches.match(p,{ignoreSearch:true});if(old&&!await c.match(p))await c.put(p,old)}catch(_){}}await Promise.all(SHELL.map(async p=>{try{const isHtml=p==='./'||p==='./index.html'||p==='index.html';const r=await timedFetch(p,isHtml?18000:7000);if(r.ok){const v=isHtml?await decorate(r):r;await c.put(p,v)}}catch(_){}}));await Promise.all(CHESS_EXTERNAL.map(async p=>{try{const r=await timedFetch(p,15000);if(r.ok||r.type==='opaque')await c.put(p,r.clone())}catch(_){}}));await self.skipWaiting()})()));
-self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim();await cleanupExpiredNotifications()})()));
 self.addEventListener('fetch',e=>{
  const q=e.request,u=new URL(q.url);
  if(q.method!=='GET'||(u.origin!==self.location.origin&&!isChessExternal(u)))return;
@@ -53,6 +54,7 @@ self.addEventListener('fetch',e=>{
 });
 self.addEventListener('message',e=>{
  const d=e.data||{},source=e.source,reply=(e.ports&&e.ports[0])||source;
+ if(d.type==='BABLO_CLEAN_NOTIFICATIONS'){e.waitUntil(cleanupExpiredNotifications());return;}
  if(d.type==='BABLO_PRECACHE'){
   e.waitUntil((async()=>{const c=await caches.open(VERSION);let saved=0;const pack=[...SHELL,...CHESS_EXTERNAL];for(const p of pack){try{const old=await c.match(p,{ignoreSearch:true});if(old){saved++;continue}const r=await timedFetch(p,15000);if(r.ok||r.type==='opaque'){await c.put(p,p==='./'||p==='./index.html'?await decorate(r):r);saved++}}catch(_){}}if(reply)reply.postMessage({type:'BABLO_PRECACHE_DONE',saved,total:pack.length})})());
   return;
@@ -65,5 +67,5 @@ self.addEventListener('message',e=>{
   e.waitUntil((async()=>{const id=String(d.courseId||'').replace(/[^a-z0-9_-]/gi,'-').slice(0,60);const deleted=await caches.delete('bablo-course-'+id);if(reply)reply.postMessage({type:'BABLO_DELETE_DONE',courseId:id,deleted})})());
  }
 });
-self.addEventListener('push',e=>{let d={title:'Bablo Hub',body:'',url:'./'};try{d=Object.assign(d,e.data.json())}catch(_){}e.waitUntil(self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'./'}}))});
+self.addEventListener('push',e=>{let d={title:'Bablo Hub',body:'',url:'./'};try{d=Object.assign(d,e.data.json())}catch(_){}const expiresAt=Number(d.expiresAt)||Date.now()+86400000;if(expiresAt<=Date.now()){e.waitUntil(cleanupExpiredNotifications());return}e.waitUntil((async()=>{await cleanupExpiredNotifications();await self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png',tag:d.tag||(d.id?'bablo-'+d.id:undefined),timestamp:Number(d.timestamp)||Date.now(),data:{url:d.url||'./',expiresAt,id:d.id||null}})})())});
 self.addEventListener('notificationclick',e=>{e.notification.close();const t=e.notification.data&&e.notification.data.url||'./';e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(a=>{for(let i=0;i<a.length;i++)if('focus'in a[i])return a[i].focus();return clients.openWindow(t)}))});
