@@ -26,6 +26,12 @@
   precache(){return new Promise(resolve=>{if(!navigator.serviceWorker||!navigator.serviceWorker.controller){resolve(false);return}const ch=new MessageChannel();const timer=setTimeout(()=>resolve(false),15000);ch.port1.onmessage=e=>{clearTimeout(timer);resolve(e.data)};navigator.serviceWorker.controller.postMessage({type:'BABLO_PRECACHE'},[ch.port2])})}
  };
  window.BabloOffline=api;
+ function cleanupNotifications(){if(!('serviceWorker'in navigator))return;const controller=navigator.serviceWorker.controller;if(controller)controller.postMessage({type:'BABLO_CLEAN_NOTIFICATIONS'});}
+ window.addEventListener('focus',cleanupNotifications);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')cleanupNotifications()});
+ window.addEventListener('pageshow',cleanupNotifications);
+ setInterval(()=>{if(document.visibilityState==='visible')cleanupNotifications()},5*60*1000);
+ navigator.serviceWorker&&navigator.serviceWorker.addEventListener('controllerchange',cleanupNotifications);
  const badge=document.createElement('div');badge.id='bablo-network-state';badge.setAttribute('role','status');badge.setAttribute('aria-live','polite');badge.style.cssText='position:fixed;z-index:9997;top:calc(env(safe-area-inset-top,0px) + 8px);right:10px;padding:6px 10px;border-radius:999px;background:#17243b;color:#fff;border:1px solid rgba(240,189,67,.55);font:600 11px/1.2 system-ui;letter-spacing:.2px;box-shadow:0 3px 12px #0003;pointer-events:none;opacity:0;transition:opacity .2s';
  function connection(){const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;const weak=!!(c&&((c.effectiveType&&/2g|slow-2g/.test(c.effectiveType))||(c.rtt&&c.rtt>1800)||(c.downlink&&c.downlink<0.35)));if(!navigator.onLine){badge.textContent='Offline · saved content';badge.style.opacity='1'}else if(weak){badge.textContent='Weak network · data saved locally';badge.style.opacity='1'}else{badge.style.opacity='0'}window.dispatchEvent(new CustomEvent('bablo:connection',{detail:{online:navigator.onLine,weak}}))}
  window.addEventListener('online',()=>{connection();api.flushQueue().then(r=>window.dispatchEvent(new CustomEvent('bablo:sync-complete',{detail:r}))).catch(()=>{})});
