@@ -71,6 +71,9 @@ begin
     end if;
   end if;
 
+  select last_seen_at into v_host_seen from public.hub_challenge_players
+    where match_id = p_match_id and player_uid = v_match.created_by;
+
   select count(*) into v_player_count from public.hub_challenge_players
     where match_id = p_match_id and status in ('joined','ready');
   select count(*) into v_ready_count from public.hub_challenge_players
