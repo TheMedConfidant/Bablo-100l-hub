@@ -701,6 +701,34 @@ button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
  .dashboard-card:hover,.catalogue-course:hover,.tile:hover{transform:none!important}
 }
 
+
+/* Quiz and practice screen readability pass. */
+.runbar{color:var(--ink)}
+.runbar .row{min-width:0;gap:8px}
+.timer{color:var(--ink);white-space:nowrap}
+.qcard{min-width:0;overflow-wrap:anywhere}
+.qtext{color:var(--ink);line-height:1.62;overflow-wrap:anywhere;word-break:normal;font-size:clamp(1rem,2.8vw,1.15rem)}
+.choice{color:var(--ink);line-height:1.5;overflow-wrap:anywhere;word-break:normal;min-width:0;cursor:pointer;transition:border-color .14s ease,background-color .14s ease}
+.choice:focus-visible,.map button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.choice[aria-pressed=true]{color:var(--ink)}
+.choice.right,.choice.wrong{color:var(--ink)}
+.choice .k{flex:0 0 28px}
+.fb{color:var(--ink);line-height:1.55;overflow-wrap:anywhere}
+.dock{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.dock .btn{min-height:44px}
+@media(max-width:520px){
+ .qcard{padding:13px;border-radius:15px}
+ .qtext{margin:5px 0 13px;font-size:1rem;line-height:1.58}
+ .choice{padding:11px 10px;gap:9px;margin-top:8px}
+ .choice .k{width:27px;height:27px;flex-basis:27px}
+ .runbar .row{gap:6px}
+ .runbar .btn.sm{padding:7px 9px}
+ .dock{padding-left:12px;padding-right:12px}
+ .dock .in{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .choice,.prog>i{transition:none!important}
+}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
