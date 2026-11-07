@@ -625,6 +625,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 /* Bablo Hub full-app dashboard refresh: lightweight glass-inspired surfaces. */
 .dashboard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
 .dashboard-top .brand{min-width:0}.dashboard-top-actions{display:flex;align-items:center;gap:8px}
+.dashboard-notifications-link{position:relative}.notification-red-dot{position:absolute;right:5px;top:5px;width:10px;height:10px;border-radius:50%;background:#e53935;border:2px solid var(--surface);box-shadow:0 0 0 1px rgba(229,57,53,.18)}.profile-identity-card{padding:14px;border:1px solid color-mix(in srgb,var(--gold) 48%,var(--line));border-radius:15px;background:color-mix(in srgb,var(--gold) 9%,var(--surface));display:grid;gap:7px}.profile-id-value{font-size:20px;letter-spacing:.7px;overflow-wrap:anywhere}.profile-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.profile-detail-grid>div{display:grid;gap:4px;min-width:0}.profile-detail-grid b{overflow-wrap:anywhere}
 .dashboard-icon-btn,.dashboard-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-weight:800}
 .dashboard-avatar{border-color:var(--gold);background:var(--gold-soft);color:#17120a;border-radius:50%}
 .dashboard-welcome{border:1px solid rgba(212,175,55,.55);border-radius:22px;padding:22px;margin:10px 0 24px;background:linear-gradient(120deg,rgba(212,175,55,.16),var(--surface) 68%);box-shadow:0 6px 20px rgba(0,0,0,.08)}
@@ -2426,7 +2427,7 @@ function homeView() {
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('button',{class:'dashboard-icon-btn',type:'button',onclick:openHubMenu,'aria-label':'Open navigation menu'},'☰'),
-   h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
+   h('a',{class:'dashboard-icon-btn dashboard-notifications-link',href:'#/notifications','aria-label':(notificationUnreadCount() ? 'Notifications, '+notificationUnreadCount()+' unread' : 'Notifications')},'♧',notificationUnreadCount()?h('span',{class:'notification-red-dot','aria-hidden':'true'}):null),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Your learning, practice and progress in one place.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
@@ -2913,6 +2914,17 @@ function boardView() {
 }
 
 /* ---------- me ---------- */
+function notificationUnreadCount() {
+  const read=DB.readNotices||{}, now=Date.now(), ids=[];
+  (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts&&now-ts<=30*86400000)ids.push('quiz-'+ts);});
+  const missed=DB.missed||{}, missedIds=Object.keys(missed).filter(k=>missed[k]);
+  if(missedIds.length)ids.push('weak-topics-'+missedIds.length);
+  (typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{
+    const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
+    if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-3600000)ids.push('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));
+  });
+  return ids.filter(id=>!read[id]&&!(DB.dismissedNotices||{})[id]).length;
+}
 function meView() {
   const p = DB.profile || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
@@ -2921,6 +2933,26 @@ function meView() {
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
     h('p', { class: 'muted small' }, 'Your student identity and leaderboard details.'),
+    h('section', { class: 'panel stack' },
+      h('div', { class: 'profile-identity-card' },
+        h('span', { class: 'tiny muted' }, 'YOUR BABLO ID'),
+        h('div', { class: 'row between wrapr' },
+          h('b', { class: 'profile-id-value' }, p.uid || (DB.account && DB.account.uid) || 'Not available'),
+          (p.uid || (DB.account && DB.account.uid)) ? h('button', { class: 'btn sm ghost', type: 'button', onclick: () => {
+            const id = p.uid || DB.account.uid;
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(id).then(()=>toast('Bablo ID copied.')).catch(()=>toast('Bablo ID: '+id));
+            else toast('Bablo ID: '+id);
+          } }, 'Copy ID') : null
+        ),
+        h('span', { class: 'tiny muted' }, 'Keep this ID safe. You use it to sign in.')
+      ),
+      h('div', { class: 'profile-detail-grid' },
+        h('div', null, h('small', { class: 'muted' }, 'Username'), h('b', null, p.username ? '@'+p.username : 'Not set')),
+        h('div', null, h('small', { class: 'muted' }, 'Programme'), h('b', null, p.programme || 'Not set')),
+        h('div', null, h('small', { class: 'muted' }, 'Level'), h('b', null, p.level || '100L')),
+        h('div', null, h('small', { class: 'muted' }, 'Account'), h('b', null, signedIn() ? 'Registered account' : 'Device profile'))
+      )
+    ),
     h('section', { class: 'panel stack' },
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
