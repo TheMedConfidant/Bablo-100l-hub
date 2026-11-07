@@ -2375,7 +2375,7 @@ function sharedExamSchedulePanel() {
 function unreadNotificationCount(){
  const now=Date.now(),DAY=86400000,read=DB.readNotices||{},dismissed=DB.dismissedNotices||{};let count=0;
  const add=id=>{if(!read[id]&&!dismissed[id])count++;};
- (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts&&now-ts<=30*DAY)add('quiz-'+ts);});
+ (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=30*DAY)add('quiz-'+ts);});
  const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
  const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
  return count;
@@ -4401,7 +4401,7 @@ function notificationsView() {
   };
   (DB.history||[]).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)).forEach(e=>{
     const ts=Number(e.ts)||0;
-    if(!ts||now-ts>QUIZ_TTL)return;
+    if(!ts||ts>now||now-ts>QUIZ_TTL)return;
     const pct=Number(e.pct||0);
     add('quiz-'+ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
       (e.correct??'—')+' correct out of '+(e.n??'—')+' · '+(Number.isFinite(pct)?Math.round(pct)+'%':'Score recorded'),
