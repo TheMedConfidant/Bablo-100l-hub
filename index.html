@@ -2457,11 +2457,22 @@ function timeHubView(){
  )));
 }
 function arcadeHubView(){
- mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Chess'),h('p',{class:'muted'},'Play or improve your chess skills.')),
- h('section',{class:'dashboard-grid'},
- dashboardCard('Bablo Chess','Play Dr ECG or challenge another player','♟','#/chess'),
- dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics')
- )));
+ const hero=h('section',{class:'panel stack',style:{padding:'clamp(18px,4vw,30px)',border:'1px solid var(--line)',background:'linear-gradient(135deg,rgba(212,175,55,.13),transparent 58%),var(--panel)'}},
+  h('span',{class:'chip gold'},'BABLO HUB · ARCADE'),
+  h('h1',{style:{fontSize:'clamp(1.8rem,5vw,2.8rem)',margin:'4px 0'}},'Play. Think. Improve.'),
+  h('p',{class:'muted',style:{maxWidth:'42rem',margin:0}},'A home for skill-based games and focused brain training. Open a game or sharpen your strategy before you play.'),
+  h('div',{class:'row',style:{flexWrap:'wrap'}},h('a',{class:'btn gold',href:'#/chess'},'♟ Play Bablo Chess'),h('a',{class:'btn ghost',href:'#/chess-learn/basics'},'Explore chess lessons'))
+ );
+ const chess=h('section',{class:'panel stack',style:{padding:'18px'}},
+  h('div',{class:'row',style:{alignItems:'center',justifyContent:'space-between',gap:'12px'}},
+   h('span',{class:'chip brand'},'FEATURED GAME'),h('span',{class:'tiny muted'},'Strategy · Chess')),
+  h('div',{class:'row',style:{alignItems:'center',gap:'16px'}},
+   h('div',{style:{fontSize:'clamp(2.5rem,9vw,4rem)',lineHeight:1},'aria-hidden':'true'},'♟'),
+   h('div',{class:'grow stack',style:{gap:'5px'}},h('h2',{style:{margin:0}},'Bablo Chess'),h('p',{class:'muted small',style:{margin:0}},'Play Dr ECG, practise your openings or challenge another player.'))),
+  h('a',{class:'btn primary block',href:'#/chess'},'Open chess'));
+ const learn=dashboardCard('Chess learning','Build your understanding of tactics, openings and principles.','♞','#/chess-learn/basics');
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'Games and mental challenges, all in one place.')),
+  hero,chess,h('section',{class:'stack'},h('h2',null,'Train your thinking'),h('div',{class:'dashboard-grid'},learn))));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
 function ecgBeatPath(x0, variant) {
@@ -3599,9 +3610,9 @@ async function clearChat(G) {
 
 /* ---------- admin page: passcode only, nothing shown until it is right ---------- */
 function adminView() {
-  const pass = h('input', { type: 'password', placeholder: 'Admin passcode', autocomplete: 'off' });
-  const out = h('div', { class: 'stack' });
-  const sec = (title, rows) => h('section', { class: 'panel stack' }, h('h2', null, title), rows.length ? rows : [h('p', { class: 'muted small' }, 'Nothing yet.')]);
+  const pass = h('input', { id:'admin-passcode', type: 'password', placeholder: 'Enter admin passcode', autocomplete: 'current-password', 'aria-label':'Admin passcode' });
+  const out = h('section', { class: 'stack', role:'status', 'aria-live':'polite' });
+  const sec = (title, rows) => h('section', { class: 'panel stack' }, h('h2', null, title), rows.length ? rows : h('p', { class: 'muted small' }, 'Nothing yet.'));
   const show = d => {
     out.replaceChildren(
       sec('Summary', [h('p', null, 'People with accounts: ' + d.accounts), ...(d.programme_counts || []).map(p => h('p', { class: 'small' }, p.programme + ': ' + p.people))]),
@@ -3626,7 +3637,14 @@ function adminView() {
       loadAlertForm(pass.value, out);
     } catch (e) { out.replaceChildren(h('p', { class: 'muted' }, 'Could not reach the server.')); }
   };
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' }, h('h1', null, 'Admin console'), h('section', { class: 'panel stack' }, pass, h('button', { class: 'btn primary block', onclick: go2 }, 'Sign in to Admin')), out)));
+  const submit = h('button', { class: 'btn primary block', type:'button', onclick: go2 }, 'Sign in to Admin');
+  pass.addEventListener('keydown', e => { if (e.key === 'Enter') go2(); });
+  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+    h('div',{class:'dashboard-page-head'},h('h1', null, 'Admin console'),h('p',{class:'muted'},'Restricted tools for managing Bablo Hub.')),
+    h('section', { class: 'panel stack', style:{maxWidth:'560px',width:'100%'} },
+      h('label',{class:'field'},h('span',null,'Admin passcode'),pass),submit,
+      h('p',{class:'tiny muted'},'Admin data and controls appear only after server-side verification.')
+    ), out)));
 }
 
 /* ---------- admin: every action needs the signed-in admin session and the passcode (checked on the server) ---------- */
