@@ -246,10 +246,20 @@ async function tab(name){
       frame(h('div',null,shell(),panel));return;
     }
     if(name==='My Challenges'){
-      const x=await call('hub_challenge_inbox',{});
-      const rows=x.challenges||[];
-      const panel=h('section',{class:'cd-panel'},h('h2',null,'My challenges'));
-      panel.append(...(rows.length?rows.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Challenge'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions · '+m.status),h('div',{class:'muted'},'Code: '+(m.invite_code||'—'))),m.status==='waiting'&&m.created_by!==((DB&&DB.account&&(DB.account.unique_id||DB.account.uid))||'')?h('button',{onclick:()=>accept(m.id)},'Accept'):h('button',{class:'secondary',onclick:()=>open(m.id)},'Open lobby'))):[h('p',{class:'muted'},'Your challenge history will appear here.')] ));
+      const [activeData,historyData]=await Promise.all([
+        call('hub_challenge_inbox',{}),
+        call('hub_challenge_history',{})
+      ]);
+      const rows=activeData.challenges||[],history=historyData.matches||[];
+      const panel=h('section',{class:'cd-panel'},h('h2',null,'Active & recent challenges'));
+      const active=rows.filter(m=>['waiting','ready','active'].includes(m.status));
+      panel.append(h('h3',null,'Active rooms'));
+      panel.append(...(active.length?active.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Challenge'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions · '+m.status),h('div',{class:'muted'},'Code: '+(m.invite_code||'—'))),m.status==='waiting'&&m.created_by!==((DB&&DB.account&&(DB.account.unique_id||DB.account.uid))||'')?h('button',{onclick:()=>accept(m.id)},'Accept'):h('button',{class:'secondary',onclick:()=>open(m.id)},'Open lobby'))):[h('p',{class:'muted'},'No active rooms.')] ));
+      const completed=history.filter(m=>m.status==='completed'),abandoned=history.filter(m=>m.status==='abandoned');
+      panel.append(h('h3',null,'Completed results'));
+      panel.append(...(completed.length?completed.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,(m.courses||[]).join(', ')||'Challenge match'),h('div',{class:'muted'},new Date(m.completed_at||m.created_at).toLocaleString()+' · '+m.question_count+' questions'),h('div',{class:'muted'},(m.players||[]).map(p=>p.username+' '+p.score+' pts').join(' · '))),h('button',{onclick:()=>openSavedReview(m.id)},'Review results'))):[h('p',{class:'muted'},'Completed matches will appear here.')] ));
+      panel.append(h('h3',null,'Abandoned matches'));
+      panel.append(...(abandoned.length?abandoned.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,(m.courses||[]).join(', ')||'Challenge match'),h('div',{class:'muted'},'Abandoned · '+new Date(m.completed_at||m.created_at).toLocaleString()),h('div',{class:'muted'},(m.players||[]).map(p=>p.username+' '+p.score+' pts').join(' · '))),h('span',{class:'muted'},'Not ranked'))):[h('p',{class:'muted'},'No abandoned matches.')] ));
       frame(h('div',null,shell(),panel));return;
     }
     if(name==='Champions League'){
@@ -368,6 +378,7 @@ async function checkReview(){
     showReview(review);
   }catch(e){const el=$('#cd-review-wait');if(el)el.textContent=e.message;}
 }
+async function openSavedReview(id){try{CA.match=id;const review=await call('hub_challenge_review',{p_match_id:id});showReview(review)}catch(e){toast('Could not reopen results: '+e.message)}}
 function showReview(x){
   clearInterval(CA.timer);CA.finishing=false;
   const players=x.players||[],questions=x.questions||[];
