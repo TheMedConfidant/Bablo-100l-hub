@@ -1269,7 +1269,7 @@ const TIMETABLE_100_1 = [
   { day: 'Monday', code: 'COS 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
   { day: 'Friday', code: 'AGR 101', time: '9:00am-11:00am', venue: 'NAGRLB' },
   { day: 'Monday', code: 'BUI-GEL 101', time: '2:00pm-3:00pm', venue: '1500 Lecture Hall' },
-  { day: 'Monday', code: 'GST 111', time: '3:00pm-4:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Thursday', code: 'GST 111', time: '3:00pm-4:00pm', venue: '1500 Lecture Hall' },
   { day: 'Monday', code: 'BUI-LIB 101', time: '5:00pm-6:00pm', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'CHM 101', time: '9:00am-11:00am', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
@@ -1279,7 +1279,7 @@ const TIMETABLE_100_1 = [
   { day: 'Thursday', code: 'BIO 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
   { day: 'Thursday', code: 'BIO 107', time: '2:00pm-5:00pm', venue: 'BIO Lab I-III' }
 ];
-const TIMETABLE_NOTE = 'Course representatives for AGR 101 should meet the lecturer, as AGR 101 clashes with BUI-GEL 101 and GST 111.';
+const TIMETABLE_NOTE = 'Timetable update: GST 111 is now scheduled for Thursday, 3:00pm–4:00pm.';
 /* 200 level courses. Each stays Pending until its questions, notes, practicals and labs are loaded. */
 const COURSES_200 = [
   { code: 'ANA211', label: 'ANA 211', title: 'Embryology', color: '#B45309', units: 2, semester: 'first' },
@@ -2376,6 +2376,7 @@ function unreadNotificationCount(){
  const add=id=>{if(!read[id]&&!dismissed[id])count++;};
  (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=30*DAY)add('quiz-'+ts);});
  const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
+ const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime();if(now-gstUpdateAt<14*DAY)add('timetable-gst111-thursday-2026-11-08');
  const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
  return count;
 }
@@ -2383,9 +2384,6 @@ function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
- const resumeCourse=DB.prev&&DB.prev.c?courseBy(DB.prev.c):null;
- const resumeHref=resumeCourse?'#/course/'+resumeCourse.code:'#/courses';
- const resumeText=resumeCourse?'Return to '+resumeCourse.title:'Open your course library and choose where to begin.';
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
@@ -2403,9 +2401,6 @@ function homeView() {
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Your next move'),h('span',null,'A clear place to start')),h('div',{class:'dashboard-grid'},
-   dashboardCard('Continue learning',resumeText,'📖',resumeHref,'#D6A82B'),
-   dashboardCard('Today & upcoming','Timetable, tests and study reminders','◷','#/time','#53B6A5'))),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
@@ -4334,6 +4329,9 @@ function notificationsView() {
   if(missedIds.length)add('weak-topics-'+missedIds.length,'Study focus','Topics to revisit',
     missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
     '#/weak',now,'↗',now+14*DAY);
+  const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime();
+  if(now-gstUpdateAt<14*DAY)add('timetable-gst111-thursday-2026-11-08','Schedule','Timetable update · GST 111',
+    'GST 111 is now on Thursday, 3:00pm–4:00pm · 1500 Lecture Hall.','#/timetable',gstUpdateAt,'◷',gstUpdateAt+14*DAY);
   const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
     const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
     return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-EVENT_GRACE;
