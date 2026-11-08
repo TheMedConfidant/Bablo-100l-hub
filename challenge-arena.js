@@ -170,7 +170,7 @@ function offlineAnswer(i){
 }
 async function offlineFinish(){
   const m=OFFLINE_MATCH;if(!m)return;clearInterval(m.timer);OFFLINE_MATCH=null;
-  const secs=Math.max(1,Math.round((Date.now()-m.started)/1000)),pct=Math.round(m.correct/m.questions.length*100),entry={ts:Date.now(),course:m.course,mode:'ghost-race',n:m.questions.length,correct:m.correct,pct,secs,offline:true};
+  const secs=Math.max(1,Math.round((Date.now()-m.started)/1000)),pct=Math.round(m.correct/m.questions.length*100),entry={ts:Date.now(),course:m.course,mode:'ghost-race',ghostMode:m.ghostMode,benchmarkUsername:m.benchmark?.username||null,benchmarkAccuracy:m.benchmark?.accuracy??null,opponentScore:m.ghost?.score??null,n:m.questions.length,correct:m.correct,pct,secs,offline:true};
   const record={v:1,course:m.course,count:m.questions.length,score:m.correct,pct,secs,fingerprints:m.questions.map(q=>q.fingerprint),durations:m.durations};
   let isPB=false;
   try{const key=ghostKey(m.course,m.questions.length),old=JSON.parse(localStorage.getItem(key)||'null');if(!old||record.score>old.score||(record.score===old.score&&record.secs<old.secs)){localStorage.setItem(key,JSON.stringify(record));isPB=true;}}catch(_){}
@@ -260,6 +260,11 @@ async function tab(name){
       panel.append(...(completed.length?completed.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,(m.courses||[]).join(', ')||'Challenge match'),h('div',{class:'muted'},new Date(m.completed_at||m.created_at).toLocaleString()+' · '+m.question_count+' questions'),h('div',{class:'muted'},(m.players||[]).map(p=>p.username+' '+p.score+' pts').join(' · '))),h('button',{onclick:()=>openSavedReview(m.id)},'Review results'))):[h('p',{class:'muted'},'Completed matches will appear here.')] ));
       panel.append(h('h3',null,'Abandoned matches'));
       panel.append(...(abandoned.length?abandoned.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,(m.courses||[]).join(', ')||'Challenge match'),h('div',{class:'muted'},'Abandoned · '+new Date(m.completed_at||m.created_at).toLocaleString()),h('div',{class:'muted'},(m.players||[]).map(p=>p.username+' '+p.score+' pts').join(' · '))),h('span',{class:'muted'},'Not ranked'))):[h('p',{class:'muted'},'No abandoned matches.')] ));
+      const ghostRuns=(DB.history||[]).filter(r=>r.mode==='ghost-race').slice(-20).reverse();
+      panel.append(h('h3',null,'Ghost Race history'));
+      panel.append(...(ghostRuns.length?ghostRuns.map(r=>h('div',{class:'cd-row'},
+        h('div',null,h('b',null,r.course||'Ghost Race'),h('div',{class:'muted'},new Date(r.ts).toLocaleString()+' · '+r.n+' questions · '+(r.ghostMode==='champions'?'Champions League benchmark':r.ghostMode==='friend'?'Friend ghost':'Personal best'))),
+        h('strong',null,r.correct+'/'+r.n+' · '+r.pct+'%'))):[h('p',{class:'muted'},'Offline and ghost races completed on this device will appear here.')]));
       frame(h('div',null,shell(),panel));return;
     }
     if(name==='Champions League'){
