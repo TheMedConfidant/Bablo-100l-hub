@@ -268,9 +268,13 @@ async function tab(name){
       frame(h('div',null,shell(),panel));return;
     }
     if(name==='Champions League'){
-      const x=await call('hub_challenge_leaderboard',{p_period:'overall'});
-      const panel=h('section',{class:'cd-panel'},h('h2',null,'Champions League'),h('p',{class:'muted'},'Verified completed matches · students who opted into the leaderboard.'));
-      panel.append(...((x.entries||[]).length?(x.entries||[]).map(p=>h('div',{class:'cd-row'},h('div',null,h('b',null,'#'+p.rank+' '+(p.nickname||p.username)),h('div',{class:'muted'},(p.programme||'')+' · '+p.matches+' matches · '+p.accuracy+'% accuracy')),h('strong',null,p.points+' pts'))):[h('p',{class:'muted'},'No verified leaderboard entries yet. Complete a match and opt in to appear.')] ));
+      const period=CA.leaguePeriod||'overall';
+      const x=await call('hub_challenge_leaderboard',{p_period:period});
+      const panel=h('section',{class:'cd-panel'},h('h2',null,'Champions League'),h('p',{class:'muted'},'Rankings are based on verified completed matches from opted-in players.'));
+      const periods=h('div',{class:'cd-tabs'});
+      [['overall','Overall'],['monthly','Monthly'],['weekly','Weekly']].forEach(([key,label])=>periods.append(h('button',{class:period===key?'active':'secondary',onclick:()=>{CA.leaguePeriod=key;tab('Champions League')}},label)));
+      panel.append(periods,h('div',{class:'cd-stats'},stat((x.entries||[]).length,'Ranked players'),stat((x.entries||[]).reduce((n,p)=>n+Number(p.matches||0),0),'Completed entries')));
+      panel.append(...((x.entries||[]).length?(x.entries||[]).map(p=>h('div',{class:'cd-row'},h('div',null,h('b',null,'#'+p.rank+' '+(p.nickname||p.username)),h('div',{class:'muted'},(p.programme||'')+' · '+p.matches+' matches · '+p.wins+' wins · '+p.accuracy+'% accuracy')),h('strong',null,p.points+' pts'))):[h('p',{class:'muted'},'No verified leaderboard entries for this period yet. Complete a match and opt in to appear.')] ));
       frame(h('div',null,shell(),panel));return;
     }
   }catch(e){frame(h('div',null,shell(),h('section',{class:'cd-panel'},h('p',{class:'muted'},e.message),h('button',{onclick:()=>tab(name)},'Retry'))));}
