@@ -110,7 +110,7 @@ function offlineBegin(){
   if(mode==='pb'){
     try{ghost=JSON.parse(localStorage.getItem(ghostKey(course,count))||'null');}catch(_){}
     if(!ghost){toast('No personal best yet. Complete one run first to create your ghost.');return;}
-  }else{
+  }else if(mode==='friend'){
     try{ghost=ghostDecode($('#cd-ghost-code').value);}
     catch(_){toast('That ghost code could not be read. Check the copied code.');return;}
     if(ghost.v!==1||ghost.course!==course||ghost.count!==count||!Array.isArray(ghost.fingerprints)||!Array.isArray(ghost.durations)||ghost.fingerprints.length!==count||ghost.durations.length!==count){toast('This ghost does not match the selected course or question count.');return;}
