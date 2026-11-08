@@ -632,7 +632,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 .dashboard-eyebrow{font-size:10px;letter-spacing:2px;font-weight:900;color:var(--gold)}
 .dashboard-welcome h1{font-size:clamp(25px,5vw,36px);margin:8px 0}
 .dashboard-welcome p{margin:0;color:var(--ink2)}
-.dashboard-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:20px}
+.dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:20px}
 .dashboard-metrics>div,.dashboard-metrics>a{padding:10px;border-radius:13px;background:rgba(127,127,127,.09);text-decoration:none;color:inherit}
 .dashboard-metrics b,.dashboard-metrics small{display:block}.dashboard-metrics b{font-size:20px;color:var(--gold)}.dashboard-metrics small{font-size:10px;color:var(--ink2)}
 .dashboard-section-head{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:20px 2px 12px}.dashboard-section-head h2{margin:0;font-size:19px}.dashboard-section-head span{font-size:11px;color:var(--ink2)}
@@ -687,7 +687,7 @@ button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
  .dashboard-card-copy small{font-size:10px}
  .dashboard-section-head{align-items:flex-start;flex-direction:column;gap:3px}
  .dashboard-welcome{padding:18px}
- .dashboard-metrics{gap:6px}
+ .dashboard-metrics{gap:6px;grid-template-columns:repeat(2,minmax(0,1fr))}
  .dashboard-metrics>div,.dashboard-metrics>a{padding:9px 7px}
  .notice-card{padding:11px;gap:9px}
  .notice-dismiss{flex-basis:36px;min-width:36px}
@@ -2385,6 +2385,8 @@ function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
+ const performance=(DB.history||[]).reduce((a,e)=>{const rows=Object.values(e.topicStats||{});if(rows.length){a.answered+=rows.reduce((n,r)=>n+(Number(r.answered)||0),0);a.correct+=rows.reduce((n,r)=>n+(Number(r.correct)||0),0);}else{a.answered+=Number(e.n)||0;a.correct+=Number(e.correct)||0;}return a;},{answered:0,correct:0});
+ const accuracy=performance.answered?Math.round(100*performance.correct/performance.answered):0;
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
@@ -2401,7 +2403,7 @@ function homeView() {
    h('span',{class:'dashboard-notification-wrap'},h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'+(unreadNotificationCount()?' · '+unreadNotificationCount()+' unread':'')},'♧'),unreadNotificationCount()?h('span',{class:'dashboard-notification-badge','aria-hidden':'true'},unreadNotificationCount()>9?'9+':String(unreadNotificationCount())):null),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
-   h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
+   h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('div',null,h('b',null,accuracy+'%'),h('small',null,'Accuracy')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
