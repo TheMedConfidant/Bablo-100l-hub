@@ -625,6 +625,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 /* Bablo Hub full-app dashboard refresh: lightweight glass-inspired surfaces. */
 .dashboard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
 .dashboard-top .brand{min-width:0}.dashboard-top-actions{display:flex;align-items:center;gap:8px}
+.dashboard-notification-wrap{position:relative;display:inline-grid}.dashboard-notification-badge{position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;border:2px solid var(--surface);border-radius:99px;background:#d92d42;color:#fff;font-size:9px;font-weight:900;display:grid;place-items:center;line-height:1}
 .dashboard-icon-btn,.dashboard-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-weight:800}
 .dashboard-avatar{border-color:var(--gold);background:var(--gold-soft);color:#17120a;border-radius:50%}
 .dashboard-welcome{border:1px solid rgba(212,175,55,.55);border-radius:22px;padding:22px;margin:10px 0 24px;background:linear-gradient(120deg,rgba(212,175,55,.16),var(--surface) 68%);box-shadow:0 6px 20px rgba(0,0,0,.08)}
@@ -650,6 +651,85 @@ button,a,input,select,textarea{touch-action:manipulation}
 :root[data-skin="glass"] .panel,:root[data-skin="glass"] .tile,:root[data-skin="glass"] .rows,:root[data-skin="glass"] .rev,:root[data-skin="glass"] .qcard,:root[data-skin="glass"] .modal,:root[data-skin="glass"] .slip,:root[data-skin="glass"] .nav,:root[data-skin="glass"] .dock{-webkit-backdrop-filter:blur(2px) saturate(102%) !important;backdrop-filter:blur(2px) saturate(102%) !important}
 @media(max-width:380px){.dashboard-card{padding:11px;gap:8px;min-height:102px}.dashboard-card-icon{width:36px;height:36px;flex-basis:36px}.dashboard-card-copy b{font-size:12px}.dashboard-card-copy small{font-size:9px}}
 @media(min-width:760px){.dashboard-grid,.catalogue-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ===== Bablo Hub UI refix · shared contrast and mobile consistency ===== */
+/* Keep component text tied to the active theme tokens instead of hard-coded colours. */
+.dashboard-welcome{color:var(--ink);background:linear-gradient(120deg,color-mix(in srgb,var(--gold) 16%,var(--surface)),var(--surface) 72%);border-color:color-mix(in srgb,var(--gold) 55%,var(--line))}
+.dashboard-welcome h1,.dashboard-welcome p{color:var(--ink)}
+.dashboard-eyebrow,.dashboard-metrics b{color:var(--gold)}
+.dashboard-metrics>div,.dashboard-metrics>a{background:color-mix(in srgb,var(--ink) 5%,var(--surface));color:var(--ink)}
+.dashboard-metrics small,.dashboard-section-head span,.dashboard-card-copy small{color:var(--ink2)}
+.dashboard-card,.catalogue-course,.dashboard-quick{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.dashboard-card-copy b,.catalogue-course b,.dashboard-quick{color:var(--ink)}
+.dashboard-card-copy small,.catalogue-course small{color:var(--ink2)}
+.dashboard-icon-btn{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.dashboard-avatar{background:var(--gold-soft);color:var(--ink);border-color:var(--gold)}
+.notice-item{display:flex;align-items:stretch;gap:8px;min-width:0}
+.notice-card{display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;padding:14px;border:1px solid var(--line);border-radius:15px;background:var(--surface);color:var(--ink);text-decoration:none}
+.notice-card:focus-visible,.notice-dismiss:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.notice-copy{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1;color:var(--ink)}
+.notice-copy b{color:var(--ink);overflow-wrap:anywhere}
+.notice-copy .muted,.notice-meta{color:var(--ink2)!important}
+.notice-icon{flex:0 0 34px;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--surface2);color:var(--ink)}
+.notice-dot{color:var(--brand);font-size:.7rem;flex:0 0 auto}
+.notice-card.is-read{opacity:.78}
+.notice-dismiss{flex:0 0 40px;min-width:40px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font-size:1.2rem}
+.notice-filters{display:flex;gap:7px;overflow-x:auto;padding:3px 1px 7px;scrollbar-width:thin}
+.notice-filters .opt{white-space:nowrap;flex:0 0 auto}
+input,select,textarea{max-width:100%}
+button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+@media(max-width:520px){
+ .wrap{padding-left:13px;padding-right:13px}
+ .dashboard-grid,.catalogue-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .dashboard-card{min-height:104px;padding:11px;gap:8px}
+ .dashboard-card-icon{width:36px;height:36px;flex-basis:36px;font-size:19px}
+ .dashboard-card-copy b{font-size:12px;line-height:1.3}
+ .dashboard-card-copy small{font-size:10px}
+ .dashboard-section-head{align-items:flex-start;flex-direction:column;gap:3px}
+ .dashboard-welcome{padding:18px}
+ .dashboard-metrics{gap:6px}
+ .dashboard-metrics>div,.dashboard-metrics>a{padding:9px 7px}
+ .notice-card{padding:11px;gap:9px}
+ .notice-dismiss{flex-basis:36px;min-width:36px}
+}
+@media(max-width:350px){
+ .dashboard-grid,.catalogue-grid{grid-template-columns:1fr}
+ .dashboard-card{min-height:88px}
+ .dashboard-metrics b{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){
+ .dashboard-card,.catalogue-course,.tile,.btn{transition:none!important}
+ .dashboard-card:hover,.catalogue-course:hover,.tile:hover{transform:none!important}
+}
+
+
+/* Quiz and practice screen readability pass. */
+.runbar{color:var(--ink)}
+.runbar .row{min-width:0;gap:8px}
+.timer{color:var(--ink);white-space:nowrap}
+.qcard{min-width:0;overflow-wrap:anywhere}
+.qtext{color:var(--ink);line-height:1.62;overflow-wrap:anywhere;word-break:normal;font-size:clamp(1rem,2.8vw,1.15rem)}
+.choice{color:var(--ink);line-height:1.5;overflow-wrap:anywhere;word-break:normal;min-width:0;cursor:pointer;transition:border-color .14s ease,background-color .14s ease}
+.choice:focus-visible,.map button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.choice[aria-pressed=true]{color:var(--ink)}
+.choice.right,.choice.wrong{color:var(--ink)}
+.choice .k{flex:0 0 28px}
+.fb{color:var(--ink);line-height:1.55;overflow-wrap:anywhere}
+.dock{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.dock .btn{min-height:44px}
+@media(max-width:520px){
+ .qcard{padding:13px;border-radius:15px}
+ .qtext{margin:5px 0 13px;font-size:1rem;line-height:1.58}
+ .choice{padding:11px 10px;gap:9px;margin-top:8px}
+ .choice .k{width:27px;height:27px;flex-basis:27px}
+ .runbar .row{gap:6px}
+ .runbar .btn.sm{padding:7px 9px}
+ .dock{padding-left:12px;padding-right:12px}
+ .dock .in{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .choice,.prog>i{transition:none!important}
+}
 </style>
 <script src="/phy101-data.js"></script>
 </head>
@@ -1046,7 +1126,6 @@ window.__PRACTICALS__.COS = {
     while (days.has(dayKey(d))) { n++; d.setDate(d.getDate() - 1); }
     return n;
   }
-  function fmtTime(sec) { sec = Math.max(0, Math.round(sec)); const m = Math.floor(sec / 60), s = sec % 60; return m + ':' + String(s).padStart(2, '0'); }
   function validateBank(bank) {
     const issues = [], ids = new Set();
     bank.forEach(q => {
@@ -1190,7 +1269,7 @@ const TIMETABLE_100_1 = [
   { day: 'Monday', code: 'COS 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
   { day: 'Friday', code: 'AGR 101', time: '9:00am-11:00am', venue: 'NAGRLB' },
   { day: 'Monday', code: 'BUI-GEL 101', time: '2:00pm-3:00pm', venue: '1500 Lecture Hall' },
-  { day: 'Monday', code: 'GST 111', time: '3:00pm-4:00pm', venue: '1500 Lecture Hall' },
+  { day: 'Thursday', code: 'GST 111', time: '3:00pm-4:00pm', venue: '1500 Lecture Hall' },
   { day: 'Monday', code: 'BUI-LIB 101', time: '5:00pm-6:00pm', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'CHM 101', time: '9:00am-11:00am', venue: '1500 Lecture Hall' },
   { day: 'Tuesday', code: 'PHY 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
@@ -1200,7 +1279,7 @@ const TIMETABLE_100_1 = [
   { day: 'Thursday', code: 'BIO 101', time: '11:00am-1:00pm', venue: '1500 Lecture Hall' },
   { day: 'Thursday', code: 'BIO 107', time: '2:00pm-5:00pm', venue: 'BIO Lab I-III' }
 ];
-const TIMETABLE_NOTE = 'Course representatives for AGR 101 should meet the lecturer, as AGR 101 clashes with BUI-GEL 101 and GST 111.';
+const TIMETABLE_NOTE = 'Timetable update: GST 111 is now scheduled for Thursday, 3:00pm–4:00pm.';
 /* 200 level courses. Each stays Pending until its questions, notes, practicals and labs are loaded. */
 const COURSES_200 = [
   { code: 'ANA211', label: 'ANA 211', title: 'Embryology', color: '#B45309', units: 2, semester: 'first' },
@@ -1712,9 +1791,9 @@ async function hubCall(fn, body) {
   return r.json();
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
-function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium, isGuest: !!j.isGuest }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, isGuest: !!j.isGuest, premium: !!j.premium, level: '100L', uid: j.uniqueId }; save(); }
 let CHESS_IDENTITY_BUSY = false;
-async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
+async function ensureChessIdentity() { if (!signedIn() || !DB.profile || (DB.profile.username && typeof DB.profile.isGuest === 'boolean') || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; DB.profile.isGuest=!!j.isGuest; DB.account.isGuest=!!j.isGuest; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
 async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
 async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
@@ -1735,14 +1814,51 @@ async function signIn(id, password) {
   return { ok: true, uniqueId: j.uniqueId };
 }
 async function signOut() { try { if (signedIn()) await hubCall('hub_logout', { p_token: DB.account.token }); } catch (e) { /* ignore */ } DB.account = null; save(); }
-/* progress: what this device knows, saved to the account so nothing is lost */
-function localProgress() { return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {}, ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null }; }
+/* Account progress uses per-device counters so one phone cannot overwrite another. */
+function mergeCounterMaps(a, b) {
+  const out = Object.assign({}, a || {});
+  Object.keys(b || {}).forEach(id => {
+    const x = Array.isArray(out[id]) ? out[id] : [0, 0], y = Array.isArray(b[id]) ? b[id] : [0, 0];
+    out[id] = [Math.max(+x[0] || 0, +y[0] || 0), Math.max(+x[1] || 0, +y[1] || 0)];
+  });
+  return out;
+}
+function rebuildAggregateStats() {
+  const total = Object.assign({}, DB.statsLegacy || {});
+  Object.keys(DB.statsByDevice || {}).forEach(device => {
+    const rows = DB.statsByDevice[device] || {};
+    Object.keys(rows).forEach(id => {
+      const x = Array.isArray(total[id]) ? total[id] : [0, 0], y = rows[id] || [0, 0];
+      total[id] = [(+x[0] || 0) + (+y[0] || 0), (+x[1] || 0) + (+y[1] || 0)];
+    });
+  });
+  DB.stats = total;
+}
+function ensureDeviceStats() {
+  if (!DB.statsLegacy && !DB.statsByDevice) DB.statsLegacy = Object.assign({}, DB.stats || {});
+  DB.statsLegacy = DB.statsLegacy || {};
+  DB.statsByDevice = DB.statsByDevice || {};
+  DB.statsByDevice[DB.dev] = DB.statsByDevice[DB.dev] || {};
+  rebuildAggregateStats();
+}
+function localProgress() {
+  ensureDeviceStats();
+  return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {},
+    statsLegacy: DB.statsLegacy || {}, statsByDevice: DB.statsByDevice || {},
+    ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null };
+}
 function mergeRemote(p) {
   const seen = {}; (DB.history || []).forEach(h => { seen[h.ts] = true; });
   (p.history || []).forEach(h => { if (!seen[h.ts]) DB.history.push(h); });
   DB.history.sort((a, b) => a.ts - b.ts); DB.history = DB.history.slice(-300);
   DB.missed = Object.assign({}, p.missed || {}, DB.missed || {});
-  DB.stats = Object.assign({}, p.stats || {}, DB.stats || {});
+  ensureDeviceStats();
+  const remoteLegacy = p.statsLegacy || (!p.statsByDevice ? (p.stats || {}) : {});
+  DB.statsLegacy = mergeCounterMaps(DB.statsLegacy, remoteLegacy);
+  Object.keys(p.statsByDevice || {}).forEach(device => {
+    DB.statsByDevice[device] = mergeCounterMaps(DB.statsByDevice[device], p.statsByDevice[device]);
+  });
+  rebuildAggregateStats();
   DB.ubest = Object.assign({}, p.ubest || {}, DB.ubest || {});
   DB.gpa = Object.assign({}, p.gpa || {}, DB.gpa || {});
   if (p.chess && (!DB.chess || (p.chess.games || []).length > (DB.chess.games || []).length)) DB.chess = p.chess;
@@ -1980,10 +2096,9 @@ const wrap = (...k) => h('main', { class: 'wrap' }, ...k);
 const back = (href, label) => h('a', { class: 'back', href, onclick: e => { if (HUB_ROUTE_STACK.length > 1) { e.preventDefault(); history.back(); } } }, '\u2039 ', label);
 
 function renderNav(active) {
-  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board']];
+  const items = [['home', '#/', 'Home', 'home'], ['plan', '#/time', 'Time', 'time'], ['board', '#/board', 'Board', 'board'], ['challenges', '#/challenge', 'Challenges', 'challenge']];
   const links = items.map(([k, href, label, ic]) =>
     h('a', { href, 'aria-current': active === k ? 'page' : null }, svgEl('0 0 24 24', ICON[ic]), h('span', null, label)));
-  links.push(h('button', { type:'button', class:'nav-menu-button', 'aria-label':'Open navigation menu', onclick:openHubMenu }, h('span',{class:'nav-menu-glyph'},'☰'), h('span',null,'Menu')));
   navEl.replaceChildren(h('div', { class: 'in' }, links));
   navEl.style.display = active !== null ? '' : 'none';
 }
@@ -2058,7 +2173,7 @@ function route() {
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
-  const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
+  const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: 'challenges', home: 'home', course: 'home', analytics: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
     if (v === 'calculator') { go('#/'); return; }
@@ -2066,6 +2181,7 @@ function route() {
     else if (v === 'courses') coursesCatalogueView();
     else if (v === 'time') timeHubView();
     else if (v === 'arcade') arcadeHubView();
+    else if (v === 'analytics') courseAnalyticsView(seg[1]);
     else if (v === 'course') courseView(seg[1]);
     else if (v === 'setup') setupView(seg[1], seg[2] || 'practice', qs);
     else if (v === 'run') runView();
@@ -2164,7 +2280,7 @@ function openHubMenu(){
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
     group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
-    group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Send feedback','#/feedback','✉')]),
+    group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Chess','#/chess','♟'),link('Send feedback','#/feedback','✉')]),
     group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
     group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
     group('ADMINISTRATION',[link('Admin Panel','#/admin','🛠')]),
@@ -2192,42 +2308,77 @@ function examScheduleDate(row) {
   return new Date(row.scheduled_date + 'T00:00:00+01:00').toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
 }
 function maybeExamSchedulePush(rows) {
-  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
   DB.examPushSent = DB.examPushSent || {};
-  const now = Date.now();
-  rows.forEach(row => {
-    if (!row.scheduled_date) return;
-    const exam = new Date(row.scheduled_date + 'T09:00:00+01:00').getTime();
-    const remaining = exam - now;
-    if (remaining <= 0) return;
-    const stages = [{ key:'7d', window:7*86400000, min:6*86400000, label:'is in 7 days' },
-      { key:'1d', window:24*3600000, min:23*3600000, label:'is tomorrow' },
-      { key:'1h', window:3600000, min:0, label:'starts in about an hour' }];
-    stages.forEach(stage => {
-      const key = row.id + ':' + stage.key;
-      if (DB.examPushSent[key] || remaining > stage.window || remaining <= stage.min) return;
-      try {
-        new Notification(row.course_code + (row.assessment_type === 'Exam' ? ' exam' : ' test') + ' ' + stage.label,
-          { body:'Scheduled for ' + examScheduleDate(row) + '. Open Bablo Hub for your study resources.', icon:'icon-192.png', tag:'exam-' + key });
-        DB.examPushSent[key] = true; save();
-      } catch (e) {}
-    });
+  const now = Date.now(), grace = 12*60*60*1000;
+  const validRows = (rows||[]).filter(row => {
+    if(!row.scheduled_date)return false;
+    const t=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
+    return Number.isFinite(t)&&t+grace>now;
   });
+  const activeKeys = new Set(validRows.map(row=>String(row.id)+':'+row.scheduled_date));
+  Object.keys(DB.examPushSent).forEach(key=>{
+    if(![...activeKeys].some(active=>key.startsWith(active+':')))delete DB.examPushSent[key];
+  });
+  navigator.serviceWorker.ready.then(async reg=>{
+    try{
+      const existing=await reg.getNotifications();
+      existing.forEach(n=>{
+        if(!String(n.tag||'').startsWith('exam-'))return;
+        const data=n.data||{},expires=Number(data.expiresAt);
+        if((data.scheduleKey&&!activeKeys.has(data.scheduleKey))||(expires&&expires<=now))n.close();
+      });
+    }catch(_){}
+    validRows.forEach(row=>{
+      const exam=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
+      const remaining=exam-now;
+      const stages=[
+        {key:'7d',window:7*86400000,min:6*86400000,label:'is in 7 days'},
+        {key:'1d',window:24*3600000,min:23*3600000,label:'is tomorrow'},
+        {key:'1h',window:3600000,min:0,label:'starts in about an hour'}
+      ];
+      stages.forEach(stage=>{
+        const scheduleKey=String(row.id)+':'+row.scheduled_date;
+        const key=scheduleKey+':'+stage.key;
+        if(DB.examPushSent[key]||remaining>stage.window||remaining<=stage.min)return;
+        const tag='exam-'+String(row.id)+'-'+row.scheduled_date+'-'+stage.key;
+        reg.showNotification(row.course_code+(row.assessment_type==='Exam'?' exam':' test')+' '+stage.label,{
+          body:'Scheduled for '+examScheduleDate(row)+'. Open Bablo Hub for your study resources.',
+          icon:'icon-192.png',badge:'icon-192.png',tag,timestamp:now,
+          data:{url:'./',scheduleKey,expiresAt:exam+grace}
+        }).then(()=>{DB.examPushSent[key]=true;save()}).catch(()=>{});
+      });
+    });
+  }).catch(()=>{});
 }
 function sharedExamSchedulePanel() {
   const panel = h('section', { class:'panel stack', id:'shared-exam-schedule' },
     h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')));
   panel.append(h('p',{class:'small muted'},'Loading shared schedule…'));
   fetchPublicExamSchedule().then(rows => {
-    const items = rows.slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
+    const now=Date.now(),grace=12*60*60*1000;
+    const active=rows.filter(row=>{
+      if(!row.scheduled_date)return row.date_status==='tentative';
+      const starts=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
+      return Number.isFinite(starts)&&starts+grace>now;
+    }).sort((a,b)=>(a.scheduled_date||'9999-12-31').localeCompare(b.scheduled_date||'9999-12-31'));
     panel.replaceChildren(
       h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')),
-      ...items.map(row => h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
+      ...(active.length?active.map(row=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
         h('span',null,h('b',null,row.course_code+' · '+row.assessment_type),h('small',{class:'muted'},row.note||'')),
-        h('span',{class:'chip'},examScheduleDate(row))))
+        h('span',{class:'chip'},examScheduleDate(row)))):[h('p',{class:'small muted'},'No upcoming tests or exams are currently scheduled.')])
     );
   });
   return panel;
+}
+function unreadNotificationCount(){
+ const now=Date.now(),DAY=86400000,read=DB.readNotices||{},dismissed=DB.dismissedNotices||{};let count=0;
+ const add=id=>{if(!read[id]&&!dismissed[id])count++;};
+ (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=30*DAY)add('quiz-'+ts);});
+ const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
+ const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime();if(now-gstUpdateAt<14*DAY)add('timetable-gst111-thursday-2026-11-08');
+ const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
+ return count;
 }
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
@@ -2239,14 +2390,14 @@ function homeView() {
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  const communityCards=[
-  dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
   dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
   dashboardCard('Arcade','Bablo Rush, Memory Matrix and Reaction Arena','🎮','/arcade/','#D6A82B')
  ];
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
-   h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
+   h('button',{class:'dashboard-icon-btn',type:'button',onclick:openHubMenu,'aria-label':'Open navigation menu'},'☰'),
+   h('span',{class:'dashboard-notification-wrap'},h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'+(unreadNotificationCount()?' · '+unreadNotificationCount()+' unread':'')},'♧'),unreadNotificationCount()?h('span',{class:'dashboard-notification-badge','aria-hidden':'true'},unreadNotificationCount()>9?'9+':String(unreadNotificationCount())):null),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
@@ -2300,7 +2451,7 @@ function ecgMonitor() {
  return h('div',{class:'monitor','aria-hidden':'true'},svgEl('0 0 768 80',grid+trace,'monitor-svg'),h('span',{class:'monitor-dot'}));
 }
 function brand() {
-  return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
+  return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG-brand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold-brand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG-brand)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
 }
 
 /* ---------- course page ---------- */
@@ -2319,12 +2470,97 @@ function courseView(code) {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
+      h('button', { class: 'btn block', onclick: () => go('#/analytics/' + code) }, '📊 Course analytics'),
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
         h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
         weakN ? h('button', { class: 'btn block', onclick: () => startWeak(code) }, 'Weak-spot practice (' + weakN + ')') : null),
       h('section', { class: 'stack' }, h('h2', null, 'Topics'), h('p', { class: 'muted small' }, 'Tap a topic to practise it, or open a quiz and tick several.'), h('div', { class: 'rows' }, rows)))));
 }
+function courseAnalyticsView(code) {
+  const c = courseBy(code);
+  if (!c || !isAvail(c) || !canAccessCourse(code)) { go('#/courses'); return; }
+  const questions = BANK.filter(q => q.c === code);
+  const units = unitsOf(code);
+  const history = (DB.history || []).filter(x => x.course === code).slice().sort((a,b) => a.ts-b.ts);
+  const stats = DB.stats || {};
+  const topicRows = units.map(u => {
+    const qs = questions.filter(q => q.u === u.name);
+    let answered = 0, correct = 0, covered = 0;
+    qs.forEach(q => {
+      const st = stats[q.i] || [0,0];
+      const attempts = Number(st[0]) || 0;
+      if (attempts > 0) covered++;
+      answered += attempts;
+      correct += Number(st[1]) || 0;
+    });
+    return { name:u.name, total:qs.length, covered, answered, correct, pct:answered ? Math.round(correct/answered*100) : null };
+  });
+  const answered = topicRows.reduce((n,x)=>n+x.answered,0);
+  const correct = topicRows.reduce((n,x)=>n+x.correct,0);
+  const accuracy = answered ? Math.round(correct/answered*100) : 0;
+  const sessions = history.length;
+  const totalSeconds = history.reduce((n,x)=>n+(Number(x.secs)||0),0);
+  const avgScore = sessions ? Math.round(history.reduce((n,x)=>n+(Number(x.pct)||0),0)/sessions) : 0;
+  const formatDuration = seconds => {
+    const mins=Math.round(seconds/60);
+    return mins < 60 ? mins+' min' : Math.floor(mins/60)+'h '+(mins%60)+'m';
+  };
+  const metric = (label,value,sub) => h('div',{class:'panel stack',style:{padding:'14px',gap:'4px',minWidth:'0'}},
+    h('span',{class:'tiny muted'},label),h('b',{style:{fontSize:'1.55rem',fontVariantNumeric:'tabular-nums'}},String(value)),
+    h('span',{class:'tiny muted'},sub||''));
+  // Require evidence from at least three distinct questions; repeated attempts on one item
+  // should not make an entire topic look mastered or weak.
+  const weak = topicRows.filter(x=>x.covered>=3 && x.pct<70).sort((a,b)=>a.pct-b.pct);
+  const recent = history.slice(-7);
+  const maxPct = Math.max(100,...recent.map(x=>Number(x.pct)||0));
+  const modeCounts = {};
+  history.forEach(x=>{const k=x.mode||'practice';modeCounts[k]=(modeCounts[k]||0)+1;});
+  const trend = recent.length ? h('div',{class:'panel stack'},
+    h('div',{class:'row between wrapr'},h('h2',null,'Recent session trend'),h('span',{class:'tiny muted'},'Last '+recent.length+' sessions')),
+    h('div',{style:{display:'grid',gridTemplateColumns:'repeat(7,minmax(0,1fr))',gap:'8px',alignItems:'end',minHeight:'130px'}},
+      ...recent.map((x,i)=>h('div',{class:'stack',style:{gap:'5px',alignItems:'center',minWidth:'0'}},
+        h('b',{class:'tiny'},(Number(x.pct)||0)+'%'),
+        h('div',{title:(x.mode||'Practice')+' · '+new Date(x.ts).toLocaleDateString(),style:{height:'88px',width:'100%',display:'flex',alignItems:'end',background:'var(--surface2)',borderRadius:'8px',overflow:'hidden'}},
+          h('i',{style:{display:'block',width:'100%',height:Math.max(4,Math.min(100,(Number(x.pct)||0)))+'%',background:'var(--brand)',borderRadius:'6px 6px 0 0'}})),
+        h('span',{class:'tiny muted'},'S'+(history.length-recent.length+i+1)))))) : h('div',{class:'panel'},h('p',{class:'muted small'},'Complete a practice session to start your progress trend.'));
+  const topicCard = t => h('div',{class:'panel stack',style:{padding:'12px',gap:'8px'}},
+    h('div',{class:'row between wrapr'},h('b',null,t.name),h('span',{class:'chip '+(t.pct===null?'':t.pct<50?'bad':t.pct<70?'gold':'ok')},t.pct===null?'Not started':t.pct+'%')),
+    h('div',{class:'bar'},h('i',{style:{width:(t.pct===null?0:t.pct)+'%'}})),
+    h('div',{class:'row between wrapr'},h('span',{class:'tiny muted'},t.covered+'/'+t.total+' distinct questions tried · '+t.answered+' attempts'),h('button',{class:'btn sm primary',onclick:()=>startSession({course:code,mode:'practice',units:[t.name],n:Math.min(20,Math.max(1,t.total)),order:'shuffle',timerKind:'up',minutes:0})},'Practise')));
+  const modeText=Object.keys(modeCounts).length?Object.entries(modeCounts).map(([k,v])=>k+': '+v).join(' · '):'No sessions yet';
+  const insights = [];
+  if(!sessions) insights.push('Start with a short practice session. Your course dashboard will build from your attempts on this device.');
+  else {
+    if(weak.length) insights.push(weak.length+' topic'+(weak.length===1?'':'s')+' currently below 70% accuracy. Start with '+weak[0].name+'.');
+    else if(answered>=10) insights.push('Your tracked topic accuracy is at least 70%. Keep testing across all topics.');
+    if(history.length>=2) {
+      const prev=history.slice(-6,-3), latest=history.slice(-3);
+      if(prev.length && latest.length) {
+        const a=prev.reduce((n,x)=>n+(Number(x.pct)||0),0)/prev.length;
+        const b=latest.reduce((n,x)=>n+(Number(x.pct)||0),0)/latest.length;
+        insights.push('Your latest-session average is '+(b>=a?'up ':'down ')+Math.abs(Math.round(b-a))+' percentage points versus the preceding sessions.');
+      }
+    }
+  }
+  mount(wrap(back('#/course/'+code,c.label),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('h1',null,c.label+' analytics'),h('p',{class:'muted'},'Your course performance, calculated from practice and quiz activity saved on this device.')),
+    h('section',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(135px,1fr))',gap:'10px'}},
+      metric('Tracked accuracy',answered?accuracy+'%':'—',answered+' answered question attempts'),
+      metric('Sessions',sessions,modeText),
+      metric('Average session score',sessions?avgScore+'%':'—','Across '+sessions+' completed sessions'),
+      metric('Study time',formatDuration(totalSeconds),'Recorded session time'),
+      metric('Questions in bank',questions.length,units.length+' topics'),
+      metric('Topics to revisit',weak.length,'3+ distinct questions tried and below 70%')),
+    h('section',{class:'stack'},h('h2',null,'Performance insights'),...insights.map(x=>h('div',{class:'warnbox'},x))),
+    trend,
+    h('section',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,'Topic mastery'),h('span',{class:'tiny muted'},'Accuracy across attempts · coverage counts distinct questions')),
+      ...topicRows.map(topicCard)),
+    h('section',{class:'panel stack'},h('h2',null,'Next step'),
+      h('p',{class:'muted small'},weak.length?'Target your lowest-performing topic first, then retest it later.':'Keep practising across the course so the topic map becomes more reliable.'),
+      h('button',{class:'btn primary block',onclick:()=>weak.length?startSession({course:code,mode:'practice',units:[weak[0].name],n:Math.min(20,Math.max(1,questions.filter(q=>q.u===weak[0].name).length)),order:'shuffle',timerKind:'up',minutes:0}):go('#/setup/'+code+'/practice')},weak.length?'Practise weakest topic':'Start course practice')))));
+}
+
 function startWeak(code) {
   startSession({ course: code, mode: 'practice', n: 20, order: 'shuffle', timerKind: 'up', minutes: 0, ids: DB.missed });
 }
@@ -2511,12 +2747,21 @@ async function finishSession(auto, early) {
 }
 function recordAttempt(s) {
   const r = s.res, ts = Date.now();
-  const entry = { ts, course: s.course, mode: s.mode, n: s.n, correct: r.correct, pct: r.pct, secs: s.secs };
+  const topicStats = {};
+  s.qs.forEach((q, i) => {
+    const topic = String(q.unit || 'Uncategorised').trim() || 'Uncategorised';
+    const row = topicStats[topic] || (topicStats[topic] = { total: 0, answered: 0, correct: 0, incorrect: 0, skipped: 0 });
+    row.total++;
+    const answer = s.answers[i];
+    if (answer == null || answer === '') row.skipped++;
+    else { row.answered++; if (Core.isCorrect(q, answer)) row.correct++; else row.incorrect++; }
+  });
+  const entry = { ts, course: s.course, mode: s.mode, n: s.n, correct: r.correct, pct: r.pct, secs: s.secs, topicStats };
   DB.history.push(Object.assign({}, entry, { units: s.units || [], programme: DB.profile.programme })); if (DB.history.length > 300) DB.history = DB.history.slice(-300);
   const per = {};
   s.qs.forEach((q, i) => {
     const a = s.answers[i], ok = Core.isCorrect(q, a);
-    if (a != null && a !== '') { DB.stats = DB.stats || {}; const st = DB.stats[q.id] || (DB.stats[q.id] = [0, 0]); st[0] += 1; if (ok) st[1] += 1; }
+    if (a != null && a !== '') { ensureDeviceStats(); const st = DB.statsByDevice[DB.dev][q.id] || (DB.statsByDevice[DB.dev][q.id] = [0, 0]); st[0] += 1; if (ok) st[1] += 1; rebuildAggregateStats(); }
     if (a != null && a !== '') { if (ok) delete DB.missed[q.id]; else DB.missed[q.id] = (DB.missed[q.id] || 0) + 1; }
     const p = per[q.unit] || (per[q.unit] = { n: 0, c: 0 }); p.n++; if (ok) p.c++;
   });
@@ -2611,15 +2856,36 @@ function boardView() {
 /* ---------- me ---------- */
 function meView() {
   const p = DB.profile || {};
+  const account = DB.account || {};
+  const babloId = String(account.uid || account.uniqueId || p.uid || '—');
+  const username = String(p.username || account.username || '');
+  const displayName = String(p.nick || p.display_name || p.name || 'Learner');
+  const isGuest = !!(p.isGuest ?? account.isGuest ?? String(p.programme || '').toLowerCase().startsWith('guest'));
+  const accountType = signedIn() ? (isGuest ? 'Guest account' : 'Student account') : 'Guest session';
+  const membership = (account.premium || p.premium) ? 'Premium' : 'Standard';
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
+  const identityRow = (label, value, action) => h('div', { class: 'row between wrapr', style: { padding: '10px 0', borderBottom: '1px solid var(--line)', gap: '12px' } },
+    h('span', { class: 'small muted' }, label), h('span', { style: { fontWeight: '750', textAlign: 'right', overflowWrap: 'anywhere' } }, value || 'Not set'), action || null);
+  const identity = h('section', { class: 'panel stack' },
+    h('div', { class: 'row between wrapr' }, h('div', null, h('h2', null, 'Your Bablo identity'), h('p', { class: 'tiny muted' }, 'Your account details at a glance.')), h('span', { class: 'chip gold' }, membership)),
+    identityRow('Bablo ID', babloId, babloId !== '—' ? h('button', { class: 'btn sm ghost', type: 'button', onclick: async () => { try { await navigator.clipboard.writeText(babloId); toast('Bablo ID copied.'); } catch (e) { toast('Copy unavailable on this device.'); } } }, 'Copy') : null),
+    identityRow('Username', username ? '@' + username : (signedIn() ? 'Username not assigned yet' : 'Not available for guest session')),
+    identityRow('Full name', p.name || 'Not set'),
+    identityRow('Display name', displayName),
+    identityRow('Programme', p.programme || 'Independent'),
+    identityRow('Account type', accountType),
+    identityRow('Membership', membership)
+  );
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity and leaderboard details.'),
+    h('p', { class: 'muted small' }, 'Your Bablo identity, student details and leaderboard information.'),
+    identity,
     h('section', { class: 'panel stack' },
+      h('h2', null, 'Edit profile'),
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
-      h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
+      h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname / display name'), nick),
       h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('button', { class: 'btn primary block', onclick: () => {
         const n = name.value.trim();
@@ -2630,9 +2896,10 @@ function meView() {
           programme: prog.value,
           level: '100L'
         });
-        save(); toast('Profile saved.');
+        save(); toast('Profile saved.'); meView();
       } }, 'Save profile'))
   )));
+  if (signedIn() && (!username || typeof p.isGuest !== 'boolean')) ensureChessIdentity();
 }
 
 
@@ -2644,10 +2911,10 @@ function weakTopics() {
   const agg = {};
   BANK.forEach(q => {
     const st = DB.stats && DB.stats[q.i]; if (!st || !st[0]) return;
-    const k = q.c + '|' + q.u; const a = agg[k] || (agg[k] = { course: q.c, unit: q.u, seen: 0, right: 0 });
-    a.seen += st[0]; a.right += st[1];
+    const k = q.c + '|' + q.u; const a = agg[k] || (agg[k] = { course: q.c, unit: q.u, seen: 0, right: 0, questionIds: new Set() });
+    a.seen += st[0]; a.right += st[1]; a.questionIds.add(q.i);
   });
-  return Object.values(agg).filter(a => a.seen >= 3).map(a => Object.assign(a, { pct: Math.round((a.right / a.seen) * 100) }))
+  return Object.values(agg).filter(a => a.seen >= 3 && a.questionIds.size >= 3).map(a => Object.assign(a, { distinct: a.questionIds.size, pct: Math.round((a.right / a.seen) * 100) }))
     .sort((a, b) => a.pct - b.pct || b.seen - a.seen);
 }
 function weakView() {
@@ -2661,7 +2928,7 @@ function weakView() {
     return h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
       h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, t.unit), h('span', { class: 'chip', style: { marginLeft: '8px' } }, c ? c.label : t.course)), h('span', { class: 'chip ' + (t.pct < 50 ? 'bad' : 'gold') }, t.pct + '%')),
       h('div', { class: 'bar', style: { '--c': c ? c.color : 'var(--brand)' } }, h('i', { style: { width: t.pct + '%' } })),
-      h('div', { class: 'row between' }, h('span', { class: 'tiny muted' }, plural(t.seen, 'answer') + ' so far'),
+      h('div', { class: 'row between' }, h('span', { class: 'tiny muted' }, plural(t.seen, 'attempt') + ' across ' + plural(t.distinct, 'question')),
         h('button', { class: 'btn sm primary', onclick: () => startSession({ course: t.course, mode: 'practice', units: [t.unit], n: 20, order: 'shuffle', timerKind: 'up', minutes: 0 }) }, 'Practise this topic')));
   };
   const body = [];
@@ -3033,27 +3300,6 @@ function savedChessFriends() {
   if (!Array.isArray(DB.chessFriends)) DB.chessFriends = [];
   return DB.chessFriends;
 }
-function chessOpponent(G) {
-  if (!G || !G.online) return { dev: '', nick: '' };
-  return G.color === 'w'
-    ? { dev: G.online.blackDev || '', nick: G.online.black || '' }
-    : { dev: G.online.whiteDev || '', nick: G.online.white || '' };
-}
-function renderOnlineFriendAction(G) {
-  const box = document.getElementById('onlineFriendAction');
-  if (!box || !G || !G.online) return;
-  const opponent = chessOpponent(G), friends = savedChessFriends();
-  const isFriend = !!opponent.dev && friends.some(f => f.dev === opponent.dev);
-  const add = h('button', { class: 'btn sm ' + (isFriend ? 'ghost' : 'primary'), disabled: !opponent.dev || opponent.dev === DB.dev || isFriend, onclick: () => {
-    if (!opponent.dev || opponent.dev === DB.dev) return;
-    friends.push({ dev: opponent.dev, nick: (opponent.nick || 'Chess friend').slice(0, 30), rating: 1000, addedAt: new Date().toISOString() });
-    save(); renderOnlineFriendAction(G); renderSavedChessFriends();
-    toast((opponent.nick || 'Friend') + ' saved on this device.');
-  } }, isFriend ? '✓ Friend saved' : (opponent.dev ? 'Add ' + (opponent.nick || 'opponent') + ' as friend' : 'Waiting for opponent…'));
-  const actions = [add];
-  if (G.online.status === 'waiting' && !G.online.targetDev) actions.push(h('button', { class: 'btn sm ghost', onclick: () => shareOnlineChallenge(G) }, 'Share challenge code'));
-  box.replaceChildren(h('div', { class: 'row wrapr' }, ...actions), h('p', { class: 'tiny muted' }, G.online.status === 'waiting' && G.online.targetDev ? 'Direct invitation sent. Waiting for your friend to accept.' : 'Friend list is saved on this device. Online rating updates after a completed game.'));
-}
 async function shareOnlineChallenge(G) {
   if (!G || !G.online) return;
   const message = 'Join my Bablo Hub chess challenge! Code: ' + G.online.code + ' — open Bablo Hub → Chess → Join.';
@@ -3063,54 +3309,9 @@ async function shareOnlineChallenge(G) {
   } catch (e) { if (e && e.name === 'AbortError') return; }
   toast('Share this code with your friend: ' + G.online.code);
 }
-function renderSavedChessFriends() {
-  const box = document.getElementById('chessFriendsList');
-  if (!box) return;
-  const friends = savedChessFriends();
-  if (!friends.length) { box.replaceChildren(h('p', { class: 'muted small' }, 'No saved friends yet. Add someone after an online game.')); return; }
-  box.replaceChildren(...friends.map(f => h('div', { class: 'panel row between wrapr' },
-    h('div', { class: 'stack', style: { gap: '2px', minWidth: '0' } }, h('b', null, f.nick), h('span', { class: 'tiny muted' }, 'Online chess friend')),
-    h('div', { class: 'row wrapr' },
-      h('button', { class: 'btn sm primary', onclick: async () => {
-        await createOnline(f.dev);
-        if (CHESS && CHESS.mode === 'online' && CHESS.online.targetDev === f.dev) toast('Chess challenge sent to ' + f.nick + '. They will get an in-app prompt.');
-      } }, 'Challenge'),
-      h('button', { class: 'btn sm ghost', onclick: () => { DB.chessFriends = savedChessFriends().filter(x => x.dev !== f.dev); save(); renderSavedChessFriends(); } }, 'Remove')
-    )
-  )));
-}
-async function loadOpenList() {
-  const box = document.getElementById('openList'); if (!box) return;
-  if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Online challenges turn on when the live database is connected.')); return; }
-  const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,target_dev,created_at&order=created_at.desc&limit=20');
-  if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
-  const open = rows.filter(r => r.white_dev !== DB.dev && (!r.target_dev || r.target_dev === DB.dev));
-  box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => joinOnline(r.code) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
-}
 function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
 
 let INCOMING_CHESS_TIMER = null, INCOMING_CHESS_BUSY = false;
-async function pollIncomingChessChallenges() {
-  if (INCOMING_CHESS_BUSY || !liveOn() || !DB.profile || !DB.dev) return;
-  if (CHESS && CHESS.mode === 'online' && !gameOver(CHESS).over) return;
-  INCOMING_CHESS_BUSY = true;
-  try {
-    const rows = await sbFetchJson('chess_games?status=eq.waiting&target_dev=eq.' + encodeURIComponent(DB.dev) + '&select=id,code,white_nick,white_dev,target_dev,created_at&order=created_at.desc&limit=5');
-    if (!Array.isArray(rows) || !rows.length) return;
-    if (!Array.isArray(DB.seenChessInvites)) DB.seenChessInvites = [];
-    const fresh = rows.find(r => r.id && !DB.seenChessInvites.includes(r.id));
-    if (!fresh) return;
-    DB.seenChessInvites.push(fresh.id);
-    DB.seenChessInvites = DB.seenChessInvites.slice(-60);
-    save();
-    playNoticeSound('chess');
-    try { if (DB.notify && 'Notification' in window && Notification.permission === 'granted') new Notification('Chess challenge received', { body: (fresh.white_nick || 'A friend') + ' challenged you. Open Bablo Hub to accept.' }); } catch (e) {}
-    const accept = await confirmBox({ title: '♟ Chess challenge received', msg: (fresh.white_nick || 'A friend') + ' wants to play you online. Accept the challenge?', ok: 'Accept', cancel: 'Later' });
-    if (accept) await joinOnline(fresh.code);
-    else toast('Challenge saved under Chess → Open challenges.');
-  } catch (e) { /* invitations must never block the app */ }
-  finally { INCOMING_CHESS_BUSY = false; }
-}
 function startIncomingChessWatcher() {
   if (INCOMING_CHESS_TIMER) clearInterval(INCOMING_CHESS_TIMER);
   INCOMING_CHESS_TIMER = setInterval(pollIncomingChessChallenges, 9000);
@@ -3134,28 +3335,6 @@ function startRestReminder() {
 }
 
 
-function onlineState(color, id, code, status, white, black, whiteDev, blackDev, targetDev) {
-  return { mode: 'online', online: { id, code, status, recorded: false, ratingApplied: false, white: white || DB.profile.nick, black: black || '', whiteDev: whiteDev || '', blackDev: blackDev || '', targetDev: targetDev || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
-}
-async function createOnline(targetDev) {
-  if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
-  const code = rnd6();
-  const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, target_dev: targetDev || null, status: 'waiting', moves: '' }) });
-  if (!Array.isArray(row) || !row[0]) { toast('Could not create the challenge. Try again.'); return; }
-  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, '', DB.dev, '', targetDev || ''));
-}
-async function joinOnline(raw) {
-  const code = String(raw || '').trim().toUpperCase();
-  if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
-  if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
-  const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick,target_dev');
-  if (!Array.isArray(found) || !found.length) { toast('No open challenge with that code.'); return; }
-  if (found[0].white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
-  if (found[0].target_dev && found[0].target_dev !== DB.dev) { /* Device IDs can change after reinstall, storage clearing, or switching browsers. A valid six-character challenge code is the explicit invitation; allow the code holder to join. */ }
-  const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
-  if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
-  startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick, found[0].white_dev, DB.dev));
-}
 let ONLINE_POLL = null;
 function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } stopChatPoll(); }
 let POLL_BUSY = false;
@@ -4125,36 +4304,56 @@ function holdPage(title, withPoll) {
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function notificationsView() {
   const box=h('div',{class:'stack-l notifications-page'});
-  const now=Date.now(),today=new Date();today.setHours(0,0,0,0);
+  const now=Date.now(),DAY=86400000;
+  const QUIZ_TTL=30*DAY,EVENT_GRACE=60*60*1000,EXAM_GRACE=12*60*60*1000;
   const notices=[];
-  const add=(id,type,title,body,href,when,icon)=>{
-    notices.push({id,type,title,body,href,when:when||now,icon:icon||'•'});
+  const read=DB.readNotices||{};
+  const dismissed=DB.dismissedNotices||{};
+  DB.readNotices=read;DB.dismissedNotices=dismissed;
+  const add=(id,type,title,body,href,when,icon,expiresAt)=>{
+    if(dismissed[id]||(expiresAt&&expiresAt<=now))return;
+    notices.push({id,type,title,body,href,when:when||now,icon:icon||'•',expiresAt:expiresAt||null});
   };
-  (DB.history||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8).forEach(e=>{
+  (DB.history||[]).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)).forEach(e=>{
+    const ts=Number(e.ts)||0;
+    if(!ts||ts>now||now-ts>QUIZ_TTL)return;
     const pct=Number(e.pct||0);
-    add('quiz-'+e.ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
+    add('quiz-'+ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
       (e.correct??'—')+' correct out of '+(e.n??'—')+' · '+(Number.isFinite(pct)?Math.round(pct)+'%':'Score recorded'),
-      '#/board',e.ts,'✓');
+      '#/board',ts,'✓',ts+QUIZ_TTL);
   });
   const missed=DB.missed||{};
   const missedIds=Object.keys(missed).filter(k=>missed[k]);
   const missedQs=missedIds.map(id=>(window.__BANK__||[]).find(q=>q.i===id)).filter(Boolean);
   const weakCourses=[...new Set(missedQs.map(q=>q.c).filter(Boolean))];
-  if(missedIds.length)add('weak-topics','Study focus','Topics to revisit',
-    missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.','#/weak',now,'↗');
+  if(missedIds.length)add('weak-topics-'+missedIds.length,'Study focus','Topics to revisit',
+    missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
+    '#/weak',now,'↗',now+14*DAY);
+  const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime();
+  if(now-gstUpdateAt<14*DAY)add('timetable-gst111-thursday-2026-11-08','Schedule','Timetable update · GST 111',
+    'GST 111 is now on Thursday, 3:00pm–4:00pm · 1500 Lecture Hall.','#/timetable',gstUpdateAt,'◷',gstUpdateAt+14*DAY);
   const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
     const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
-    return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-3600000;
+    return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-EVENT_GRACE;
   }).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,8);
   events.forEach(ev=>{
     const dt=new Date(ev.date+'T'+(ev.time||'00:00'));
-    const diff=dt.getTime()-now;
-    const timing=diff<3600000?'Starting soon':diff<86400000?'Today':diff<172800000?'Tomorrow':dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
-    add('event-'+ev.id,'Schedule',ev.title,timing+' · '+(ev.time||'Time not set')+(ev.note?' · '+ev.note:''),'#/plan',dt.getTime(),'◷');
+    const when=dt.getTime(),diff=when-now;
+    const timing=diff<0?'Just happened':diff<3600000?'Starting soon':diff<86400000?'Today':diff<172800000?'Tomorrow':dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
+    add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'),'Schedule',ev.title,
+      timing+' · '+(ev.time||'Time not set')+(ev.note?' · '+ev.note:''),'#/plan',when,'◷',when+EVENT_GRACE);
   });
-  const read=DB.readNotices||{};
   const unread=notices.filter(n=>!read[n.id]).length;
-  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{DB.readNotices=DB.readNotices||{};notices.forEach(n=>DB.readNotices[n.id]=true);save();notificationsView();}},'Mark all as read');
+  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{
+    DB.readNotices=DB.readNotices||{};
+    notices.forEach(n=>DB.readNotices[n.id]=Date.now());
+    save();notificationsView();
+  }},'Mark all as read');
+  const clearRead=h('button',{class:'btn sm ghost',onclick:()=>{
+    DB.dismissedNotices=DB.dismissedNotices||{};
+    notices.filter(n=>read[n.id]).forEach(n=>DB.dismissedNotices[n.id]=Date.now());
+    save();notificationsView();
+  }},'Clear read');
   const groups=['All','Schedule','Academic progress','Study focus'];
   let selected='All';
   const list=h('div',{class:'stack',id:'notice-list'});
@@ -4162,29 +4361,61 @@ function notificationsView() {
     const filtered=notices.filter(n=>selected==='All'||n.type===selected);
     list.replaceChildren(...(filtered.length?filtered.map(n=>{
       const isRead=!!read[n.id];
-      return h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':'')},
+      const card=h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':''),'data-notice-id':n.id},
         h('span',{class:'notice-icon'},n.icon),
-        h('span',{class:'notice-copy'},h('span',{class:'notice-meta'},n.type+' · '+new Date(n.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),h('b',null,n.title),h('span',{class:'small muted'},n.body)),
+        h('span',{class:'notice-copy'},
+          h('span',{class:'notice-meta'},n.type+' · '+new Date(n.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),
+          h('b',null,n.title),h('span',{class:'small muted'},n.body)),
         h('span',{class:'notice-dot','aria-label':isRead?'Read':'Unread'},isRead?'':'●'));
-    }):[h('section',{class:'panel stack'},h('b',null,'You’re all caught up'),h('p',{class:'small muted'},selected==='All'?'New quiz results, schedule reminders and study prompts will appear here as they happen.':'No '+selected.toLowerCase()+' notifications right now.'))]));
+      const dismiss=h('button',{class:'notice-dismiss',type:'button','aria-label':'Dismiss notification',onclick:()=>{
+        DB.dismissedNotices=DB.dismissedNotices||{};
+        DB.dismissedNotices[n.id]=Date.now();
+        save();
+        const index=notices.findIndex(x=>x.id===n.id);
+        if(index>=0)notices.splice(index,1);
+        render();
+      }},'×');
+      return h('div',{class:'notice-item'},card,dismiss);
+    }):[h('section',{class:'panel stack'},h('b',null,'You’re all caught up'),h('p',{class:'small muted'},selected==='All'?'New quiz results, upcoming events and study prompts will appear here.':'No '+selected.toLowerCase()+' notifications right now.'))]));
   };
-  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();}},g)));
-  notices.forEach(n=>{if(!read[n.id]){ /* keep unread until opened or marked read */ }});
-  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),
-    sharedExamSchedulePanel(), filters, list
-  );
+  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{
+    selected=g;
+    filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));
+    render();
+  }},g)));
+  const activeIds=new Set(notices.map(n=>n.id));
+  Object.keys(read).forEach(id=>{if(!activeIds.has(id))delete read[id];});
+  Object.keys(dismissed).forEach(id=>{if(!activeIds.has(id)&&Number(dismissed[id])&&now-Number(dismissed[id])>90*DAY)delete dismissed[id];});
+  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),
+    h('div',{class:'row wrapr'},markAll,clearRead)),
+    sharedExamSchedulePanel(),filters,list);
   render();
-  fetchPublicExamSchedule().then(rows => {
-    rows.forEach(row => {
-      const dateLabel = examScheduleDate(row);
-      const when = row.scheduled_date ? new Date(row.scheduled_date + 'T09:00:00+01:00').getTime() : now;
-      add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
+  fetchPublicExamSchedule().then(rows=>{
+    rows.forEach(row=>{
+      const hasDate=!!row.scheduled_date;
+      const when=hasDate?new Date(row.scheduled_date+'T09:00:00+01:00').getTime():now;
+      const expiresAt=hasDate?when+EXAM_GRACE:now+7*DAY;
+      const id='shared-exam-'+row.id+'-'+(row.scheduled_date||'tentative');
+      add(id,'Schedule',row.course_code+' · '+row.assessment_type,
+        (hasDate?examScheduleDate(row):'Date to be confirmed')+' · '+(row.note||'Shared academic schedule'),
+        '#/plan',when,'📅',expiresAt);
     });
     notices.sort((a,b)=>(a.when||0)-(b.when||0));
     render();
   });
   mount(wrap(back('#/','Home'),box));
-  list.addEventListener('click',e=>{const card=e.target.closest('.notice-card');if(!card)return;const item=notices.find(n=>n.href===card.getAttribute('href')&& !read[n.id]);if(item){DB.readNotices=DB.readNotices||{};DB.readNotices[item.id]=true;save();}});
+  list.addEventListener('click',e=>{
+    const card=e.target.closest('.notice-card');
+    if(!card)return;
+    const id=card.getAttribute('data-notice-id');
+    if(!id)return;
+    DB.readNotices=DB.readNotices||{};
+    DB.readNotices[id]=Date.now();
+    save();
+  });
+  if('serviceWorker' in navigator)navigator.serviceWorker.ready.then(reg=>{
+    if(reg.active)reg.active.postMessage({type:'BABLO_CLEAN_NOTIFICATIONS'});
+  }).catch(()=>{});
 }
 function aboutView() {
   const box=h('div',{class:'stack-l'});
@@ -4765,4 +4996,10 @@ setTimeout(liveNotice, 1200);
  .dashboard-card-copy small{font-size:10px}
 }
 @media(min-width:760px){.dashboard-module-section .dashboard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+<style>
+.notice-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:stretch}
+.notice-dismiss{align-self:center;min-width:38px;min-height:38px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--muted);font-size:21px;line-height:1;cursor:pointer}
+.notice-dismiss:focus-visible{outline:3px solid var(--focus,#60A5FA);outline-offset:2px}
+@media(max-width:360px){.notice-item{gap:5px}.notice-dismiss{min-width:34px}}
 </style>

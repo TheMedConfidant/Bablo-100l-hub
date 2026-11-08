@@ -12,7 +12,7 @@ button{font:inherit;cursor:pointer}.wrap{max-width:1050px;margin:auto;padding:24
 .icon-rush{background:linear-gradient(145deg,#3c281b,#211710);border-color:#9b673d;color:#ffc27b}
 .icon-memory{background:linear-gradient(145deg,#202e4b,#151d32);border-color:#5274b0;color:#a9c7ff}
 .icon-reaction{background:linear-gradient(145deg,#3b2025,#241418);border-color:#a84c58;color:#ff9ba6}
-.icon-chess{background:linear-gradient(145deg,#3b321b,#211c10);border-color:#b99a4d;color:#f4d77d}
+.icon-chess{background:linear-gradient(145deg,#3b321b,#211c10);border-color:#b99a4d;color:#f4d77d}.icon-wifi{background:linear-gradient(145deg,#183a32,#10231f);border-color:#4d9a7d;color:#a8f0d2}
 .card{position:relative;overflow:hidden;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
 .card:hover{transform:translateY(-3px);border-color:#8e7742;box-shadow:0 12px 30px #0005}
 .card h2{margin:14px 0 5px}
@@ -134,6 +134,8 @@ html,body{height:100%;overflow:hidden}
 <article class="card"><div class="icon icon-rush" aria-hidden="true">🏃‍♂️</div><div class="game-tag">Speed &amp; knowledge</div><h2>Bablo Rush</h2><p>Answer fast and accurately to race towards the finish. Every correct answer moves you forward.</p><button class="btn" onclick="openGame('rush')">Play Bablo Rush →</button></article>
 <article class="card"><div class="icon icon-memory" aria-hidden="true">🧠</div><div class="game-tag">Memory &amp; learning</div><h2>Memory Matrix</h2><p>Flip the tiles, remember what you saw, and match all the pairs with as few moves as possible.</p><button class="btn secondary" onclick="openGame('memory')">Play Memory Matrix →</button></article>
 <article class="card"><div class="icon icon-reaction" aria-hidden="true">⚡</div><div class="game-tag">Reflex &amp; focus</div><h2>Reaction Arena</h2><p>Wait for the signal, then tap as quickly as you can. False starts do not count.</p><button class="btn secondary" onclick="openGame('reaction')">Test your reflexes →</button></article>
+
+<article class="card"><div class="icon icon-wifi" aria-hidden="true">📶</div><div class="game-tag">Local multiplayer · No data</div><h2>Wi-Fi Challenge</h2><p>Host a quiz battle with a nearby phone over the same Wi-Fi or hotspot. Internet is not required after connection.</p><button class="btn" onclick="window.BabloWifiChallenge?.open()">Start local battle →</button></article>
 <article class="card"><div class="icon icon-chess" aria-hidden="true">♟</div><div class="game-tag">Strategy &amp; competition</div><h2>Bablo Chess</h2><p>Enter the Gold Glass Arena. Play the bots, practise your openings, and review your games.</p><a class="btn" href="https://bablo-chess.vercel.app/" target="_blank" rel="noopener noreferrer">Enter Bablo Chess →</a></article>
 
 </section></div>
@@ -148,6 +150,7 @@ html,body{height:100%;overflow:hidden}
 <script src="/mls101-data.js"></script>
 <script src="/phy101-data.js"></script>
 <script src="/thermochemistry-data.js"></script>
+<script src="/wifi-challenge.js" defer></script>
 <script>
 window.__BANK__=window.__BANK__||[];
 if(window.__PHY101_PACK__&&Array.isArray(window.__PHY101_PACK__.questions))window.__BANK__.push(...window.__PHY101_PACK__.questions);
