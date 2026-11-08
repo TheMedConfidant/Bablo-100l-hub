@@ -317,15 +317,15 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 .bot-msg{max-width:85%;padding:10px 12px;border-radius:16px;font-size:.92rem;line-height:1.4}.bot-msg.bot{align-self:flex-start;background:var(--surface2)}.bot-msg.me{align-self:flex-end;background:var(--brand);color:var(--brand-ink)}
 .bot-input{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}.bot-input input{flex:1;min-height:42px;border:1px solid var(--line);border-radius:12px;padding:0 10px;background:var(--bg);color:var(--ink)}
 
-/* floating buttons: Me (left) and Chess (right), above the bottom bar */
+/* floating profile shortcut; games live inside Bablo Arcade */
 .float-btn{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:1.4rem;color:#fff;text-decoration:none;background:linear-gradient(145deg,var(--brand),#6366F1);box-shadow:0 10px 30px rgba(0,0,0,.3);border:1px solid var(--line)}
-.float-me{left:16px}.float-chess{right:16px}
+.float-me{left:16px}
 
 /* floating buttons: Home only, stacked on the right above the bottom bar */
 .float-btn{display:none}
 body.on-home .float-btn{display:grid}
 .float-me{right:16px;bottom:calc(152px + env(safe-area-inset-bottom,0px));left:auto}
-.float-chess{right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+
 body.on-home .wrap{padding-bottom:170px}
 .top-actions{display:flex;align-items:center;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-size:1.05rem;cursor:pointer}
@@ -2280,7 +2280,8 @@ function openHubMenu(){
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
     group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
-    group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Chess','#/chess','♟'),link('Send feedback','#/feedback','✉')]),
+    group('TOOLS',[link('Scientific calculator','/calculator/','∑')]),
+    group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Send feedback','#/feedback','✉')]),
     group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
     group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
     group('ADMINISTRATION',[link('Admin Panel','#/admin','🛠')]),
@@ -2424,10 +2425,9 @@ function timeHubView(){
  )));
 }
 function arcadeHubView(){
- mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Chess'),h('p',{class:'muted'},'Play or improve your chess skills.')),
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'All games in one place: Chess, Bablo Rush, Memory Matrix and Reaction Arena.')),
  h('section',{class:'dashboard-grid'},
- dashboardCard('Bablo Chess','Play Dr ECG or challenge another player','♟','#/chess'),
- dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics')
+ dashboardCard('Enter Bablo Arcade','Play Chess and the full collection of games','🎮','/arcade/','#D6A82B')
  )));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
@@ -2471,6 +2471,7 @@ function courseView(code) {
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
       h('button', { class: 'btn block', onclick: () => go('#/analytics/' + code) }, '📊 Course analytics'),
+      code === 'COS' ? h('button', { class: 'btn gold block', onclick: () => go('#/bonus/COS') }, '🕰️ COS 101: The story of computing — timeline & pioneers') : null,
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
         h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
@@ -4189,40 +4190,80 @@ function flashView(code) {
   if (!canAccessCourse(code)) { go('#/'); return; }
   const hubCards = (window.__CARDS__ || {})[code];
   const allDeck = hubCards
-    ? hubCards.map(x => ({ q: x.front, b: x.back, u: x.u || 'General', opts: null }))
-    : (BYC[code] || []).map(q => ({ q: q.q, b: q.s === 'fill' ? (q.acc || []).join(' / ') : q.o[q.a], u: q.u || 'General', opts: q.s === 'fill' ? null : q.o }));
+    ? hubCards.map((x,n) => ({ id:String(x.id || x.i || code+'|'+(x.u||'General')+'|'+(x.front||n)), q:x.front, b:x.back, u:x.u || 'General', opts:null }))
+    : (BYC[code] || []).map((q,n) => ({ id:String(q.i || code+'|'+(q.u||'General')+'|'+n), q:q.q, b:q.s === 'fill' ? (q.acc || []).join(' / ') : q.o[q.a], u:q.u || 'General', opts:q.s === 'fill' ? null : q.o }));
   if (!allDeck.length) { go('#/course/' + code); return; }
   const topics = [...new Set(allDeck.map(x => x.u))];
-  let selected = 'all', deck = Core.shuffle(allDeck.slice()), i = 0, showBack = false;
-  const counter = h('span', { class: 'muted small' });
-  const topicSelect = h('select', { 'aria-label': 'Choose flashcard topic', class: 'fc-topic-select' },
-    h('option', { value: 'all' }, 'All topics'), ...topics.map(t => h('option', { value: t }, t)));
-  const cardEl = h('div', { class: 'fc-card', onclick: () => flip(), role: 'button', tabindex: '0' });
-  const flipBtn = h('button', { class: 'btn primary block', onclick: () => flip() }, 'Show answer');
-  const flip = () => { showBack = !showBack; draw(); };
-  const draw = () => {
-    const x = deck[i]; if (!x) return;
-    counter.textContent = (i + 1) + ' of ' + deck.length + ' cards' + (selected === 'all' ? '' : ' • ' + x.u);
-    const body = [h('span', { class: 'chip brand' }, showBack ? 'Answer' : 'Question')];
-    body.push(h('p', { class: 'fc-text' }, showBack ? x.b : x.q));
-    if (!showBack && x.opts) body.push(h('div', { class: 'fc-opts' }, x.opts.map(o => h('div', { class: 'fc-opt' }, o))));
-    body.push(h('span', { class: 'tiny muted' }, showBack ? 'Tap the card to see the question again' : 'Tap the card or Show answer'));
-    cardEl.replaceChildren(...body.filter(Boolean));
-    flipBtn.textContent = showBack ? 'Hide answer' : 'Show answer';
+  const storeKey = 'bablo:anki:v1:' + (DB.profile && (DB.profile.uid || DB.profile.username) || 'local') + ':' + code;
+  let review = {};
+  try { review = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch (_) { review = {}; }
+  const now = () => Date.now();
+  const due = x => !review[x.id] || Number(review[x.id].due || 0) <= now();
+  let mode = 'due', selected = 'all', deck = [], i = 0, showBack = false;
+  const counter = h('span', { class:'muted small' });
+  const stats = h('p', { class:'tiny muted' });
+  const modeSelect = h('select', { 'aria-label':'Review mode', class:'fc-topic-select' },
+    h('option',{value:'due'},'Due for review'), h('option',{value:'all'},'All cards'));
+  const topicSelect = h('select', { 'aria-label':'Choose flashcard topic', class:'fc-topic-select' },
+    h('option',{value:'all'},'All topics'), ...topics.map(t => h('option',{value:t},t)));
+  const cardEl = h('div', { class:'fc-card', role:'button', tabindex:'0', 'aria-label':'Flashcard; tap to reveal answer' });
+  const flipBtn = h('button', { class:'btn primary block', onclick:() => flip() }, 'Show answer');
+  const reviewControls = h('div', { class:'grid-4', style:{display:'none',gap:'8px',gridTemplateColumns:'repeat(4,minmax(0,1fr))'} });
+  const finish = h('section', { class:'panel stack', style:{display:'none'} },
+    h('h2',null,'Review complete'), h('p',{class:'muted small'},'You have reached the end of this review queue. Your ratings have been saved on this device.'));
+  const flip = () => { if (!deck[i]) return; showBack = !showBack; draw(); };
+  const persist = () => { try { localStorage.setItem(storeKey, JSON.stringify(review)); } catch (_) {} };
+  const refresh = () => {
+    let list = allDeck.filter(x => selected === 'all' || x.u === selected);
+    if (mode === 'due') list = list.filter(due);
+    deck = Core.shuffle(list.slice()); i = 0; showBack = false;
+    finish.style.display = deck.length ? 'none' : 'block';
+    draw();
   };
-  const step = d => { i = (i + d + deck.length) % deck.length; showBack = false; draw(); };
-  topicSelect.addEventListener('change', () => {
-    selected = topicSelect.value;
-    deck = Core.shuffle(allDeck.filter(x => selected === 'all' || x.u === selected));
-    i = 0; showBack = false; draw();
-  });
-  mount(wrap(back('#/course/' + code, c ? c.label : 'Course'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', { style: { color: c ? c.color : undefined } }, 'Flashcards'), h('p', { class: 'muted small' }, 'Choose a topic for focused active recall.'), topicSelect, counter),
-    cardEl, flipBtn,
-    h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => step(-1) }, '‹ Previous'), h('button', { class: 'btn primary grow', onclick: () => step(1) }, 'Next ›')))));
-  draw();
+  const schedule = (x, rating) => {
+    const prev = review[x.id] || { interval:0, ease:2.5, reps:0, lapses:0 };
+    let interval = Number(prev.interval || 0), ease = Number(prev.ease || 2.5), reps = Number(prev.reps || 0), lapses = Number(prev.lapses || 0), delay;
+    if (rating === 'again') { delay = 60 * 1000; interval = 0; reps = 0; lapses++; ease = Math.max(1.3,ease-.2); }
+    else if (rating === 'hard') { interval = Math.max(1, interval ? interval*1.2 : 1); delay = interval*86400000; reps++; ease = Math.max(1.3,ease-.15); }
+    else if (rating === 'good') { interval = interval ? Math.max(1,interval*ease) : 2; delay = interval*86400000; reps++; }
+    else { interval = interval ? Math.max(2,interval*ease*1.3) : 4; delay = interval*86400000; reps++; ease = Math.min(3.2,ease+.15); }
+    review[x.id] = { due:now()+delay, interval, ease, reps, lapses, last:now(), rating };
+    persist();
+    i++; showBack = false;
+    if (i >= deck.length) finish.style.display = 'block';
+    draw();
+  };
+  const draw = () => {
+    const x = deck[i];
+    const dueCount = allDeck.filter(due).length;
+    const reviewed = Object.keys(review).filter(id => allDeck.some(x => x.id === id)).length;
+    stats.textContent = dueCount + ' due now · ' + reviewed + ' of ' + allDeck.length + ' cards reviewed';
+    if (!x) {
+      counter.textContent = 'No cards in this queue';
+      cardEl.replaceChildren(h('p',{class:'fc-text'},mode === 'due' ? 'You are all caught up. Switch to All cards to browse or study ahead.' : 'No cards match this topic.'));
+      flipBtn.style.display = 'none'; reviewControls.style.display = 'none'; return;
+    }
+    counter.textContent = (i+1)+' of '+deck.length+' cards'+(selected==='all'?'':' • '+x.u);
+    const body = [h('span',{class:'chip brand'},showBack?'Answer':'Question'),h('p',{class:'fc-text'},showBack?x.b:x.q)];
+    if (!showBack && x.opts) body.push(h('div',{class:'fc-opts'},x.opts.map(o=>h('div',{class:'fc-opt'},o))));
+    body.push(h('span',{class:'tiny muted'},showBack?'Rate how well you recalled it':'Tap the card or Show answer'));
+    cardEl.replaceChildren(...body.filter(Boolean));
+    flipBtn.style.display = 'block'; flipBtn.textContent = showBack?'Hide answer':'Show answer';
+    reviewControls.style.display = showBack?'grid':'none';
+  };
+  const step = d => { if (!deck.length) return; i=(i+d+deck.length)%deck.length; showBack=false; draw(); };
+  for (const [label,value] of [['Again','again'],['Hard','hard'],['Good','good'],['Easy','easy']]) {
+    reviewControls.append(h('button',{class:'btn '+(value==='again'?'secondary':'primary'),style:{padding:'10px 4px',minWidth:0},onclick:()=>schedule(deck[i],value)},label));
+  }
+  topicSelect.addEventListener('change',()=>{selected=topicSelect.value;refresh();});
+  modeSelect.addEventListener('change',()=>{mode=modeSelect.value;refresh();});
+  cardEl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}});
+  mount(wrap(back('#/course/'+code,c?c.label:'Course'),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('h1',{style:{color:c?c.color:undefined}},'Flashcards'),h('p',{class:'muted small'},'Anki-style active recall: rate each answer and the next review is scheduled automatically.'),modeSelect,topicSelect,counter,stats),
+    cardEl,flipBtn,reviewControls,finish,
+    h('div',{class:'row'},h('button',{class:'btn grow',onclick:()=>step(-1)},'‹ Previous'),h('button',{class:'btn primary grow',onclick:()=>step(1)},'Next ›')))));
+  refresh();
 }
-
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
 const QUAL = { date: '2026-10-17', A: [14 * 60, 18 * 60], B: [22 * 60, 23 * 60], questions: 60, minutes: 40, topN: 5 };
 function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d.toISOString().slice(0, 10), mins: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
@@ -4278,19 +4319,72 @@ async function qualifiersCard() {
 }
 
 /* ---------- bonus pages ---------- */
+const BONUS_COS101 = {
+ title: 'COS 101 Bonus: The Story of Computing',
+ quick: [
+  ['Ancient world','Abacus — an early calculation aid'],
+  ['1617','John Napier — Napier’s bones and logarithmic work'],
+  ['1642','Blaise Pascal — Pascaline mechanical calculator'],
+  ['1673','G. W. Leibniz — stepped reckoner demonstration'],
+  ['1801','Joseph-Marie Jacquard — punched-card controlled loom'],
+  ['1822 / 1837','Charles Babbage — Difference Engine / Analytical Engine designs'],
+  ['1843','Ada Lovelace — published an algorithm for the Analytical Engine'],
+  ['1890','Herman Hollerith — punched-card census tabulator'],
+  ['1936','Alan Turing — universal machine theory'],
+  ['1945–1946','Stored-program architecture and ENIAC announcement'],
+  ['1947','Bardeen, Brattain and Shockley — transistor'],
+  ['1958–1959','Jack Kilby and Robert Noyce — integrated circuits'],
+  ['1971','Intel 4004 — commercial microprocessor'],
+  ['1981','IBM Personal Computer launch'],
+  ['1989–1991','Tim Berners-Lee — World Wide Web']
+ ],
+ summary: 'Computing grew from counting tools into mechanical automation, programmable designs, electronic machines, microprocessors and connected digital systems. Each milestone addressed limits left by earlier methods.',
+ plot: [
+  'Act I — Counting: tallies and the abacus helped people represent quantities. Napier’s 1617 work and Pascal’s 1642 Pascaline made calculation more systematic.',
+  'Act II — Programmable machines: Leibniz advanced mechanical arithmetic. Jacquard’s 1801 punched cards showed how instructions could control a machine. Babbage designed the Difference Engine (1822) and Analytical Engine (1837).',
+  'Act III — Software before electronics: Ada Lovelace’s 1843 notes described an algorithm for the Analytical Engine. Hollerith’s 1890 tabulator processed census data with punched cards.',
+  'Act IV — Theory becomes electronics: Turing formalised computation in 1936. Stored-program architecture, ENIAC and the 1947 transistor helped move computing into the electronic era.',
+  'Act V — Personal and connected computing: integrated circuits, microprocessors and personal computers made computing smaller and more accessible. The Web connected information across the Internet.'
+ ],
+ cast: [
+  ['John Napier','1617 — Napier’s bones and logarithmic calculation'],
+  ['Blaise Pascal','1642 — Pascaline calculator'],
+  ['G. W. Leibniz','1673 — stepped reckoner; also developed binary arithmetic'],
+  ['Joseph-Marie Jacquard','1801 — punched-card loom'],
+  ['Charles Babbage','1822 / 1837 — Difference and Analytical Engine designs'],
+  ['Ada Lovelace','1843 — early published machine algorithm'],
+  ['Herman Hollerith','1890 — punched-card tabulating system'],
+  ['Alan Turing','1936 — mathematical model of a universal computer'],
+  ['John von Neumann','1945 — influential stored-program architecture report'],
+  ['Bardeen, Brattain and Shockley','1947 — transistor team at Bell Labs'],
+  ['Jack Kilby and Robert Noyce','1958–1959 — integrated-circuit pioneers'],
+  ['Tim Berners-Lee','1989–1991 — World Wide Web']
+ ],
+ keyPoints: [
+  'Abacus is a calculation aid, not an electronic computer.',
+  'Jacquard’s punched cards demonstrated machine control by instructions.',
+  'Babbage designed the Analytical Engine; it was not completed in his lifetime.',
+  'Ada Lovelace published an early algorithm intended for a general-purpose machine.',
+  'Turing described a theoretical model; he did not build the first electronic computer.',
+  'Transistors replaced vacuum tubes; integrated circuits combined components; microprocessors placed a CPU on a chip.',
+  'The Internet is network infrastructure; the Web is a service that runs on it.'
+ ],
+ attribution: 'Educational timeline of major computing-history milestones.',
+ caveat: 'Several milestones involved teams and parallel developments. Dates distinguish proposals, demonstrations and commercial releases.'
+};
 function bonusView(code) {
   const c = courseBy(code) || { label: code, color: '#0B7A75' };
-  const B = code === 'GEL101' ? BONUS_GEL101 : null;
+  const B = code === 'GEL101' ? BONUS_GEL101 : code === 'COS' ? BONUS_COS101 : null;
   if (!B) { go('#/course/' + code); return; }
-  const practise = h('button', { class: 'btn primary block', onclick: () => startSession({ course: code, mode: 'practice', units: ['Bonus: Lean on Me'], n: 30, order: 'shuffle', timerKind: 'up', minutes: 0 }) }, 'Practise the 30 questions');
+  const practise = code === 'GEL101' ? h('button', { class: 'btn primary block', onclick: () => startSession({ course: code, mode: 'practice', units: ['Bonus: Lean on Me'], n: 30, order: 'shuffle', timerKind: 'up', minutes: 0 }) }, 'Practise the 30 questions') : null;
   mount(wrap(back('#/course/' + code, c.label), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, B.title), h('span', { class: 'chip gold' }, 'Bonus')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Quick facts'), B.quick.map(([k, v]) => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } }, h('b', null, k), h('span', { class: 'muted small' }, v)))),
+    h('section', { class: 'panel stack' }, h('h2', null, code === 'COS' ? 'Timeline' : 'Quick facts'), B.quick.map(([k, v]) => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } }, h('b', null, k), h('span', { class: 'muted small' }, v)))),
     h('section', { class: 'panel stack' }, h('h2', null, 'Summary'), h('p', null, B.summary)),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Plot'), B.plot.map(p => h('p', { style: { margin: 0 } }, p))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Cast'), B.cast.map(([who, role]) => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } }, h('b', null, who), h('span', { class: 'muted small' }, role)))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Key points'), B.keyPoints.map(t => h('p', { class: 'small', style: { margin: 0 } }, '\u2022 ' + t))),
-    h('section', { class: 'panel stack' }, h('h2', null, 'Practice'), h('p', { class: 'muted small' }, '30 questions from the study guide. Flagged until verified, so they are practice only.'), practise),
+    h('section', { class: 'panel stack' }, h('h2', null, code === 'COS' ? 'The storyline' : 'Plot'), B.plot.map(p => h('p', { style: { margin: 0 } }, p))),
+    h('section', { class: 'panel stack' }, h('h2', null, code === 'COS' ? 'Pioneers & contributors' : 'Cast'), B.cast.map(([who, role]) => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } }, h('b', null, who), h('span', { class: 'muted small' }, role)))),
+    h('section', { class: 'panel stack' }, h('h2', null, code === 'COS' ? 'Key connections' : 'Key points'), B.keyPoints.map(t => h('p', { class: 'small', style: { margin: 0 } }, '\u2022 ' + t))),
+    code === 'GEL101' ? h('section', { class: 'panel stack' }, h('h2', null, 'Practice'), h('p', { class: 'muted small' }, '30 questions from the study guide. Flagged until verified, so they are practice only.'), practise) : null,
     h('p', { class: 'tiny muted' }, B.attribution),
     h('p', { class: 'tiny muted' }, B.caveat))));
 }
