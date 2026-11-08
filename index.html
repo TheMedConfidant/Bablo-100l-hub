@@ -2752,7 +2752,16 @@ async function finishSession(auto, early) {
 }
 function recordAttempt(s) {
   const r = s.res, ts = Date.now();
-  const entry = { ts, course: s.course, mode: s.mode, n: s.n, correct: r.correct, pct: r.pct, secs: s.secs };
+  const topicStats = {};
+  s.qs.forEach((q, i) => {
+    const topic = String(q.unit || 'Uncategorised').trim() || 'Uncategorised';
+    const row = topicStats[topic] || (topicStats[topic] = { total: 0, answered: 0, correct: 0, incorrect: 0, skipped: 0 });
+    row.total++;
+    const answer = s.answers[i];
+    if (answer == null || answer === '') row.skipped++;
+    else { row.answered++; if (Core.isCorrect(q, answer)) row.correct++; else row.incorrect++; }
+  });
+  const entry = { ts, course: s.course, mode: s.mode, n: s.n, correct: r.correct, pct: r.pct, secs: s.secs, topicStats };
   DB.history.push(Object.assign({}, entry, { units: s.units || [], programme: DB.profile.programme })); if (DB.history.length > 300) DB.history = DB.history.slice(-300);
   const per = {};
   s.qs.forEach((q, i) => {
