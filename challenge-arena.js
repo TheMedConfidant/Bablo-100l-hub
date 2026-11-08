@@ -63,26 +63,50 @@ function ghostKey(course,count){return 'bablo-ghost-v1:'+course+':'+count;}
 function ghostFingerprint(q){return JSON.stringify([cleanText(q.q),...(q.o||[]).map(cleanText)]);}
 function ghostEncode(data){const bytes=new TextEncoder().encode(JSON.stringify(data));let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin).replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'');}
 function ghostDecode(code){const raw=atob(String(code).trim().replace(/-/g,'+').replace(/_/g,'/'));const bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));return JSON.parse(new TextDecoder().decode(bytes));}
+let GHOST_CHAMPIONS=[];
+async function loadGhostChampions(){
+  const period=$('#cd-ghost-period')?.value||'overall',select=$('#cd-ghost-champion');
+  if(!select)return;
+  select.replaceChildren(h('option',{value:''},'Loading Champions League…'));
+  try{
+    const data=await call('hub_challenge_leaderboard',{p_period:period});
+    GHOST_CHAMPIONS=data.entries||[];
+    select.replaceChildren(...(GHOST_CHAMPIONS.length?GHOST_CHAMPIONS.map(p=>h('option',{value:p.username},'#'+p.rank+' '+(p.nickname||p.username)+' · '+p.points+' pts · '+p.accuracy+'% accuracy · '+p.matches+' matches')):[h('option',{value:''},'No ranked players yet')]));
+  }catch(e){select.replaceChildren(h('option',{value:''},'Could not load leaderboard'));toast('Champions League scores could not load: '+e.message);}
+}
 function offlineStartPanel(){
   const cs=courses();
   frame(h('div',null,hero(),h('section',{class:'cd-panel'},
     h('h2',null,'Ghost Race · Offline Arena'),
-    h('p',{class:'muted'},'Race your personal best or import a friend’s ghost run. Both players answer the same question sequence; the ghost advances at their recorded pace. No internet is needed during the race.'),
+    h('p',{class:'muted'},'Race your personal best, a friend’s ghost, or a Champions League accuracy benchmark. The benchmark is fetched online before the race; the race itself can run offline.'),
     h('label',null,'Course'),
     h('select',{id:'cd-offline-course'},...cs.map(c=>h('option',{value:c},c))),
     h('label',null,'Number of questions'),
     h('select',{id:'cd-offline-count'},...[5,10,15,20,30].map(n=>h('option',{value:n,selected:n===10},n+' questions'))),
     h('label',null,'Race opponent'),
-    h('select',{id:'cd-ghost-mode'},h('option',{value:'pb'},'My personal best'),h('option',{value:'friend'},'A friend’s ghost code')),
+    h('select',{id:'cd-ghost-mode'},h('option',{value:'pb'},'My personal best'),h('option',{value:'friend'},'A friend’s ghost code'),h('option',{value:'champions'},'Champions League score benchmark')),
+    h('div',{id:'cd-champions-config',style:{display:'none'}},
+      h('label',null,'Leaderboard period'),
+      h('select',{id:'cd-ghost-period'},...['overall','monthly','weekly'].map(p=>h('option',{value:p},p[0].toUpperCase()+p.slice(1)))),
+      h('button',{class:'secondary',onclick:loadGhostChampions},'Refresh Champions League scores'),
+      h('label',null,'Choose a player to challenge'),
+      h('select',{id:'cd-ghost-champion'},h('option',{value:''},'Load leaderboard scores first')),
+      h('p',{class:'muted'},'This compares your run accuracy with the selected player’s verified Champions League accuracy. It is a score benchmark, not a replay of their exact questions or timing.')),
     h('label',null,'Friend ghost code (only for friend races)'),
     h('textarea',{id:'cd-ghost-code',rows:3,placeholder:'Paste a ghost code shared by a friend'}),
     h('label',null,'Time limit'),
     h('select',{id:'cd-offline-time'},...[[0,'No timer'],[5,'5 minutes'],[10,'10 minutes'],[20,'20 minutes'],[30,'30 minutes']].map(v=>h('option',{value:v[0]},v[1]))),
     h('div',{class:'cd-quick'},h('button',{onclick:offlineBegin},'Start ghost race'),h('button',{class:'secondary',onclick:dashboard},'Back')))));
+  $('#cd-ghost-mode').addEventListener('change',e=>{const box=$('#cd-champions-config');if(box)box.style.display=e.target.value==='champions'?'block':'none';if(e.target.value==='champions')loadGhostChampions();});
 }
 function offlineBegin(){
   const course=$('#cd-offline-course').value,count=Number($('#cd-offline-count').value),mins=Number($('#cd-offline-time').value),mode=$('#cd-ghost-mode').value;
-  let ghost=null;
+  let ghost=null,benchmark=null;
+  if(mode==='champions'){
+    const username=$('#cd-ghost-champion')?.value;
+    benchmark=GHOST_CHAMPIONS.find(p=>p.username===username);
+    if(!benchmark){toast('Choose a player from the loaded Champions League scores first.');return;}
+  }
   if(mode==='pb'){
     try{ghost=JSON.parse(localStorage.getItem(ghostKey(course,count))||'null');}catch(_){}
     if(!ghost){toast('No personal best yet. Complete one run first to create your ghost.');return;}
@@ -104,11 +128,12 @@ function offlineBegin(){
     return {prompt:cleanText(q.q),choices:choices.map(cleanText),answer,explanation:cleanText(q.explanation||q.e||''),topic:cleanText(q.u||q.topic||''),fingerprint:ghostFingerprint(q)};
   }).filter(q=>Number.isInteger(q.answer)&&q.answer>=0&&q.answer<q.choices.length);
   if(picked.length<count){toast('Some questions have incomplete answer keys. Try another course or question count.');return;}
-  OFFLINE_MATCH={course,questions:picked,index:0,correct:0,answers:[],durations:[],started:Date.now(),questionStarted:Date.now(),end:mins?Date.now()+mins*60000:0,done:false,timer:null,ghost:ghost||null,ghostMode:mode};
+  OFFLINE_MATCH={course,questions:picked,index:0,correct:0,answers:[],durations:[],started:Date.now(),questionStarted:Date.now(),end:mins?Date.now()+mins*60000:0,done:false,timer:null,ghost:ghost||null,ghostMode:mode,benchmark:benchmark||null};
   offlineRenderQuestion();
 }
 function offlineGhostStatus(){
   const m=OFFLINE_MATCH,el=$('#cd-ghost-status');if(!m||!el)return;
+  if(m.benchmark){el.textContent='Champions League target: '+m.benchmark.accuracy+'% accuracy ('+m.benchmark.points+' verified points across '+m.benchmark.matches+' matches).';return;}
   if(!m.ghost){el.textContent='No ghost opponent · this run will set your first personal best.';return;}
   const target=m.ghost.durations.slice(0,m.index).reduce((a,b)=>a+b,0),elapsed=Math.max(0,Date.now()-m.started);
   const diff=elapsed-target;
@@ -155,7 +180,7 @@ async function offlineFinish(){
   const result=h('div',null,hero(),h('section',{class:'cd-panel'},
     h('h2',null,'Ghost race complete'),
     h('div',{class:'cd-stats'},stat(m.correct+'/'+m.questions.length,'Correct answers'),stat(pct+'%','Accuracy'),stat(Math.floor(secs/60)+'m '+(secs%60)+'s','Time used'),stat(isPB?'NEW PB':'Saved','Personal best')),
-    h('p',{class:'muted'},m.ghost?(m.ghost.score===m.correct?(secs<=m.ghost.secs?'You beat the ghost on time.':'You matched the ghost score.'):(m.correct>m.ghost.score?'You beat the ghost score.':'The ghost scored higher this time.')):'Your first run is saved. Race it next time to chase your personal best.'),
+    h('p',{class:'muted'},m.benchmark?('Champions League benchmark: '+(pct>Number(m.benchmark.accuracy)?'You beat ':'You did not beat ')+(m.benchmark.nickname||m.benchmark.username)+'’s '+m.benchmark.accuracy+'% verified accuracy. '+(pct===Number(m.benchmark.accuracy)?'You matched the benchmark.':'')):m.ghost?(m.ghost.score===m.correct?(secs<=m.ghost.secs?'You beat the ghost on time.':'You matched the ghost score.'):(m.correct>m.ghost.score?'You beat the ghost score.':'The ghost scored higher this time.')):'Your first run is saved. Race it next time to chase your personal best.'),
     h('label',null,'Share this ghost with a friend'),
     h('textarea',{id:'cd-ghost-share',rows:3,readonly:true},shareCode),
     h('button',{onclick:()=>{const el=$('#cd-ghost-share');el.select();if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(shareCode).then(()=>toast('Ghost code copied.')).catch(()=>toast('Select and copy the ghost code.'));else toast('Select and copy the ghost code.');}},'Copy ghost code'),
