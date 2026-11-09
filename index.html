@@ -2840,7 +2840,7 @@ function resultView() {
     ...topicBreakdown.map(t=>h('div',{class:'stack',style:{gap:'5px'}},
       h('div',{class:'row between wrapr'},h('b',{class:'small'},t.name),h('span',{class:'tiny muted'},t.correct+'/'+t.total+' · '+t.pct+'%')),
       h('div',{class:'prog'},h('i',{style:{width:t.pct+'%',background:t.pct>=70?'var(--ok)':t.pct>=50?'var(--brand)':'var(--gold)'}})),
-      t.pct<70?h('button',{class:'btn sm ghost',style:{alignSelf:'flex-start'},onclick:()=>startSession({course:s.course,mode:'practice',units:[t.name],n:Math.min(20,BYC[s.course].filter(q=>q.u===t.name).length),order:'shuffle',timerKind:'up',minutes:0})},'Practise this topic'):null
+      t.pct<70?h('button',{class:'btn sm ghost',style:{alignSelf:'flex-start'},onclick:()=>startSession({course:s.course,mode:'practice',units:[t.name],n:Math.min(20,BANK.filter(q=>(s.course==='*'||q.c===s.course)&&q.u===t.name).length),order:'shuffle',timerKind:'up',minutes:0})},'Practise this topic'):null
     )));
   const slip = exam ? h('div', { class: 'slip' }, h('h2', null, 'Result slip'), h('p', { class: 'muted small' }, 'Practice slip, not an official result.'),
     h('dl', null, [['Candidate', DB.profile.name], ['Programme', DB.profile.programme], ['Course', c.label + ' ' + (c.title || '')], ['Date', new Date().toLocaleString()], ['Questions', s.n], ['Score', r.correct + ' / ' + s.n + ' (' + r.pct + '%)'], ['Grade', r.grade.l + ' (' + r.grade.p + '.0 points)'], ['Time used', Core.fmtTime(s.secs)], ['Reference', 'BX-' + s.course + '-' + s.id.toUpperCase()]].map(([k, v]) => [h('dt', null, k), h('dd', null, String(v))]))) : null;
