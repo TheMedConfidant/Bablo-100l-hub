@@ -291,6 +291,33 @@ drop policy if exists "hub_chat_insert_all" on public.hub_chat;
 drop policy if exists "hub_chat_read_all" on public.hub_chat;
 revoke all on table public.hub_chat from anon, authenticated;
 
+
+-- Social content remains publicly readable, but authorship and likes are
+-- written only by session-checked RPCs. Raw account IDs are not exposed
+-- through the likes table.
+drop policy if exists "add social posts" on public.social_posts;
+drop policy if exists "add comments" on public.social_comments;
+drop policy if exists "add likes" on public.social_likes;
+drop policy if exists "read likes" on public.social_likes;
+revoke insert on table public.social_posts, public.social_comments, public.social_likes from anon, authenticated;
+revoke select on table public.social_likes from anon, authenticated;
+
+create or replace function public.hub_social_likes_summary(p_token text,p_post_ids uuid[])
+returns jsonb language plpgsql security definer set search_path to 'public','pg_temp'
+as $
+declare account_id text; result jsonb;
+begin
+ select unique_id into account_id from public.hub_sessions where token=p_token and expires_at>now() limit 1;
+ if account_id is null then return jsonb_build_object('ok',false,'error','Please log in again.'); end if;
+ if coalesce(array_length(p_post_ids,1),0)>50 then return jsonb_build_object('ok',false,'error','Too many posts requested.'); end if;
+ select coalesce(jsonb_agg(jsonb_build_object('post_id',p.id,'n',coalesce(x.n,0),'mine',coalesce(x.mine,false))),'[]'::jsonb)
+ into result from unnest(coalesce(p_post_ids,'{}'::uuid[])) p(id)
+ left join lateral (select count(*)::integer n,bool_or(dev=account_id) mine from public.social_likes where post_id=p.id) x on true;
+ return jsonb_build_object('ok',true,'items',result);
+end $;
+revoke execute on function public.hub_social_likes_summary(text,uuid[]) from public, authenticated;
+grant execute on function public.hub_social_likes_summary(text,uuid[]) to anon, service_role;
+
 -- Remove default PUBLIC execution from anonymous-facing definer RPCs.
 -- The app uses the anon publishable key plus its own opaque session token;
 -- the server role retains access for trusted Edge Function calls.
