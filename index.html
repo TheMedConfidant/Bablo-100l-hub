@@ -4106,7 +4106,7 @@ function flashView(code) {
     const now = Date.now();
     deck = allDeck.filter(x => selected === 'all' || x.u === selected).sort((a, b) => (Number(review[a.id]?.dueAt) || 0) - (Number(review[b.id]?.dueAt) || 0));
     deck = deck.filter(x => !review[x.id] || !review[x.id].dueAt || review[x.id].dueAt <= now).concat(deck.filter(x => review[x.id]?.dueAt > now));
-    i = 0; showBack = false; draw();
+    i = 0; showBack = false; flipBtn.hidden = false; flipBtn.disabled = false; ratingRow.hidden = true; draw();
   };
   const draw = () => {
     const x = deck[i];
