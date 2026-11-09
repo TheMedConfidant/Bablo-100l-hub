@@ -1757,15 +1757,15 @@ async function pushProgress() {
 
 /* past device scores go to the leaderboard under the account, once each */
 async function syncPastScores() {
-  if (!signedIn() || !LB.url) return;
+  if (!signedIn() || !LB.url || !DB.account || !DB.account.token) return;
   DB.syncedTs = DB.syncedTs || {};
   const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && !DB.syncedTs[e.ts])
-    .map(e => ({ dev: DB.dev, nick: DB.profile.nick.slice(0, 30), course: e.course, mode: e.mode, n: e.n, correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts, programme: DB.profile.programme, uid: DB.profile.uid }));
+    .map(e => ({ dev: DB.dev, course: e.course, mode: e.mode, n: e.n, correct: e.correct, secs: e.secs, ts: e.ts }));
   if (!rows.length) return;
   try {
-    const r = await fetch(LB.url + '/rest/v1/scores', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(rows) });
-    if (r.ok) { rows.forEach(x => { DB.syncedTs[x.ts] = true; }); save(); }
-  } catch (e) { /* try again on the next sign-in */ }
+    const j = await hubCall('hub_submit_scores', { p_token: DB.account.token, p_scores: rows });
+    if (j && j.ok) { rows.forEach(x => { DB.syncedTs[x.ts] = true; }); save(); }
+  } catch (e) { /* retry on the next sign-in */ }
 }
 
 /* anonymous usage events for the admin analytics: a device id and what happened, no names */
