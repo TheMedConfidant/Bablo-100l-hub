@@ -58,6 +58,12 @@ if (html) {
   else fail("Premium pricing page missing");
   if (/hub_submit_scores/.test(html)) pass("Leaderboard uses the session-validated score RPC");
   else fail("Leaderboard still lacks the secure score RPC");
+  if (/BONUS_COS101/.test(html) && /function cosBonusView\\(/.test(html)) pass("COS history bonus and timeline renderer are present");
+  else fail("COS history bonus is missing");
+  if (/function premiumPricingView\\(/.test(html) && /PREMIUM_ITEM_PRICE = 500/.test(html)) pass("Premium pricing page and ₦500 item price are present");
+  else fail("Premium pricing page missing");
+  if (!/service_role|sk_live_|sk_test_/i.test(html)) pass("No server-side payment/database secret is embedded in the client");
+  else fail("A server-side secret appears in client HTML");
 }
 for (const p of ["robots.txt", "sitemap.xml"]) {
   try {
