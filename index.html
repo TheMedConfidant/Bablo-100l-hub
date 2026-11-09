@@ -3432,7 +3432,7 @@ async function loadUploadsPage(pass, container) {
     const holder = h('div', { class: 'panel stack', style: { padding: '12px 14px' } },
       h('b', null, u.title), h('span', { class: 'chip ' + (u.status === 'approved' ? 'ok' : u.status === 'rejected' ? 'bad' : 'gold') }, u.status),
       h('div', { class: 'tiny muted' }, (courseBy(u.course) ? courseBy(u.course).label : u.course) + ' \u2022 by ' + u.nickname + ' (' + u.uid + ') \u2022 ' + Math.round(u.size_bytes / 1024) + ' KB'),
-      h('a', { class: 'btn sm ghost', href: uploadPublicUrl(u.file_path), target: '_blank', rel: 'noopener' }, 'Open file to check'));
+      h('button', { class: 'btn sm ghost', onclick: () => openAdminUpload(u.file_path, pass) }, 'Open file to check'));
     if (u.status === 'pending') {
       const review = async (status) => { const r = await adminPost('hub_admin_review', { p_pass: pass, p_id: u.id, p_status: status }); if (r && r.ok) { toast(status === 'approved' ? 'Approved. It is in the library.' : 'Rejected.'); const d2 = document.getElementById('uploadsSlot'); if (d2) { box.remove(); loadUploadsPage(pass, container); } } else toast((r && r.error) || 'Could not update.'); };
       holder.append(h('div', { class: 'row' }, h('button', { class: 'btn primary grow', onclick: () => review('approved') }, 'Approve'), h('button', { class: 'btn danger grow', onclick: () => review('rejected') }, 'Reject')));
@@ -4389,6 +4389,21 @@ function settingsView() {
 /* ---------- Files: upload PDFs, Word and the like (account holders); approved files are free to download ---------- */
 const UP = { maxBytes: 10 * 1024 * 1024, exts: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'txt'] };
 function uploadPublicUrl(path) { return LB.url + '/functions/v1/hub-download?path=' + encodeURIComponent(String(path || '')); }
+async function openAdminUpload(path, pass) {
+  const win = window.open('about:blank', '_blank');
+  if (win) win.opener = null;
+  try {
+    const response = await fetch(LB.url + '/functions/v1/hub-download', {
+      method: 'POST',
+      headers: { apikey: LB.key, Authorization: 'Bearer ' + LB.key, 'Content-Type': 'application/json',
+        'x-session-token': DB.account && DB.account.token || '', 'x-admin-passcode': String(pass || '') },
+      body: JSON.stringify({ path: String(path || '') })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.ok || !payload.url) throw new Error(payload.error || 'Could not open this upload.');
+    if (win) win.location.href = payload.url; else window.location.assign(payload.url);
+  } catch (e) { if (win) win.close(); toast(e.message || 'Could not open this upload.'); }
+}
 async function filesLibrary() {
   const rows = await sbGet('uploads?select=id,title,course,file_path,mime,size_bytes,nickname,created_at&status=eq.approved&order=created_at.desc&limit=300');
   if (!Array.isArray(rows)) return h('p', { class: 'muted small' }, 'Could not load files right now.');
