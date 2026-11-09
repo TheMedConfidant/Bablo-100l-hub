@@ -115,3 +115,20 @@ drop trigger if exists hub_premium_paid_order_grant on public.hub_premium_orders
 create trigger hub_premium_paid_order_grant before update of status on public.hub_premium_orders
 for each row execute function public.hub_premium_grant_paid_order();
 commit;
+
+-- Authenticated entitlement lookup. Direct table reads remain revoked.
+create or replace function public.hub_premium_get_entitlements(p_token text)
+returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
+declare v_uid text;
+begin
+ if p_token is null or length(p_token)<32 or length(p_token)>256 then
+  return jsonb_build_object('ok',false,'error','Please sign in again.'); end if;
+ select unique_id into v_uid from public.hub_sessions
+ where token=p_token and expires_at>now() limit 1;
+ if v_uid is null then return jsonb_build_object('ok',false,'error','Session expired.'); end if;
+ return jsonb_build_object('ok',true,'items',coalesce((
+  select jsonb_agg(jsonb_build_object('course_code',course_code,'resource_type',resource_type,'granted_at',granted_at))
+  from public.hub_premium_entitlements where unique_id=v_uid),'[]'::jsonb));
+end; $$;
+revoke all on function public.hub_premium_get_entitlements(text) from public;
+grant execute on function public.hub_premium_get_entitlements(text) to anon,authenticated;
