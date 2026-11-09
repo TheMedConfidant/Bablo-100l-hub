@@ -4138,12 +4138,9 @@ function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d
 function qualBatch() { const t = lagosNow(); if (t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
-  if (!signedIn() || !DB.profile || !DB.profile.uid) return 'none';
-  const done = await sbGet('qualifier_results?uid=eq.' + encodeURIComponent(DB.profile.uid) + '&select=uid');
-  if (Array.isArray(done) && done.length) return 'done';
-  const started = await sbGet('qualifier_starts?uid=eq.' + encodeURIComponent(DB.profile.uid) + '&select=uid');
-  if (Array.isArray(started) && started.length) return 'started';
-  return 'none';
+  if (!signedIn() || !DB.account || !DB.account.token) return 'none';
+  try { const r = await hubCall('hub_qualifier_status', { p_token: DB.account.token }); return r && r.ok ? r.status : 'none'; }
+  catch (e) { return 'none'; }
 }
 function qualifyView() {
   if (CUP_ON_HOLD) return holdPage('Qualifications');
@@ -4178,7 +4175,7 @@ function postQualifier(s) {
 async function qualifiersCard() {
   const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
   const section = h('section', { class: 'panel stack' }, h('h2', null, 'Qualifiers'), box, h('a', { class: 'btn block', href: '#/qualify' }, 'Qualifications'));
-  const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs&order=pct.desc,secs.asc&limit=500');
+  const rows = await hubCall('hub_qualifier_leaderboard', {});
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load qualifiers.')); return section; }
   if (!rows.length) { box.replaceChildren(h('p', { class: 'muted small' }, 'No qualifiers yet.')); return section; }
   const by = {}; rows.forEach(r => { (by[r.programme] = by[r.programme] || []).push(r); });
