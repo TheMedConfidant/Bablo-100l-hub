@@ -2387,6 +2387,26 @@ function homeView() {
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
  const performance=(DB.history||[]).reduce((a,e)=>{const rows=Object.values(e.topicStats||{});if(rows.length){a.answered+=rows.reduce((n,r)=>n+(Number(r.answered)||0),0);a.correct+=rows.reduce((n,r)=>n+(Number(r.correct)||0),0);}else{a.answered+=Number(e.n)||0;a.correct+=Number(e.correct)||0;}return a;},{answered:0,correct:0});
  const accuracy=performance.answered?Math.round(100*performance.correct/performance.answered):0;
+ // Surface the next useful study action instead of making students hunt through course pages.
+ const flashcardDue=(Object.keys(BYC||{})).map(code=>{
+  const key='bablo:anki:v1:'+(p&&(p.uid||p.username)||'local')+':'+code;
+  let saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(_){}
+  const due=(BYC[code]||[]).filter((q,n)=>{
+   const id=String(q.i||code+'|'+(q.u||'General')+'|'+n);
+   return !saved[id]||Number(saved[id].due||0)<=Date.now();
+  }).length;
+  return {code,due};
+ }).filter(x=>x.due>0).sort((a,b)=>b.due-a.due);
+ const dueTotal=flashcardDue.reduce((n,x)=>n+x.due,0);
+ const dueTop=flashcardDue[0];
+ const focusCard=dueTop
+  ? dashboardCard('Review flashcards',dueTotal+' cards due · '+dueTop.code+' has the largest queue','🧠','#/flash/'+dueTop.code,'#D6A82B')
+  : dashboardCard('Start a review','Open a course and begin an active-recall session','🧠','#/courses','#D6A82B');
+ const latestSession=(DB.history||[]).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0))[0];
+ const latestCourse=latestSession&&courseBy(latestSession.course);
+ const resumeCard=latestCourse
+  ? dashboardCard('Return to '+(latestCourse.label||latestCourse.code),'Continue with your recent course','↗','#/course/'+latestSession.course,'#53B6A5')
+  : dashboardCard('Explore your courses','Choose a course and start practising','📚','#/courses','#53B6A5');
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
@@ -2404,6 +2424,7 @@ function homeView() {
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('div',null,h('b',null,accuracy+'%'),h('small',null,'Accuracy')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Pick up where you left off'),h('span',null,dueTotal?dueTotal+' flashcards ready for review':'Your next study action')),h('div',{class:'dashboard-grid'},focusCard,resumeCard)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
