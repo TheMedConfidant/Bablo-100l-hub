@@ -3554,10 +3554,15 @@ function socialView() {
     if (rows === 'error') { feed.replaceChildren(h('div', { class: 'panel stack' }, h('p', null, 'Could not load posts right now.'), h('button', { class: 'btn sm', onclick: load }, 'Try again'))); return; }
     posts = rows;
     if (!rows.length) { feed.replaceChildren(h('p', { class: 'muted' }, scope === 'mine' ? 'No posts from your programme yet. Start the conversation.' : 'No posts yet. Be the first.')); return; }
-    const ids = rows.map(r => r.id).join(',');
-    const [lk, cm] = await Promise.all([sbGet('social_likes?select=post_id,dev&post_id=in.(' + ids + ')'), sbGet('social_comments?select=post_id,nick,programme,body,created_at&post_id=in.(' + ids + ')&order=created_at.asc')]);
+    const postIds = rows.map(r => r.id);
+    const [lk, cm] = await Promise.all([
+      hubCall('hub_social_likes_summary', { p_token: DB.account && DB.account.token, p_post_ids: postIds }),
+      sbGet('social_comments?select=post_id,nick,programme,body,created_at&post_id=in.(' + postIds.join(',') + ')&order=created_at.asc')
+    ]);
     likes = {}; comments = {};
-    (Array.isArray(lk) ? lk : []).forEach(r => { const o = likes[r.post_id] || (likes[r.post_id] = { n: 0, mine: false }); o.n += 1; if (r.dev === (DB.account && DB.account.uid)) o.mine = true; });
+    (lk && lk.ok && Array.isArray(lk.items) ? lk.items : []).forEach(r => {
+      likes[r.post_id] = { n: Number(r.n) || 0, mine: !!r.mine };
+    });
     (Array.isArray(cm) ? cm : []).forEach(c => { (comments[c.post_id] = comments[c.post_id] || []).push(c); });
     feed.replaceChildren(...rows.map(postCard));
   }
