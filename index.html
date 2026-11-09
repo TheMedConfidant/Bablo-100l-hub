@@ -2526,7 +2526,7 @@ function resultView() {
       return h('div', { class: 'rev' }, h('div', { class: 'row between' }, h('span', { class: 'chip ' + (ok ? 'ok' : 'bad') }, ok ? 'Correct' : (a == null || a === '' ? 'Skipped' : 'Wrong')), h('span', { class: 'tiny muted' }, 'Q' + (i + 1) + ' \u2022 ' + q.unit)),
         h('p', { style: { margin: '8px 0 0', fontWeight: '600' } }, fmt(q.text, q.subj)),
         h('p', { class: 'a' }, 'Your answer: ', fmt(answerText(q, a), q.subj)), ok ? null : h('p', { class: 'a' }, 'Correct answer: ', h('b', null, fmt(correctText(q), q.subj))),
-        q.exp ? h('p', { class: 'a muted' }, q.exp) : null, h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: () => flagQuestion(q) }, 'Flag this question'), h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: () => suggestCorrection(q) }, 'Suggest a correction'), q.flag ? h('div', { class: 'warnbox' }, 'This question\'s answer key is under review.') : null);
+        q.exp ? h('p', { class: 'a muted' }, q.exp) : null, h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: (e) => flagQuestion(q, e.currentTarget) }, 'Flag this question'), h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: () => suggestCorrection(q) }, 'Suggest a correction'), q.flag ? h('div', { class: 'warnbox' }, 'This question\'s answer key is under review.') : null);
     }) : [h('p', { class: 'muted' }, 'Nothing here.')]));
   };
   const chips = h('div', { class: 'seg' }, [['all', 'All'], ['wrong', 'Wrong'], ['skipped', 'Skipped']].map(([k, l]) => h('button', { class: 'opt', 'aria-pressed': String(filter === k), onclick: e => { filter = k; chips.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', 'false')); e.currentTarget.setAttribute('aria-pressed', 'true'); drawRev(); } }, l)));
@@ -3580,6 +3580,7 @@ function cupView() {
 }
 
 /* ---------- question reports (auto-hide) ---------- */
+async function flagQuestion(q, btn) { return reportQ(q, btn); }
 async function reportQ(q, btn) {
   if (!liveOn()) { toast('Reports need the live connection.'); return; }
   btn.disabled = true;
