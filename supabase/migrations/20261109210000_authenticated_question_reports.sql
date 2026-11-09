@@ -30,3 +30,9 @@ revoke all on function public.report_question(text,text) from public;
 grant execute on function public.report_question(text,text) to anon,authenticated;
 drop function if exists public.report_question(text);
 commit;
+
+-- Keep the aggregate visible for client-side auto-hide, but prevent direct
+-- client writes; only the session-validated RPC may increment report counts.
+revoke insert,update,delete,truncate,references,trigger
+ on public.question_reports from public,anon,authenticated;
+grant select on public.question_reports to anon,authenticated;
