@@ -1057,13 +1057,34 @@ window.__PRACTICALS__.COS = {
     const order = canShuffle(q) ? shuffle(idx, rng) : idx;
     return Object.assign(base, { type: q.s === 'tf' ? 'tf' : 'mcq', opts: order.map(i => q.o[i]), ans: order.indexOf(q.a) });
   }
-  function sample(pool, n, rng, balanced) {
+  function sample(pool, n, rng, balanced, pareto) {
     const p = shuffle(pool, rng);
     if (n >= p.length) return p;
+    const groups = {};
+    p.forEach(q => { (groups[q.u || 'Uncategorised'] = groups[q.u || 'Uncategorised'] || []).push(q); });
+    const keys = Object.keys(groups);
+    if (pareto && keys.length > 1) {
+      // Pareto focus is a revision aid, not a claim about the official exam blueprint:
+      // use the most represented ~20% of bank topics for ~80% of the questions.
+      const ranked = keys.sort((a,b) => groups[b].length - groups[a].length || a.localeCompare(b));
+      const highKeys = new Set(ranked.slice(0, Math.max(1, Math.ceil(ranked.length * 0.2))));
+      const high = shuffle(p.filter(q => highKeys.has(q.u || 'Uncategorised')), rng);
+      const rest = shuffle(p.filter(q => !highKeys.has(q.u || 'Uncategorised')), rng);
+      const highN = Math.min(high.length, Math.max(1, Math.round(n * 0.8)));
+      const out = high.slice(0, highN).concat(rest.slice(0, n - highN));
+      if (out.length < n) {
+        const used = new Set(out.map(q => q.i));
+        out.push(...shuffle(p.filter(q => !used.has(q.i)), rng).slice(0, n - out.length));
+      }
+      return shuffle(out, rng);
+    }
     if (!balanced) return p.slice(0, n);
-    const g = {}; p.forEach(q => { (g[q.u] = g[q.u] || []).push(q); });
-    const keys = shuffle(Object.keys(g), rng); const out = []; let k = 0;
-    while (out.length < n && keys.some(x => g[x].length)) { const key = keys[k % keys.length]; if (g[key].length) out.push(g[key].pop()); k++; }
+    const topicKeys = shuffle(keys, rng), out = []; let k = 0;
+    while (out.length < n && topicKeys.some(x => groups[x].length)) {
+      const key = topicKeys[k % topicKeys.length];
+      if (groups[key].length) out.push(groups[key].pop());
+      k++;
+    }
     return shuffle(out, rng);
   }
   function buildSession(o) {
@@ -1072,7 +1093,7 @@ window.__PRACTICALS__.COS = {
     if (o.mode !== 'practice' && o.mode !== 'mock') pool = pool.filter(q => !q.f);      // ranked modes never use flagged questions; mock tests may
     if (o.exclude) pool = pool.filter(q => !o.exclude[q.i]);      // questions hidden after repeated reports
     const n = Math.max(1, Math.min(Number(o.n) || pool.length, pool.length));
-    const chosen = o.order === 'source' && o.mode !== 'exam' ? pool.slice(0, n) : sample(pool, n, rng, o.mode === 'exam' || o.mode === 'mock' || o.mode === 'qualifier');
+    const chosen = o.order === 'source' && o.mode !== 'exam' ? pool.slice(0, n) : sample(pool, n, rng, o.mode === 'exam' || o.mode === 'mock' || o.mode === 'qualifier' || o.mode === 'quiz', o.pareto === true);
     const qs = chosen.map(q => prep(q, rng));
     return {
       id: Date.now().toString(36), course: o.course, mode: o.mode, units: o.units || null, n: qs.length, qs,
@@ -2582,7 +2603,7 @@ function setupView(code, mode, qs) {
   const us = unitsOf(code);
   if (!SETUP || SETUP.course !== code || SETUP.mode !== mode) {
     const u = qs.get('u');
-    SETUP = { course: code, mode, units: new Set(u != null && us[+u] ? [us[+u].name] : []), n: mode === 'exam' ? 40 : 20, order: 'shuffle', tk: mode === 'practice' ? 'up' : 'down', min: 0, minCustom: false };
+    SETUP = { course: code, mode, units: new Set(u != null && us[+u] ? [us[+u].name] : []), n: mode === 'exam' ? 40 : 20, order: 'shuffle', focus: 'balanced', tk: mode === 'practice' ? 'up' : 'down', min: 0, minCustom: false };
   }
   const S = SETUP, box = h('div', { class: 'stack-l' });
   const poolFor = () => BYC[code].filter(q => (S.units.size === 0 || S.units.has(q.u)) && (mode === 'practice' || !q.f));
@@ -2600,13 +2621,14 @@ function setupView(code, mode, qs) {
     kids.push(h('div', { class: 'stack' }, h('h2', null, 'Number of questions'),
       seg(counts.map(x => [x, x === 9999 ? 'All' : String(x)]), S.n, v => { S.n = v; if (!S.minCustom) S.min = 0; }),
       h('p', { class: 'muted small' }, plural(avail, 'question') + ' available' + (n < (S.n === 9999 ? avail : S.n) ? ' \u2022 using ' + n : ''))));
-    if (mode !== 'exam') kids.push(h('div', { class: 'stack' }, h('h2', null, 'Order'), seg([['shuffle', 'Shuffled'], ['source', 'In lecture order']], S.order, v => { S.order = v; })));
-    kids.push(h('div', { class: 'stack' }, h('h2', null, 'Timer'),
-      mode === 'exam' ? null : seg([['up', 'Stopwatch'], ['down', 'Countdown']], S.tk, v => { S.tk = v; }),
-      (mode === 'exam' || S.tk === 'down') ? h('label', { class: 'field' }, h('span', null, 'Minutes allowed'), h('input', { type: 'number', min: '1', max: '240', value: String(minutes), oninput: e => { S.min = Math.max(1, Math.min(240, +e.target.value || 1)); S.minCustom = true; } })) : h('p', { class: 'muted small' }, 'Counts up so you can see how long you take.')));
+    if (mode === 'practice') kids.push(h('div', { class: 'stack' }, h('h2', null, 'Question order'), seg([['shuffle', 'Shuffled practice'], ['source', 'Lecture order']], S.order, v => { S.order = v; })));
+    if (mode !== 'practice') kids.push(h('div', { class: 'stack' }, h('h2', null, 'Question distribution'), seg([['balanced', 'Balanced coverage'], ['pareto', 'High-yield focus · 80/20']], S.focus, v => { S.focus = v; }), h('p', { class: 'muted small' }, S.focus === 'pareto' ? 'About 80% of questions come from the most represented 20% of topics in this question bank; the rest sample other topics.' : 'Questions are spread across available topics. Use this for broad exam coverage.')));
+    kids.push(h('div', { class: 'stack' }, h('h2', null, mode === 'practice' && S.tk === 'up' ? 'Stopwatch' : 'Countdown timer'),
+      mode === 'practice' ? seg([['up', 'Stopwatch'], ['down', 'Countdown']], S.tk, v => { S.tk = v; }) : h('p', { class: 'muted small' }, 'Timed sessions use a countdown and submit automatically when time expires.'),
+      (mode !== 'practice' || S.tk === 'down') ? h('label', { class: 'field' }, h('span', null, 'Minutes allowed'), h('input', { type: 'number', min: '1', max: '240', value: String(minutes), oninput: e => { S.min = Math.max(1, Math.min(240, +e.target.value || 1)); S.minCustom = true; } })) : h('p', { class: 'muted small' }, 'Counts up so you can see how long you take.')));
     if (mode === 'exam') kids.unshift(h('div', { class: 'exam-head stack' }, h('h2', null, 'Premium Bowen exam'), h('p', { class: 'muted small' }, c.label + ' \u2022 ' + DB.profile.name),
       h('ul', { class: 'rules small' }, h('li', null, 'Questions come from every topic, mixed.'), h('li', null, 'No answers shown until you submit.'), h('li', null, 'You can flag questions and jump around.'), h('li', null, 'The exam submits itself when time is up.'), h('li', null, 'Practice slip only, not an official result.'))));
-    kids.push(h('button', { class: 'btn ' + (mode === 'exam' ? 'gold' : 'primary') + ' block', disabled: avail === 0, onclick: () => startSession({ course: code, mode, units: Array.from(S.units), n: S.n === 9999 ? avail : S.n, order: S.order, timerKind: mode === 'exam' ? 'down' : S.tk, minutes: (mode === 'exam' || S.tk === 'down') ? minutes : 0 }) }, mode === 'exam' ? 'Begin examination' : mode === 'quiz' ? 'Start quiz' : mode === 'mock' ? 'Start mock test' : 'Start practice'));
+    kids.push(h('button', { class: 'btn ' + (mode === 'exam' ? 'gold' : 'primary') + ' block', disabled: avail === 0, onclick: () => startSession({ course: code, mode, units: Array.from(S.units), n: S.n === 9999 ? avail : S.n, order: mode === 'practice' ? S.order : 'shuffle', pareto: mode !== 'practice' && S.focus === 'pareto', timerKind: mode === 'practice' ? S.tk : 'down', minutes: (mode !== 'practice' || S.tk === 'down') ? minutes : 0 }) }, mode === 'exam' ? 'Begin examination' : mode === 'quiz' ? 'Start quiz' : mode === 'mock' ? 'Start mock test' : 'Start practice'));
     box.replaceChildren(...kids);
   };
   draw();
