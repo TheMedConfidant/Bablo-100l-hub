@@ -2210,8 +2210,9 @@ function sharedExamSchedulePanel() {
 }
 function premiumPackInventory(code) {
  const note=notesFor(code);
- const cards=(window.__CARDS__||{})[code]||(typeof BYC!=='undefined'&&BYC[code])||[];
- return {notes:!!(note&&Array.isArray(note.topics)&&note.topics.length),flashcards:Array.isArray(cards)&&cards.length>0};
+ const mls=code==='MLS101'&&window.__MLS101_MANIFEST__&&Array.isArray(window.__MLS101_MANIFEST__.lectures)?window.__MLS101_MANIFEST__.lectures:[];
+ const cards=(window.__CARDS__||{})[code]||(code==='MLS101'?mls.flatMap(x=>x.flashcards||[]):[]);
+ return {notes:!!((note&&Array.isArray(note.topics)&&note.topics.length)||mls.some(x=>!!x.notesHtml)),flashcards:Array.isArray(cards)&&cards.length>0};
 }
 function programmePremiumPrice(programme) {
  const items=[];
@@ -4082,42 +4083,51 @@ function workedQuestionsView(code) {
 function flashView(code) {
   const c = courseBy(code);
   if (!canAccessCourse(code)) { go('#/'); return; }
-  const hubCards = (window.__CARDS__ || {})[code];
-  const allDeck = hubCards
-    ? hubCards.map(x => ({ q: x.front, b: x.back, u: x.u || 'General', opts: null }))
-    : (BYC[code] || []).map(q => ({ q: q.q, b: q.s === 'fill' ? (q.acc || []).join(' / ') : q.o[q.a], u: q.u || 'General', opts: q.s === 'fill' ? null : q.o }));
-  if (!allDeck.length) { go('#/course/' + code); return; }
+  const source = (window.__CARDS__ || {})[code] || [];
+  let allDeck = source.map((x, index) => ({ id: String(x.id || x.i || code + '-' + index), q: x.front || x.q || '', b: x.back || x.a || '', u: x.u || x.topic || 'General' })).filter(x => x.q && x.b);
+  if (code === 'MLS101' && window.__MLS101_MANIFEST__ && Array.isArray(window.__MLS101_MANIFEST__.lectures)) {
+    const mlsDeck = window.__MLS101_MANIFEST__.lectures.flatMap(lecture => (lecture.flashcards || []).map((card, index) => ({ id: 'mls101-' + lecture.id + '-' + index, q: card.front, b: card.back, u: card.topic || lecture.title })));
+    if (mlsDeck.length) allDeck = mlsDeck;
+  }
+  if (!allDeck.length) { pendingPage('Flashcards'); return; }
+  const reviewKey = 'bablo:flashcards:review:v1';
+  let review = {};
+  try { review = JSON.parse(localStorage.getItem(reviewKey) || '{}') || {}; } catch (e) { review = {}; }
   const topics = [...new Set(allDeck.map(x => x.u))];
-  let selected = 'all', deck = Core.shuffle(allDeck.slice()), i = 0, showBack = false;
+  let selected = 'all', deck = [], i = 0, showBack = false, sessionReviewed = 0;
   const counter = h('span', { class: 'muted small' });
-  const topicSelect = h('select', { 'aria-label': 'Choose flashcard topic', class: 'fc-topic-select' },
-    h('option', { value: 'all' }, 'All topics'), ...topics.map(t => h('option', { value: t }, t)));
-  const cardEl = h('div', { class: 'fc-card', onclick: () => flip(), role: 'button', tabindex: '0' });
+  const status = h('p', { class: 'tiny muted', 'aria-live': 'polite' });
+  const topicSelect = h('select', { 'aria-label': 'Choose flashcard topic', class: 'fc-topic-select' }, h('option', { value: 'all' }, 'All topics'), ...topics.map(t => h('option', { value: t }, t)));
+  const cardEl = h('div', { class: 'fc-card', onclick: () => flip(), role: 'button', tabindex: '0', 'aria-label': 'Tap to reveal the answer' });
   const flipBtn = h('button', { class: 'btn primary block', onclick: () => flip() }, 'Show answer');
+  const ratingRow = h('div', { class: 'row' }, h('button', { class: 'btn danger grow', onclick: () => rate('hard') }, 'Hard'), h('button', { class: 'btn primary grow', onclick: () => rate('easy') }, 'Easy'));
   const flip = () => { showBack = !showBack; draw(); };
-  const draw = () => {
-    const x = deck[i]; if (!x) return;
-    counter.textContent = (i + 1) + ' of ' + deck.length + ' cards' + (selected === 'all' ? '' : ' • ' + x.u);
-    const body = [h('span', { class: 'chip brand' }, showBack ? 'Answer' : 'Question')];
-    body.push(h('p', { class: 'fc-text' }, showBack ? x.b : x.q));
-    if (!showBack && x.opts) body.push(h('div', { class: 'fc-opts' }, x.opts.map(o => h('div', { class: 'fc-opt' }, o))));
-    body.push(h('span', { class: 'tiny muted' }, showBack ? 'Tap the card to see the question again' : 'Tap the card or Show answer'));
-    cardEl.replaceChildren(...body.filter(Boolean));
-    flipBtn.textContent = showBack ? 'Hide answer' : 'Show answer';
-  };
-  const step = d => { i = (i + d + deck.length) % deck.length; showBack = false; draw(); };
-  topicSelect.addEventListener('change', () => {
-    selected = topicSelect.value;
-    deck = Core.shuffle(allDeck.filter(x => selected === 'all' || x.u === selected));
+  const buildDeck = () => {
+    const now = Date.now();
+    deck = allDeck.filter(x => selected === 'all' || x.u === selected).sort((a, b) => (Number(review[a.id]?.dueAt) || 0) - (Number(review[b.id]?.dueAt) || 0));
+    deck = deck.filter(x => !review[x.id] || !review[x.id].dueAt || review[x.id].dueAt <= now).concat(deck.filter(x => review[x.id]?.dueAt > now));
     i = 0; showBack = false; draw();
-  });
-  mount(wrap(back('#/course/' + code, c ? c.label : 'Course'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', { style: { color: c ? c.color : undefined } }, 'Flashcards'), h('p', { class: 'muted small' }, 'Choose a topic for focused active recall.'), topicSelect, counter),
-    cardEl, flipBtn,
-    h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => step(-1) }, '‹ Previous'), h('button', { class: 'btn primary grow', onclick: () => step(1) }, 'Next ›')))));
-  draw();
+  };
+  const draw = () => {
+    const x = deck[i];
+    if (!x) { cardEl.replaceChildren(h('span', { class: 'chip ok' }, 'Review complete'), h('p', { class: 'fc-text' }, 'You have reviewed every card in this session.')); counter.textContent = sessionReviewed + ' cards reviewed'; flipBtn.hidden = true; ratingRow.hidden = true; status.textContent = 'Your Hard and Easy ratings are saved on this device.'; return; }
+    counter.textContent = (i + 1) + ' of ' + deck.length + ' cards' + (selected === 'all' ? '' : ' · ' + x.u);
+    cardEl.replaceChildren(h('span', { class: 'chip brand' }, showBack ? 'Answer' : 'Question'), h('p', { class: 'fc-text' }, showBack ? x.b : x.q), h('span', { class: 'tiny muted' }, showBack ? 'Choose how well you knew it' : 'Tap the card or Show answer'));
+    flipBtn.textContent = showBack ? 'Answer revealed' : 'Show answer'; flipBtn.disabled = showBack; ratingRow.hidden = !showBack; status.textContent = 'Hard = review sooner · Easy = review later';
+  };
+  const rate = level => {
+    const x = deck[i]; if (!x || !showBack) return;
+    const old = review[x.id] || {}, oldDays = Number(old.intervalDays) || 0;
+    const days = level === 'hard' ? (oldDays ? Math.max(1, oldDays * 1.2) : 1 / 144) : (oldDays ? Math.max(4, oldDays * 2.5) : 4);
+    review[x.id] = { rating: level, intervalDays: days, dueAt: Date.now() + days * 86400000, reviewedAt: Date.now() };
+    try { localStorage.setItem(reviewKey, JSON.stringify(review)); } catch (e) {}
+    sessionReviewed++; i++; showBack = false; draw();
+  };
+  topicSelect.addEventListener('change', () => { selected = topicSelect.value; buildDeck(); });
+  cardEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
+  mount(wrap(back('#/course/' + code, c ? c.label : 'Course'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', { style: { color: c ? c.color : undefined } }, 'Flashcards'), h('p', { class: 'muted small' }, 'Anki-style active recall. Reveal each answer, then rate it Hard or Easy.'), topicSelect, counter), cardEl, flipBtn, ratingRow, status)));
+  buildDeck();
 }
-
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
 const QUAL = { date: '2026-10-17', A: [14 * 60, 18 * 60], B: [22 * 60, 23 * 60], questions: 60, minutes: 40, topN: 5 };
 function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d.toISOString().slice(0, 10), mins: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
