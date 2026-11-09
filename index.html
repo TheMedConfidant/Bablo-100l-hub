@@ -2831,6 +2831,17 @@ function resultView() {
     }) : [h('p', { class: 'muted' }, 'Nothing here.')]));
   };
   const chips = h('div', { class: 'seg' }, [['all', 'All'], ['wrong', 'Wrong'], ['skipped', 'Skipped']].map(([k, l]) => h('button', { class: 'opt', 'aria-pressed': String(filter === k), onclick: e => { filter = k; chips.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', 'false')); e.currentTarget.setAttribute('aria-pressed', 'true'); drawRev(); } }, l)));
+  const topicBreakdown = Object.entries(s.qs.reduce((acc,q,i)=>{
+    const name=String(q.unit||'Uncategorised'); const row=acc[name]||(acc[name]={total:0,correct:0});
+    row.total++; if(Core.isCorrect(q,s.answers[i]))row.correct++; return acc;
+  },{})).map(([name,row])=>({name,total:row.total,correct:row.correct,pct:Math.round(row.correct/row.total*100)})).sort((a,b)=>a.pct-b.pct||b.total-a.total);
+  const paretoNote = s.opts && s.opts.pareto ? h('p',{class:'tiny muted'},'High-yield focus was selected: approximately 80% of this set came from the most represented 20% of topics in the question bank. This is a revision strategy, not an official exam weighting.') : null;
+  const topicPanel = h('section',{class:'panel stack'},h('div',{class:'row between wrapr'},h('h2',null,'Topic performance'),h('span',{class:'chip brand'},plural(topicBreakdown.length,'topic'))),paretoNote,
+    ...topicBreakdown.map(t=>h('div',{class:'stack',style:{gap:'5px'}},
+      h('div',{class:'row between wrapr'},h('b',{class:'small'},t.name),h('span',{class:'tiny muted'},t.correct+'/'+t.total+' · '+t.pct+'%')),
+      h('div',{class:'prog'},h('i',{style:{width:t.pct+'%',background:t.pct>=70?'var(--ok)':t.pct>=50?'var(--brand)':'var(--gold)'}})),
+      t.pct<70?h('button',{class:'btn sm ghost',style:{alignSelf:'flex-start'},onclick:()=>startSession({course:s.course,mode:'practice',units:[t.name],n:Math.min(20,BYC[s.course].filter(q=>q.u===t.name).length),order:'shuffle',timerKind:'up',minutes:0})},'Practise this topic'):null
+    )));
   const slip = exam ? h('div', { class: 'slip' }, h('h2', null, 'Result slip'), h('p', { class: 'muted small' }, 'Practice slip, not an official result.'),
     h('dl', null, [['Candidate', DB.profile.name], ['Programme', DB.profile.programme], ['Course', c.label + ' ' + (c.title || '')], ['Date', new Date().toLocaleString()], ['Questions', s.n], ['Score', r.correct + ' / ' + s.n + ' (' + r.pct + '%)'], ['Grade', r.grade.l + ' (' + r.grade.p + '.0 points)'], ['Time used', Core.fmtTime(s.secs)], ['Reference', 'BX-' + s.course + '-' + s.id.toUpperCase()]].map(([k, v]) => [h('dt', null, k), h('dd', null, String(v))]))) : null;
   mount(wrap(back('#/course/' + s.course, c.label), h('div', { class: 'stack-l' },
@@ -2846,6 +2857,7 @@ function resultView() {
       h('div', { class: 'row' }, h('button', { class: 'btn primary grow', onclick: () => startSession(s.opts) }, 'Try again'), h('a', { class: 'btn grow', href: '#/board' }, 'Leaderboard')),
       h('div', { class: 'row' }, Object.keys(DB.missed).length ? h('button', { class: 'btn grow', onclick: () => startWeak(s.course) }, 'Weak spots') : null,
         h('a', { class: 'btn grow', target: '_blank', rel: 'noopener', href: 'https://wa.me/?text=' + encodeURIComponent(shareText) }, 'Share on WhatsApp'))),
+    topicPanel,
     h('section', { class: 'stack' }, h('h2', null, 'Review answers'), chips, list))));
   drawRev();
 }
