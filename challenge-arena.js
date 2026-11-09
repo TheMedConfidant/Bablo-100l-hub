@@ -149,6 +149,9 @@ function createPanel(mode){
     h('div',{class:'cd-quick'},h('button',{id:'cd-create-button',onclick:create},'Create room'),h('button',{class:'secondary',onclick:dashboard},'Cancel')))));
   if(typeof mode==='string')$('#cd-mode').value=mode;
   $('#cd-courses').addEventListener('change',refreshChallengeTopics);
+  const invite=$('#cd-invite'),capacity=$('#cd-max-players');
+  const syncCapacity=()=>{if(invite.value.trim()){capacity.value='2';capacity.disabled=true}else capacity.disabled=false};
+  invite.addEventListener('input',syncCapacity);syncCapacity();
   refreshChallengeTopics();
 }
 async function create(){
