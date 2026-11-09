@@ -1,0 +1,5 @@
+[functions.hub-download]
+verify_jwt = false
+
+[functions.hub-chess-action]
+verify_jwt = false
