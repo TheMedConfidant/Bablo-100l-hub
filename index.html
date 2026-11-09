@@ -1719,7 +1719,7 @@ async function saveChessUsername(raw) { const username=String(raw||'').trim().to
 async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
   if (!f.nickname.trim()) throw new Error('Pick a nickname.');
-  if (f.password.length < 6) throw new Error('Password must be at least 6 characters.');
+  if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
   // the server creates the ID, so no one can pick someone else's
   const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: f.programme.indexOf('Guest') === 0 });
   if (!reg.ok) throw new Error(reg.error);
