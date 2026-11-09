@@ -4171,15 +4171,17 @@ function qualCard(batch, st) {
   return h('div', { class: 'stack' }, h('div', { class: 'stack' }, info), body);
 }
 async function startQualifier(batch) {
-  const r = await fetch(LB.url + '/rest/v1/qualifier_starts', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, batch }) }).catch(() => null);
-  if (!r || !r.ok) { toast('You have already started, or the window is closed.'); qualifyView(); return; }
-  startSession({ course: '*', mode: 'qualifier', n: QUAL.questions, order: 'shuffle', timerKind: 'down', minutes: QUAL.minutes, batch });
+  try {
+    const r = await hubCall('hub_qualifier_start', { p_token: DB.account.token, p_batch: batch });
+    if (!r || !r.ok) throw new Error(r && r.error || 'You have already started, or the window is closed.');
+    startSession({ course: '*', mode: 'qualifier', n: QUAL.questions, order: 'shuffle', timerKind: 'down', minutes: QUAL.minutes, batch });
+  } catch (e) { toast(e.message || 'Could not start qualifications.'); qualifyView(); }
 }
 function postQualifier(s) {
-  if (s.mode !== 'qualifier' || !signedIn() || !s.opts || !s.opts.batch) return;
+  if (s.mode !== 'qualifier' || !signedIn() || !DB.account || !DB.account.token || !s.opts || !s.opts.batch) return;
   const r = s.res;
-  fetch(LB.url + '/rest/v1/qualifier_results', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, programme: DB.profile.programme, nickname: DB.profile.nick.slice(0, 30), pct: r.pct, correct: r.correct, n: s.n, secs: s.secs, batch: s.opts.batch }) })
-    .then(res => toast(res.ok ? 'Qualification score saved.' : 'Could not save your score. You may have already qualified.'))
+  hubCall('hub_qualifier_submit', { p_token: DB.account.token, p_correct: r.correct, p_n: s.n, p_secs: s.secs, p_batch: s.opts.batch })
+    .then(result => toast(result && result.ok ? 'Qualification score saved.' : (result && result.error) || 'Could not save your score.'))
     .catch(() => toast('Could not save your score. Check your connection.'));
 }
 async function qualifiersCard() {
