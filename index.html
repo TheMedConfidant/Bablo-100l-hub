@@ -3114,13 +3114,7 @@ function startRestReminder() {
 function onlineState(color, id, code, status, white, black, whiteDev, blackDev, targetDev) {
   return { mode: 'online', online: { id, code, status, recorded: false, ratingApplied: false, white: white || DB.profile.nick, black: black || '', whiteDev: whiteDev || '', blackDev: blackDev || '', targetDev: targetDev || '' }, color, friendly: false, s: Chess.initial(), sel: null, legal: [], last: null, busy: false, msg: '', resigned: false, resignText: '', endResult: null, endText: '', moves: [], hist: [], clock: null, recorded: false };
 }
-async function createOnline(targetDev) {
-  if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
-  const code = rnd6();
-  const row = await sbFetchJson('chess_games', { method: 'POST', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ code, white_nick: DB.profile.nick.slice(0, 30), white_dev: DB.dev, target_dev: targetDev || null, status: 'waiting', moves: '' }) });
-  if (!Array.isArray(row) || !row[0]) { toast('Could not create the challenge. Try again.'); return; }
-  startOnline(onlineState('w', row[0].id, code, 'waiting', DB.profile.nick, '', DB.dev, '', targetDev || ''));
-}
+// Legacy device-only chess creator removed; signed-in challenges use hub_create_chess_challenge.
 async function joinOnline(raw) {
   const code = String(raw || '').trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
@@ -3200,29 +3194,7 @@ async function applyOnlineRating(G, res) {
   const opponentDev = G.color === 'w' ? G.online.blackDev : G.online.whiteDev;
   const ownRows = await sbFetchJson('chess_ratings?dev=eq.' + encodeURIComponent(ownDev) + '&select=dev,nick,rating,wins,draws,losses');
   if (!Array.isArray(ownRows)) { G.online.ratingApplied = false; return; }
-  const own = ownRows[0] || { dev: ownDev, nick: DB.profile.nick, rating: 1000, wins: 0, draws: 0, losses: 0 };
-  const opp = await onlineRatingRow(opponentDev);
-  const ownRating = Number(own.rating) || 1000, oppRating = opp ? Number(opp.rating) || 1000 : 1000;
-  const score = res === 'draw' ? 0.5 : (res === G.color ? 1 : 0);
-  const expected = 1 / (1 + Math.pow(10, (oppRating - ownRating) / 400));
-  const rating = Math.max(400, Math.min(3000, Math.round(ownRating + 24 * (score - expected))));
-  const payload = { dev: ownDev, nick: DB.profile.nick.slice(0, 30), rating, wins: (Number(own.wins) || 0) + (score === 1 ? 1 : 0), draws: (Number(own.draws) || 0) + (score === 0.5 ? 1 : 0), losses: (Number(own.losses) || 0) + (score === 0 ? 1 : 0), updated_at: new Date().toISOString() };
-  const saved = ownRows.length
-    ? await sbFetchJson('chess_ratings?dev=eq.' + encodeURIComponent(ownDev), { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(payload) })
-    : await sbFetchJson('chess_ratings', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(payload) });
-  if (saved === null) { G.online.ratingApplied = false; toast('Online rating could not sync yet.'); return; }
-  const line = document.getElementById('onlineRatingLine');
-  if (line) line.textContent = 'Your online rating: ' + rating + ' • change ' + (rating - ownRating >= 0 ? '+' : '') + (rating - ownRating);
-  toast('Online rating updated: ' + rating + ' (' + (rating - ownRating >= 0 ? '+' : '') + (rating - ownRating) + ').');
-}
-async function chessAction(action, extra) {
-  if (!signedIn() || !DB.account || !DB.account.token) throw new Error('Please log in again.');
-  const response = await fetch(LB.url + '/functions/v1/hub-chess-action', {
-    method: 'POST',
-    headers: { apikey: LB.key, Authorization: 'Bearer ' + LB.key, 'Content-Type': 'application/json', 'x-session-token': DB.account.token },
-    body: JSON.stringify(Object.assign({ action, p_dev: DB.dev, p_game_id: CHESS && CHESS.online && CHESS.online.id }, extra || {}))
-  });
-  const payload = await response.json().catch(() => ({}));
+  const own = ownRows[0] || { dev: ownDev, nick: DB.profile.nick, raonse.json().catch(() => ({}));
   if (!response.ok || !payload.ok) throw new Error(payload.error || 'Chess action could not be saved.');
   return payload;
 }
