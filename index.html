@@ -1995,7 +1995,7 @@ function h(tag, props, ...kids) {
     else if (k.slice(0, 2) === 'on') el.addEventListener(k.slice(2), v);
     else el.setAttribute(k, v === true ? '' : v);
   }
-  kids.flat(Infinity).forEach(c => { if (c == null || c === false) return; el.append(c.nodeType ? c : document.createTextNode(String(c))); });
+  kids.flat(Infinity).forEach(c => { if (c == null || c === false) return; const text = String(c).replace(/\\[nrt]/g, ' ').replace(/\r?\n/g, ' '); el.append(c.nodeType ? c : document.createTextNode(text)); });
   return el;
 }
 const svgEl = (vb, inner, cls) => { const w = document.createElement('span'); w.innerHTML = '<svg viewBox="' + vb + '" class="' + (cls || '') + '" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>'; return w.firstChild; };
