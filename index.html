@@ -3058,11 +3058,13 @@ function renderSavedChessFriends() {
 }
 async function loadOpenList() {
   const box = document.getElementById('openList'); if (!box) return;
-  if (!liveOn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Online challenges turn on when the live database is connected.')); return; }
-  const rows = await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,target_dev,created_at&order=created_at.desc&limit=20');
-  if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load challenges.')); return; }
-  const open = rows.filter(r => r.white_dev !== DB.dev && (!r.target_dev || r.target_dev === DB.dev));
-  box.replaceChildren(...(open.length ? open.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' \u2022 ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => joinOnline(r.code) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
+  if (!liveOn() || !signedIn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in and connect to see open challenges.')); return; }
+  try {
+    const result = await hubCall('hub_chess_open_challenges', { p_token: DB.account.token });
+    if (!result || !result.ok) throw new Error(result && result.error || 'Could not load challenges.');
+    const rows = Array.isArray(result.challenges) ? result.challenges : [];
+    box.replaceChildren(...(rows.length ? rows.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' • ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => joinOnline(r.code) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
+  } catch (e) { box.replaceChildren(h('p', { class: 'muted small' }, e.message || 'Could not load challenges.')); }
 }
 function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
 
@@ -3072,8 +3074,10 @@ async function pollIncomingChessChallenges() {
   if (CHESS && CHESS.mode === 'online' && !gameOver(CHESS).over) return;
   INCOMING_CHESS_BUSY = true;
   try {
-    const rows = await sbFetchJson('chess_games?status=eq.waiting&target_dev=eq.' + encodeURIComponent(DB.dev) + '&select=id,code,white_nick,white_dev,target_dev,created_at&order=created_at.desc&limit=5');
-    if (!Array.isArray(rows) || !rows.length) return;
+    if (!signedIn() || !DB.account || !DB.account.token) return;
+    const inbox = await hubCall('hub_chess_incoming_challenges', { p_token: DB.account.token });
+    const rows = inbox && inbox.ok && Array.isArray(inbox.challenges) ? inbox.challenges : [];
+    if (!rows.length) return;
     if (!Array.isArray(DB.seenChessInvites)) DB.seenChessInvites = [];
     const fresh = rows.find(r => r.id && !DB.seenChessInvites.includes(r.id));
     if (!fresh) return;
@@ -3121,7 +3125,7 @@ async function joinOnline(raw) {
   if (!liveOn() || !signedIn()) { toast('Sign in and connect to the internet to join an online chess challenge.'); return; }
   const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick,target_dev');
   if (!Array.isArray(found) || !found.length) { toast('No open challenge with that code.'); return; }
-  if (found[0].white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
+  if (found.white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
   try {
     const joined = await hubCall('hub_join_chess_challenge', { p_token: DB.account.token, p_code: code, p_dev: DB.dev });
     if (!joined || !joined.ok) throw new Error(joined && joined.error || 'That challenge could not be joined.');
@@ -3139,9 +3143,10 @@ async function pollOnline() {
   try { await pollOnlineOnce(G); } finally { POLL_BUSY = false; }
 }
 async function pollOnlineOnce(G) {
-  const rows = await sbFetchJson('chess_games?id=eq.' + G.online.id + '&select=moves,status,result,white_nick,black_nick,white_dev,black_dev,white_uid,black_uid,target_uid,clock_seconds,clock_white_ms,clock_black_ms,clock_side,clock_updated_at');
-  if (!Array.isArray(rows) || !rows[0]) return;
-  const g = rows[0];
+  let state;
+  try { state = await hubCall('hub_chess_game_state', { p_token: DB.account.token, p_game_id: G.online.id, p_dev: DB.dev }); } catch (e) { return; }
+  if (!state || !state.ok || !state.game) return;
+  const g = state.game;
   G.online.status = g.status; G.online.whiteUid = g.white_uid || G.online.whiteUid || ''; G.online.blackUid = g.black_uid || G.online.blackUid || ''; G.online.targetUid = g.target_uid || G.online.targetUid || '';
   const seconds=Number(g.clock_seconds)||0;
   if(seconds){if(!G.clock)G.clock={w:seconds*1000,b:seconds*1000,side:'w',at:Date.now(),paused:true};G.clock.w=Number.isFinite(Number(g.clock_white_ms))?Number(g.clock_white_ms):seconds*1000;G.clock.b=Number.isFinite(Number(g.clock_black_ms))?Number(g.clock_black_ms):seconds*1000;G.clock.side=g.clock_side==='b'?'b':'w';const stamp=g.clock_updated_at?Date.parse(g.clock_updated_at):Date.now();G.clock.at=Number.isFinite(stamp)?stamp:Date.now();G.clock.paused=g.status!=='active';G.online.clockSeconds=seconds;G.online.clockUpdatedAt=g.clock_updated_at||'';}else G.clock=null;
@@ -4525,13 +4530,14 @@ async function createOnline(targetDev,targetUid,targetUsername){
 async function joinOnline(raw){
  const code=String(raw||'').trim().toUpperCase();if(!signedIn()||!DB.profile||!DB.profile.uid){toast('Log in before joining an online game.');return;}await ensureChessIdentity();
  if(code.length!==6){toast('Enter the 6-letter code.');return;}if(!liveOn()){toast('Online challenges need the live connection.');return;}
- const found=await sbFetchJson('chess_games?code=eq.'+code+'&status=eq.waiting&select=id,white_dev,white_nick,target_dev,white_uid,target_uid,clock_seconds,clock_white_ms,clock_black_ms,clock_side,clock_updated_at');
- if(!Array.isArray(found)||!found.length){toast('No open challenge with that code.');return;}if(found[0].white_uid===DB.profile.uid||found[0].white_dev===DB.dev){toast('That is your own challenge. Share the code with a friend.');return;}
+ const lookup=await hubCall('hub_chess_challenge_lookup',{p_token:DB.account.token,p_code:code,p_dev:DB.dev});
+ if(!lookup||!lookup.ok||!lookup.challenge){toast(lookup&&lookup.error||'That challenge is no longer available.');return;}
+ const found=lookup.challenge;
  try {
   const joined=await hubCall('hub_join_chess_challenge',{p_token:DB.account.token,p_code:code,p_dev:DB.dev});
   if(!joined||!joined.ok)throw new Error(joined&&joined.error||'That challenge was just taken.');
   const seconds=Number(joined.clock_seconds)||0,startedAt=joined.clock_updated_at||new Date().toISOString();
-  startOnline(onlineState('b',joined.id,code,'active',joined.white_nick,joined.black_nick||DB.profile.nick,found[0].white_dev,DB.dev,'',found[0].white_uid||'',DB.profile.uid,found[0].target_uid||'',seconds,joined.clock_white_ms,joined.clock_black_ms,joined.clock_side||'w',startedAt));
+  startOnline(onlineState('b',joined.id,code,'active',joined.white_nick,joined.black_nick||DB.profile.nick,found[0].white_dev,DB.dev,'',found.white_uid||'',DB.profile.uid,found.target_uid||'',seconds,joined.clock_white_ms,joined.clock_black_ms,joined.clock_side||'w',startedAt));
  } catch(e){toast(e.message||'That challenge was just taken.');}
 }
 function onlineState(color,id,code,status,white,black,whiteDev,blackDev,targetDev,whiteUid,blackUid,targetUid,clockSeconds,clockWhiteMs,clockBlackMs,clockSide,clockUpdatedAt){
