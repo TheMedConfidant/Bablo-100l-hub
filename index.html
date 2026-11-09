@@ -3070,20 +3070,18 @@ function startOnline(state) { CHESS = state; chessView(); startOnlinePoll(); }
 
 let INCOMING_CHESS_TIMER = null, INCOMING_CHESS_BUSY = false;
 async function pollIncomingChessChallenges() {
-  if (INCOMING_CHESS_BUSY || !liveOn() || !DB.profile || !DB.dev) return;
+  if (INCOMING_CHESS_BUSY || !liveOn() || !DB.profile || !DB.dev || !signedIn()) return;
   if (CHESS && CHESS.mode === 'online' && !gameOver(CHESS).over) return;
   INCOMING_CHESS_BUSY = true;
   try {
-    if (!signedIn() || !DB.account || !DB.account.token) return;
+    await ensureChessIdentity();
     const inbox = await hubCall('hub_chess_incoming_challenges', { p_token: DB.account.token });
     const rows = inbox && inbox.ok && Array.isArray(inbox.challenges) ? inbox.challenges : [];
     if (!rows.length) return;
     if (!Array.isArray(DB.seenChessInvites)) DB.seenChessInvites = [];
     const fresh = rows.find(r => r.id && !DB.seenChessInvites.includes(r.id));
     if (!fresh) return;
-    DB.seenChessInvites.push(fresh.id);
-    DB.seenChessInvites = DB.seenChessInvites.slice(-60);
-    save();
+    DB.seenChessInvites.push(fresh.id); DB.seenChessInvites = DB.seenChessInvites.slice(-60); save();
     playNoticeSound('chess');
     try { if (DB.notify && 'Notification' in window && Notification.permission === 'granted') new Notification('Chess challenge received', { body: (fresh.white_nick || 'A friend') + ' challenged you. Open Bablo Hub to accept.' }); } catch (e) {}
     const accept = await confirmBox({ title: '♟ Chess challenge received', msg: (fresh.white_nick || 'A friend') + ' wants to play you online. Accept the challenge?', ok: 'Accept', cancel: 'Later' });
@@ -3122,14 +3120,16 @@ function onlineState(color, id, code, status, white, black, whiteDev, blackDev, 
 async function joinOnline(raw) {
   const code = String(raw || '').trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
-  if (!liveOn() || !signedIn()) { toast('Sign in and connect to the internet to join an online chess challenge.'); return; }
-  const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick,target_dev');
-  if (!Array.isArray(found) || !found.length) { toast('No open challenge with that code.'); return; }
-  if (found.white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
+  if (!liveOn() || !signedIn() || !DB.profile || !DB.profile.uid) { toast('Sign in and connect to join an online chess challenge.'); return; }
+  await ensureChessIdentity();
   try {
+    const lookup = await hubCall('hub_chess_challenge_lookup', { p_token: DB.account.token, p_code: code, p_dev: DB.dev });
+    if (!lookup || !lookup.ok || !lookup.challenge) throw new Error(lookup && lookup.error || 'That challenge is no longer available.');
+    const found = lookup.challenge;
     const joined = await hubCall('hub_join_chess_challenge', { p_token: DB.account.token, p_code: code, p_dev: DB.dev });
-    if (!joined || !joined.ok) throw new Error(joined && joined.error || 'That challenge could not be joined.');
-    startOnline(onlineState('b', joined.id, code, 'active', joined.white_nick || found[0].white_nick, joined.black_nick || DB.profile.nick, found[0].white_dev, DB.dev));
+    if (!joined || !joined.ok) throw new Error(joined && joined.error || 'That challenge was just taken.');
+    const seconds = Number(joined.clock_seconds) || 0, startedAt = joined.clock_updated_at || new Date().toISOString();
+    startOnline(onlineState('b', joined.id, code, 'active', joined.white_nick, joined.black_nick || DB.profile.nick, found.white_dev, DB.dev, '', found.white_uid || '', DB.profile.uid, found.target_uid || '', seconds, joined.clock_white_ms, joined.clock_black_ms, joined.clock_side || 'w', startedAt));
   } catch (e) { toast(e.message || 'That challenge was just taken.'); }
 }
 let ONLINE_POLL = null;
@@ -4527,41 +4527,57 @@ async function createOnline(targetDev,targetUid,targetUsername){
   if(targetUid)toast('Challenge sent to @'+(created.target_username||targetUsername||'player')+'.');
  } catch(e){toast(e.message||'Could not create the challenge.');}
 }
-async function joinOnline(raw){
- const code=String(raw||'').trim().toUpperCase();if(!signedIn()||!DB.profile||!DB.profile.uid){toast('Log in before joining an online game.');return;}await ensureChessIdentity();
- if(code.length!==6){toast('Enter the 6-letter code.');return;}if(!liveOn()){toast('Online challenges need the live connection.');return;}
- const lookup=await hubCall('hub_chess_challenge_lookup',{p_token:DB.account.token,p_code:code,p_dev:DB.dev});
- if(!lookup||!lookup.ok||!lookup.challenge){toast(lookup&&lookup.error||'That challenge is no longer available.');return;}
- const found=lookup.challenge;
- try {
-  const joined=await hubCall('hub_join_chess_challenge',{p_token:DB.account.token,p_code:code,p_dev:DB.dev});
-  if(!joined||!joined.ok)throw new Error(joined&&joined.error||'That challenge was just taken.');
-  const seconds=Number(joined.clock_seconds)||0,startedAt=joined.clock_updated_at||new Date().toISOString();
-  startOnline(onlineState('b',joined.id,code,'active',joined.white_nick,joined.black_nick||DB.profile.nick,found[0].white_dev,DB.dev,'',found.white_uid||'',DB.profile.uid,found.target_uid||'',seconds,joined.clock_white_ms,joined.clock_black_ms,joined.clock_side||'w',startedAt));
- } catch(e){toast(e.message||'That challenge was just taken.');}
+async function joinOnline(raw) {
+  const code = String(raw || '').trim().toUpperCase();
+  if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
+  if (!liveOn() || !signedIn() || !DB.profile || !DB.profile.uid) { toast('Sign in and connect to join an online chess challenge.'); return; }
+  await ensureChessIdentity();
+  try {
+    const lookup = await hubCall('hub_chess_challenge_lookup', { p_token: DB.account.token, p_code: code, p_dev: DB.dev });
+    if (!lookup || !lookup.ok || !lookup.challenge) throw new Error(lookup && lookup.error || 'That challenge is no longer available.');
+    const found = lookup.challenge;
+    const joined = await hubCall('hub_join_chess_challenge', { p_token: DB.account.token, p_code: code, p_dev: DB.dev });
+    if (!joined || !joined.ok) throw new Error(joined && joined.error || 'That challenge was just taken.');
+    const seconds = Number(joined.clock_seconds) || 0, startedAt = joined.clock_updated_at || new Date().toISOString();
+    startOnline(onlineState('b', joined.id, code, 'active', joined.white_nick, joined.black_nick || DB.profile.nick, found.white_dev, DB.dev, '', found.white_uid || '', DB.profile.uid, found.target_uid || '', seconds, joined.clock_white_ms, joined.clock_black_ms, joined.clock_side || 'w', startedAt));
+  } catch (e) { toast(e.message || 'That challenge was just taken.'); }
 }
 function onlineState(color,id,code,status,white,black,whiteDev,blackDev,targetDev,whiteUid,blackUid,targetUid,clockSeconds,clockWhiteMs,clockBlackMs,clockSide,clockUpdatedAt){
  const seconds=Number(clockSeconds)||0,stamp=clockUpdatedAt?Date.parse(clockUpdatedAt):Date.now();
  const clock=seconds?{w:Number.isFinite(Number(clockWhiteMs))?Number(clockWhiteMs):seconds*1000,b:Number.isFinite(Number(clockBlackMs))?Number(clockBlackMs):seconds*1000,side:clockSide==='b'?'b':'w',at:Number.isFinite(stamp)?stamp:Date.now(),paused:status!=='active'}:null;
  return {mode:'online',online:{id,code,status,recorded:false,ratingApplied:false,white:white||DB.profile.username||DB.profile.nick,black:black||'',whiteDev:whiteDev||'',blackDev:blackDev||'',targetDev:targetDev||'',whiteUid:whiteUid||'',blackUid:blackUid||'',targetUid:targetUid||'',clockSeconds:seconds,clockUpdatedAt:clockUpdatedAt||''},color,friendly:false,s:Chess.initial(),sel:null,legal:[],last:null,busy:false,msg:'',resigned:false,resignText:'',endResult:null,endText:'',moves:[],hist:[],clock,recorded:false};
 }
-async function loadOpenList(){
- const box=document.getElementById('openList');if(!box)return;if(!liveOn()){box.replaceChildren(h('p',{class:'muted small'},'Online challenges turn on when the live database is connected.'));return;}
- const rows=await sbFetchJson('chess_games?status=eq.waiting&select=id,code,white_nick,white_dev,target_dev,white_uid,target_uid,created_at&order=created_at.desc&limit=20');
- if(!Array.isArray(rows)){box.replaceChildren(h('p',{class:'muted small'},'Could not load challenges.'));return;}
- const open=rows.filter(r=>r.white_uid!==DB.profile.uid&&(!r.target_uid||r.target_uid===DB.profile.uid)&&(!r.target_dev||r.target_dev===DB.dev));
- box.replaceChildren(...(open.length?open.map(r=>h('div',{class:'panel online-row'},h('span',null,h('b',null,'@'+r.white_nick),h('div',{class:'tiny muted'},'Code '+r.code+' • '+ago(r.created_at))),h('button',{class:'btn sm primary',onclick:()=>joinOnline(r.code)},'Join'))):[h('p',{class:'muted small'},'No open challenges right now. Create one or search a username.')]));
+async function loadOpenList() {
+  const box = document.getElementById('openList'); if (!box) return;
+  if (!liveOn() || !signedIn()) { box.replaceChildren(h('p', { class: 'muted small' }, 'Sign in and connect to see open challenges.')); return; }
+  try {
+    const result = await hubCall('hub_chess_open_challenges', { p_token: DB.account.token });
+    if (!result || !result.ok) throw new Error(result && result.error || 'Could not load challenges.');
+    const rows = Array.isArray(result.challenges) ? result.challenges : [];
+    box.replaceChildren(...(rows.length ? rows.map(r => h('div', { class: 'panel online-row' }, h('span', null, h('b', null, r.white_nick), h('div', { class: 'tiny muted' }, 'Code ' + r.code + ' • ' + ago(r.created_at))), h('button', { class: 'btn sm primary', onclick: () => joinOnline(r.code) }, 'Join'))) : [h('p', { class: 'muted small' }, 'No open challenges right now. Create one and share the code.')]));
+  } catch (e) { box.replaceChildren(h('p', { class: 'muted small' }, e.message || 'Could not load challenges.')); }
 }
-async function pollIncomingChessChallenges(){
- if(INCOMING_CHESS_BUSY||!liveOn()||!DB.profile||!DB.dev||!signedIn())return;if(CHESS&&CHESS.mode==='online'&&!gameOver(CHESS).over)return;INCOMING_CHESS_BUSY=true;
- try{await ensureChessIdentity();const byAccount=DB.profile.uid?await sbFetchJson('chess_games?status=eq.waiting&target_uid=eq.'+encodeURIComponent(DB.profile.uid)+'&select=id,code,white_nick,white_dev,target_dev,white_uid,target_uid,created_at&order=created_at.desc&limit=5'):[];const byDevice=await sbFetchJson('chess_games?status=eq.waiting&target_dev=eq.'+encodeURIComponent(DB.dev)+'&select=id,code,white_nick,white_dev,target_dev,white_uid,target_uid,created_at&order=created_at.desc&limit=5');const rows=[...(Array.isArray(byAccount)?byAccount:[]),...(Array.isArray(byDevice)?byDevice:[])];if(!rows.length)return;
- if(!Array.isArray(DB.seenChessInvites))DB.seenChessInvites=[];const fresh=rows.find(r=>r.id&&r.white_uid!==DB.profile.uid&&!DB.seenChessInvites.includes(r.id));if(!fresh)return;DB.seenChessInvites.push(fresh.id);DB.seenChessInvites=DB.seenChessInvites.slice(-60);save();playNoticeSound('chess');
- try{if(DB.notify&&'Notification'in window&&Notification.permission==='granted')new Notification('Chess challenge received',{body:'@'+(fresh.white_nick||'a friend')+' challenged you. Open Bablo Hub to accept.'});}catch(e){}
- const accept=await confirmBox({title:'♟ Chess challenge received',msg:'@'+(fresh.white_nick||'a friend')+' wants to play you online. Accept the challenge?',ok:'Accept',cancel:'Later'});if(accept)await joinOnline(fresh.code);else toast('Challenge saved under Chess → Open challenges.');
- }catch(e){}finally{INCOMING_CHESS_BUSY=false;}
+async function pollIncomingChessChallenges() {
+  if (INCOMING_CHESS_BUSY || !liveOn() || !DB.profile || !DB.dev || !signedIn()) return;
+  if (CHESS && CHESS.mode === 'online' && !gameOver(CHESS).over) return;
+  INCOMING_CHESS_BUSY = true;
+  try {
+    await ensureChessIdentity();
+    const inbox = await hubCall('hub_chess_incoming_challenges', { p_token: DB.account.token });
+    const rows = inbox && inbox.ok && Array.isArray(inbox.challenges) ? inbox.challenges : [];
+    if (!rows.length) return;
+    if (!Array.isArray(DB.seenChessInvites)) DB.seenChessInvites = [];
+    const fresh = rows.find(r => r.id && !DB.seenChessInvites.includes(r.id));
+    if (!fresh) return;
+    DB.seenChessInvites.push(fresh.id); DB.seenChessInvites = DB.seenChessInvites.slice(-60); save();
+    playNoticeSound('chess');
+    try { if (DB.notify && 'Notification' in window && Notification.permission === 'granted') new Notification('Chess challenge received', { body: (fresh.white_nick || 'A friend') + ' challenged you. Open Bablo Hub to accept.' }); } catch (e) {}
+    const accept = await confirmBox({ title: '♟ Chess challenge received', msg: (fresh.white_nick || 'A friend') + ' wants to play you online. Accept the challenge?', ok: 'Accept', cancel: 'Later' });
+    if (accept) await joinOnline(fresh.code);
+    else toast('Challenge saved under Chess → Open challenges.');
+  } catch (e) { /* invitations must never block the app */ }
+  finally { INCOMING_CHESS_BUSY = false; }
 }
-
-
 function chessOpponent(G) {
  if(!G||!G.online)return {dev:'',uid:'',username:'',nick:''};
  return G.color==='w'?{dev:G.online.blackDev||'',uid:G.online.blackUid||'',username:G.online.black||'',nick:G.online.black||''}:{dev:G.online.whiteDev||'',uid:G.online.whiteUid||'',username:G.online.white||'',nick:G.online.white||''};
