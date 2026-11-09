@@ -1163,6 +1163,50 @@ const CUP = { minPlayers: 3, topN: 5 };
 const PASS_MARK = 50;
 const ABOUT_TEXT = ["I am Bababola Moses Bolawaife, known as Bablo. I grew to like the nickname in my secondary school, and I still bear it today. I am the founder, CEO and MD of The MedConfidant Channel. I saw the gap long before I got there. My journey into MBBS was not a simple hurdle to pass through, and these challenges shaped who I am today. Without them, The MedConfidant would not have been made.", "Bablo Hub began as an MBBS programme hub, meant to grow from 100 Level through to graduation and to solve some of the study problems of preclinical students. I did not know how to code, so I turned to artificial intelligence. I do not depend on AI entirely for code, but I have found that it cuts the time needed to study a material. It almost feels like a cheat code.", "People often asked how I could do these things while studying MBBS. My dream had always been in technology, and, as destiny would have it, here I am.", "AI helps a great deal when you study, but it cannot replicate or explain medical learning the way someone who has been through a medical course can. I faced many limitations along the way, but I kept pressing on. My first project was my motivation to get into medical school. I still look at what I can achieve and those I can help with this journey, birthed by challenges and orchestrated by God.", "Whenever you want to give up on your dreams or give in to external pressure, remember that I, Bablo, built this as a medical student. Anyone can do anything."];
 /* Bonus for GEL 101: Lean on Me. Summary and details from public synopses and the 2019/2020 exam key. Not from watching the film. */
+const BONUS_COS101 = {
+  title: 'COS 101 Bonus · The Story of Computing',
+  intro: 'Computing did not begin with a laptop. It grew from the human need to count, automate calculations, process information reliably, and communicate knowledge. Each generation solved a limitation of the one before it.',
+  timeline: [
+    ['c. 2400 BCE','Abacus','Ancient counting tool','A physical aid for representing numbers and carrying out arithmetic. It is an early example of people externalising calculation rather than relying only on memory.'],
+    ['1642','Blaise Pascal','Pascaline','Pascal designed a mechanical adding machine to help with his father’s tax calculations. It could perform addition and subtraction using gears.'],
+    ['1673','Gottfried Wilhelm Leibniz','Stepped Reckoner','Leibniz demonstrated a mechanical calculator designed to support multiplication and division as well as addition and subtraction.'],
+    ['1801','Joseph-Marie Jacquard','Punched-card loom','The loom used punched cards to control weaving patterns. The important computing idea was that instructions could be represented separately and fed to a machine.'],
+    ['1822','Charles Babbage','Difference Engine proposal','Babbage proposed a machine to calculate mathematical tables automatically, reducing errors in repeated manual calculations.'],
+    ['1830s','Charles Babbage','Analytical Engine design','A more general design with a store (memory), a mill (processing unit), and punched-card instructions. It was never completed in Babbage’s lifetime.'],
+    ['1843','Ada Lovelace','Algorithm for the Analytical Engine','In her notes on the Engine, Lovelace described a method for calculating Bernoulli numbers. Her work is widely recognised as an early published computer-program algorithm.'],
+    ['1890','Herman Hollerith','Punched-card tabulation','Hollerith’s electromechanical tabulating system processed US census data. It showed how machines could speed up large-scale information processing.'],
+    ['1936','Alan Turing','Universal-machine theory','Turing described a mathematical model of computation. It helped establish the theoretical foundations of what computers can calculate.'],
+    ['1943–1944','Tommy Flowers and the Bletchley Park team','Colossus','An electronic, programmable machine built to help analyse encrypted wartime communications. It was specialised, not a general-purpose personal computer.'],
+    ['1945–1946','J. Presper Eckert, John Mauchly and the ENIAC team','ENIAC','An early large-scale general-purpose electronic digital computer. It used vacuum tubes and required substantial programming and setup.'],
+    ['1947','John Bardeen and Walter Brattain; William Shockley','Transistor','Bardeen and Brattain demonstrated the point-contact transistor at Bell Labs. Shockley later developed the junction-transistor concept. Transistors helped replace bulky, power-hungry vacuum tubes.'],
+    ['1958–1959','Jack Kilby and Robert Noyce','Integrated circuit','Kilby demonstrated an integrated circuit in 1958. Noyce developed a practical planar approach in 1959. Many electronic components could now be combined on a small chip.'],
+    ['1971','Intel 4004 design team','Microprocessor','The Intel 4004 brought a CPU onto one chip. This helped make smaller, cheaper computers and embedded digital devices practical.'],
+    ['1989–1991','Tim Berners-Lee, with Robert Cailliau at CERN','World Wide Web','Berners-Lee proposed the Web in 1989; the first browser and server were running by the end of 1990. The Web software was announced beyond CERN in 1991.'],
+    ['30 April 1993','CERN','Web software released to the public domain','CERN’s decision helped the Web spread and develop as an open information-sharing system.']
+  ],
+  generations: [
+    ['First generation','Vacuum tubes','Large, hot, power-hungry machines; machine-level programming.'],
+    ['Second generation','Transistors','Smaller, faster and more reliable than vacuum-tube systems.'],
+    ['Third generation','Integrated circuits','Many electronic components combined on chips; improved size and reliability.'],
+    ['Fourth generation','Microprocessors','CPU functions integrated onto chips; personal computers and embedded systems expanded.'],
+    ['Later / emerging systems','AI, parallel and networked computing','Modern systems increasingly combine data, networks, specialised processors and machine-learning methods. This is a teaching label, not a universally fixed fifth-generation definition.']
+  ],
+  story: [
+    'First, people needed a dependable way to count. The abacus made numbers visible and movable.',
+    'Then inventors mechanised arithmetic. Pascal and Leibniz used gears; Babbage imagined machines that could calculate tables and eventually follow sequences of instructions.',
+    'Ada Lovelace recognised that a programmable machine could manipulate symbols according to rules, not merely crunch numbers. Her notes connected machinery with algorithms.',
+    'As governments and organisations collected more information, Hollerith’s punched cards made large data sets faster to process. Turing then helped explain computation mathematically.',
+    'Electronic computers increased speed, but vacuum tubes were bulky and consumed much power. Transistors made switching smaller; integrated circuits placed many components together; microprocessors placed the CPU on a chip.',
+    'Finally, networking and the Web changed what computers could do together. A computer became not only a calculator or data processor, but also a gateway to communication, learning, commerce and shared knowledge.'
+  ],
+  examLinks: [
+    ['Computer History Museum · Semiconductor timeline','https://www.computerhistory.org/siliconengine/timeline/'],
+    ['CERN · The birth of the Web','https://home.cern/science/computing/the-birth-of-the-web'],
+    ['W3C · History of the Web','https://www.w3.org/about/history/'],
+    ['Computing History · Timeline','https://www.computinghistory.org.uk/cgi/computing-timeline.pl'],
+    ['IPSJ Computer Museum · Early computers','https://museum.ipsj.or.jp/en/computer/dawn/index.html']
+  ]
+};
 const BONUS_GEL101 = {
   title: 'Bonus: Lean on Me',
   quick: [['Director', 'John G. Avildsen'], ['Writer', 'Michael Schiffer'], ['Producer', 'Norman Twain'], ['Music', 'Bill Conti'], ['Studio', 'Warner Bros.'], ['Released', 'March 3, 1989'], ['Setting', 'Eastside High School, Paterson, New Jersey (1987)'], ['Based on', 'The real-life story of principal Joe Louis Clark'], ['Title song', '"Lean on Me" (1972) by Bill Withers']],
@@ -3956,6 +4000,7 @@ function sectionTiles(c, questions, topics) {
     { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
   ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
+  if (c.code === 'COS') secs.push({ name: 'Bonus', sub: 'Computing timeline, pioneers and story', live: true, go: () => go('#/bonus/COS') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
     const freeWeek = s.name === 'Practicals' && Date.now() < PRACTICAL_FREE_UNTIL;
     const locked = s.premium && !premiumOn() && !freeWeek;
@@ -4183,7 +4228,30 @@ async function qualifiersCard() {
 }
 
 /* ---------- bonus pages ---------- */
+function cosBonusView() {
+  const c=courseBy('COS')||{label:'COS 101',color:'#0E9AA7'};
+  const timeline=BONUS_COS101.timeline;
+  mount(wrap(back('#/course/COS',c.label),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('span',{class:'chip gold'},'COS 101 +++ Bonus'),h('h1',{style:{color:c.color}},BONUS_COS101.title),h('p',{class:'muted'},BONUS_COS101.intro)),
+    h('section',{class:'panel stack'},h('h2',null,'The timeline · people and breakthroughs'),
+      timeline.map(([year,person,event,why])=>h('article',{class:'rev',style:{borderLeft:'3px solid var(--gold)',paddingLeft:'12px'}},
+        h('div',{class:'row between wrapr'},h('span',{class:'chip gold'},year),h('b',null,event)),
+        h('p',{class:'tiny muted',style:{margin:'2px 0 6px'}},person),
+        h('p',{class:'small',style:{margin:0}},why)))),
+    h('section',{class:'panel stack'},h('h2',null,'Computer generations at a glance'),
+      BONUS_COS101.generations.map(([gen,tech,detail])=>h('div',{class:'rev'},h('b',null,gen+' · '+tech),h('p',{class:'small muted',style:{margin:'4px 0 0'}},detail)))),
+    h('section',{class:'panel stack'},h('h2',null,'The story that connects the milestones'),
+      BONUS_COS101.story.map((p,i)=>h('p',{class:'small',style:{margin:0}},(i+1)+'. '+p))),
+    h('section',{class:'panel stack'},h('h2',null,'Revision links'),
+      BONUS_COS101.examLinks.map(([label,url])=>h('a',{href:url,target:'_blank',rel:'noopener noreferrer',class:'urow'},h('span',{class:'t'},label),h('span',{class:'muted'},'↗'))),
+      h('p',{class:'tiny muted'},'Historical dates can differ slightly depending on whether a source records a proposal, prototype, public announcement or commercial release. Learn the event and the distinction.')),
+    h('section',{class:'panel stack'},h('h2',null,'Test yourself'),
+      h('p',{class:'muted small'},'The COS question bank remains in Questions. Use the timeline to connect the people, dates and technological generations before attempting the questions.'),
+      h('button',{class:'btn primary block',onclick:()=>startSession({course:'COS',mode:'practice',units:['COS 101 +++'],n:30,order:'shuffle',timerKind:'up',minutes:0})},'Practise COS 101 +++ questions'))
+  )));
+}
 function bonusView(code) {
+  if (code === 'COS') { cosBonusView(); return; }
   const c = courseBy(code) || { label: code, color: '#0B7A75' };
   const B = code === 'GEL101' ? BONUS_GEL101 : null;
   if (!B) { go('#/course/' + code); return; }
