@@ -3674,9 +3674,12 @@ async function reportQ(q, btn) {
   if (!liveOn()) { toast('Reports need the live connection.'); return; }
   btn.disabled = true;
   try {
-    const r = await fetch(LB.url + '/rest/v1/rpc/report_question', { method: 'POST', headers: sbHeaders(), body: JSON.stringify({ qid: q.id }) });
-    toast(r.ok ? 'Thanks. This question is being checked.' : 'Could not send the report.');
-    btn.textContent = r.ok ? 'Reported' : 'Report this question'; btn.disabled = !r.ok;
+    if (!signedIn() || !DB.account || !DB.account.token) { toast('Sign in to report a question.'); btn.disabled = false; return; }
+    const r = await fetch(LB.url + '/rest/v1/rpc/report_question', { method: 'POST', headers: sbHeaders(), body: JSON.stringify({ p_token: DB.account.token, qid: q.id }) });
+    const payload = await r.json().catch(() => ({}));
+    const ok = r.ok && payload.ok;
+    toast(ok ? (payload.duplicate ? 'You have already reported this question.' : 'Thanks. This question is being checked.') : (payload.error || 'Could not send the report.'));
+    btn.textContent = ok ? 'Reported' : 'Report this question'; btn.disabled = ok;
   } catch (e) { toast('Could not send the report.'); btn.disabled = false; }
 }
 async function loadHidden() {
