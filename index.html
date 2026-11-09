@@ -3260,16 +3260,18 @@ function recordOnline(G, res) {
   const R = chessRec(); if (res === 'draw') R.d++; else if (res === G.color) R.w++; else R.l++; save();
   setTimeout(() => refreshOnlineRatingLine(G), 700);
 }
-async function onlineRatingRow(dev) {
-  if (!dev || !liveOn()) return null;
-  const rows = await sbFetchJson('chess_ratings?dev=eq.' + encodeURIComponent(dev) + '&select=dev,nick,rating,wins,draws,losses');
-  return Array.isArray(rows) ? (rows[0] || null) : null;
+async function onlineRatingRow(G, dev) {
+  if (!dev || !G || !G.online || !signedIn()) return null;
+  try {
+    const result = await hubCall('hub_chess_rating', { p_token: DB.account.token, p_game_id: G.online.id, p_dev: dev });
+    return result && result.ok ? result : null;
+  } catch (e) { return null; }
 }
 async function refreshOnlineRatingLine(G) {
   const el = document.getElementById('onlineRatingLine');
   if (!el || !G || !G.online) return;
   const whiteName = G.online.white || 'White', blackName = G.online.black || 'Waiting for opponent';
-  const [wr, br] = await Promise.all([onlineRatingRow(G.online.whiteDev), onlineRatingRow(G.online.blackDev)]);
+  const [wr, br] = await Promise.all([onlineRatingRow(G, G.online.whiteDev), onlineRatingRow(G, G.online.blackDev)]);
   if (!document.getElementById('onlineRatingLine') || CHESS !== G) return;
   el.textContent = whiteName + ' ' + (wr ? wr.rating : 1000) + '  •  ' + blackName + ' ' + (br ? br.rating : (G.online.blackDev ? 1000 : '—'));
 }
