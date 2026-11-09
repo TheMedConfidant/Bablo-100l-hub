@@ -2757,9 +2757,13 @@ function runView() {
 
   const openMap = () => {
     let close; const grid = h('div', { class: 'map' }, s.qs.map((_, i) => h('button', { class: (s.answers[i] != null && s.answers[i] !== '' ? 'ans ' : '') + (s.flags[i] ? 'flag ' : '') + (i === s.cur ? 'cur' : ''), onclick: () => { s.cur = i; close(); render(); } }, i + 1)));
-    close = modal(h('div', { class: 'stack' }, h('h2', null, 'Question map'), h('p', { class: 'muted small' }, answered() + ' of ' + s.n + ' answered \u2022 gold outline = flagged'), grid,
-      h('button', { class: 'btn primary block', onclick: () => { close(); finishSession(false); } }, exam ? 'Submit examination' : 'Submit quiz'),
-      h('button', { class: 'btn ghost block', onclick: () => close() }, 'Keep going')), true);
+    const flagged = s.flags.filter(Boolean).length, unanswered = s.n - answered();
+    close = modal(h('div', { class: 'stack' }, h('h2', null, 'Question navigator'),
+      h('p', { class: 'muted small' }, answered() + ' answered · ' + unanswered + ' unanswered · ' + flagged + ' flagged'),
+      h('div', { class: 'row wrapr tiny muted' }, h('span', null, '● Answered'), h('span', null, '○ Unanswered'), h('span', null, '⚑ Flagged'), h('span', null, 'Current = highlighted')),
+      grid,
+      h('button', { class: 'btn primary block', onclick: () => { close(); finishSession(false); } }, exam ? 'Submit examination' : s.mode === 'mock' ? 'Submit mock test' : 'Submit timed quiz'),
+      h('button', { class: 'btn ghost block', onclick: () => close() }, 'Return to test')), true);
   };
   const pickOpt = k => {
     const i = s.cur;
@@ -2797,9 +2801,14 @@ function runView() {
       : [h('button', { class: 'btn', disabled: i === 0, onclick: () => { s.cur--; render(); } }, 'Back'), h('button', { class: 'btn ' + (last ? (exam ? 'gold' : 'primary') : ''), onclick: next }, last ? (exam ? 'Submit' : 'Submit quiz') : 'Next')]));
   }
   const exit = async () => { if (await confirmBox({ title: 'Leave this session?', msg: 'Your saved attempt will be cleared from this device.', ok: 'Leave', danger: true })) { stopTimer(); clearOfflineSession(); SESS = null; go('#/course/' + s.course); } };
-  const head = exam
-    ? h('div', { class: 'exam-head' }, h('div', { class: 'row between' }, h('div', null, h('b', null, 'Mock examination \u2022 ' + c.label), h('div', { class: 'muted tiny' }, 'Candidate: ' + DB.profile.name)), timerEl))
-    : h('div', { class: 'row between' }, h('b', null, c.label + (practice ? ' practice' : s.mode === 'mock' ? ' mock test' : ' quiz')), timerEl);
+  const head = !practice
+    ? h('div', { class: 'exam-head' },
+        h('div', { class: 'row between wrapr' },
+          h('div', { class: 'stack', style: { gap: '3px' } },
+            h('b', null, (exam ? 'Computer-based examination' : s.mode === 'mock' ? 'Computer-based mock test' : s.mode === 'qualifier' ? 'Timed qualification' : 'Computer-based timed quiz') + ' · ' + c.label),
+            h('div', { class: 'muted tiny' }, 'Candidate: ' + (DB.profile.name || DB.profile.nick || 'Student') + ' · Answered ' + answered() + '/' + s.n)),
+          timerEl))
+    : h('div', { class: 'row between' }, h('b', null, c.label + ' practice'), timerEl);
   const tools = h('div', { class: 'row between wrapr', style: { marginTop: '8px' } }, h('button', { class: 'btn sm ghost', onclick: exit }, '\u2715 Exit'), counter,
     h('button', { class: 'btn sm ghost', onclick: openSessionCalculator, title: 'Open calculator without leaving this question' }, '\uD83E\uDDEE Calculator'),
     practice ? h('button', { class: 'btn sm ghost', onclick: () => finishSession(false, true) }, 'Finish') : h('button', { class: 'btn sm', onclick: openMap }, 'Question map'));
