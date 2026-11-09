@@ -4453,7 +4453,9 @@ async function enablePushAlerts() {
     const reg = await navigator.serviceWorker.ready;
     const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(got.public) }));
     const j = sub.toJSON();
-    await fetch(LB.url + '/rest/v1/push_subscriptions', { method: 'POST', headers: sbHeaders({ Prefer: 'resolution=ignore-duplicates,return=minimal' }), body: JSON.stringify({ endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }) });
+    if (!signedIn() || !DB.account || !DB.account.token) throw new Error('Log in to enable alerts on this account.');
+    const saved = await hubCall('hub_push_subscribe', { p_token: DB.account.token, p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth });
+    if (!saved || !saved.ok) throw new Error(saved && saved.error || 'Could not save this alert subscription.');
     DB.alerts = true; save();
     toast('Alerts are on. You can receive exam reminders and Hub announcements.');
     settingsView();
