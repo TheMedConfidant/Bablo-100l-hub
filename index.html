@@ -3919,12 +3919,16 @@ function sectionTiles(c, questions, topics) {
 function notesFor(code) { return (window.__NOTES__ || {})[code] || null; }
 function mlsLectureHtml(htmlText) {
   const tpl = document.createElement('template'); tpl.innerHTML = String(htmlText || '');
-  tpl.content.querySelectorAll('script,style,iframe,object,embed,form,button,input,select,textarea,link,meta').forEach(n => n.remove());
+  tpl.content.querySelectorAll('script,style,iframe,object,embed,form,button,input,select,textarea,link,meta,svg,math,video,audio,source,template,base').forEach(n => n.remove());
   tpl.content.querySelectorAll('*').forEach(el => {
     [...el.attributes].forEach(a => {
-      if (a.name.toLowerCase().startsWith('on') || a.name === 'style' || a.name === 'id' || a.name.startsWith('data-')) { el.removeAttribute(a.name); return; }
-      if (a.name === 'href' || a.name === 'src') { if (!/^(https?:|mailto:|#|\/)/i.test(a.value)) el.removeAttribute(a.name); }
-      else if (a.name !== 'class' && a.name !== 'colspan' && a.name !== 'rowspan' && a.name !== 'scope' && a.name !== 'title' && a.name !== 'href' && a.name !== 'src' && a.name !== 'alt') el.removeAttribute(a.name);
+      const name = a.name.toLowerCase(), value = String(a.value || '').trim();
+      if (name.startsWith('on') || name === 'style' || name === 'id' || name.startsWith('data-')) { el.removeAttribute(a.name); return; }
+      if (name === 'href') {
+        if (!/^(https?:\/\/|mailto:|#|\/(?!\/))/i.test(value)) el.removeAttribute(a.name);
+      } else if (name === 'src') {
+        if (!/^(https?:\/\/|\/(?!\/))/i.test(value)) el.removeAttribute(a.name);
+      } else if (!['class','colspan','rowspan','scope','title','href','src','alt'].includes(name)) el.removeAttribute(a.name);
     });
   });
   tpl.content.querySelectorAll('table').forEach(t => {
@@ -4471,7 +4475,7 @@ function practicalView(code, n) {
   let content;
   if (x.contentHtml) {
     content = document.createElement('section'); content.className = 'panel practical-content';
-    content.innerHTML = x.contentHtml; content.style.cssText = 'overflow-wrap:anywhere;line-height:1.65';
+    content.append(mlsLectureHtml(x.contentHtml)); content.style.cssText = 'overflow-wrap:anywhere;line-height:1.65';
   } else {
     content = h('div', { class: 'stack-l' },
       h('section', { class: 'panel stack' }, h('h2', null, 'Aim'), h('p', { class: 'small', style: { margin: 0 } }, x.aim || '')),
