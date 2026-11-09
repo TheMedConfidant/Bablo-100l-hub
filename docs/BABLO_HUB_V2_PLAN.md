@@ -1,0 +1,73 @@
+# Bablo Hub V2 — Preview Implementation Plan
+
+## Guardrails
+- This work is isolated on `bablo-hub-v2-preview`; do not merge to `main` or alter production without explicit approval.
+- Preserve all existing course content, Supabase data, Chess, Arcade, Social Corner, Challenge Arena, Maths resources, and existing navigation contracts.
+- Extend the existing React/TypeScript + Supabase + Vercel application. Do not rewrite it in Flutter/React Native as part of V2.
+- Ship small, verifiable increments; do not claim a feature is complete until tested against the preview deployment and real database behavior.
+
+## Current infrastructure observations (2026-11-10)
+- GitHub repository: `TheMedConfidant/Bablo-100l-hub`; production branch: `main`.
+- Vercel project: `bablo-100l-hub`; latest observed production deployment was READY from `main`.
+- Active Supabase project: `labgqqovggulrsmxzraj`.
+- Existing custom account model: `public.hub_accounts`, keyed by `unique_id`; it currently has no email column.
+- Existing premium tables: `hub_premium_catalog`, `hub_premium_orders`, `hub_premium_order_items`, and `hub_premium_entitlements`. Existing orders/entitlements currently reference `unique_id`; catalog prices are currently constrained to 50,000 kobo (₦500) for notes/flashcards.
+- Existing app data is live and valuable. Never reset, truncate, or replace these tables.
+
+## V2 workstreams
+
+### 1. Account identity and premium ownership
+- Require a verified email address for paid checkout.
+- Keep the stable internal account ID as the primary owner key; email is the recovery and payment-contact identity, not a replacement for the internal ID.
+- Bind every verified payment to the authenticated account ID and a normalized, verified email snapshot.
+- On account recovery, verify control of the same email using a secure email link/OTP, then restore access to the existing account and its entitlements. Never grant access based only on a typed email address or a client-supplied account ID.
+- Prevent duplicate account creation for an already-claimed normalized email; provide a safe linking/recovery path for existing users.
+- Keep payment provider secrets and verification logic server-side. Verify webhook signatures and provider transaction status before granting entitlements. Make webhook processing idempotent.
+- Maintain an auditable order and entitlement history. Refunds must be handled transparently under a published policy and applicable provider/law requirements; do not silently revoke valid purchases or promise an unconditional no-refund rule.
+
+### 2. Hybrid monetisation
+- Individual purchases: notes collection ₦500; flashcard collection ₦500.
+- Add course/programme bundles and weekly, monthly, and semester subscriptions after product access rules and pricing are approved.
+- Store prices in minor currency units and snapshot product/price details on each order.
+- Checkout must show the exact email receiving the entitlement, itemised contents, total, currency, and refund/support policy before payment.
+- Existing premium tables should be extended through reviewed migrations, not replaced.
+
+### 3. Adaptive flashcards
+- Preserve the Easy/Hard/Again/Good interaction; no Next/Previous workflow.
+- Track per-user/card review history, repetitions, interval, ease/difficulty, last review, and due time.
+- Use a tested spaced-repetition algorithm with configurable intervals; avoid fixed universal assumptions such as every Hard card being due in exactly 10 minutes.
+- Provide due-card queues, progress summaries, and offline review with safe sync conflict handling.
+
+### 4. Offline-first learning
+- Cache explicitly selected notes, flashcards, and question sets locally.
+- Show download/sync state and last successful sync.
+- Queue eligible progress writes offline and reconcile them idempotently when online.
+- Do not cache sensitive account/payment data or premium content in a way that bypasses entitlement checks.
+
+### 5. AI-assisted content ingestion
+- PDF/text extraction into structured notes, questions, and flashcards.
+- Preserve source file/page references and provenance.
+- Require validation for answer keys, duplicates, malformed items, and unsupported claims before publishing.
+- Keep generated content in a review queue; AI output is not automatically trusted or published.
+
+### 6. Bablo Buddy and growth
+- Academic tutor and study-planning capabilities first; campus assistant later.
+- Clearly distinguish sourced facts from generated explanations.
+- Achievement-sharing graphics and referral tracking only after privacy controls and anti-abuse rules are defined.
+
+## Delivery order
+1. Audit existing auth, premium checkout, RLS, migrations, and frontend entry points.
+2. Design verified-email account linking/recovery without breaking current ID-based accounts.
+3. Harden payment verification and entitlement ownership; test duplicate webhook delivery and account recovery.
+4. Add hybrid products and subscriptions.
+5. Implement and test adaptive flashcard scheduling.
+6. Add offline cache/sync.
+7. Add content ingestion and Bablo Buddy.
+
+## Acceptance gates
+- No production deployment or main-branch merge during preview work.
+- No client-side authority to mark orders paid or grant premium.
+- A user who loses their display ID can recover the same account through verified email and retain purchases.
+- A payment made for one account cannot be claimed by another account merely by entering its email or order reference.
+- Existing users and existing premium records remain intact.
+- Every database change has a migration, RLS review, and verification query.
