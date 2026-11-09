@@ -2594,7 +2594,22 @@ function courseAnalyticsView(code) {
 }
 
 function startWeak(code) {
-  startSession({ course: code, mode: 'practice', n: 20, order: 'shuffle', timerKind: 'up', minutes: 0, ids: DB.missed });
+  // Adaptive revision prioritises repeatedly missed questions and low personal accuracy,
+  // then fills the set with unseen items so practice still broadens coverage.
+  ensureDeviceStats();
+  const rows = (BYC[code] || []).map(q => {
+    const stat = (DB.stats && DB.stats[q.i]) || [0, 0];
+    const attempts = Math.max(0, Number(stat[0]) || 0);
+    const correct = Math.max(0, Number(stat[1]) || 0);
+    const misses = Math.max(0, Number(DB.missed && DB.missed[q.i]) || 0);
+    const errorRate = attempts ? Math.max(0, (attempts - correct) / attempts) : 0;
+    const priority = misses * 4 + errorRate * 3 + (attempts === 0 ? 0.5 : 0);
+    return { id: q.i, priority, attempts, misses };
+  }).sort((a, b) => b.priority - a.priority || a.attempts - b.attempts);
+  const chosen = rows.slice(0, Math.min(20, rows.length));
+  if (!chosen.length) { toast('No questions are available for this course yet.'); return; }
+  const ids = Object.fromEntries(chosen.map(x => [x.id, true]));
+  startSession({ course: code, mode: 'practice', n: chosen.length, order: 'shuffle', timerKind: 'up', minutes: 0, ids, adaptive: true });
 }
 
 /* ---------- setup ---------- */
@@ -2738,7 +2753,7 @@ function runView() {
         kids.push(h('button', { class: cls, 'aria-pressed': String(!practice && a === k), onclick: () => pickOpt(k) }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, fmt(o, q.subj))));
       });
     }
-    if (done) { const ok = Core.isCorrect(q, a); kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' }, h('b', null, ok ? 'Correct. ' : 'Not quite. Answer: '), ok ? '' : fmt(correctText(q), q.subj), q.exp ? h('div', { class: 'small', style: { marginTop: '6px' } }, q.exp) : null)); }
+    if (done) { const ok = Core.isCorrect(q, a); kids.push(h('div', { class: 'fb ' + (ok ? 'ok' : 'bad'), role: 'status' }, h('b', null, ok ? 'Correct. ' : 'Not quite. Answer: '), ok ? '' : fmt(correctText(q), q.subj), h('div', { class: 'small', style: { marginTop: '8px' } }, h('b', null, 'Explanation: '), q.exp || 'An explanation has not yet been supplied for this question. You can flag it for academic review.'))); }
     card.replaceChildren(h('div', { class: 'qcard' }, kids));
     const last = i === s.n - 1;
     dock.replaceChildren(h('div', { class: 'in' }, practice
@@ -2827,7 +2842,7 @@ function resultView() {
       return h('div', { class: 'rev' }, h('div', { class: 'row between' }, h('span', { class: 'chip ' + (ok ? 'ok' : 'bad') }, ok ? 'Correct' : (a == null || a === '' ? 'Skipped' : 'Wrong')), h('span', { class: 'tiny muted' }, 'Q' + (i + 1) + ' \u2022 ' + q.unit)),
         h('p', { style: { margin: '8px 0 0', fontWeight: '600' } }, fmt(q.text, q.subj)),
         h('p', { class: 'a' }, 'Your answer: ', fmt(answerText(q, a), q.subj)), ok ? null : h('p', { class: 'a' }, 'Correct answer: ', h('b', null, fmt(correctText(q), q.subj))),
-        q.exp ? h('p', { class: 'a muted' }, q.exp) : null, h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: () => flagQuestion(q) }, 'Flag this question'), h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: () => suggestCorrection(q) }, 'Suggest a correction'), q.flag ? h('div', { class: 'warnbox' }, 'This question\'s answer key is under review.') : null);
+        h('div', { class: 'a muted' }, h('b', null, 'Explanation: '), q.exp || 'No explanation is currently available for this question. Please flag it for academic review.'), h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: () => flagQuestion(q) }, 'Flag this question'), h('button', { class: 'btn sm ghost', style: { marginTop: '6px' }, onclick: () => suggestCorrection(q) }, 'Suggest a correction'), q.flag ? h('div', { class: 'warnbox' }, 'This question\'s answer key is under review.') : null);
     }) : [h('p', { class: 'muted' }, 'Nothing here.')]));
   };
   const chips = h('div', { class: 'seg' }, [['all', 'All'], ['wrong', 'Wrong'], ['skipped', 'Skipped']].map(([k, l]) => h('button', { class: 'opt', 'aria-pressed': String(filter === k), onclick: e => { filter = k; chips.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', 'false')); e.currentTarget.setAttribute('aria-pressed', 'true'); drawRev(); } }, l)));
@@ -2855,7 +2870,7 @@ function resultView() {
     h('p', { id: 'lbstatus', class: 'muted small', role: 'status' }, lbMsg(s.lb)),
     h('div', { class: 'stack' },
       h('div', { class: 'row' }, h('button', { class: 'btn primary grow', onclick: () => startSession(s.opts) }, 'Try again'), h('a', { class: 'btn grow', href: '#/board' }, 'Leaderboard')),
-      h('div', { class: 'row' }, Object.keys(DB.missed).length ? h('button', { class: 'btn grow', onclick: () => startWeak(s.course) }, 'Weak spots') : null,
+      h('div', { class: 'row' }, (Object.keys(DB.missed).length || Object.keys(DB.stats || {}).length) ? h('button', { class: 'btn grow', onclick: () => startWeak(s.course) }, 'Adaptive weak-spot practice') : null,
         h('a', { class: 'btn grow', target: '_blank', rel: 'noopener', href: 'https://wa.me/?text=' + encodeURIComponent(shareText) }, 'Share on WhatsApp'))),
     topicPanel,
     h('section', { class: 'stack' }, h('h2', null, 'Review answers'), chips, list))));
