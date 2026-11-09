@@ -170,6 +170,73 @@ begin
   'premium',acc.premium,'progress',acc.progress);
 end $;
 
+
+-- Push subscription records are private and account-bound. The sender also
+-- allowlists official push service hosts to prevent server-side request forgery.
+alter table public.push_subscriptions add column if not exists unique_id text;
+create index if not exists push_subscriptions_unique_id_idx on public.push_subscriptions(unique_id);
+drop policy if exists "subscribe to alerts" on public.push_subscriptions;
+revoke all on table public.push_subscriptions from anon, authenticated;
+
+create or replace function public.hub_push_subscribe(
+ p_token text,p_endpoint text,p_p256dh text,p_auth text
+) returns json language plpgsql security definer set search_path to 'public'
+as $
+declare account_id text;
+begin
+ select unique_id into account_id from public.hub_sessions where token=p_token and expires_at>now() limit 1;
+ if account_id is null then return json_build_object('ok',false,'error','Please log in again to enable alerts.'); end if;
+ if coalesce(length(p_endpoint),0)<20 or length(p_endpoint)>1000
+   or p_endpoint !~ '^https://(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|wns\.windows\.com|web\.push\.apple\.com|push\.services\.mozilla\.com)(:[0-9]+)?/'
+ then return json_build_object('ok',false,'error','Unsupported push provider endpoint.'); end if;
+ if coalesce(length(p_p256dh),0)<20 or length(p_p256dh)>200 or p_p256dh !~ '^[A-Za-z0-9_-]+
+-- The app uses the anon publishable key plus its own opaque session token;
+-- the server role retains access for trusted Edge Function calls.
+do $$
+declare f record;
+begin
+ for f in
+  select p.oid::regprocedure as signature
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and p.prosecdef
+    and has_function_privilege('anon',p.oid,'EXECUTE')
+ loop
+  execute format('revoke execute on function %s from public, authenticated',f.signature);
+  execute format('grant execute on function %s to anon, service_role',f.signature);
+ end loop;
+end $$;
+
+commit;
+
+   or coalesce(length(p_auth),0)<10 or length(p_auth)>100 or p_auth !~ '^[A-Za-z0-9_-]+
+-- The app uses the anon publishable key plus its own opaque session token;
+-- the server role retains access for trusted Edge Function calls.
+do $$
+declare f record;
+begin
+ for f in
+  select p.oid::regprocedure as signature
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and p.prosecdef
+    and has_function_privilege('anon',p.oid,'EXECUTE')
+ loop
+  execute format('revoke execute on function %s from public, authenticated',f.signature);
+  execute format('grant execute on function %s to anon, service_role',f.signature);
+ end loop;
+end $$;
+
+commit;
+
+ then return json_build_object('ok',false,'error','Invalid push subscription keys.'); end if;
+ if (select count(*) from public.push_subscriptions where unique_id=account_id and endpoint<>p_endpoint)>=5 then
+  return json_build_object('ok',false,'error','This account already has the maximum number of alert devices.');
+ end if;
+ insert into public.push_subscriptions(unique_id,endpoint,p256dh,auth)
+ values(account_id,p_endpoint,p_p256dh,p_auth)
+ on conflict(endpoint) do update set unique_id=excluded.unique_id,p256dh=excluded.p256dh,auth=excluded.auth,created_at=now();
+ return json_build_object('ok',true);
+end $;
+
 -- Remove default PUBLIC execution from anonymous-facing definer RPCs.
 -- The app uses the anon publishable key plus its own opaque session token;
 -- the server role retains access for trusted Edge Function calls.
