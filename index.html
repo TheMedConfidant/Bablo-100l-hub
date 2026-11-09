@@ -3929,7 +3929,7 @@ const QUAL_POLL = { id: 'qualifications-2026-s1', question: 'When should program
   { id: 'tomorrow-7pm', label: 'Tomorrow, 7pm' }, { id: 'tomorrow-8pm', label: 'Tomorrow, 8pm' }] };
 async function pollCounts(pollId) {
   try {
-    const result = await hubCall('hub_poll_counts', { p_poll_id: pollId, p_voter: DB.dev });
+    const result = await hubCall('hub_poll_counts', { p_token: DB.account && DB.account.token, p_poll_id: pollId });
     if (!result || !result.ok) return null;
     return { counts: result.counts || {}, mine: result.mine || null, total: Number(result.total) || 0 };
   } catch (e) { return null; }
@@ -3957,8 +3957,12 @@ function pollCard(P) {
     box.replaceChildren(...children);
   };
   async function castVote(optionId) {
-    const r = await fetch(LB.url + '/rest/v1/poll_votes', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ poll_id: poll.id, option_id: optionId, voter: DB.dev }) }).catch(() => null);
-    if (r && r.ok) { toast('Vote saved. Thank you.'); draw(); } else { toast('Could not save your vote. You may have voted already.'); draw(); }
+    try {
+      const r = await hubCall('hub_poll_vote', { p_token: DB.account && DB.account.token, p_poll_id: poll.id, p_option_id: optionId });
+      if (r && r.ok) toast('Vote saved. Thank you.');
+      else toast((r && r.error) || 'Could not save your vote.');
+    } catch (e) { toast(e.message || 'Could not save your vote.'); }
+    draw();
   }
   draw();
   return h('section', { class: 'panel stack' }, h('h2', null, poll.title || 'Qualifications poll'), h('p', { class: 'muted small' }, poll.question), box);
