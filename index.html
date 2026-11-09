@@ -2262,8 +2262,8 @@ function programmePremiumPrice(programme) {
  const items=[];
  coursesFor(programme).forEach(c=>{
   const available=premiumPackInventory(c.code);
-  if(available.notes)items.push({course:c.label,type:'Notes',amount:500});
-  if(available.flashcards)items.push({course:c.label,type:'Flashcards',amount:500});
+  if(available.notes)items.push({course:c.label,type:'Notes',amount:PREMIUM_ITEM_PRICE});
+  if(available.flashcards)items.push({course:c.label,type:'Flashcards',amount:PREMIUM_ITEM_PRICE});
  });
  return {programme,items,total:items.reduce((sum,x)=>sum+x.amount,0)};
 }
@@ -4012,49 +4012,6 @@ function sectionTiles(c, questions, topics) {
 
 /* ---------- Premium Library pricing ---------- */
 const PREMIUM_ITEM_PRICE = 500;
-function premiumProgrammeQuote(programme) {
-  const list = coursesFor(programme);
-  const rows = list.map(c => ({ code:c.code, label:c.label, title:c.title, notes:!!notesFor(c.code), cards:!!((window.__CARDS__||{})[c.code] && window.__CARDS__[c.code].length) || !!(BYC[c.code] && BYC[c.code].length) }));
-  const notesCount = rows.filter(x=>x.notes).length;
-  const cardsCount = rows.filter(x=>x.cards).length;
-  return { rows, notesCount, cardsCount, total: (notesCount + cardsCount) * PREMIUM_ITEM_PRICE, fullBundle: list.length * 2 * PREMIUM_ITEM_PRICE };
-}
-function premiumPricingView() {
-  const programme = DB.profile && DB.profile.programme || PROGRAMMES[0];
-  const quote = premiumProgrammeQuote(programme);
-  const money = n => '₦' + Number(n).toLocaleString('en-NG');
-  const programmeSelect = h('select', { class:'fc-topic-select', 'aria-label':'Choose programme for premium pricing' },
-    PROGRAMMES.map(p=>h('option',{value:p,selected:p===programme?true:null},p)));
-  const summary = h('div',{class:'panel stack'});
-  const rows = h('div',{class:'rows'});
-  const draw = () => {
-    const q=premiumProgrammeQuote(programmeSelect.value);
-    summary.replaceChildren(
-      h('span',{class:'chip gold'},'One-time programme bundle'),
-      h('h2',null,programmeSelect.value),
-      h('p',{class:'muted small'},q.rows.length+' courses in this programme.'),
-      h('div',{class:'row between'},h('span',null,'Notes currently available'),h('b',null,q.notesCount+' × '+money(PREMIUM_ITEM_PRICE))),
-      h('div',{class:'row between'},h('span',null,'Flashcard decks currently available'),h('b',null,q.cardsCount+' × '+money(PREMIUM_ITEM_PRICE))),
-      h('div',{class:'row between'},h('b',null,'Current available-content total'),h('b',{style:{color:'var(--gold)',fontSize:'1.25rem'}},money(q.total))),
-      h('p',{class:'tiny muted'},'Full programme ceiling if every course has both Notes and Flashcards: '+money(q.fullBundle)+'. This is a pricing estimate, not a charge.')
-    );
-    rows.replaceChildren(...q.rows.map(c=>h('div',{class:'urow'},
-      h('span',{class:'t'},h('b',null,c.label),h('span',{class:'muted tiny'},c.title)),
-      h('span',{class:'small',style:{textAlign:'right'}},
-        h('span',{class:'chip '+(c.notes?'gold':'')},'Notes '+(c.notes?money(PREMIUM_ITEM_PRICE):'Not loaded')),
-        h('span',{class:'chip '+(c.cards?'gold':'')},'Cards '+(c.cards?money(PREMIUM_ITEM_PRICE):'Not loaded'))
-      )
-    )));
-  };
-  programmeSelect.addEventListener('change',draw);
-  draw();
-  mount(wrap(back('#/','Dashboard'),h('div',{class:'stack-l'},
-    h('div',{class:'stack'},h('span',{class:'chip gold'},'Bablo Hub Premium'),h('h1',null,'Premium Library'),h('p',{class:'muted'},'Simple one-time pricing. No recurring subscription.')),
-    h('section',{class:'panel stack'},h('h2',null,'Choose your programme'),programmeSelect,summary),
-    h('section',{class:'panel stack'},h('h2',null,'Course-by-course breakdown'),rows),
-    h('section',{class:'panel stack'},h('h2',null,'Payment status'),h('p',{class:'muted small'},'Checkout is not enabled yet. Premium materials are still bundled in the public app files, so payment must remain closed until content is moved behind server-verified access. This prevents someone from bypassing payment by inspecting the app code.'),h('span',{class:'chip gold'},'Pricing ready · Secure checkout pending'))
-  )));
-}
 
 /* ---------- notes and flashcards (100L) ---------- */
 function notesFor(code) { return (window.__NOTES__ || {})[code] || null; }
