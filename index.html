@@ -3124,14 +3124,15 @@ async function createOnline(targetDev) {
 async function joinOnline(raw) {
   const code = String(raw || '').trim().toUpperCase();
   if (code.length !== 6) { toast('Enter the 6-letter code.'); return; }
-  if (!liveOn()) { toast('Online challenges need the live connection.'); return; }
+  if (!liveOn() || !signedIn()) { toast('Sign in and connect to the internet to join an online chess challenge.'); return; }
   const found = await sbFetchJson('chess_games?code=eq.' + code + '&status=eq.waiting&select=id,white_dev,white_nick,target_dev');
   if (!Array.isArray(found) || !found.length) { toast('No open challenge with that code.'); return; }
   if (found[0].white_dev === DB.dev) { toast('That is your own challenge. Share the code with a friend.'); return; }
-  if (found[0].target_dev && found[0].target_dev !== DB.dev) { /* Device IDs can change after reinstall, storage clearing, or switching browsers. A valid six-character challenge code is the explicit invitation; allow the code holder to join. */ }
-  const joined = await sbFetchJson('chess_games?id=eq.' + found[0].id + '&status=eq.waiting', { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=representation' }), body: JSON.stringify({ status: 'active', black_nick: DB.profile.nick.slice(0, 30), black_dev: DB.dev, updated_at: new Date().toISOString() }) });
-  if (!Array.isArray(joined) || !joined.length) { toast('That challenge was just taken.'); return; }
-  startOnline(onlineState('b', found[0].id, code, 'active', found[0].white_nick, DB.profile.nick, found[0].white_dev, DB.dev));
+  try {
+    const joined = await hubCall('hub_join_chess_challenge', { p_token: DB.account.token, p_code: code, p_dev: DB.dev });
+    if (!joined || !joined.ok) throw new Error(joined && joined.error || 'That challenge could not be joined.');
+    startOnline(onlineState('b', joined.id, code, 'active', joined.white_nick || found[0].white_nick, joined.black_nick || DB.profile.nick, found[0].white_dev, DB.dev));
+  } catch (e) { toast(e.message || 'That challenge was just taken.'); }
 }
 let ONLINE_POLL = null;
 function stopOnlinePoll() { if (ONLINE_POLL) { clearInterval(ONLINE_POLL); ONLINE_POLL = null; } stopChatPoll(); }
@@ -3213,22 +3214,44 @@ async function applyOnlineRating(G, res) {
   if (line) line.textContent = 'Your online rating: ' + rating + ' • change ' + (rating - ownRating >= 0 ? '+' : '') + (rating - ownRating);
   toast('Online rating updated: ' + rating + ' (' + (rating - ownRating >= 0 ? '+' : '') + (rating - ownRating) + ').');
 }
-function onlineFinish(res) {
-  const G = CHESS; recordOnline(G, res); stopOnlinePoll();
-  sbFetchJson('chess_games?id=eq.' + G.online.id, { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ status: 'finished', result: res, moves: G.moves.join(' '), updated_at: new Date().toISOString() }) });
+async function chessAction(action, extra) {
+  if (!signedIn() || !DB.account || !DB.account.token) throw new Error('Please log in again.');
+  const response = await fetch(LB.url + '/functions/v1/hub-chess-action', {
+    method: 'POST',
+    headers: { apikey: LB.key, Authorization: 'Bearer ' + LB.key, 'Content-Type': 'application/json', 'x-session-token': DB.account.token },
+    body: JSON.stringify(Object.assign({ action, p_dev: DB.dev, p_game_id: CHESS && CHESS.online && CHESS.online.id }, extra || {}))
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.ok) throw new Error(payload.error || 'Chess action could not be saved.');
+  return payload;
 }
-function onlineAfterMove() {
-  const G = CHESS; const st = Chess.status(G.s);
-  const stamp=new Date().toISOString();
-  const fields = { moves: G.moves.join(' '), updated_at: stamp };
-  if(G.clock){fields.clock_white_ms=Math.max(0,Math.floor(clockMs(G,'w')));fields.clock_black_ms=Math.max(0,Math.floor(clockMs(G,'b')));fields.clock_side=G.clock.side;fields.clock_updated_at=stamp;}
-  if (st.over) {
-    const res = st.result === 'draw' ? 'draw' : (st.result === 'white' ? 'w' : 'b');
-    G.endResult = res; G.endText = res === 'draw' ? 'Draw.' : (res === G.color ? 'Checkmate. You win!' : 'Checkmate. You lost this one.');
-    recordOnline(G, res); stopOnlinePoll(); clearChat(G);
-    fields.status = 'finished'; fields.result = res;
+async function onlineFinish(res) {
+  const G = CHESS; if (!G || !G.online || G.online.recorded) return;
+  try {
+    const result = await chessAction('resign');
+    G.online.status = result.status || 'finished';
+    if (result.status === 'finished') {
+      G.endResult = result.result; recordOnline(G, result.result); stopOnlinePoll(); clearChat(G);
+    }
+    chessDraw();
+  } catch (e) { toast(e.message || 'Could not save the result. Reconnect and retry.'); }
+}
+async function onlineAfterMove() {
+  const G = CHESS; if (!G || !G.online || !G.moves.length) return;
+  const st = Chess.status(G.s);
+  try {
+    const result = await chessAction('move', { p_move: G.moves[G.moves.length - 1] });
+    G.online.status = result.status || 'active';
+    if (result.status === 'finished') {
+      G.endResult = result.result;
+      G.endText = result.result === 'draw' ? 'Draw.' : (result.result === G.color ? 'Checkmate. You win!' : 'Checkmate. You lost this one.');
+      if (!G.online.recorded) recordOnline(G, result.result);
+      stopOnlinePoll(); clearChat(G);
+    }
+  } catch (e) {
+    toast(e.message || 'Move could not be saved. Refresh the match before continuing.');
+    setTimeout(() => { if (CHESS === G) pollOnline(); }, 500);
   }
-  sbFetchJson('chess_games?id=eq.' + G.online.id, { method: 'PATCH', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify(fields) });
   chessDraw();
 }
 
