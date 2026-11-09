@@ -23,6 +23,11 @@ drop policy if exists "read chess chat" on public.chess_messages;
 drop policy if exists "send chess chat" on public.chess_messages;
 drop policy if exists "clear finished chat" on public.chess_messages;
 
+-- Pending uploads are private; approved files are exposed only through the
+-- hub-download Edge Function, which verifies approval and issues a short URL.
+update storage.buckets set public=false where id='hub-uploads';
+drop policy if exists "read hub-uploads" on storage.objects;
+
 create or replace function public.hub_chess_open_challenges(p_token text)
 returns json language plpgsql security definer set search_path to 'public'
 as $$
