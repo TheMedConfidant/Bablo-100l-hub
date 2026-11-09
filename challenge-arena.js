@@ -57,6 +57,15 @@ function style(){if($('#cd-style'))return;let s=document.createElement('style');
 `;document.head.append(s);}
 function hero(){return h('section',{class:'cd-hero'},h('div',{class:'cd-kicker'},'BABLO HUB  /  ACADEMIC COMPETITION'),h('h1',null,'Challenge Arena'),h('p',null,'Compete across courses. Earn points. Climb the Champions League.'),h('div',{class:'cd-quick'},h('span',null,'⚡ Live academic battles'),h('span',null,' • '),h('span',null,'🏆 Verified results')))}
 function stat(n,t){return h('div',{class:'cd-stat'},h('b',null,n),h('span',{class:'muted'},t))}
+function openLocalWifiBattle(){
+  const launch=()=>{if(window.BabloWifiChallenge&&typeof window.BabloWifiChallenge.open==='function'){window.BabloWifiChallenge.open();return;}toast('Local Wi-Fi Battle could not start. Reopen Bablo Hub while connected once, then retry.');};
+  if(window.BabloWifiChallenge){launch();return;}
+  let script=document.querySelector('script[data-bablo-wifi]');
+  if(script){script.addEventListener('load',launch,{once:true});script.addEventListener('error',()=>toast('Local Wi-Fi Battle asset is unavailable.'),{once:true});return;}
+  script=document.createElement('script');script.src='./wifi-challenge.js';script.dataset.babloWifi='1';
+  script.onload=launch;script.onerror=()=>toast('Local Wi-Fi Battle asset is unavailable. Open Bablo Hub online once, then retry.');
+  document.head.append(script);
+}
 function dashboard(){
   CA.tab='overview';
   const nav=['Discover','My Challenges','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t)},t));
@@ -65,7 +74,8 @@ function dashboard(){
   actions.append(
     h('button',{onclick:()=>createPanel('quick_duel')},'＋ Create challenge'),
     h('button',{class:'secondary',onclick:joinPrompt},'↗ Join with code'),
-    h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges')
+    h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Find open challenges'),
+    h('button',{class:'secondary',onclick:openLocalWifiBattle},'📶 Local Wi-Fi Battle · No data')
   );
   const rooms=h('section',{class:'cd-panel'});
   rooms.append(h('h3',null,'Your active challenges'),h('div',{id:'cd-inbox',class:'cd-list'},'Loading your challenges…'));
