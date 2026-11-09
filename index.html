@@ -3282,10 +3282,14 @@ function chatPanel(G) {
   const list = h('div', { id: 'chatList', class: 'stack', style: { maxHeight: '180px', overflowY: 'auto', fontSize: '.9rem' } }, h('p', { class: 'tiny muted' }, 'Chat clears when the game ends.'));
   const input = h('input', { type: 'text', maxlength: '200', placeholder: 'Say something', 'aria-label': 'Chat message' });
   const send = async (text) => {
-    const t = String(text || '').trim(); if (!t || !G.online) return;
+    const t = String(text || '').trim(); if (!t || !G.online || !signedIn()) return;
     input.value = '';
-    try { const resp = await fetch(LB.url + '/rest/v1/chess_messages', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ game_id: G.online.id, nick: (DB.profile.username || DB.profile.nick).slice(0, 30), body: t.slice(0, 200) }) }); if (!resp.ok) throw new Error('send failed'); if (CHAT_EMOJI.includes(t)) popChessReaction(t); loadChat(G); }
-    catch (e) { toast('Message not sent. Check your connection.'); }
+    try {
+      const result = await hubCall('hub_chess_chat_send', { p_token: DB.account.token, p_game_id: G.online.id, p_dev: DB.dev, p_body: t.slice(0, 200) });
+      if (!result || !result.ok) throw new Error(result && result.error || 'Message not sent.');
+      if (CHAT_EMOJI.includes(t)) popChessReaction(t);
+      loadChat(G);
+    } catch (e) { toast(e.message || 'Message not sent. Check your connection.'); }
   };
   input.addEventListener('keydown', e => { if (e.key === 'Enter') send(input.value); });
   return h('section', { class: 'panel stack' }, h('h2', null, 'Chat'), list,
@@ -3294,9 +3298,12 @@ function chatPanel(G) {
 }
 const CHAT_SEEN_BY_GAME = Object.create(null);
 async function loadChat(G) {
-  if (!G || !G.online || !document.getElementById('chatList')) return;
-  const rows = await sbGet('chess_messages?game_id=eq.' + G.online.id + '&select=nick,body,created_at&order=created_at.asc&limit=100');
-  const list = document.getElementById('chatList'); if (!list || !Array.isArray(rows)) return;
+  if (!G || !G.online || !signedIn() || !document.getElementById('chatList')) return;
+  let payload;
+  try { payload = await hubCall('hub_chess_chat_list', { p_token: DB.account.token, p_game_id: G.online.id, p_dev: DB.dev }); } catch (e) { return; }
+  if (!payload || !payload.ok || !Array.isArray(payload.messages)) return;
+  const rows = payload.messages, list = document.getElementById('chatList'); if (!list) return;
+  const ownName = DB.profile.username || DB.profile.nick;
   const gameKey = String(G.online.id), seen = CHAT_SEEN_BY_GAME[gameKey] || (CHAT_SEEN_BY_GAME[gameKey] = new Set());
   const firstLoad = !CHAT_SEEN_BY_GAME[gameKey + ':ready'];
   if (firstLoad) CHAT_SEEN_BY_GAME[gameKey + ':ready'] = true;
@@ -3304,18 +3311,18 @@ async function loadChat(G) {
     const msgKey = String(m.id || (m.created_at + '|' + m.nick + '|' + m.body));
     if (!seen.has(msgKey)) {
       seen.add(msgKey);
-      if (!firstLoad && m.nick !== DB.profile.nick && CHAT_EMOJI.includes(m.body)) popChessReaction(m.body);
+      if (!firstLoad && m.nick !== ownName && CHAT_EMOJI.includes(m.body)) popChessReaction(m.body);
     }
   });
-  list.replaceChildren(...(rows.length ? rows.map(m => h('div', { class: 'chat-bubble ' + (m.nick === DB.profile.nick ? 'mine' : 'theirs') }, h('span', { class: 'chat-sender' }, m.nick === DB.profile.nick ? 'You' : m.nick), h('span', { class: 'chat-message' }, m.body))) : [h('p', { class: 'tiny muted' }, 'No messages yet. Say hello.')]));
+  list.replaceChildren(...(rows.length ? rows.map(m => h('div', { class: 'chat-bubble ' + (m.nick === ownName ? 'mine' : 'theirs') }, h('span', { class: 'chat-sender' }, m.nick === ownName ? 'You' : m.nick), h('span', { class: 'chat-message' }, m.body))) : [h('p', { class: 'tiny muted' }, 'No messages yet. Say hello.')]));
   list.scrollTop = list.scrollHeight;
 }
 function startChatPoll(G) { if (CHAT_POLL) clearInterval(CHAT_POLL); CHAT_POLL = setInterval(() => loadChat(CHAT_G_REF()), 3000); }
 function CHAT_G_REF() { return CHESS; }
 function stopChatPoll() { if (CHAT_POLL) { clearInterval(CHAT_POLL); CHAT_POLL = null; } document.body.querySelectorAll('.chess-reaction-toolbar').forEach(el => el.remove()); }
 async function clearChat(G) {
-  if (!G || !G.online) return;
-  try { await fetch(LB.url + '/rest/v1/chess_messages?game_id=eq.' + G.online.id, { method: 'DELETE', headers: sbHeaders({ Prefer: 'return=minimal' }) }); } catch (e) { /* ignore */ }
+  if (!G || !G.online || !signedIn()) return;
+  try { await hubCall('hub_chess_chat_clear', { p_token: DB.account.token, p_game_id: G.online.id, p_dev: DB.dev }); } catch (e) { /* chat cleanup is best-effort */ }
 }
 
 /* ---------- admin page: passcode only, nothing shown until it is right ---------- */
