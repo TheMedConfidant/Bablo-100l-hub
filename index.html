@@ -3187,14 +3187,14 @@ async function refreshOnlineRatingLine(G) {
   if (!document.getElementById('onlineRatingLine') || CHESS !== G) return;
   el.textContent = whiteName + ' ' + (wr ? wr.rating : 1000) + '  •  ' + blackName + ' ' + (br ? br.rating : (G.online.blackDev ? 1000 : '—'));
 }
-async function applyOnlineRating(G, res) {
-  if (!G || !G.online || G.online.ratingApplied || !liveOn()) return;
-  G.online.ratingApplied = true;
-  const ownDev = String(DB.dev || '');
-  const opponentDev = G.color === 'w' ? G.online.blackDev : G.online.whiteDev;
-  const ownRows = await sbFetchJson('chess_ratings?dev=eq.' + encodeURIComponent(ownDev) + '&select=dev,nick,rating,wins,draws,losses');
-  if (!Array.isArray(ownRows)) { G.online.ratingApplied = false; return; }
-  const own = ownRows[0] || { dev: ownDev, nick: DB.profile.nick, raonse.json().catch(() => ({}));
+async function chessAction(action, extra) {
+  if (!signedIn() || !DB.account || !DB.account.token) throw new Error('Please log in again.');
+  const response = await fetch(LB.url + '/functions/v1/hub-chess-action', {
+    method: 'POST',
+    headers: { apikey: LB.key, Authorization: 'Bearer ' + LB.key, 'Content-Type': 'application/json', 'x-session-token': DB.account.token },
+    body: JSON.stringify(Object.assign({ action, p_dev: DB.dev, p_game_id: CHESS && CHESS.online && CHESS.online.id }, extra || {}))
+  });
+  const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.ok) throw new Error(payload.error || 'Chess action could not be saved.');
   return payload;
 }
