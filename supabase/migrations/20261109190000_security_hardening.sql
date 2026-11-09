@@ -318,6 +318,38 @@ end $;
 revoke execute on function public.hub_social_likes_summary(text,uuid[]) from public, authenticated;
 grant execute on function public.hub_social_likes_summary(text,uuid[]) to anon, service_role;
 
+
+-- Public social feed responses omit author_uid; comments omit author_uid too.
+create or replace function public.hub_social_feed(p_programme text default null)
+returns jsonb language plpgsql security definer set search_path to 'public','pg_temp'
+as $
+declare items jsonb;
+begin
+ select coalesce(jsonb_agg(jsonb_build_object('id',q.id,'nick',q.nick,'programme',q.programme,'body',q.body,'created_at',q.created_at) order by q.created_at desc),'[]'::jsonb)
+ into items from (select id,nick,programme,body,created_at from public.social_posts
+  where p_programme is null or programme=p_programme order by created_at desc limit 50) q;
+ return jsonb_build_object('ok',true,'posts',items);
+end $;
+
+create or replace function public.hub_social_comments(p_post_ids uuid[])
+returns jsonb language plpgsql security definer set search_path to 'public','pg_temp'
+as $
+declare items jsonb;
+begin
+ if coalesce(array_length(p_post_ids,1),0)>50 then return jsonb_build_object('ok',false,'error','Too many posts requested.'); end if;
+ select coalesce(jsonb_agg(jsonb_build_object('post_id',q.post_id,'nick',q.nick,'programme',q.programme,'body',q.body,'created_at',q.created_at) order by q.created_at asc),'[]'::jsonb)
+ into items from public.social_comments q where q.post_id=any(coalesce(p_post_ids,'{}'::uuid[]));
+ return jsonb_build_object('ok',true,'comments',items);
+end $;
+
+drop policy if exists "read social posts" on public.social_posts;
+drop policy if exists "read comments" on public.social_comments;
+revoke select on table public.social_posts, public.social_comments from anon, authenticated;
+revoke execute on function public.hub_social_feed(text) from public, authenticated;
+grant execute on function public.hub_social_feed(text) to anon, service_role;
+revoke execute on function public.hub_social_comments(uuid[]) from public, authenticated;
+grant execute on function public.hub_social_comments(uuid[]) to anon, service_role;
+
 -- Remove default PUBLIC execution from anonymous-facing definer RPCs.
 -- The app uses the anon publishable key plus its own opaque session token;
 -- the server role retains access for trusted Edge Function calls.
