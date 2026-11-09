@@ -237,6 +237,60 @@ commit;
  return json_build_object('ok',true);
 end $;
 
+
+-- Qualification status is account-specific; public leaderboard output excludes
+-- the internal student ID and individual qualifier-start records.
+create or replace function public.hub_qualifier_status(p_token text)
+returns json language plpgsql security definer set search_path to 'public'
+as $
+declare account_id text; is_done boolean; is_started boolean;
+begin
+ select unique_id into account_id from public.hub_sessions where token=p_token and expires_at>now() limit 1;
+ if account_id is null then return json_build_object('ok',false,'error','Please log in again.'); end if;
+ select exists(select 1 from public.qualifier_results where uid=account_id) into is_done;
+ select exists(select 1 from public.qualifier_starts where uid=account_id) into is_started;
+ return json_build_object('ok',true,'status',case when is_done then 'done' when is_started then 'started' else 'none' end);
+end $;
+
+create or replace function public.hub_qualifier_leaderboard()
+returns json language sql security definer set search_path to 'public'
+as $
+ select coalesce(json_agg(json_build_object('programme',q.programme,'nickname',q.nickname,'pct',q.pct,'secs',q.secs) order by q.pct desc,q.secs asc),'[]'::json)
+ from public.qualifier_results q
+$;
+
+drop policy if exists "read qualifiers" on public.qualifier_results;
+drop policy if exists "read qualifier starts" on public.qualifier_starts;
+revoke select on table public.qualifier_results, public.qualifier_starts from anon, authenticated;
+revoke execute on function public.hub_qualifier_status(text) from public, authenticated;
+grant execute on function public.hub_qualifier_status(text) to anon, service_role;
+revoke execute on function public.hub_qualifier_leaderboard() from public, authenticated;
+grant execute on function public.hub_qualifier_leaderboard() to anon, service_role;
+
+-- Poll results are returned as aggregate counts; raw device voter identifiers
+-- are no longer readable through the Data API.
+create or replace function public.hub_poll_counts(p_poll_id text,p_voter text)
+returns json language plpgsql security definer set search_path to 'public'
+as $
+declare counts json; mine text; total_votes integer;
+begin
+ if coalesce(length(p_poll_id),0)<1 or length(p_poll_id)>40 then return json_build_object('ok',false,'error','Invalid poll.'); end if;
+ select coalesce(json_object_agg(x.option_id,x.n),'{}'::json),coalesce(sum(x.n),0)::integer
+ into counts,total_votes from (select option_id,count(*)::integer n from public.poll_votes where poll_id=p_poll_id group by option_id) x;
+ select option_id into mine from public.poll_votes where poll_id=p_poll_id and voter=p_voter limit 1;
+ return json_build_object('ok',true,'counts',counts,'mine',mine,'total',total_votes);
+end $;
+drop policy if exists "read poll votes" on public.poll_votes;
+revoke select on table public.poll_votes from anon, authenticated;
+revoke execute on function public.hub_poll_counts(text,text) from public, authenticated;
+grant execute on function public.hub_poll_counts(text,text) to anon, service_role;
+
+-- The legacy global chat table is not used by the current app; close its
+-- anonymous write/read surface rather than leave an impersonation endpoint.
+drop policy if exists "hub_chat_insert_all" on public.hub_chat;
+drop policy if exists "hub_chat_read_all" on public.hub_chat;
+revoke all on table public.hub_chat from anon, authenticated;
+
 -- Remove default PUBLIC execution from anonymous-facing definer RPCs.
 -- The app uses the anon publishable key plus its own opaque session token;
 -- the server role retains access for trusted Edge Function calls.
