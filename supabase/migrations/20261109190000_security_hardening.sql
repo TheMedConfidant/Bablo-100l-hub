@@ -96,6 +96,80 @@ begin
  ));
 end $$;
 
+
+-- Custom Bablo account passwords are bcrypt-hashed. Require stronger
+-- passwords for new accounts while preserving existing-account login.
+create or replace function public.hub_register(
+ p_unique_id text,p_password text,p_full_name text,p_nickname text,p_programme text,p_is_guest boolean
+) returns json language plpgsql security definer
+set search_path to 'public','extensions'
+as $
+declare id text; tries int := 0;
+begin
+ if char_length(coalesce(p_password,'')) < 8 or char_length(coalesce(p_password,'')) > 128 then
+  return json_build_object('ok',false,'error','Password must be 8–128 characters.');
+ end if;
+ if char_length(coalesce(trim(p_full_name),'')) < 2 then return json_build_object('ok',false,'error','Enter your full name.'); end if;
+ if char_length(coalesce(trim(p_nickname),'')) < 1 then return json_build_object('ok',false,'error','Pick a nickname.'); end if;
+ if p_unique_id is null then
+  loop
+   id := hub_code_for(p_programme) || '-' || lpad((floor(random()*10000))::int::text,4,'0');
+   exit when not exists(select 1 from public.hub_accounts where unique_id=id);
+   tries:=tries+1;
+   if tries>50 then return json_build_object('ok',false,'error','Could not create an ID. Try again.'); end if;
+  end loop;
+ else id:=upper(p_unique_id);
+ end if;
+ if id !~ '^[A-Z]{2,4}-[0-9]{4,6}
+-- The app uses the anon publishable key plus its own opaque session token;
+-- the server role retains access for trusted Edge Function calls.
+do $$
+declare f record;
+begin
+ for f in
+  select p.oid::regprocedure as signature
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and p.prosecdef
+    and has_function_privilege('anon',p.oid,'EXECUTE')
+ loop
+  execute format('revoke execute on function %s from public, authenticated',f.signature);
+  execute format('grant execute on function %s to anon, service_role',f.signature);
+ end loop;
+end $$;
+
+commit;
+ then return json_build_object('ok',false,'error','Your ID must look like MBB-7342.'); end if;
+ if exists(select 1 from public.hub_accounts where unique_id=id) then return json_build_object('ok',false,'error','That ID is already taken.'); end if;
+ insert into public.hub_accounts(unique_id,password_hash,full_name,nickname,programme,is_guest)
+ values(id,extensions.crypt(p_password,extensions.gen_salt('bf')),trim(p_full_name),left(trim(p_nickname),20),p_programme,coalesce(p_is_guest,false));
+ return json_build_object('ok',true,'uniqueId',id);
+end $;
+
+create or replace function public.hub_login(p_unique_id text,p_password text)
+returns json language plpgsql security definer
+set search_path to 'public','extensions'
+as $
+declare acc public.hub_accounts%rowtype; tok text; recent int;
+begin
+ if char_length(coalesce(p_password,''))>128 then
+  return json_build_object('ok',false,'error','ID or password is not right.');
+ end if;
+ select count(*) into recent from public.hub_failed_logins
+ where unique_id=upper(coalesce(p_unique_id,'')) and at>now()-interval '15 minutes';
+ if recent>=5 then return json_build_object('ok',false,'error','Too many wrong tries. Wait 15 minutes and try again.'); end if;
+ select * into acc from public.hub_accounts where unique_id=upper(coalesce(p_unique_id,''));
+ if not found or acc.password_hash<>extensions.crypt(coalesce(p_password,''),acc.password_hash) then
+  insert into public.hub_failed_logins(unique_id) values(upper(coalesce(p_unique_id,'')));
+  return json_build_object('ok',false,'error','ID or password is not right.');
+ end if;
+ delete from public.hub_failed_logins where unique_id=acc.unique_id;
+ tok:=encode(extensions.gen_random_bytes(32),'hex');
+ insert into public.hub_sessions(token,unique_id) values(tok,acc.unique_id);
+ return json_build_object('ok',true,'token',tok,'uniqueId',acc.unique_id,'fullName',acc.full_name,
+  'nickname',acc.nickname,'username',acc.username,'programme',acc.programme,'isGuest',acc.is_guest,
+  'premium',acc.premium,'progress',acc.progress);
+end $;
+
 -- Remove default PUBLIC execution from anonymous-facing definer RPCs.
 -- The app uses the anon publishable key plus its own opaque session token;
 -- the server role retains access for trusted Edge Function calls.
