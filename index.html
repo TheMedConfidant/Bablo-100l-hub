@@ -2040,6 +2040,7 @@ function route() {
   try {
     if (v === 'calculator') { go('#/'); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
+    else if (v === 'premium') premiumPricingView();
     else if (v === 'courses') coursesCatalogueView();
     else if (v === 'time') timeHubView();
     else if (v === 'arcade') arcadeHubView();
@@ -2206,12 +2207,46 @@ function sharedExamSchedulePanel() {
   });
   return panel;
 }
+function premiumPackInventory(code) {
+ const note=notesFor(code);
+ const cards=(window.__CARDS__||{})[code]||(typeof BYC!=='undefined'&&BYC[code])||[];
+ return {notes:!!(note&&Array.isArray(note.topics)&&note.topics.length),flashcards:Array.isArray(cards)&&cards.length>0};
+}
+function programmePremiumPrice(programme) {
+ const items=[];
+ coursesFor(programme).forEach(c=>{
+  const available=premiumPackInventory(c.code);
+  if(available.notes)items.push({course:c.label,type:'Notes',amount:500});
+  if(available.flashcards)items.push({course:c.label,type:'Flashcards',amount:500});
+ });
+ return {programme,items,total:items.reduce((sum,x)=>sum+x.amount,0)};
+}
+function premiumPricingView() {
+ const money=n=>'₦'+Number(n||0).toLocaleString('en-NG');
+ const programmes=PROGRAMMES.filter(p=>p!==GUEST_PROGRAMME).map(programmePremiumPrice);
+ const current=programmes.find(x=>x.programme===DB.profile.programme);
+ const rows=programmes.map(p=>h('section',{class:'panel stack',style:{border:p.programme===DB.profile.programme?'2px solid var(--gold)':undefined}},
+  h('div',{class:'row between wrapr'},h('b',null,p.programme),h('span',{class:'chip gold'},p.programme===DB.profile.programme?'Your programme':'Programme pass')),
+  h('p',{class:'small muted'},p.items.length?(p.items.length+' available resource packs · '+p.items.filter(x=>x.type==='Notes').length+' Notes · '+p.items.filter(x=>x.type==='Flashcards').length+' Flashcards'):'No premium packs published for this programme yet.'),
+  p.items.length?h('div',{class:'rows'},p.items.map(x=>h('div',{class:'row between'},h('span',{class:'small'},x.course+' '+x.type),h('b',{class:'small'},money(x.amount))))):null,
+  h('div',{class:'row between'},h('span',null,'One-time programme total'),h('strong',{style:{color:'var(--gold)',fontSize:'1.15rem'}},money(p.total)))
+ ));
+ mount(wrap(back('#/','Home'),h('div',{class:'stack-l'},
+  h('div',{class:'stack'},h('span',{class:'chip gold'},'BABLO HUB PREMIUM'),h('h1',null,'Premium Library'),h('p',{class:'muted'},'A one-time payment for each course resource pack. No recurring subscription.')),
+  h('section',{class:'panel stack'},h('h2',null,'Simple pricing'),h('div',{class:'row between'},h('span',null,'One course Notes pack'),h('strong',null,'₦500')),h('div',{class:'row between'},h('span',null,'One course Flashcards deck'),h('strong',null,'₦500')),h('p',{class:'tiny muted'},'The programme pass total is calculated from the Notes and Flashcards packs actually published for that programme. Missing or pending resources are not charged.')),
+  current?h('section',{class:'panel stack'},h('h2',null,'Your programme total'),h('p',{class:'small muted'},current.items.length?current.items.length+' resource packs are currently available.':'No paid resource packs are currently published for this programme.'),h('strong',{style:{fontSize:'1.6rem',color:'var(--gold)'}},money(current.total))):null,
+  ...rows,
+  h('section',{class:'panel stack'},h('h2',null,'Secure checkout'),h('p',{class:'small muted'},'Price preview is live. Payment collection and paid-content unlocking are not enabled yet. We are moving the resource files behind server-side entitlement checks before accepting payments, so nobody pays for content that is still publicly bundled.'),h('button',{class:'btn gold block',disabled:true},'Secure checkout coming soon'))
+ )));
+}
+
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
+  dashboardCard('Premium Library','One-time Notes and Flashcards packs','✦','#/premium','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
