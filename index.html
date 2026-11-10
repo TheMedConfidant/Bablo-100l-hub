@@ -2800,13 +2800,22 @@ function programmeAuditView(requestedProgramme) {
       h('p',{class:'small muted'},course.title),
       h('p',{class:'tiny muted'},resources.join(' · ')));
   });
-  mount(wrap(back('#/me','Profile'),h('div',{class:'stack-l'},
-    h('div',{class:'stack'},h('span',{class:'chip gold'},'PROGRAMME DIRECTORY'),h('h1',null,'Programme audit'),
-      h('p',{class:'muted'},'Review the courses and learning resources currently mapped to a programme. This is a read-only catalogue view; it does not expose another student’s profile or grant access to restricted course content.')),
-    h('section',{class:'panel stack'},h('label',{class:'field'},h('span',null,'Select a programme'),picker),custom,h('div',{class:'row'},load)),
-    !mapped?h('section',{class:'panel stack'},h('b',null,'Programme mapping needs review'),h('p',{class:'small muted'},'This programme is not yet mapped to its own course list. The directory is showing the shared CoHES core as a provisional reference, not claiming these are the programme’s complete requirements.')):null,
-    h('div',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,selected),h('span',{class:'chip'},courses.length+' mapped courses')),...rows),
-    h('p',{class:'tiny muted'},'Laboratory practicals remain in the central Laboratory hub. Programme course mappings and pending resources require academic review before being treated as official.')))));
+  const intro=h('div',{class:'stack'},
+    h('span',{class:'chip gold'},'PROGRAMME DIRECTORY'),
+    h('h1',null,'Programme audit'),
+    h('p',{class:'muted'},'Review the courses and learning resources currently mapped to a programme. This is a read-only catalogue view; it does not expose another student’s profile or grant access to restricted course content.'));
+  const selector=h('section',{class:'panel stack'},
+    h('label',{class:'field'},h('span',null,'Select a programme'),picker),
+    custom,h('div',{class:'row'},load));
+  const warning=!mapped?h('section',{class:'panel stack'},
+    h('b',null,'Programme mapping needs review'),
+    h('p',{class:'small muted'},'This programme is not yet mapped to its own course list. The directory is showing the shared CoHES core as a provisional reference, not claiming these are the programme’s complete requirements.')):null;
+  const courseSection=h('div',{class:'stack'},
+    h('div',{class:'row between wrapr'},h('h2',null,selected),h('span',{class:'chip'},courses.length+' mapped courses')),
+    ...rows);
+  const note=h('p',{class:'tiny muted'},'Laboratory practicals remain in the central Laboratory hub. Programme course mappings and pending resources require academic review before being treated as official.');
+  const root=h('div',{class:'stack-l'},intro,selector,warning,courseSection,note);
+  mount(wrap(back('#/me','Profile'),root));
 }
 
 function meView() {
