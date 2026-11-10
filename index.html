@@ -1780,7 +1780,7 @@ async function signIn(id, password) {
 }
 async function signOut() { try { if (signedIn()) await hubCall('hub_logout', { p_token: DB.account.token }); } catch (e) { /* ignore */ } DB.account = null; save(); }
 /* progress: what this device knows, saved to the account so nothing is lost */
-function localProgress() { return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {}, ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null }; }
+function localProgress() { return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {}, ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null, academicProfile: DB.profile ? { institution: DB.profile.institution || '', faculty: DB.profile.faculty || '', department: DB.profile.department || '', session: DB.profile.session || '', semester: DB.profile.semester || '', level: DB.profile.level || '100L' } : null }; }
 function mergeRemote(p) {
   const seen = {}; (DB.history || []).forEach(h => { seen[h.ts] = true; });
   (p.history || []).forEach(h => { if (!seen[h.ts]) DB.history.push(h); });
@@ -1790,6 +1790,7 @@ function mergeRemote(p) {
   DB.ubest = Object.assign({}, p.ubest || {}, DB.ubest || {});
   DB.gpa = Object.assign({}, p.gpa || {}, DB.gpa || {});
   if (p.chess && (!DB.chess || (p.chess.games || []).length > (DB.chess.games || []).length)) DB.chess = p.chess;
+  if (p.academicProfile && DB.profile) DB.profile = Object.assign({}, p.academicProfile, DB.profile);
   save();
 }
 let PUSH_T = null, PUSH_BUSY = false, PUSH_AGAIN = false;

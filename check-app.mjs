@@ -74,6 +74,8 @@ if (html) {
   else fail("Premium pricing page missing");
   if (/window\.addEventListener\('online'/.test(html) && /DB\.syncState = 'pending'/.test(html) && /DB\.lastSyncedAt/.test(html)) pass("Offline progress is retained locally and retried when connectivity returns");
   else fail("Offline progress reconnect sync is missing");
+  if (/academicProfile: DB\.profile/.test(html) && /p\.academicProfile && DB\.profile/.test(html)) pass("Academic profile details are included in account progress sync");
+  else fail("Academic profile details are not included in account progress sync");
   if (/function setAccount\(j\).*Object\.assign\(\{\}, previous/.test(html)) pass("Extended profile fields survive account sign-in");
   else fail("Account sign-in may overwrite extended profile fields");
   if (!/service_role|sk_live_|sk_test_/i.test(html)) pass("No server-side payment/database secret is embedded in the client");
