@@ -1188,11 +1188,12 @@ window.__PRACTICALS__.COS = {
     return windowsIn(now - 864e5, now + 864e5, windows).find(w => now >= w.start && now < w.end) || null;
   }
   function isGuest(p) { return !!p && p.indexOf('Guest') === 0; }
+  function canonicalProgramme(p) { return p === 'Physiotherapy (DPT)' ? 'Doctor of Physiotherapy (DPT)' : p; }
   function cupScores(rows, opt) {
     opt = opt || {}; const W = opt.weights || {}; const minP = opt.minPlayers || 3, topN = opt.topN || 5;
     const students = {};
     rows.filter(eligible).filter(e => e.ts >= opt.since && e.ts < opt.until && (!opt.windows || inWindow(e.ts, opt.windows))).forEach(e => {
-      const identity=String(e.uid||e.dev),st = students[identity] || (students[identity] = { prog: isGuest(e.programme) ? 'Guests' : (e.programme || 'Other CoHES programme'), best: {} });
+      const identity=String(e.uid||e.dev),st = students[identity] || (students[identity] = { prog: isGuest(e.programme) ? 'Guests' : (canonicalProgramme(e.programme) || 'Other CoHES programme'), best: {} });
       const wgt = W[e.course] != null ? W[e.course] : 1;
       const cur = st.best[e.course];
       if (!cur || e.pct > cur.pct) st.best[e.course] = { pct: e.pct, w: wgt };
@@ -1210,7 +1211,7 @@ window.__PRACTICALS__.COS = {
     }).sort((a, b) => (b.score == null) - (a.score == null) || (b.score || 0) - (a.score || 0));
   }
   function inWindow(ts, windows) { return windowsIn(ts - 864e5, ts + 864e5, windows).some(w => ts >= w.start && ts < w.end); }
-  const Core = { windowsIn, eventNow, cupScores, inWindow, isGuest, GRADES, gradeFor, classOf, gpa, cgpa, shuffle, canShuffle, prep, sample, buildSession, normText, isCorrect, score, eligible, rank, dayKey, streak, fmtTime, validateBank };
+  const Core = { windowsIn, eventNow, cupScores, inWindow, isGuest, canonicalProgramme, GRADES, gradeFor, classOf, gpa, cgpa, shuffle, canShuffle, prep, sample, buildSession, normText, isCorrect, score, eligible, rank, dayKey, streak, fmtTime, validateBank };
   root.Core = Core;
   if (typeof module !== 'undefined' && module.exports) module.exports = Core;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -2932,7 +2933,7 @@ function boardView() {
     else {
       // only scores above 50% are shown on the board; lower scores stay saved, just not ranked
       const above = data.rows.filter(r => Core.eligible(r));
-      const pool = scope === 'prog' ? above.filter(r => r.programme === DB.profile.programme) : above;
+      const pool = scope === 'prog' ? above.filter(r => Core.canonicalProgramme(r.programme) === Core.canonicalProgramme(DB.profile.programme)) : above;
       const ranked = Core.rank(pool, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 });
       // Account identity is deduplicated by stable UID in Core.rank, never by display name.
       const rows = ranked.slice(0, 50);
@@ -3002,7 +3003,7 @@ function meView() {
   const auditPanel=h('section',{class:'panel stack'},h('div',{class:'stack'},h('h2',null,'Programme audit'),h('p',{class:'muted small'},'Inspect aggregate quiz performance across programmes. Individual private account details are not shown.')),h('label',{class:'field'},h('span',null,'Programme to inspect'),auditSelect),auditBody);
   function drawAudit(data){
     const programme=auditSelect.value;
-    const records=(data.rows||[]).filter(e=>String(e.programme||'')===programme&&Core.eligible(e));
+    const records=(data.rows||[]).filter(e=>Core.canonicalProgramme(String(e.programme||''))===Core.canonicalProgramme(programme)&&Core.eligible(e));
     const people=Core.rank(records);
     const bestByCourse={};
     records.forEach(e=>{const key=String(e.uid||e.dev)+'|'+String(e.course||'');const cur=bestByCourse[key];if(!cur||Number(e.pct)>Number(cur.pct))bestByCourse[key]=e;});
@@ -4394,13 +4395,9 @@ function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d
 function qualBatch() { const t=lagosNow(); if(t.date===QUAL.dateA)return 'A'; if(t.date===QUAL.dateB)return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
-  const uid=babloAccountUid();
-  if (!signedIn() || !uid) return 'none';
-  const done = await sbGet('qualifier_results?uid=eq.' + encodeURIComponent(uid) + '&select=uid');
-  if (Array.isArray(done) && done.length) return 'done';
-  const started = await sbGet('qualifier_starts?uid=eq.' + encodeURIComponent(uid) + '&select=uid');
-  if (Array.isArray(started) && started.length) return 'started';
-  return 'none';
+  if (!signedIn() || !DB.account || !DB.account.token) return 'none';
+  const result=await hubCall('hub_qualifier_status',{p_token:DB.account.token});
+  return result&&result.ok?result.status:'none';
 }
 function qualifyView() {
   if (CUP_ON_HOLD) return holdPage('Qualifications');
@@ -4412,7 +4409,7 @@ function qualifyView() {
 function qualCard(batch, st) {
   const info = h('p', { class: 'muted' }, 'Programme Cup qualifiers run all day (Lagos time): Batch A on Wednesday, 11 November 2026; Batch B on Saturday, 14 November 2026. Both are qualifier sessions.');
   let body;
-  if (!signedIn()) body = h('div', { class: 'panel stack' }, h('h2', null, 'Create an account first'), h('p', { class: 'muted small' }, 'Only account holders can qualify for their programme.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to my account'));
+  if (!signedIn() || DB.profile.isGuest || Core.isGuest(DB.profile.programme)) body = h('div', { class: 'panel stack' }, h('h2', null, 'Student account required'), h('p', { class: 'muted small' }, 'Programme Cup qualification is for registered student accounts. Guests can still inspect the public programme standings.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Create or log in to a student account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
   else if (st === 'started') body = h('div', { class: 'panel stack' }, h('h2', null, 'Your attempt was already started'), h('p', { class: 'muted small' }, 'Each account gets one attempt, and it cannot be restarted. Contact the admin if your attempt was lost.'));
   else if (!batch) body = h('div', { class: 'panel stack' }, h('h2', null, 'Not open right now'), h('p', { class: 'muted small' }, 'Come back during one of the batch windows above.'));
@@ -4421,25 +4418,37 @@ function qualCard(batch, st) {
   return h('div', { class: 'stack' }, h('div', { class: 'stack' }, info), body);
 }
 async function startQualifier(batch) {
-  const r = await fetch(LB.url + '/rest/v1/qualifier_starts', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: babloAccountUid(), batch }) }).catch(() => null);
-  if (!r || !r.ok) { toast('You have already started, or the window is closed.'); qualifyView(); return; }
-  startSession({ course: '*', mode: 'qualifier', n: QUAL.questions, order: 'shuffle', timerKind: 'down', minutes: QUAL.minutes, batch });
+  try{
+    const result=await hubCall('hub_qualifier_start',{p_token:DB.account.token,p_batch:batch});
+    if(!result||!result.ok){toast(result&&result.error||'This qualification batch is not open.');qualifyView();return;}
+    startSession({course:'*',mode:'qualifier',n:QUAL.questions,order:'shuffle',timerKind:'down',minutes:QUAL.minutes,batch});
+  }catch(e){toast(e.message||'Could not start qualifications.');qualifyView();}
 }
 function postQualifier(s) {
-  if (s.mode !== 'qualifier' || !signedIn() || !babloAccountUid() || !s.opts || !s.opts.batch) return;
-  const r = s.res;
-  fetch(LB.url + '/rest/v1/qualifier_results', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: babloAccountUid(), programme: DB.profile.programme, nickname: DB.profile.nick.slice(0, 30), pct: r.pct, correct: r.correct, n: s.n, secs: s.secs, batch: s.opts.batch }) })
-    .then(res => toast(res.ok ? 'Qualification score saved.' : 'Could not save your score. You may have already qualified.'))
-    .catch(() => toast('Could not save your score. Check your connection.'));
+  if(s.mode!=='qualifier'||!signedIn()||!DB.account||!DB.account.token||!s.opts||!s.opts.batch)return;
+  const r=s.res;
+  hubCall('hub_qualifier_submit',{p_token:DB.account.token,p_correct:r.correct,p_n:s.n,p_secs:s.secs,p_batch:s.opts.batch})
+    .then(result=>toast(result&&result.ok?'Qualification score saved.':(result&&result.error)||'Could not save your qualification score.'))
+    .catch(()=>toast('Could not save your qualification score. Check your connection.'));
 }
 async function qualifiersCard() {
   const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
   const section = h('section', { class: 'panel stack' }, h('h2', null, 'Qualifiers'), box, h('a', { class: 'btn block', href: '#/qualify' }, 'Qualifications'));
-  const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs,batch&order=pct.desc,secs.asc&limit=500');
+  const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs,batch,created_at&order=pct.desc,secs.asc&limit=500');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load qualifiers.')); return section; }
-  if (!rows.length) { box.replaceChildren(h('p', { class: 'muted small' }, 'No qualifiers yet.')); return section; }
-  const by = {}; rows.forEach(r => { (by[r.programme] = by[r.programme] || []).push(r); });
-  box.replaceChildren(...Object.keys(by).sort().map(p => h('div', { class: 'stack' }, h('b', null, p), by[p].slice(0, QUAL.topN).map((r, i) => h('div', { class: 'lrow' }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, r.nickname), h('b', null, (r.batch ? 'Batch '+r.batch+' · ' : '')+r.pct + '%'))))));
+  const current=rows.filter(r=>Date.parse(r.created_at)>=Date.parse('2026-11-10T23:00:00Z'));
+  if (!current.length) { box.replaceChildren(h('p', { class: 'muted small' }, 'No November qualifier results yet.')); return section; }
+  const by = {};
+  current.forEach(r => {
+    const programme=Core.canonicalProgramme(r.programme)||r.programme;
+    const batch=r.batch==='B'?'B':'A';
+    (by[programme]=by[programme]||{A:[],B:[]})[batch].push(r);
+  });
+  box.replaceChildren(...Object.keys(by).sort().map(programme=>h('div',{class:'stack'},
+    h('b',null,programme),
+    ...['A','B'].map(batch=>h('div',{class:'stack'},
+      h('span',{class:'tiny muted'},'Batch '+batch),
+      by[programme][batch].slice(0,QUAL.topN).map((r,i)=>h('div',{class:'lrow'},h('span',{class:'rk'},i+1),h('span',{class:'grow'},r.nickname),h('b',null,r.pct+'% · '+Core.fmtTime(r.secs)))))))));
   return section;
 }
 
