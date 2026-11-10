@@ -3881,7 +3881,7 @@ function cupView() {
   const standings = h('section', { class: 'panel stack' }, h('h2', null, SEASON.name + ' overall'), h('p', { class: 'muted' }, 'Loading standings\u2026'));
   mount(wrap(back('#/board', 'Leaderboard'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Programme Cup'), h('p', { class: 'muted' }, 'Every programme takes part. Your best ranked score in each course counts. The programme score is the average of its top ' + CUP.topN + ' players, so one person cannot carry a whole programme.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label + ' ' + String(w.from).padStart(2, '0') + ':00 to ' + String(w.to).padStart(2, '0') + ':00').join(' \u2022 ') + '. Repeats every week.'), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
+    h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label + ' · all day (Lagos time)').join(' · ')), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
     standings, pollCard(), h('div', { id: 'qualSlot' }))));
   qualifiersCard().then(card => { const slot = document.getElementById('qualSlot'); if (slot) slot.replaceChildren(card); });
   lbFetch().then(d => {
