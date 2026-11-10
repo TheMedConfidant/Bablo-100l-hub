@@ -2084,8 +2084,8 @@ async function lbSubmit(e) {
     return result && result.ok ? 'global' : 'failed';
   } catch (x) { return 'failed'; }
 }
-const LB_CACHE_KEY = 'bablo100l:leaderboard-cache:v1';
-const LB_CACHE_TTL = 90 * 1000;
+const LB_CACHE_KEY = 'bablo100l:leaderboard-cache:v2';
+const LB_CACHE_TTL = 20 * 1000;
 function readLbCache() {
   try {
     const saved = JSON.parse(localStorage.getItem(LB_CACHE_KEY) || 'null');
