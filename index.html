@@ -1185,7 +1185,7 @@ window.__PRACTICALS__.COS = {
     opt = opt || {}; const W = opt.weights || {}; const minP = opt.minPlayers || 3, topN = opt.topN || 5;
     const students = {};
     rows.filter(eligible).filter(e => e.ts >= opt.since && e.ts < opt.until && (!opt.windows || inWindow(e.ts, opt.windows))).forEach(e => {
-      const st = students[e.dev] || (students[e.dev] = { prog: isGuest(e.programme) ? 'Guests' : (e.programme || 'Other CoHES programme'), best: {} });
+      const identity=String(e.uid||e.dev),st = students[identity] || (students[identity] = { prog: isGuest(e.programme) ? 'Guests' : (e.programme || 'Other CoHES programme'), best: {} });
       const wgt = W[e.course] != null ? W[e.course] : 1;
       const cur = st.best[e.course];
       if (!cur || e.pct > cur.pct) st.best[e.course] = { pct: e.pct, w: wgt };
@@ -2987,14 +2987,14 @@ function meView() {
     const courseRows={};
     Object.values(bestByCourse).forEach(e=>{const row=courseRows[e.course]||(courseRows[e.course]={scores:[],students:new Set()});row.scores.push(Number(e.pct));row.students.add(String(e.uid||e.dev));});
     const courses=Object.entries(courseRows).map(([code,row])=>({code,students:row.students.size,average:Math.round(row.scores.reduce((a,b)=>a+b,0)/row.scores.length*10)/10})).sort((a,b)=>b.average-a.average);
-    const avg=records.length?Math.round(records.reduce((n,e)=>n+Number(e.pct),0)/records.length*10)/10:0;
+    const bestMeanRows=Object.values(bestByCourse),avg=bestMeanRows.length?Math.round(bestMeanRows.reduce((n,e)=>n+Number(e.pct),0)/bestMeanRows.length*10)/10:0;
     const metrics=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:'8px'}},
       h('div',{class:'panel stack'},h('b',null,String(people.length)),h('small',{class:'muted'},'Ranked students')),
       h('div',{class:'panel stack'},h('b',null,String(records.length)),h('small',{class:'muted'},'Qualifying sessions')),
-      h('div',{class:'panel stack'},h('b',null,records.length?avg+'%':'—'),h('small',{class:'muted'},'Mean session score')));
+      h('div',{class:'panel stack'},h('b',null,records.length?avg+'%':'—'),h('small',{class:'muted'},'Best-per-course mean')));
     const status=h('p',{class:'tiny muted'},data.mode==='global'?'Live account-linked results.':'Limited data: live programme results are unavailable; showing records available on this device.');
     const courseList=courses.length?h('div',{class:'rows'},courses.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.code),h('small',{class:'muted'},x.students+' students')),h('b',null,x.average+'%')))):h('p',{class:'small muted'},'No qualifying programme results are available yet.');
-    const top=people.length?h('div',{class:'rows'},people.slice(0,5).map((x,i)=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,(i+1)+'. '+x.nick)),h('b',null,x.score+' pts')))):null;
+    const top=people.length?h('div',{class:'rows'},people.slice(0,5).map((x,i)=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,(i+1)+'. '+x.nick)),h('b',null,x.score+'%')))):null;
     auditBody.replaceChildren(status,metrics,h('h3',null,'Course performance'),courseList,top?h('h3',null,'Top programme performers'):null,top||h('p',{class:'small muted'},'Top performers will appear when qualifying results are recorded.'));
   }
   auditSelect.addEventListener('change',()=>{if(window.__babloAuditData)drawAudit(window.__babloAuditData);});
