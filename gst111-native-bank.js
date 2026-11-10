@@ -33,7 +33,7 @@
       : "Answer key requires manual verification. PDF page " + (q.source_page || "unknown") + ".";
     if (front && !existingCardFronts.has(front.toLowerCase())) {
       gstCards.push({ id: "GST111-SOURCE-FC-" + String(q.source_record || index + 1).padStart(4, "0"), front, back, u: q.topic || "Uncategorised", source_page: q.source_page || null });
-      existingCardFronts.add(front.toLowerCase());
+      // Do not add source prompts to the curated-card suppression set: repeated PDF occurrences stay represented.
     }
   });
   cards.GST111 = gstCards;
