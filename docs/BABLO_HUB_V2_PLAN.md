@@ -123,3 +123,14 @@
 - Added script loading for the engine, adapter, and bridge after the main application script so the bridge can reuse the existing app's lexical state and session runner.
 - Runtime smoke test passed against a representative legacy bank/progress snapshot; it verified that the bridge calls the existing practice runner with a unique ID set.
 - Browser/device interaction and deployed preview checks remain outstanding. Production branch and database remain untouched.
+
+
+### Preview build log — 2026-11-10 (Build 05)
+
+- Audited the existing Analytics dashboard integration in `index.html`: the dashboard card routes to `#/analytics`, the view checks the existing signed-in account, and passes the existing `DB.account.token` to `BabloV2Analytics` without placing it in a URL.
+- Verified that `v2/analytics-dashboard.js` calls the existing `hub_course_analytics` RPC with the expected `p_token` and `p_days` body, renders course-level summaries and weak-course priorities, and escapes course labels before HTML insertion.
+- Added the Scientific calculator to the existing Study & Practise dashboard and connected `#/calculator` to the existing scientific calculator view (the previous route redirected back home).
+- Calculator runtime smoke tests passed for arithmetic precedence, square roots, degree and radian trigonometry, logarithms, pi multiplication, factorials, and exponent associativity.
+- Analytics RPC adapter smoke tests passed for endpoint construction, token handoff, aggregate attempt calculation, weak-course rendering, and HTML escaping.
+- No production deployment, database write, authentication change, or `main` branch change.
+- Browser/device interaction and real signed-in account verification remain outstanding.
