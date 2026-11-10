@@ -134,3 +134,15 @@
 - Analytics RPC adapter smoke tests passed for endpoint construction, token handoff, aggregate attempt calculation, weak-course rendering, and HTML escaping.
 - No production deployment, database write, authentication change, or `main` branch change.
 - Browser/device interaction and real signed-in account verification remain outstanding.
+
+
+### Preview build log — 2026-11-10 (Profile and navigation cleanup)
+
+- Removed the scientific calculator from the dashboard and placed it under the hamburger menu's More Options group.
+- Removed duplicate calculator AC and ANS keys; retained one AC key and one ANS key, and removed the obsolete AC button handler.
+- Removed the course-level Practicals tile so laboratory resources live only in the separate Laboratory hub.
+- Removed the duplicate CHM Quizzes tile; CHM question practice remains accessible through the course question workflow, while worked questions remain a distinct resource.
+- Expanded Profile with editable programme text, academic level, Bablo ID / guest status, and the account create/login section so local guests can create an account from Profile.
+- Added a custom programme path to guest onboarding and account registration. Custom programme registrations are tagged as Guest programme values so the existing guest registration path is used; programme-specific course mapping still falls back to the shared core until the programme is mapped.
+- Improved course analytics with recent momentum versus course averages, strongest and most-practised course summaries, and accessible accuracy progress bars. It remains course-level; topic-level analytics require topic-tagged attempt data.
+- No production branch, production deployment, Supabase schema, or account records changed. Device testing remains outstanding.

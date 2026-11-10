@@ -2068,7 +2068,6 @@ function scientificCalculatorView(){
   };if(label==='=')b.style.gridColumn='span 1';pad.append(b);});
   input.oninput=()=>show();input.onkeydown=e=>{if(e.key==='Enter'||e.key==='='){e.preventDefault();show(true);}else if(e.key==='Escape'){input.value='';show();}};
   root.querySelector('#calcAngle').onclick=e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';show();};
-  root.querySelector('#calcClear').onclick=()=>{input.value='';show();input.focus();};
   root.querySelector('#calcBack').onclick=()=>{const a=input.selectionStart??input.value.length,z=input.selectionEnd??a;if(a!==z)input.value=input.value.slice(0,a)+input.value.slice(z);else if(a>0)input.value=input.value.slice(0,a-1)+input.value.slice(z);input.focus();show();};
 }
 
