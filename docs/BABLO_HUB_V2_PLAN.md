@@ -211,3 +211,41 @@
 - Preview deployment for commit `78f33d38dfc5a4d243efd9fda0da8a339d2c295d` reached READY at `bablo-100l-fpizjx4vd-mosesbama4-3146s-projects.vercel.app`.
 - Not yet verified: physical Android interaction, accessibility with assistive technology, gameplay quality with students, and live account/cloud sync of game records. Scores and best records for these standalone games are device-local.
 - Production branch and production deployment remain untouched; no Supabase schema or student data was changed.
+
+
+### Preview build log — 2026-11-10 (Phase 5 corrections and Phase 6 start)
+
+#### Phase 5 corrections completed in preview source
+- Notification feed now excludes quiz results older than 14 days and future-dated quiz records.
+- Past calendar events and past shared exam-schedule rows are excluded from the notification feed; the shared upcoming-exam panel applies the same past-date filter.
+- Notification read-state is pruned against the active feed. Each notification card carries its own ID, so opening one item marks that exact item read instead of another item sharing the same destination.
+- The service-worker cache version was bumped so clients can refresh the corrected app shell.
+- Profile now shows Student/Guest classification, Standard/Premium membership, Bablo ID and username where available.
+- Added a read-only Programme Audit view reachable from Profile. It lists mapped courses, question-bank counts, Notes and Flashcards availability; custom/unmapped programmes are explicitly labelled provisional and fall back to the shared core only for reference. It does not expose another student's profile or grant access to restricted course content.
+- Added Bablo Rush, Memory Matrix and Reflex Arena to the offline app-shell cache. Their pages remain standalone; game-score cloud sync is not yet implemented.
+- The scientific calculator remains available from the hamburger menu and inside the active question flow. It was not replaced by a second calculator implementation.
+
+#### Verification performed
+- All 23 executable inline application script blocks compiled without syntax errors after the Profile and notification changes.
+- Notification-feed harness verified expiry of old quiz records, rejection of future quiz timestamps, removal of past events and past shared exams, retention of upcoming items, pruning of orphaned read-state, and exact-item read marking.
+- Programme Audit smoke test verified custom-programme warning and course-list rendering.
+- Service-worker source compiled and confirmed the three standalone Arcade pages are in the offline shell.
+- The V2 branch source was updated and fetched back from GitHub. These are source-level and simulated tests; physical Android/browser interaction and Vercel preview deployment remain outstanding.
+
+#### Phase 6 — Offline-first learning and cross-device flashcard sync (foundation)
+- Added v2/flashcard-sync.js, a pure event-based merge module. It creates stable per-device review event IDs, deduplicates retries, merges concurrent device events deterministically, derives the latest per-card scheduler state, converts legacy local review records, and bounds retained history.
+- Added v2/flashcard-sync.test.js. The module passed eight runtime checks in the tool runtime covering event creation, concurrent merge, idempotency, deterministic ordering, latest state, legacy conversion, bounded history, and input immutability.
+- Supabase was inspected read-only. hub_accounts.progress is JSONB; hub_save_progress validates the existing account token, locks the account row, and merges statsByDevice, but other progress keys are replaced by the incoming snapshot. No dedicated flashcard-review table or review-history column currently exists.
+- Therefore the new review-event module is not yet wired into account sync. Sending flashcard review snapshots through the current RPC before adding a server-side merge would risk one device overwriting another device's newer reviews.
+- No Supabase schema, account data, RLS policy, production branch, or production deployment was changed.
+
+#### Phase 6 next gates
+1. Create an isolated database test target or reviewed migration workflow before changing the live hub_save_progress function.
+2. Add server-side idempotent event merging under the existing account-row lock; preserve current token validation and statsByDevice behavior.
+3. Test two-device offline reviews, repeated reconnects, simultaneous reviews of the same card, legacy localStorage conversion, and bounded history.
+4. Integrate the merge module into the flashcard scheduler only after the server merge is verified.
+5. Add per-resource offline download status and sync status without caching restricted premium content outside entitlement checks.
+
+#### Release status
+- Preview branch only. No production deployment has been performed.
+- Vercel preview deployment and real Android interaction checks are still required.
