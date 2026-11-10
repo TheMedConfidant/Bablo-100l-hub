@@ -105,3 +105,12 @@
 3. Integrate calculator entry into the existing calculator/navigation location.
 4. Run the repository static checks and browser tests on a Vercel preview.
 5. Review security/performance advisor findings separately; do not bulk-change RLS policies because several tables intentionally expose data only through guarded RPCs.
+
+
+### Preview build log — 2026-11-10 (Build 03)
+
+- Added `v2/smart-pq-adapter.js` to translate the existing V1 question shape (`i,c,u,q,o,a,e`) and per-question progress (`DB.stats`, `DB.missed`) into the Smart PQ engine contract.
+- Added `v2/smart-pq-adapter.test.js` covering legacy question mapping, per-question attempt reconstruction, mistake preservation, selection uniqueness, and output metadata.
+- The adapter is deliberately pure and accepts snapshots from the host app; it does not read localStorage, mutate DB, or transmit progress.
+- Integration into the monolithic application entry point remains gated because the current `index.html` is a 1.2 MB single-file application and must not be replaced through a blind full-file write. The host must pass its existing question-bank array and progress snapshots after authentication.
+- No production branch, account, database, RLS policy, or deployment changed.
