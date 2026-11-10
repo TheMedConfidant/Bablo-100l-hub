@@ -2419,7 +2419,7 @@ function unreadNotificationCount(){
  if(missed.length){
   DB.noticeCreatedAt=DB.noticeCreatedAt||{};
   const id='weak-topics-'+missed.length,created=Number(DB.noticeCreatedAt[id])||now;
-  DB.noticeCreatedAt[id]=created;
+  if(!Number(DB.noticeCreatedAt[id])){DB.noticeCreatedAt[id]=created;save();}
   if(now-created<14*DAY)add(id);
  }
  const phyNoticeExpires=new Date('2026-11-25T12:00:00+01:00').getTime();if(now<phyNoticeExpires)add('phy101-test-reminder-2026-11-24');
@@ -4550,7 +4550,7 @@ function notificationsView() {
     DB.noticeCreatedAt=DB.noticeCreatedAt||{};
     const weakId='weak-topics-'+missedIds.length;
     const created=Number(DB.noticeCreatedAt[weakId])||now;
-    DB.noticeCreatedAt[weakId]=created;
+    if(!Number(DB.noticeCreatedAt[weakId])){DB.noticeCreatedAt[weakId]=created;save();}
     if(now-created<14*DAY)add(weakId,'Study focus','Topics to revisit',
       missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
       '#/weak',created,'↗',created+14*DAY);
