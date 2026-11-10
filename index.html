@@ -3899,25 +3899,29 @@ function nextWindows(now, count) {
 }
 function cupView() {
   if (CUP_ON_HOLD) return holdPage('Programme Cup', true);
-  const now = Date.now(), seasonStart = Date.parse(SEASON.start), seasonEnd = seasonStart + SEASON.weeks * 7 * 864e5;
-  const inSeason = now >= seasonStart && now < seasonEnd;
-  const timeline = [{batch:'A',date:QUAL.dateA,label:'Wednesday, 11 November 2026'},{batch:'B',date:QUAL.dateB,label:'Saturday, 14 November 2026'}].map(q=>{
+  const now=Date.now();
+  const timeline=[
+    {batch:'A',date:QUAL.dateA,label:'Wednesday, 11 November 2026'},
+    {batch:'B',date:QUAL.dateB,label:'Saturday, 14 November 2026'}
+  ].map(q=>{
     const start=new Date(q.date+'T00:00:00+01:00').getTime(),end=start+864e5;
     const state=now>=start&&now<end?'Live':now<start?'Upcoming':'Completed';
-    return h('div',{class:'row',style:{padding:'8px 0'}},h('span',{class:'chip '+(state==='Live'?'gold':state==='Upcoming'?'brand':'')},state),h('span',{class:'grow'},'Batch '+q.batch+' · '+q.label),h('span',{class:'tiny muted'},'All day · Lagos'));
+    return h('div',{class:'row',style:{padding:'8px 0'}},
+      h('span',{class:'chip '+(state==='Live'?'gold':state==='Upcoming'?'brand':'')},state),
+      h('span',{class:'grow'},'Batch '+q.batch+' · '+q.label),
+      h('span',{class:'tiny muted'},'All day · Lagos'));
   });
-  const standings = h('section', { class: 'panel stack' }, h('h2', null, SEASON.name + ' overall'), h('p', { class: 'muted' }, 'Loading standings\u2026'));
-  mount(wrap(back('#/board', 'Leaderboard'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', null, 'Programme Cup'), h('p', { class: 'muted' }, 'Every programme takes part. Your best ranked score in each course counts. The programme score is the average of its top ' + CUP.topN + ' players, so one person cannot carry a whole programme.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label + ' · all day (Lagos time)').join(' · ')), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
-    standings, pollCard(), h('div', { id: 'qualSlot' }))));
-  qualifiersCard().then(card => { const slot = document.getElementById('qualSlot'); if (slot) slot.replaceChildren(card); });
-  lbFetch().then(d => {
-    const rows = Core.cupScores(d.rows, { since: seasonStart, until: seasonEnd, windows: EVENT_WINDOWS, weights: COURSE_WEIGHTS, minPlayers: CUP.minPlayers, topN: CUP.topN });
-    const note = !inSeason ? 'The season has not started or has finished.' : 'Season ends in ' + Math.max(0, Math.ceil((seasonEnd - now) / 864e5)) + ' days. ' + (d.mode === 'global' ? 'Live.' : 'Showing this device only until the live board is on.');
-    standings.replaceChildren(h('h2', null, SEASON.name + ' overall'), h('p', { class: 'muted small' }, note),
-      rows.length ? h('div', { class: 'rows' }, rows.map((r, i) => h('div', { class: 'lrow' }, h('span', { class: 'rk' }, r.ready ? (i + 1) : '\u2013'), h('span', { class: 'grow' }, h('b', null, r.programme), h('div', { class: 'tiny muted' }, r.players + ' player' + (r.players === 1 ? '' : 's') + (r.ready ? '' : ' \u2022 need ' + CUP.minPlayers + ' to rank'))), h('b', null, r.ready ? r.score + ' pts' : 'Not ranked')))) : h('p', { class: 'muted' }, 'No event scores yet. The first Wednesday or Saturday window starts the race.'));
-  });
+  const qualifierSlot=h('div',{class:'stack'},h('p',{class:'muted small'},'Loading qualifier standings…'));
+  mount(wrap(back('#/board','Leaderboard'),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('h1',null,'Programme Cup'),
+      h('p',{class:'muted'},'The current phase is qualification. Batch A and Batch B are separate all-day sessions; each registered student gets one 60-question, 40-minute attempt.')),
+    h('section',{class:'panel stack'},h('h2',null,'Qualifier schedule'),
+      h('p',{class:'small muted'},'Both dates are qualifiers, not knockout rounds. Results are ranked within each batch and programme.'),
+      h('div',null,timeline)),
+    qualifierSlot,pollCard()
+  )));
+  qualifiersCard().then(card=>qualifierSlot.replaceChildren(card))
+    .catch(()=>qualifierSlot.replaceChildren(h('p',{class:'muted small'},'Qualifier standings could not load. Check your connection and retry.')));
 }
 
 /* ---------- question reports (auto-hide) ---------- */
