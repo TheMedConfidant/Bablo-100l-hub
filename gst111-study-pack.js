@@ -45,6 +45,16 @@
       ["Which behaviour supports effective listening?",["Interrupting to finish every sentence","Maintaining attention and asking relevant clarifying questions","Planning a reply while ignoring the speaker","Changing the subject repeatedly"],1,"Attentive listening and clarification improve shared understanding."],
       ["A message is most likely to be misunderstood when it is:",["Clear and audience-appropriate","Ambiguous and poorly organised","Supported by useful feedback","Delivered through a suitable channel"],1,"Ambiguity and poor organisation reduce message clarity."]
     ]],
+    ["Grammar and sentence construction", [
+      ["Which sentence contains a correctly matched subject and verb?",["The list of items are long","The list of items is long","The list of items were long","The list of items be long"],1,"The head noun list is singular, so it takes the singular verb is."],
+      ["In the sentence 'Although it rained, the match continued', the opening clause is:",["A subordinate clause","A main clause","A noun phrase","A prepositional phrase"],0,"Although introduces a dependent adverbial clause."],
+      ["Which punctuation mark most directly joins two closely related independent clauses without a conjunction?",["Semicolon","Apostrophe","Hyphen","Question mark"],0,"A semicolon can link closely related independent clauses."],
+      ["Choose the sentence with correct pronoun-antecedent agreement.",["Each student must submit their forms yesterday","The students submitted their forms","The students submits their forms","The student have submitted their forms"],1,"The plural antecedent students agrees with the plural pronoun their and verb submitted."],
+      ["A group of words that contains a subject and a predicate is a:",["Clause","Morpheme","Prefix","Syllable"],0,"A clause contains a subject and a predicate."],
+      ["Which word functions as a conjunction in 'We stayed indoors because it was raining'?",["Stayed","Because","Indoors","Raining"],1,"Because introduces the reason clause and functions as a subordinating conjunction."],
+      ["The sentence 'Please close the door' is:",["Imperative","Interrogative","Exclamatory","Declarative"],0,"An imperative sentence gives a command or request."],
+      ["Which sentence is in the passive voice?",["The committee approved the proposal","The proposal was approved by the committee","The committee is approving the proposal","The committee will approve the proposal"],1,"The subject proposal receives the action in the passive construction was approved."]
+    ]],
     ["Essay writing", [
       ["The central claim an argumentative essay seeks to establish is its:",["Thesis statement","Bibliography","Appendix","Salutation"],0,"The thesis states the main position or controlling argument."],
       ["The opening section of an essay should normally:",["Introduce the subject and establish direction","Present every reference in full","Repeat the conclusion","Contain unrelated examples"],0,"An introduction orients the reader and leads towards the thesis."],
@@ -167,6 +177,12 @@
       ["What is a communication channel?","The medium through which a message is transmitted."],
       ["What is semantic noise?","Interference caused by unclear, unfamiliar or differently interpreted words and symbols."],
       ["What is active listening?","Attentive listening that involves interpreting, checking and responding to a message."]
+    ]],
+    ["Grammar and sentence construction",[
+      ["What is grammatical concord?","Agreement between grammatical elements, especially a subject and its verb."],
+      ["What is a clause?","A group of words containing a subject and a predicate."],
+      ["What is an imperative sentence?","A sentence that gives a command, instruction or request."],
+      ["What distinguishes active and passive voice?","In active voice the subject performs the action; in passive voice the subject receives the action."]
     ]],
     ["Essay writing",[
       ["What is a thesis statement?","The central claim or controlling position an essay develops."],
