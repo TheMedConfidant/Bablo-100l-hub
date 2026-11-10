@@ -1,5 +1,5 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v24-v2-offline-assets';
+const VERSION='bablo-offline-v25-notification-expiry';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./challenge-arena.js','./wifi-challenge.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./chm-practicals-native.js','./agr-101-food-security.html','./gst103-study-hub.html','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html','./v2/calculator.html','./v2/analytics-dashboard.js','./v2/smart-pq-adapter.js','./v2/smart-pq-engine.js','./v2/smart-pq-integration.js'];
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
