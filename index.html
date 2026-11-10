@@ -2213,14 +2213,14 @@ async function fetchPublicExamSchedule() {
     EXAM_SCHEDULE_CACHE = remoteRows.some(x => x.course_code === 'PHY101' && x.scheduled_date === phyReminder.scheduled_date) ? remoteRows : remoteRows.concat(phyReminder);
     maybeExamSchedulePush(EXAM_SCHEDULE_CACHE);
     return EXAM_SCHEDULE_CACHE;
-  } catch (e) { console.warn('[Exam schedule]', e); return []; }
+  } catch (e) { console.warn('[Exam schedule]', e); const fallback = [{ id:'bablo-phy101-test-2026-11-24', course_code:'PHY101', assessment_type:'Test', scheduled_date:'2026-11-24', date_status:'confirmed', note:'PHY test reminder' }]; EXAM_SCHEDULE_CACHE = fallback; maybeExamSchedulePush(fallback); return fallback; }
 }
 function examScheduleDate(row) {
   if (!row.scheduled_date) return row.date_status === 'tentative' ? 'Tentative · date to be confirmed' : 'Date to be confirmed';
   return new Date(row.scheduled_date + 'T00:00:00+01:00').toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
 }
 function maybeExamSchedulePush(rows) {
-  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   DB.examPushSent = DB.examPushSent || {};
   const now = Date.now();
   rows.forEach(row => {
