@@ -1806,6 +1806,7 @@ function makeUniqueId(programme, digits) {
   return codeFor(programme) + '-' + d;
 }
 function signedIn() { return !!(DB.account && DB.account.token); }
+function babloAccountUid(){return (DB.profile&&DB.profile.uid)||(DB.account&&(DB.account.uid||DB.account.uniqueId))||null;}
 async function hubCall(fn, body) {
   if (!authConfigured()) throw new Error('Accounts need the live connection.');
   const r = await fetch(LB.url + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
@@ -1898,7 +1899,7 @@ async function syncPastScores() {
   if (!signedIn() || !LB.url) return;
   DB.syncedTs = DB.syncedTs || {};
   const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && Number(e.n) >= 10 && Number(e.secs) > 0 && Number(e.pct) >= PASS_MARK && Number(e.pct) <= 100 && !DB.syncedTs[e.ts])
-    .map(e => ({ dev: DB.dev, nick: DB.profile.nick.slice(0, 30), course: e.course, mode: e.mode, n: e.n, correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts, programme: DB.profile.programme, uid: DB.profile.uid }));
+    .map(e => ({ dev: DB.dev, nick: DB.profile.nick.slice(0, 30), course: e.course, mode: e.mode, n: e.n, correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts, programme: DB.profile.programme, uid: babloAccountUid() }));
   if (!rows.length) return;
   try {
     const r = await fetch(LB.url + '/rest/v1/scores', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(rows) });
@@ -2400,6 +2401,8 @@ function unreadNotificationCount(){
  (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=7*DAY)add('quiz-'+ts);});
  const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
  const gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08');
+ const qualifierNotices=[['A','2026-11-11','Wednesday','2026-11-12T00:59:59+01:00'],['B','2026-11-14','Saturday','2026-11-15T00:59:59+01:00']];
+ qualifierNotices.forEach(([batch,date,day,expiry])=>{const when=new Date(date+'T00:00:00+01:00').getTime(),expires=new Date(expiry).getTime();if(now<expires)add('cup-qualifier-'+batch+'-'+date,'Schedule','Programme Cup · Batch '+batch+' qualifier',day+', all day · 60 questions · 40 minutes.','#/cup',when,'🏆',expires);});
  const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
  return count;
 }
@@ -2832,7 +2835,7 @@ function recordAttempt(s) {
   });
   Object.keys(per).forEach(u => { if (per[u].n >= 3) { const k = s.course + '|' + u, v = Math.round((per[u].c / per[u].n) * 100); DB.ubest[k] = Math.max(DB.ubest[k] || 0, v); } });
   save();
-  const full = Object.assign({ dev: DB.dev, nick: DB.profile.nick, programme: DB.profile.programme, uid: DB.profile.uid || null }, entry);
+  const full = Object.assign({ dev: DB.dev, nick: DB.profile.nick, programme: DB.profile.programme, uid: babloAccountUid() }, entry);
   if (signedIn() && Core.eligible(full)) { s.lb = 'pending'; lbSubmit(full).then(st => { s.lb = st; const el = document.getElementById('lbstatus'); if (el) el.textContent = lbMsg(st); }); } else s.lb = 'none';
 }
 const lbMsg = st => st === 'global' ? 'Score sent to the leaderboard.' : st === 'local' ? 'Saved to this device\u2019s leaderboard.' : st === 'pending' ? 'Sending your score\u2026' : st === 'failed' ? 'Could not reach the leaderboard. Your score is saved on this device.' : 'Take a quiz of 10+ questions or the Premium exam to join the leaderboard.';
@@ -4364,10 +4367,11 @@ function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d
 function qualBatch() { const t=lagosNow(); if(t.date===QUAL.dateA)return 'A'; if(t.date===QUAL.dateB)return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
-  if (!signedIn() || !DB.profile || !DB.profile.uid) return 'none';
-  const done = await sbGet('qualifier_results?uid=eq.' + encodeURIComponent(DB.profile.uid) + '&select=uid');
+  const uid=babloAccountUid();
+  if (!signedIn() || !uid) return 'none';
+  const done = await sbGet('qualifier_results?uid=eq.' + encodeURIComponent(uid) + '&select=uid');
   if (Array.isArray(done) && done.length) return 'done';
-  const started = await sbGet('qualifier_starts?uid=eq.' + encodeURIComponent(DB.profile.uid) + '&select=uid');
+  const started = await sbGet('qualifier_starts?uid=eq.' + encodeURIComponent(uid) + '&select=uid');
   if (Array.isArray(started) && started.length) return 'started';
   return 'none';
 }
@@ -4390,25 +4394,25 @@ function qualCard(batch, st) {
   return h('div', { class: 'stack' }, h('div', { class: 'stack' }, info), body);
 }
 async function startQualifier(batch) {
-  const r = await fetch(LB.url + '/rest/v1/qualifier_starts', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, batch }) }).catch(() => null);
+  const r = await fetch(LB.url + '/rest/v1/qualifier_starts', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: babloAccountUid(), batch }) }).catch(() => null);
   if (!r || !r.ok) { toast('You have already started, or the window is closed.'); qualifyView(); return; }
   startSession({ course: '*', mode: 'qualifier', n: QUAL.questions, order: 'shuffle', timerKind: 'down', minutes: QUAL.minutes, batch });
 }
 function postQualifier(s) {
-  if (s.mode !== 'qualifier' || !signedIn() || !s.opts || !s.opts.batch) return;
+  if (s.mode !== 'qualifier' || !signedIn() || !babloAccountUid() || !s.opts || !s.opts.batch) return;
   const r = s.res;
-  fetch(LB.url + '/rest/v1/qualifier_results', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: DB.profile.uid, programme: DB.profile.programme, nickname: DB.profile.nick.slice(0, 30), pct: r.pct, correct: r.correct, n: s.n, secs: s.secs, batch: s.opts.batch }) })
+  fetch(LB.url + '/rest/v1/qualifier_results', { method: 'POST', headers: sbHeaders({ Prefer: 'return=minimal' }), body: JSON.stringify({ uid: babloAccountUid(), programme: DB.profile.programme, nickname: DB.profile.nick.slice(0, 30), pct: r.pct, correct: r.correct, n: s.n, secs: s.secs, batch: s.opts.batch }) })
     .then(res => toast(res.ok ? 'Qualification score saved.' : 'Could not save your score. You may have already qualified.'))
     .catch(() => toast('Could not save your score. Check your connection.'));
 }
 async function qualifiersCard() {
   const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
   const section = h('section', { class: 'panel stack' }, h('h2', null, 'Qualifiers'), box, h('a', { class: 'btn block', href: '#/qualify' }, 'Qualifications'));
-  const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs&order=pct.desc,secs.asc&limit=500');
+  const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs,batch&order=pct.desc,secs.asc&limit=500');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load qualifiers.')); return section; }
   if (!rows.length) { box.replaceChildren(h('p', { class: 'muted small' }, 'No qualifiers yet.')); return section; }
   const by = {}; rows.forEach(r => { (by[r.programme] = by[r.programme] || []).push(r); });
-  box.replaceChildren(...Object.keys(by).sort().map(p => h('div', { class: 'stack' }, h('b', null, p), by[p].slice(0, QUAL.topN).map((r, i) => h('div', { class: 'lrow' }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, r.nickname), h('b', null, r.pct + '%'))))));
+  box.replaceChildren(...Object.keys(by).sort().map(p => h('div', { class: 'stack' }, h('b', null, p), by[p].slice(0, QUAL.topN).map((r, i) => h('div', { class: 'lrow' }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, r.nickname), h('b', null, (r.batch ? 'Batch '+r.batch+' · ' : '')+r.pct + '%'))))));
   return section;
 }
 
@@ -4520,6 +4524,7 @@ function notificationsView() {
   const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime(),gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();
   if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08','Schedule','Timetable update · GST 111',
     'GST 111 is now on Thursday, 3:00pm–4:00pm · 1500 Lecture Hall.','#/timetable',gstUpdateAt,'◷',gstNoticeExpires);
+  [['A','2026-11-11','Wednesday','2026-11-12T00:59:59+01:00'],['B','2026-11-14','Saturday','2026-11-15T00:59:59+01:00']].forEach(([batch,date,day,expiry])=>{const when=new Date(date+'T00:00:00+01:00').getTime(),expires=new Date(expiry).getTime();if(now<expires)add('cup-qualifier-'+batch+'-'+date,'Schedule','Programme Cup · Batch '+batch+' qualifier',day+', all day · 60 questions · 40 minutes.','#/cup',when,'🏆',expires);});
   const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
     const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
     return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-EVENT_GRACE;
