@@ -2861,7 +2861,14 @@ function recordAttempt(s) {
   Object.keys(per).forEach(u => { if (per[u].n >= 3) { const k = s.course + '|' + u, v = Math.round((per[u].c / per[u].n) * 100); DB.ubest[k] = Math.max(DB.ubest[k] || 0, v); } });
   save();
   const full = Object.assign({ dev: DB.dev, nick: DB.profile.nick, programme: DB.profile.programme, uid: babloAccountUid() }, entry);
-  if (signedIn() && Core.eligible(full)) { s.lb = 'pending'; lbSubmit(full).then(st => { s.lb = st; const el = document.getElementById('lbstatus'); if (el) el.textContent = lbMsg(st); }); } else s.lb = 'none';
+  if (signedIn() && Core.eligible(full)) {
+    s.lb = 'pending';
+    lbSubmit(full).then(st => {
+      s.lb = st;
+      if(st==='global'){DB.syncedTs=DB.syncedTs||{};DB.syncedTs[full.ts]=true;save();}
+      const el = document.getElementById('lbstatus'); if (el) el.textContent = lbMsg(st);
+    });
+  } else s.lb = 'none';
 }
 const lbMsg = st => st === 'global' ? 'Score sent to the leaderboard.' : st === 'local' ? 'Saved to this device\u2019s leaderboard.' : st === 'pending' ? 'Sending your score\u2026' : st === 'failed' ? 'Could not reach the leaderboard. Your score is saved on this device.' : 'Take a quiz of 10+ questions or the Premium exam to join the leaderboard.';
 
