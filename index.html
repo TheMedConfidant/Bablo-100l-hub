@@ -4434,7 +4434,7 @@ function postQualifier(s) {
 async function qualifiersCard() {
   const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
   const section = h('section', { class: 'panel stack' }, h('h2', null, 'Qualifiers'), box, h('a', { class: 'btn block', href: '#/qualify' }, 'Qualifications'));
-  const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs,batch,created_at&order=pct.desc,secs.asc&limit=500');
+  const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs,batch,created_at,season&season=eq.2026-11&order=pct.desc,secs.asc&limit=500');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load qualifiers.')); return section; }
   const current=rows.filter(r=>Date.parse(r.created_at)>=Date.parse('2026-11-10T23:00:00Z'));
   if (!current.length) { box.replaceChildren(h('p', { class: 'muted small' }, 'No November qualifier results yet.')); return section; }
