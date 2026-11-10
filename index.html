@@ -1903,15 +1903,23 @@ async function pushProgress() {
 
 /* past device scores go to the leaderboard under the account, once each */
 async function syncPastScores() {
-  if (!signedIn() || !LB.url) return;
+  if (!signedIn() || !LB.url || !babloAccountUid()) return;
   DB.syncedTs = DB.syncedTs || {};
-  const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && Number(e.n) >= 10 && Number(e.secs) > 0 && Number(e.pct) >= PASS_MARK && Number(e.pct) <= 100 && !DB.syncedTs[e.ts])
-    .map(e => ({ dev: DB.dev, nick: DB.profile.nick.slice(0, 30), course: e.course, mode: e.mode, n: e.n, correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts, programme: DB.profile.programme, uid: babloAccountUid() }));
+  const rows = (DB.history || []).filter(e =>
+    (e.mode === 'quiz' || e.mode === 'exam') && Number(e.n) >= 10 &&
+    Number(e.secs) > 0 && Number(e.pct) >= PASS_MARK && Number(e.pct) <= 100 &&
+    !DB.syncedTs[e.ts]
+  );
   if (!rows.length) return;
-  try {
-    const r = await fetch(LB.url + '/rest/v1/scores', { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(rows) });
-    if (r.ok) { rows.forEach(x => { DB.syncedTs[x.ts] = true; }); save(); }
-  } catch (e) { /* try again on the next sign-in */ }
+  let changed = false;
+  for (const e of rows) {
+    const result = await lbSubmit({
+      dev: DB.dev, course: e.course, mode: e.mode, n: e.n,
+      correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts
+    });
+    if (result === 'global') { DB.syncedTs[e.ts] = true; changed = true; }
+  }
+  if (changed) save();
 }
 
 /* Retry account progress and eligible scores when connectivity returns. */
@@ -2069,9 +2077,10 @@ function confirmBox(o) {
 const localEntries = () => DB.history.map(x => Object.assign({ dev: DB.dev, nick: DB.profile ? DB.profile.nick : 'You' }, x));
 async function lbSubmit(e) {
   if (!LB.url) return 'local';
+  if (!signedIn() || !DB.account || !DB.account.token) return 'failed';
   try {
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table, { method: 'POST', headers: { apikey: LB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(e) });
-    return r.ok ? 'global' : 'failed';
+    const result = await hubCall('hub_submit_score', { p_token: DB.account.token, p_score: e });
+    return result && result.ok ? 'global' : 'failed';
   } catch (x) { return 'failed'; }
 }
 const LB_CACHE_KEY = 'bablo100l:leaderboard-cache:v1';
@@ -2406,9 +2415,15 @@ function unreadNotificationCount(){
  const now=Date.now(),DAY=86400000,read=DB.readNotices||{},dismissed=DB.dismissedNotices||{};let count=0;
  const add=id=>{if(!read[id]&&!dismissed[id])count++;};
  (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=7*DAY)add('quiz-'+ts);});
- const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
+ const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);
+ if(missed.length){
+  DB.noticeCreatedAt=DB.noticeCreatedAt||{};
+  const id='weak-topics-'+missed.length,created=Number(DB.noticeCreatedAt[id])||now;
+  DB.noticeCreatedAt[id]=created;
+  if(now-created<14*DAY)add(id);
+ }
  const phyNoticeExpires=new Date('2026-11-25T12:00:00+01:00').getTime();if(now<phyNoticeExpires)add('phy101-test-reminder-2026-11-24');
- const gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08');
+ const gstNoticeExpires=new Date('2026-11-12T23:59:59+01:00').getTime();if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08');
  const qualifierNotices=[['A','2026-11-11','Wednesday','2026-11-12T00:59:59+01:00'],['B','2026-11-14','Saturday','2026-11-15T00:59:59+01:00']];
  qualifierNotices.forEach(([batch,date,day,expiry])=>{const when=new Date(date+'T00:00:00+01:00').getTime(),expires=new Date(expiry).getTime();if(now<expires)add('cup-qualifier-'+batch+'-'+date,'Schedule','Programme Cup · Batch '+batch+' qualifier',day+', all day · 60 questions · 40 minutes.','#/cup',when,'🏆',expires);});
  const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
@@ -4531,12 +4546,18 @@ function notificationsView() {
   const missedIds=Object.keys(missed).filter(k=>missed[k]);
   const missedQs=missedIds.map(id=>(window.__BANK__||[]).find(q=>q.i===id)).filter(Boolean);
   const weakCourses=[...new Set(missedQs.map(q=>q.c).filter(Boolean))];
-  if(missedIds.length)add('weak-topics-'+missedIds.length,'Study focus','Topics to revisit',
-    missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
-    '#/weak',now,'↗',now+14*DAY);
+  if(missedIds.length){
+    DB.noticeCreatedAt=DB.noticeCreatedAt||{};
+    const weakId='weak-topics-'+missedIds.length;
+    const created=Number(DB.noticeCreatedAt[weakId])||now;
+    DB.noticeCreatedAt[weakId]=created;
+    if(now-created<14*DAY)add(weakId,'Study focus','Topics to revisit',
+      missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
+      '#/weak',created,'↗',created+14*DAY);
+  }
   const phyTestAt=new Date('2026-11-24T00:00:00+01:00').getTime(),phyTestExpires=new Date('2026-11-25T00:59:59+01:00').getTime();
   if(now<phyTestExpires)add('phy101-test-reminder-2026-11-24','Schedule','PHY 101 test reminder','PHY 101 test · Tuesday, 24 November. Check the course notice for the confirmed time and venue.','#/courses',phyTestAt,'📘',phyTestExpires);
-  const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime(),gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();
+  const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime(),gstNoticeExpires=new Date('2026-11-12T23:59:59+01:00').getTime();
   if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08','Schedule','Timetable update · GST 111',
     'GST 111 is now on Thursday, 3:00pm–4:00pm · 1500 Lecture Hall.','#/timetable',gstUpdateAt,'◷',gstNoticeExpires);
   [['A','2026-11-11','Wednesday','2026-11-12T00:59:59+01:00'],['B','2026-11-14','Saturday','2026-11-15T00:59:59+01:00']].forEach(([batch,date,day,expiry])=>{const when=new Date(date+'T00:00:00+01:00').getTime(),expires=new Date(expiry).getTime();if(now<expires)add('cup-qualifier-'+batch+'-'+date,'Schedule','Programme Cup · Batch '+batch+' qualifier',day+', all day · 60 questions · 40 minutes.','#/cup',when,'🏆',expires);});
@@ -4594,6 +4615,7 @@ function notificationsView() {
   const activeIds=new Set(notices.map(n=>n.id));
   Object.keys(read).forEach(id=>{if(!activeIds.has(id))delete read[id];});
   Object.keys(dismissed).forEach(id=>{if(!activeIds.has(id)&&Number(dismissed[id])&&now-Number(dismissed[id])>90*DAY)delete dismissed[id];});
+ if(DB.noticeCreatedAt)Object.keys(DB.noticeCreatedAt).forEach(id=>{if(!activeIds.has(id)&&Number(DB.noticeCreatedAt[id])&&now-Number(DB.noticeCreatedAt[id])>90*DAY)delete DB.noticeCreatedAt[id];});
   box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),
     h('div',{class:'row wrapr'},markAll,clearRead)),
     sharedExamSchedulePanel(),filters,list);
@@ -4609,7 +4631,7 @@ function notificationsView() {
         examScheduleDate(row)+' · '+(row.note||'Shared academic schedule'),
         '#/plan',when,'📅',expiresAt);
     });
-    notices.sort((a,b)=>(a.when||0)-(b.when||0));
+    notices.sort((a,b)=>(b.when||0)-(a.when||0));
     render();
   });
   mount(wrap(back('#/','Home'),box));
