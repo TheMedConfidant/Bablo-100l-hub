@@ -2290,8 +2290,10 @@ function premiumPricingView() {
  )));
 }
 
-function localAnalyticsSummary() {
-  const history = (DB.history || []).slice().sort((a,b) => a.ts - b.ts);
+function localAnalyticsSummary(days) {
+  const windowDays = Math.max(1, Math.min(3650, Number(days) || 30));
+  const cutoff = Date.now() - windowDays * 86400000;
+  const history = (DB.history || []).filter(x => Number(x.ts) >= cutoff).slice().sort((a,b) => a.ts - b.ts);
   const recent = history.filter(x => Number(x.ts) >= Date.now() - 7 * 86400000);
   const count = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.n) || 0), 0);
   const correct = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.correct) || 0), 0);
@@ -2307,29 +2309,38 @@ function localAnalyticsSummary() {
   const weak = Object.values(topicMap).map(x => Object.assign(x,{pct:x.seen ? x.right/x.seen*100 : 0})).filter(x => x.pct < 70).sort((a,b)=>a.pct-b.pct).slice(0,5);
   const recentRows = history.slice(-5).reverse();
   return h('section',{class:'panel stack'},
-    h('h2',null,'Your learning activity'),
+    h('h2',null,'Your learning activity · '+(windowDays===3650?'All time':windowDays+' days')),
     h('div',{class:'dashboard-metrics'},
       h('div',null,h('b',null,String(history.length)),h('small',null,'Sessions')),
       h('div',null,h('b',null,total ? accuracy.toFixed(1)+'%' : '—'),h('small',null,'Overall accuracy')),
       h('div',null,h('b',null,String(recent.length)),h('small',null,'Last 7 days')),
       h('div',null,h('b',null,recentN ? recentAccuracy.toFixed(1)+'%' : '—'),h('small',null,'7-day accuracy'))),
-    h('p',{class:'muted small'},total ? 'Across '+total+' recorded questions · average time '+Math.round(seconds/total)+' seconds per question.' : 'Complete a practice session or quiz to start building your personal learning record.'),
+    h('p',{class:'muted small'},total ? 'Across '+total+' recorded questions in this period · average time '+Math.round(seconds/total)+' seconds per question.' : 'No sessions in this period. Try a wider date range or complete a practice session.'),
     h('h3',null,'Topics to revisit'),
     weak.length ? h('div',{class:'rows'},...weak.map(x=>h('div',{class:'urow'},h('span',{class:'t'},x.topic),h('span',{class:'chip'},x.course),h('span',{class:'chip bad'},x.pct.toFixed(0)+'%')))) : h('p',{class:'muted small'},'No topic-level weak spots recorded yet. Answer at least three questions in a topic to establish a useful signal.'),
     recentRows.length ? h('div',{class:'stack'},h('h3',null,'Recent sessions'),...recentRows.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.course||'Practice'),h('small',{class:'muted'},' · '+(x.mode||'session')+' · '+new Date(x.ts).toLocaleDateString())),h('span',{class:'chip'},(Number(x.pct)||0).toFixed(0)+'%')))) : null
   );
 }
 function analyticsView() {
-  const root = h('div', { class: 'stack-l' }, back('#/', 'Dashboard'),
-    h('div', { class: 'stack' }, h('h1', null, 'Learning analytics'), h('p', { class: 'muted' }, 'Performance, consistency and topics that need another pass.')),
-    localAnalyticsSummary(),
-    h('div', { id: 'bablo-v2-analytics-root', class: 'panel stack' }, h('p', { class: 'muted' }, 'Preparing account-level course analytics…')));
+  const range = h('select', { class:'field', 'aria-label':'Analytics date range' },
+    [['7','Last 7 days'],['30','Last 30 days'],['90','Last 90 days'],['365','Last 12 months'],['3650','All time']].map(([v,label])=>h('option',{value:v,selected:v==='30'?true:null},label)));
+  const localRoot = h('div', { id:'local-analytics-root' });
+  const remoteRoot = h('div', { id:'bablo-v2-analytics-root', class:'panel stack' });
+  const root = h('div', { class:'stack-l' }, back('#/', 'Dashboard'),
+    h('div', { class:'stack' }, h('h1', null, 'Learning analytics'), h('p', { class:'muted' }, 'Compare your study performance across different periods.'), h('label',{class:'field'},h('span',null,'Date range'),range)),
+    localRoot, remoteRoot);
+  const refresh = () => {
+    const days = Number(range.value) || 30;
+    localRoot.replaceChildren(localAnalyticsSummary(days));
+    if (!signedIn()) { remoteRoot.textContent = 'Sign in to add synced course analytics. Your local activity remains available on this device.'; return; }
+    if (!window.BabloV2Analytics) { remoteRoot.textContent = 'Synced analytics are temporarily unavailable.'; return; }
+    window.BabloV2Analytics.mountCourseAnalytics(remoteRoot, { supabaseUrl: LB.url, publishableKey: LB.key, sessionToken: DB.account.token, days }).catch(error => { console.warn('[Bablo V2 analytics]', error); });
+  };
+  range.addEventListener('change', refresh);
   mount(wrap(root));
-  const target = document.getElementById('bablo-v2-analytics-root');
-  if (!signedIn()) { target.textContent = 'Sign in to add synced course analytics. Your local activity above remains available on this device.'; return; }
-  if (!window.BabloV2Analytics) { target.textContent = 'Synced analytics are temporarily unavailable.'; return; }
-  window.BabloV2Analytics.mountCourseAnalytics(target, { supabaseUrl: LB.url, publishableKey: LB.key, sessionToken: DB.account.token, days: 365 }).catch(error => { console.warn('[Bablo V2 analytics]', error); });
-}function homeView() {
+  refresh();
+}
+function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
