@@ -146,3 +146,14 @@
 - Added a custom programme path to guest onboarding and account registration. Custom programme registrations are tagged as Guest programme values so the existing guest registration path is used; programme-specific course mapping still falls back to the shared core until the programme is mapped.
 - Improved course analytics with recent momentum versus course averages, strongest and most-practised course summaries, and accessible accuracy progress bars. It remains course-level; topic-level analytics require topic-tagged attempt data.
 - No production branch, production deployment, Supabase schema, or account records changed. Device testing remains outstanding.
+
+
+### Preview build log — 2026-11-10 (Phase 5: adaptive flashcard scheduling)
+
+- Extended the existing local flashcard scheduler from two ratings to four: Again, Hard, Good and Easy.
+- Added per-card repetition count and ease factor, with bounded ease values and distinct review intervals. Again resets the repetition streak and schedules a short retry; successful reviews increase intervals progressively.
+- Preserved existing local review records (`intervalDays` and `dueAt`) so previously reviewed cards remain scheduled rather than being discarded.
+- Scheduling remains local-device/offline at this stage; cross-device review sync is not claimed or enabled.
+- Existing flashcard deck content and the active-recall reveal flow are unchanged.
+- The Profile, custom programme, calculator, Laboratory/practical, CHM navigation and PHY 24 November reminder corrections were already present on this preview branch and were retained.
+- Automated source-level regression checks are pending; browser/device testing remains outstanding.
