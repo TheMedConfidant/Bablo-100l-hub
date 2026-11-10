@@ -3036,7 +3036,7 @@ function meView() {
   }
   auditSelect.addEventListener('change',()=>{if(window.__babloAuditData)drawAudit(window.__babloAuditData);});
   lbFetch().then(data=>{window.__babloAuditData=data;drawAudit(data);}).catch(()=>auditBody.replaceChildren(h('p',{class:'small muted'},'Programme audit could not load right now.')));
-  profileContent.append(auditPanel);
+  profileContent.insertBefore(auditPanel,profileContent.children[3]||null);
   if (signedIn() && (!username || typeof p.isGuest !== 'boolean')) ensureChessIdentity();
 }
 
