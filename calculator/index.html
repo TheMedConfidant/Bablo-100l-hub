@@ -13,9 +13,9 @@
 function tokens(s){s=s.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/π/g,'pi');let a=[],i=0;while(i<s.length){if(/\s/.test(s[i])){i++;continue}let n=s.slice(i).match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?/i);if(n){a.push({t:'n',v:+n[0]});i+=n[0].length;continue}let id=s.slice(i).match(/^[a-z]+/i);if(id){a.push({t:'id',v:id[0].toLowerCase()});i+=id[0].length;continue}if('+-*/^!%(),'.includes(s[i])){a.push({t:s[i],v:s[i]});i++;continue}throw Error('Unsupported character: '+s[i])}
 const endsValue=t=>t.t==='n'||t.t===')'||t.t==='!'||t.t==='%'||(t.t==='id'&&['pi','e','ans','mem'].includes(t.v));
 const startsValue=t=>t.t==='n'||t.t==='('||t.t==='id';
-const functions=['sin','cos','tan','asin','acos','atan','sqrt','ln','log','abs'];
+
 const expanded=[];
-for(let k=0;k<a.length;k++){const cur=a[k],prev=expanded[expanded.length-1];if(prev&&endsValue(prev)&&startsValue(cur)&&!(cur.t==='id'&&functions.includes(cur.v)&&a[k+1]?.t==='('))expanded.push({t:'*',v:'*'});expanded.push(cur)}
+for(let k=0;k<a.length;k++){const cur=a[k],prev=expanded[expanded.length-1];if(prev&&endsValue(prev)&&startsValue(cur))expanded.push({t:'*',v:'*'});expanded.push(cur)}
 return expanded}
 function evaluate(s){const a=tokens(s);let p=0;const peek=()=>a[p],take=()=>a[p++],expect=t=>{if(!peek()||peek().t!==t)throw Error('Expected '+t);return take()};
 function primary(){let t=peek();if(!t)throw Error('Incomplete expression');if(t.t==='n'){take();return t.v}if(t.t==='('){take();let v=add();expect(')');return v}if(t.t==='id'){take();let id=t.v;if(id==='pi')return Math.PI;if(id==='e')return Math.E;if(id==='ans')return ans;if(id==='mem')return mem;let names=['sin','cos','tan','asin','acos','atan','sqrt','ln','log','abs'];if(!names.includes(id))throw Error('Unknown function: '+id);expect('(');let v=add();expect(')');if(['asin','acos','atan'].includes(id)){let z=Math[id](v);return angle==='DEG'?z*180/Math.PI:z}if(['sin','cos','tan'].includes(id)&&angle==='DEG')v*=Math.PI/180;return ({sin:Math.sin,cos:Math.cos,tan:Math.tan,sqrt:Math.sqrt,ln:Math.log,log:Math.log10,abs:Math.abs})[id](v)}throw Error('Unexpected token')}
