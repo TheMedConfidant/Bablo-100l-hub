@@ -62,8 +62,10 @@ if (html) {
   const sectionEnd = html.indexOf("/* ---------- Premium Library pricing ---------- */", sectionStart);
   if (sectionStart >= 0 && sectionEnd > sectionStart && !/name: 'Practicals'/.test(html.slice(sectionStart, sectionEnd))) pass("Course pages do not duplicate Laboratory practical sections");
   else fail("Practical section leaked back into a course page");
-  if (/function labHubView\\(\\)/.test(html) && /'Laboratory'/.test(html)) pass("Practical resources remain in the central Laboratory hub");
+  if (/function labHubView\(/.test(html) && /Laboratory/.test(html)) pass("Practical resources remain in the central Laboratory hub");
   else fail("Central Laboratory hub missing");
+  if (/navigator\.onLine === false/.test(html) && /addEventListener\(["']online["'],\s*function/.test(html) && /syncState = ["']pending["']/.test(html)) pass("Offline progress is retained and retries on reconnect");
+  else fail("Offline progress reconnect handling missing");
   if (!html.includes(": null," + String.fromCharCode(92) + "n")) pass("No escaped newline token remains in the Profile markup");
   else fail("Escaped newline token detected in Profile markup");
   if (/hub_submit_scores/.test(html)) pass("Leaderboard uses the session-validated score RPC");
