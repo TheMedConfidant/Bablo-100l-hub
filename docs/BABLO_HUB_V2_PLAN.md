@@ -184,3 +184,13 @@
 - Vercel preview deployment for commit `b0527fcf64bc257a7da95d687256e7441d759851` reached READY at `bablo-100l-mk5ron5ig-mosesbama4-3146s-projects.vercel.app`.
 - No changes to `main`, production deployment, Supabase schema, RLS policies or student records.
 - Remaining verification: execute the repository regression script in its Node environment, test profile/account sync with a real test account on two devices, and perform Android offline/online interaction checks.
+
+### Preview build log — 2026-11-10 (Calculator and Bablo Arcade)
+
+- Improved the standalone scientific calculator's state continuity: memory value, angle mode (DEG/RAD), and last answer now persist locally across reloads. No account data is accessed.
+- Added a clipboard fallback for browsers/devices where the Clipboard API is unavailable, including Android-style manual copy guidance if the fallback is blocked.
+- Added a playable first Bablo Arcade game, **Bablo Rush**, as a standalone page. Players choose a runner and challenge lane; a 60-second quiz sprint presents the question and all answer options together. Correct answers increase speed and progress; incorrect answers reduce momentum. Score, accuracy and a device-local best score are shown at the end.
+- Replaced the disabled Cow Dash placeholder in the Arcade hub with a direct Bablo Rush launch card. Chess and chess-learning links remain intact.
+- Source-level JavaScript compilation passed for the calculator and game scripts. Source checks confirmed persistent calculator state, clipboard fallback, game question bank, speed scoring and Arcade launch link.
+- Vercel preview deployment for commit `7ae3f7c988a7a1b25b326e9559945c7f47eb8d99` reached READY at `bablo-100l-amijif57e-mosesbama4-3146s-projects.vercel.app`.
+- Not yet verified: real Android/browser interaction, gameplay balance, keyboard/screen-reader accessibility, or end-to-end use on a physical device. No production branch, production deployment, Supabase schema/data, or account records were changed.
