@@ -3021,8 +3021,10 @@ function meView() {
     const courseRows={};
     Object.values(bestByCourse).forEach(e=>{const row=courseRows[e.course]||(courseRows[e.course]={scores:[],students:new Set()});row.scores.push(Number(e.pct));row.students.add(String(e.uid||e.dev));});
     const courses=Object.entries(courseRows).map(([code,row])=>({code,students:row.students.size,average:Math.round(row.scores.reduce((a,b)=>a+b,0)/row.scores.length*10)/10})).sort((a,b)=>b.average-a.average);
-    const bestMeanRows=Object.values(bestByCourse),avg=bestMeanRows.length?Math.round(bestMeanRows.reduce((n,e)=>n+Number(e.pct),0)/bestMeanRows.length*10)/10:0;
-    const activeStudents=new Set(bestMeanRows.map(e=>String(e.uid||e.dev))).size;
+    const bestMeanRows=Object.values(bestByCourse),perStudent={};
+    bestMeanRows.forEach(e=>{const id=String(e.uid||e.dev),row=perStudent[id]||(perStudent[id]={sum:0,count:0});row.sum+=Number(e.pct);row.count++;});
+    const studentMeans=Object.values(perStudent).map(row=>row.sum/row.count);
+    const activeStudents=studentMeans.length,avg=studentMeans.length?Math.round(studentMeans.reduce((a,b)=>a+b,0)/studentMeans.length*10)/10:0;
     const metrics=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:'8px'}},
       h('div',{class:'panel stack'},h('b',null,String(activeStudents)),h('small',{class:'muted'},'Students with recorded sessions')),
       h('div',{class:'panel stack'},h('b',null,String(records.length)),h('small',{class:'muted'},'Completed sessions')),
