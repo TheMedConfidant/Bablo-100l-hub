@@ -2270,7 +2270,8 @@ function sharedExamSchedulePanel() {
     h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')));
   panel.append(h('p',{class:'small muted'},'Loading shared schedule…'));
   fetchPublicExamSchedule().then(rows => {
-    const items = rows.slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
+    const d = new Date(), todayKey = [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+    const items = rows.filter(row => !row.scheduled_date || row.scheduled_date >= todayKey).slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
     panel.replaceChildren(
       h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')),
       ...items.map(row => h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
@@ -4303,12 +4304,16 @@ function holdPage(title, withPoll) {
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function notificationsView() {
   const box=h('div',{class:'stack-l notifications-page'});
-  const now=Date.now(),today=new Date();today.setHours(0,0,0,0);
+  const now=Date.now(),quizTtl=14*24*60*60*1000;
   const notices=[];
   const add=(id,type,title,body,href,when,icon)=>{
+    if(notices.some(n=>n.id===id))return;
     notices.push({id,type,title,body,href,when:when||now,icon:icon||'•'});
   };
-  (DB.history||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8).forEach(e=>{
+  (DB.history||[]).filter(e=>{
+    const ts=Number(e.ts);
+    return Number.isFinite(ts)&&ts<=now&&now-ts<=quizTtl;
+  }).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)).slice(0,8).forEach(e=>{
     const pct=Number(e.pct||0);
     add('quiz-'+e.ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
       (e.correct??'—')+' correct out of '+(e.n??'—')+' · '+(Number.isFinite(pct)?Math.round(pct)+'%':'Score recorded'),
@@ -4330,9 +4335,18 @@ function notificationsView() {
     const timing=diff<3600000?'Starting soon':diff<86400000?'Today':diff<172800000?'Tomorrow':dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
     add('event-'+ev.id,'Schedule',ev.title,timing+' · '+(ev.time||'Time not set')+(ev.note?' · '+ev.note:''),'#/plan',dt.getTime(),'◷');
   });
-  const read=DB.readNotices||{};
-  const unread=notices.filter(n=>!read[n.id]).length;
-  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{DB.readNotices=DB.readNotices||{};notices.forEach(n=>DB.readNotices[n.id]=true);save();notificationsView();}},'Mark all as read');
+  const read=DB.readNotices&&typeof DB.readNotices==='object'?DB.readNotices:{};
+  DB.readNotices=read;
+  const unreadLabel=h('p',{class:'muted small'});
+  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{
+    notices.forEach(n=>read[n.id]=true);
+    save();render(); 
+  }},'Mark all as read');
+  const updateUnread=()=>{
+    const count=notices.filter(n=>!read[n.id]).length;
+    unreadLabel.textContent=count?count+' new update'+(count===1?'':'s'):'You’re up to date.';
+    markAll.disabled=count===0;
+  };
   const groups=['All','Schedule','Academic progress','Study focus'];
   let selected='All';
   const list=h('div',{class:'stack',id:'notice-list'});
@@ -4340,29 +4354,43 @@ function notificationsView() {
     const filtered=notices.filter(n=>selected==='All'||n.type===selected);
     list.replaceChildren(...(filtered.length?filtered.map(n=>{
       const isRead=!!read[n.id];
-      return h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':'')},
+      return h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':''),'data-notice-id':n.id},
         h('span',{class:'notice-icon'},n.icon),
         h('span',{class:'notice-copy'},h('span',{class:'notice-meta'},n.type+' · '+new Date(n.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),h('b',null,n.title),h('span',{class:'small muted'},n.body)),
         h('span',{class:'notice-dot','aria-label':isRead?'Read':'Unread'},isRead?'':'●'));
     }):[h('section',{class:'panel stack'},h('b',null,'You’re all caught up'),h('p',{class:'small muted'},selected==='All'?'New quiz results, schedule reminders and study prompts will appear here as they happen.':'No '+selected.toLowerCase()+' notifications right now.'))]));
+    updateUnread();
   };
-  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();}},g)));
-  notices.forEach(n=>{if(!read[n.id]){ /* keep unread until opened or marked read */ }});
-  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),
-    sharedExamSchedulePanel(), filters, list
-  );
+  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{
+    selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();
+  }},g)));
+  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),unreadLabel),markAll),
+    sharedExamSchedulePanel(),filters,list);
   render();
-  fetchPublicExamSchedule().then(rows => {
-    rows.forEach(row => {
-      const dateLabel = examScheduleDate(row);
-      const when = row.scheduled_date ? new Date(row.scheduled_date + 'T09:00:00+01:00').getTime() : now;
-      add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
+  fetchPublicExamSchedule().then(rows=>{
+    const d=new Date(),todayKey=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+    rows.forEach(row=>{
+      if(row.scheduled_date&&row.scheduled_date<todayKey)return;
+      const dateLabel=examScheduleDate(row);
+      const when=row.scheduled_date?new Date(row.scheduled_date+'T09:00:00+01:00').getTime():now;
+      add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,
+        dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
     });
     notices.sort((a,b)=>(a.when||0)-(b.when||0));
-    render();
-  });
+    const activeIds=new Set(notices.map(n=>n.id));
+    Object.keys(read).forEach(id=>{if(!activeIds.has(id))delete read[id];});
+    save();render();
+  }).catch(error=>{console.warn('[Notifications]',error);});
   mount(wrap(back('#/','Home'),box));
-  list.addEventListener('click',e=>{const card=e.target.closest('.notice-card');if(!card)return;const item=notices.find(n=>n.href===card.getAttribute('href')&& !read[n.id]);if(item){DB.readNotices=DB.readNotices||{};DB.readNotices[item.id]=true;save();}});
+  list.addEventListener('click',e=>{
+    const card=e.target.closest('.notice-card');if(!card)return;
+    const item=notices.find(n=>n.id===card.getAttribute('data-notice-id'));
+    if(item&&!read[item.id]){
+      read[item.id]=true;save();card.classList.add('is-read');
+      const dot=card.querySelector('.notice-dot');if(dot){dot.textContent='';dot.setAttribute('aria-label','Read');}
+      updateUnread();
+    }
+  });
 }
 function aboutView() {
   const box=h('div',{class:'stack-l'});
