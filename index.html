@@ -2082,7 +2082,7 @@ function route() {
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
-    if (v === 'calculator') { go('#/'); return; }
+    if (v === 'calculator') { scientificCalculatorView(); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
     else if (v === 'analytics') analyticsView(); else if (v === 'premium') premiumPricingView();
     else if (v === 'courses') coursesCatalogueView();
@@ -2293,7 +2293,7 @@ function analyticsView() { const root = h('div', { class: 'stack-l' }, back('#/'
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
-  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5'), dashboardCard('Analytics','Your course performance and review priorities','▥','#/analytics','#D6A82B')
+  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5'), dashboardCard('Scientific calculator','Scientific functions, angles and calculation history','🧮','#/calculator','#53B6A5'), dashboardCard('Analytics','Your course performance and review priorities','▥','#/analytics','#D6A82B')
  ];
  const communityCards=[
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
