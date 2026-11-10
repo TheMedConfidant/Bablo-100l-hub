@@ -71,3 +71,37 @@
 - A payment made for one account cannot be claimed by another account merely by entering its email or order reference.
 - Existing users and existing premium records remain intact.
 - Every database change has a migration, RLS review, and verification query.
+
+
+## Preview build log — 2026-11-10
+
+### Implemented on `bablo-hub-v2-preview`
+- `v2/calculator.html`: standalone responsive scientific calculator prototype with DEG/RAD, common scientific functions, memory, local calculation history, keyboard input, and a non-eval expression parser.
+- `v2/smart-pq-engine.js`: pure adaptive question-selection engine. It ranks unseen questions, weak-topic performance, repeated errors, coverage gaps, revision recency and frequency metadata; it also applies topic diversity and returns selection reasons.
+- `v2/analytics-dashboard.js`: student analytics adapter and renderer using the existing session-validated `hub_course_analytics` RPC. It passes the active session token from the host application and does not store or expose it.
+- Regression test files:
+  - `v2/smart-pq-engine.test.js`
+  - `v2/analytics-dashboard.test.js`
+
+### Verified
+- All three implementation files were fetched back from GitHub after commit.
+- Calculator inline JavaScript syntax check passed.
+- Smart PQ selection and duplicate-prevention smoke tests passed in the tool runtime.
+- Analytics RPC request shape and dashboard-render smoke tests passed in the tool runtime.
+- Existing `hub_course_analytics` function was inspected; it validates the supplied token against `hub_sessions` and returns per-course attempt/accuracy aggregates.
+- Existing Supabase schema and migrations were inspected read-only. No production database migration or data write was made.
+
+### Not yet done
+- These are V2 preview modules, not yet integrated into the live V1 dashboard or app navigation.
+- Smart PQ engine still needs a verified adapter to the current question-bank and answer-history formats before it can replace or drive the existing Smart PQ flow.
+- Calculator needs browser/device interaction testing.
+- Analytics needs testing with a real signed-in test account and then integration into the existing dashboard.
+- No preview deployment or production deployment has been performed.
+- No changes were made to `main`, production data, authentication, payment configuration, or Supabase policies.
+
+### Next implementation gates
+1. Inspect the existing app's login/session handoff and integrate analytics without changing account identity.
+2. Map the live question-bank and answer-history formats; connect Smart PQ using the existing question sources.
+3. Integrate calculator entry into the existing calculator/navigation location.
+4. Run the repository static checks and browser tests on a Vercel preview.
+5. Review security/performance advisor findings separately; do not bulk-change RLS policies because several tables intentionally expose data only through guarded RPCs.
