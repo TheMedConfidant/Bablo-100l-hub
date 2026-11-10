@@ -2382,10 +2382,10 @@ function sharedExamSchedulePanel() {
   fetchPublicExamSchedule().then(rows => {
     const now=Date.now(),grace=12*60*60*1000;
     const active=rows.filter(row=>{
-      if(!row.scheduled_date)return row.date_status==='tentative';
+      if(!row.scheduled_date)return false;
       const starts=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
       return Number.isFinite(starts)&&starts+grace>now;
-    }).sort((a,b)=>(a.scheduled_date||'9999-12-31').localeCompare(b.scheduled_date||'9999-12-31'));
+    }).sort((a,b)=>a.scheduled_date.localeCompare(b.scheduled_date));
     panel.replaceChildren(
       h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')),
       ...(active.length?active.map(row=>h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
@@ -4594,12 +4594,13 @@ function notificationsView() {
   render();
   fetchPublicExamSchedule().then(rows=>{
     rows.forEach(row=>{
-      const hasDate=!!row.scheduled_date;
-      const when=hasDate?new Date(row.scheduled_date+'T09:00:00+01:00').getTime():now;
-      const expiresAt=hasDate?when+EXAM_GRACE:now+7*DAY;
+      if(!row.scheduled_date)return;
+      const when=new Date(row.scheduled_date+'T09:00:00+01:00').getTime();
+      if(!Number.isFinite(when)||when+EXAM_GRACE<=now)return;
+      const expiresAt=when+EXAM_GRACE;
       const id='shared-exam-'+row.id+'-'+(row.scheduled_date||'tentative');
       add(id,'Schedule',row.course_code+' · '+row.assessment_type,
-        (hasDate?examScheduleDate(row):'Date to be confirmed')+' · '+(row.note||'Shared academic schedule'),
+        examScheduleDate(row)+' · '+(row.note||'Shared academic schedule'),
         '#/plan',when,'📅',expiresAt);
     });
     notices.sort((a,b)=>(a.when||0)-(b.when||0));
