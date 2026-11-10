@@ -1138,8 +1138,8 @@ window.__PRACTICALS__.COS = {
       const e = best[k],identity=String(e.uid||e.dev); const p = by[identity] || (by[identity] = { uid:e.uid||null,dev:e.dev,nick:e.nick,score:0,secs:0,courses:0,ts:0 });
       p.score += e.pct; p.secs += e.secs; p.courses++; if (e.ts >= p.ts) { p.nick = e.nick; p.ts = e.ts; }
     });
-    return Object.values(by).map(p => Object.assign(p, { score: Math.round(p.score * 10) / 10 }))
-      .sort((a, b) => b.score - a.score || a.secs - b.secs);
+    return Object.values(by).map(p => Object.assign(p, { score: Math.round((p.score / Math.max(1,p.courses)) * 10) / 10 }))
+      .sort((a, b) => b.score - a.score || b.courses - a.courses || a.secs - b.secs);
   }
   function dayKey(ts) { const d = new Date(ts); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function streak(stamps, now) {
@@ -2089,7 +2089,7 @@ async function lbFetch() {
   try {
     const opts = { headers: { apikey: LB.key } };
     if (controller) opts.signal = controller.signal;
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=uid,dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', opts);
+    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=uid,dev,nick,course,mode,n,correct,pct,secs,ts,programme&order=ts.desc&limit=2000', opts);
     if (!r.ok) throw new Error('Leaderboard request failed: ' + r.status);
     const remote = await r.json();
     const synced = DB.syncedTs || {};
@@ -2400,6 +2400,7 @@ function unreadNotificationCount(){
  const add=id=>{if(!read[id]&&!dismissed[id])count++;};
  (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=7*DAY)add('quiz-'+ts);});
  const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
+ const phyNoticeExpires=new Date('2026-11-25T12:00:00+01:00').getTime();if(now<phyNoticeExpires)add('phy101-test-reminder-2026-11-24');
  const gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08');
  const qualifierNotices=[['A','2026-11-11','Wednesday','2026-11-12T00:59:59+01:00'],['B','2026-11-14','Saturday','2026-11-15T00:59:59+01:00']];
  qualifierNotices.forEach(([batch,date,day,expiry])=>{const when=new Date(date+'T00:00:00+01:00').getTime(),expires=new Date(expiry).getTime();if(now<expires)add('cup-qualifier-'+batch+'-'+date,'Schedule','Programme Cup · Batch '+batch+' qualifier',day+', all day · 60 questions · 40 minutes.','#/cup',when,'🏆',expires);});
@@ -2917,8 +2918,8 @@ function boardView() {
       kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes (10+ questions) and the Premium exam rank.' + (signedIn() ? '' : ' Create an account to appear on the boards.')));
       if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
       else {
-        if (rows.length >= 3) { const m = ['\uD83E\uDD48', '\uD83E\uDD47', '\uD83E\uDD49'], o = [1, 0, 2]; kids.push(h('div', { class: 'podium' }, o.map(k => h('div', { class: k === 0 ? 'p1' : '' }, h('div', { style: { fontSize: '1.6rem' } }, m[k === 0 ? 1 : k === 1 ? 0 : 2]), h('b', null, rows[k].nick), h('div', { class: 'small muted' }, rows[k].score + (course === '*' ? ' pts' : '%')))))); }
-        kids.push(h('div', { class: 'rows' }, rows.map((p, i) => h('div', { class: 'lrow' + (p.dev === DB.dev ? ' me' : '') }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, h('b', null, p.nick), p.local ? h('span', { class: 'chip', style: { marginLeft: '6px' } }, 'not on an account') : null, p.dev === DB.dev ? h('span', { class: 'chip brand', style: { marginLeft: '8px' } }, 'You') : null, h('div', { class: 'tiny muted' }, Core.fmtTime(p.secs) + (course === '*' ? ' \u2022 ' + plural(p.courses, 'course') : ''))), h('b', null, p.score + (course === '*' ? ' pts' : '%'))))));
+        if (rows.length >= 3) { const m = ['\uD83E\uDD48', '\uD83E\uDD47', '\uD83E\uDD49'], o = [1, 0, 2]; kids.push(h('div', { class: 'podium' }, o.map(k => h('div', { class: k === 0 ? 'p1' : '' }, h('div', { style: { fontSize: '1.6rem' } }, m[k === 0 ? 1 : k === 1 ? 0 : 2]), h('b', null, rows[k].nick), h('div', { class: 'small muted' }, rows[k].score + '%'))))); }
+        kids.push(h('div', { class: 'rows' }, rows.map((p, i) => h('div', { class: 'lrow' + (p.dev === DB.dev ? ' me' : '') }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, h('b', null, p.nick), p.local ? h('span', { class: 'chip', style: { marginLeft: '6px' } }, 'not on an account') : null, p.dev === DB.dev ? h('span', { class: 'chip brand', style: { marginLeft: '8px' } }, 'You') : null, h('div', { class: 'tiny muted' }, Core.fmtTime(p.secs) + (course === '*' ? ' \u2022 ' + plural(p.courses, 'course') : ''))), h('b', null, p.score + '%')))));
       }
     }
     box.replaceChildren(...kids);
@@ -4525,6 +4526,8 @@ function notificationsView() {
   if(missedIds.length)add('weak-topics-'+missedIds.length,'Study focus','Topics to revisit',
     missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
     '#/weak',now,'↗',now+14*DAY);
+  const phyTestAt=new Date('2026-11-24T00:00:00+01:00').getTime(),phyNoticeExpires=new Date('2026-11-25T12:00:00+01:00').getTime();
+  if(now<phyNoticeExpires)add('phy101-test-reminder-2026-11-24','Academic','PHY 101 test reminder','PHY 101 test · Tuesday, 24 November. Check the official timetable for the confirmed time and venue.','#/courses',phyTestAt,'⚛',phyNoticeExpires);
   const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime(),gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();
   if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08','Schedule','Timetable update · GST 111',
     'GST 111 is now on Thursday, 3:00pm–4:00pm · 1500 Lecture Hall.','#/timetable',gstUpdateAt,'◷',gstNoticeExpires);
