@@ -2746,15 +2746,27 @@ function meView() {
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '60', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const prog = h('input', { type: 'text', value: p.programme || '', maxlength: '70', autocomplete: 'organization-title' });
+  const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '90', placeholder: 'Institution' });
+  const faculty = h('input', { type: 'text', value: p.faculty || '', maxlength: '90', placeholder: 'Faculty / College' });
+  const department = h('input', { type: 'text', value: p.department || '', maxlength: '90', placeholder: 'Department' });
+  const session = h('input', { type: 'text', value: p.session || '', maxlength: '20', placeholder: 'e.g. 2026/2027' });
+  const semester = h('input', { type: 'text', value: p.semester || '', maxlength: '40', placeholder: 'e.g. First semester' });
   const level = h('select', null, ['100L','200L','300L','400L','500L','600L','Other'].map(x => h('option', { value: x, selected: x === (p.level || '100L') ? true : null }, x)));
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity, academic details and account access.'),
+    h('p', { class: 'muted small' }, 'Your student identity, institution and academic details.'),
     h('section', { class: 'panel stack' },
+      h('h2', null, 'Personal details'),
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
-      h('label', { class: 'field' }, h('span', null, 'Programme / department'), prog),
+      h('h2', null, 'Academic details'),
+      h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
+      h('label', { class: 'field' }, h('span', null, 'Faculty / College'), faculty),
+      h('label', { class: 'field' }, h('span', null, 'Department'), department),
+      h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
       h('label', { class: 'field' }, h('span', null, 'Academic level'), level),
+      h('label', { class: 'field' }, h('span', null, 'Academic session'), session),
+      h('label', { class: 'field' }, h('span', null, 'Semester'), semester),
       DB.profile.uid ? h('p', { class: 'small' }, h('b', null, 'Bablo ID: '), DB.profile.uid) : h('p', { class: 'small muted' }, 'Guest profile · no account linked yet'),
       h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, signedIn() ? 'Account status' : 'Access status'), h('small', { class: 'muted' }, signedIn() ? 'Progress sync enabled for this account.' : 'Guest mode · progress is stored on this device.')), h('span', { class: 'chip ' + (signedIn() ? 'ok' : 'gold') }, signedIn() ? 'Registered' : 'Guest')),
       h('button', { class: 'btn primary block', onclick: () => {
@@ -2764,11 +2776,20 @@ function meView() {
           name: n,
           nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20),
           programme: prog.value.trim(),
-          level: level.value
+          institution: institution.value.trim(),
+          faculty: faculty.value.trim(),
+          department: department.value.trim(),
+          level: level.value,
+          session: session.value.trim(),
+          semester: semester.value.trim()
         });
         save(); toast('Profile saved.');
       } }, 'Save profile'),
-      !signedIn() ? h('button', { class: 'btn gold block', type: 'button', onclick: () => { const account = document.getElementById('profile-account'); if (account) { account.scrollIntoView({ behavior: 'smooth', block: 'start' }); const first = account.querySelector('input,select,button'); if (first) first.focus({ preventScroll: true }); } } }, 'Create an account to sync progress') : null,\n      h('div', { id: 'profile-account' }, accountSection()))
+      !signedIn() ? h('button', { class: 'btn gold block', type: 'button', onclick: () => {
+        const account = document.getElementById('profile-account');
+        if (account) { account.scrollIntoView({ behavior: 'smooth', block: 'start' }); const first = account.querySelector('input,select,button'); if (first) first.focus({ preventScroll: true }); }
+      } }, 'Create an account to sync progress') : null,
+      h('div', { id: 'profile-account' }, accountSection()))
   )));
 }
 
