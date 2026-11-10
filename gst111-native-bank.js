@@ -24,7 +24,7 @@
         i: id, c: "GST111", u: q.topic || "Uncategorised", s: "mcq",
         q: q.question, o: options, a: validAnswer ? answerIndex : -1,
         e: (validAnswer && q.answer_text ? "Source answer: " + q.answer_text + ". " : "Source answer key requires review. ") + provenance,
-        f: true, source_page: q.source_page || null, source_record: q.source_record || index + 1
+        f: !validAnswer, source_page: q.source_page || null, source_record: q.source_record || index + 1
       });
     }
     const front = String(q.question || "").trim();
