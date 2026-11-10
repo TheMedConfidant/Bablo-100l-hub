@@ -2963,7 +2963,7 @@ function meView() {
   const membership = (account.premium || p.premium) ? 'Premium' : 'Standard';
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
-  const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
+  const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: Core.canonicalProgramme(x) === Core.canonicalProgramme(p.programme) ? true : null }, x)));
   const identityRow = (label, value, action) => h('div', { class: 'row between wrapr', style: { padding: '10px 0', borderBottom: '1px solid var(--line)', gap: '12px' } },
     h('span', { class: 'small muted' }, label), h('span', { style: { fontWeight: '750', textAlign: 'right', overflowWrap: 'anywhere' } }, value || 'Not set'), action || null);
   const identity = h('section', { class: 'panel stack' },
@@ -2972,7 +2972,7 @@ function meView() {
     identityRow('Username', username ? '@' + username : (signedIn() ? 'Username not assigned yet' : 'Not available for guest session')),
     identityRow('Full name', p.name || 'Not set'),
     identityRow('Display name', displayName),
-    identityRow('Programme', p.programme || 'Independent'),
+    identityRow('Programme', Core.canonicalProgramme(p.programme) || 'Independent'),
     identityRow('Account type', accountType),
     identityRow('Membership', membership)
   );
@@ -2998,7 +2998,7 @@ function meView() {
       } }, 'Save profile'))
   );
   mount(wrap(back('#/', 'Home'),profileContent));
-  const auditSelect=h('select',null,PROGRAMMES.map(x=>h('option',{value:x,selected:x===(p.programme||PROGRAMMES[0])?true:null},x)));
+  const auditSelect=h('select',null,PROGRAMMES.map(x=>h('option',{value:x,selected:Core.canonicalProgramme(x)===Core.canonicalProgramme(p.programme||PROGRAMMES[0])?true:null},x)));
   const auditBody=h('div',{class:'stack'},h('p',{class:'muted small'},'Loading programme performance…'));
   const auditPanel=h('section',{class:'panel stack'},h('div',{class:'stack'},h('h2',null,'Programme audit'),h('p',{class:'muted small'},'Inspect aggregate quiz performance across programmes. Individual private account details are not shown.')),h('label',{class:'field'},h('span',null,'Programme to inspect'),auditSelect),auditBody);
   function drawAudit(data){
