@@ -1131,7 +1131,7 @@ window.__PRACTICALS__.COS = {
     const best = {};
     entries.filter(eligible).filter(e => !opt.since || e.ts >= opt.since).filter(e => !opt.course || e.course === opt.course).forEach(e => {
       const identity=String(e.uid||e.dev),k = identity + '|' + e.course, b = best[k];
-      if (!b || e.pct > b.pct || (e.pct === b.pct && e.secs < b.secs)) best[k] = e;
+      if (!b || Number(e.pct) > Number(b.pct) || (Number(e.pct) === Number(b.pct) && Number(e.secs) < Number(b.secs))) best[k] = e;
     });
     const by = {};
     Object.keys(best).forEach(k => {
@@ -1171,7 +1171,7 @@ window.__PRACTICALS__.COS = {
     for (let d = start.getTime(); d < toMs; d += 864e5) {
       const day = new Date(d).getUTCDay();
       W.filter(w => w.day === day).forEach(w => {
-        const s = d + (w.from - 1) * 3600000, e = d + (w.to - 1) * 3600000;
+        const s = d - LAGOS + w.from * 3600000, e = d - LAGOS + w.to * 3600000;
         if (e > fromMs && s < toMs) out.push({ start: s, end: e, label: w.label });
       });
     }
@@ -1254,8 +1254,8 @@ function canAccessCourse(code) { return !!(DB.profile && coursesFor(DB.profile.p
 /* ---------- Programme Cup ---------- */
 /* Event windows repeat every week. Times are Lagos time (UTC+1). day: 0 Sun .. 6 Sat. */
 const EVENT_WINDOWS = [
-  { day: 3, from: 19, to: 23, label: 'Wednesday night' },
-  { day: 6, from: 13, to: 17, label: 'Saturday afternoon' }
+  { day: 3, from: 0, to: 24, label: 'Wednesday · Batch A qualifier' },
+  { day: 6, from: 0, to: 24, label: 'Saturday · Batch B qualifier' }
 ];
 const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 };
 /* Course weights. Equal weights mean no programme is favoured. Tune here if you decide on different weights. */
@@ -2915,7 +2915,7 @@ function boardView() {
       // Account identity is deduplicated by stable UID in Core.rank, never by display name.
       const rows = ranked.slice(0, 50);
       const note = data.mode === 'global' ? 'Live leaderboard \u2022 best score per course counts.' : data.mode === 'offline' ? 'Could not reach the live leaderboard, showing this device only.' : 'Global leaderboard is not switched on yet. This board shows your attempts on this device.';
-      kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes (10+ questions) and the Premium exam rank.' + (signedIn() ? '' : ' Create an account to appear on the boards.')));
+      kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes and completed exams with 10+ questions and a score of at least 50% rank.' + (signedIn() ? '' : ' Create an account to appear on the boards.')));
       if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
       else {
         if (rows.length >= 3) { const m = ['\uD83E\uDD48', '\uD83E\uDD47', '\uD83E\uDD49'], o = [1, 0, 2]; kids.push(h('div', { class: 'podium' }, o.map(k => h('div', { class: k === 0 ? 'p1' : '' }, h('div', { style: { fontSize: '1.6rem' } }, m[k === 0 ? 1 : k === 1 ? 0 : 2]), h('b', null, rows[k].nick), h('div', { class: 'small muted' }, rows[k].score + '%'))))); }
@@ -2953,7 +2953,7 @@ function meView() {
     identityRow('Account type', accountType),
     identityRow('Membership', membership)
   );
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
+  const profileContent=h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
     h('p', { class: 'muted small' }, 'Your Bablo identity, student details and leaderboard information.'),
     identity,
@@ -2973,7 +2973,8 @@ function meView() {
         });
         save(); toast('Profile saved.'); meView();
       } }, 'Save profile'))
-  )));
+  );
+  mount(wrap(back('#/', 'Home'),profileContent));
   const auditSelect=h('select',null,PROGRAMMES.map(x=>h('option',{value:x,selected:x===(p.programme||PROGRAMMES[0])?true:null},x)));
   const auditBody=h('div',{class:'stack'},h('p',{class:'muted small'},'Loading programme performance…'));
   const auditPanel=h('section',{class:'panel stack'},h('div',{class:'stack'},h('h2',null,'Programme audit'),h('p',{class:'muted small'},'Inspect aggregate quiz performance across programmes. Individual private account details are not shown.')),h('label',{class:'field'},h('span',null,'Programme to inspect'),auditSelect),auditBody);
@@ -2998,8 +2999,7 @@ function meView() {
   }
   auditSelect.addEventListener('change',()=>{if(window.__babloAuditData)drawAudit(window.__babloAuditData);});
   lbFetch().then(data=>{window.__babloAuditData=data;drawAudit(data);}).catch(()=>auditBody.replaceChildren(h('p',{class:'small muted'},'Programme audit could not load right now.')));
-  const root=document.querySelector('.stack-l');
-  if(root)root.insertBefore(auditPanel,root.lastElementChild||null);
+  profileContent.append(auditPanel);
   if (signedIn() && (!username || typeof p.isGuest !== 'boolean')) ensureChessIdentity();
 }
 
