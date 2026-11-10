@@ -8,7 +8,6 @@
   const bank = window.__BANK__ || (window.__BANK__ = []);
   const cards = window.__CARDS__ || (window.__CARDS__ = {});
   const existingIds = new Set(bank.map(q => q.i));
-  const existingCards = new Set((cards.GST111 || []).map(c => String(c.front || c.q || "").trim().toLowerCase()));
   const gstCards = cards.GST111 || [];
   source.forEach((q, index) => {
     const options = Array.isArray(q.options) ? q.options : [];
@@ -31,9 +30,8 @@
     const back = validAnswer && q.answer_text
       ? String(q.answer_text).trim() + " (source key unverified)"
       : "Answer key requires manual verification. PDF page " + (q.source_page || "unknown") + ".";
-    if (front && !existingCards.has(front.toLowerCase())) {
+    if (front) {
       gstCards.push({ id: "GST111-SOURCE-FC-" + String(q.source_record || index + 1).padStart(4, "0"), front, back, u: q.topic || "Uncategorised", source_page: q.source_page || null });
-      existingCards.add(front.toLowerCase());
     }
   });
   cards.GST111 = gstCards;
