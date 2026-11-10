@@ -2046,8 +2046,7 @@ function scientificCalculatorView(){
   root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><h1>Scientific calculator</h1><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder=""><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div></section></div>';
   document.getElementById('app').replaceChildren(root);
   const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
-  let lastExpression='';
-  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=CALC_DEG?'DEG':'RAD';if(force)lastExpression=input.value;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
+  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=CALC_DEG?'DEG':'RAD';if(force)CALC_ANS=n;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
   const keys=[
     ['sin(','fn'],['cos(','fn'],['tan(','fn'],['ln(','fn'],['log(','fn'],
     ['√(','fn'],['x²','fn'],['xʸ','fn'],['π','fn'],['e','fn'],
@@ -2308,6 +2307,9 @@ function localAnalyticsSummary(days) {
   });
   const weak = Object.values(topicMap).map(x => Object.assign(x,{pct:x.seen ? x.right/x.seen*100 : 0})).filter(x => x.pct < 70).sort((a,b)=>a.pct-b.pct).slice(0,5);
   const recentRows = history.slice(-5).reverse();
+  const courseMap = {};
+  history.forEach(x => { const key=String(x.course||'Other'); const row=courseMap[key]||(courseMap[key]={course:key,sessions:0,questions:0,correct:0,seconds:0}); row.sessions++; row.questions+=Math.max(0,Number(x.n)||0); row.correct+=Math.max(0,Number(x.correct)||0); row.seconds+=Math.max(0,Number(x.secs)||0); });
+  const courseRows = Object.values(courseMap).map(x=>Object.assign(x,{pct:x.questions?x.correct/x.questions*100:0})).sort((a,b)=>a.pct-b.pct);
   return h('section',{class:'panel stack'},
     h('h2',null,'Your learning activity · '+(windowDays===3650?'All time':windowDays+' days')),
     h('div',{class:'dashboard-metrics'},
@@ -2316,8 +2318,10 @@ function localAnalyticsSummary(days) {
       h('div',null,h('b',null,String(recent.length)),h('small',null,'Last 7 days')),
       h('div',null,h('b',null,recentN ? recentAccuracy.toFixed(1)+'%' : '—'),h('small',null,'7-day accuracy'))),
     h('p',{class:'muted small'},total ? 'Across '+total+' recorded questions in this period · average time '+Math.round(seconds/total)+' seconds per question.' : 'No sessions in this period. Try a wider date range or complete a practice session.'),
+    h('h3',null,'Course performance'),
+    courseRows.length ? h('div',{class:'rows'},...courseRows.map(x=>h('div',{class:'panel stack',style:{gap:'6px'}},h('div',{class:'row between wrapr'},h('b',null,x.course),h('span',{class:'chip '+(x.pct<60?'bad':'ok')},x.pct.toFixed(1)+'%')),h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(x.sessions)),h('small',null,'Sessions')),h('div',null,h('b',null,String(x.questions)),h('small',null,'Questions')),h('div',null,h('b',null,Math.round(x.seconds/60)+'m'),h('small',null,'Study time')))))) : h('p',{class:'muted small'},'Course breakdown will appear after your first recorded session.'),
     h('h3',null,'Topics to revisit'),
-    weak.length ? h('div',{class:'rows'},...weak.map(x=>h('div',{class:'urow'},h('span',{class:'t'},x.topic),h('span',{class:'chip'},x.course),h('span',{class:'chip bad'},x.pct.toFixed(0)+'%')))) : h('p',{class:'muted small'},'No topic-level weak spots recorded yet. Answer at least three questions in a topic to establish a useful signal.'),
+    weak.length ? h('div',{class:'rows'},...weak.map(x=>h('div',{class:'urow'},h('span',{class:'t'},x.topic),h('span',{class:'chip'},x.course),h('span',{class:'chip bad'},x.pct.toFixed(0)+'%')))) : h('p',{class:'muted small'},'No topic-level weak spots recorded in this period.'),
     recentRows.length ? h('div',{class:'stack'},h('h3',null,'Recent sessions'),...recentRows.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.course||'Practice'),h('small',{class:'muted'},' · '+(x.mode||'session')+' · '+new Date(x.ts).toLocaleDateString())),h('span',{class:'chip'},(Number(x.pct)||0).toFixed(0)+'%')))) : null
   );
 }
