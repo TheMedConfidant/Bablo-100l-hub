@@ -157,3 +157,15 @@
 - Existing flashcard deck content and the active-recall reveal flow are unchanged.
 - The Profile, custom programme, calculator, Laboratory/practical, CHM navigation and PHY 24 November reminder corrections were already present on this preview branch and were retained.
 - Automated source-level regression checks are pending; browser/device testing remains outstanding.
+
+
+### Phase 05 — Profile and navigation corrections (source audit)
+
+- Fixed the guest Profile account CTA to scroll to and focus the embedded account form without changing the hash-router route.
+- Source audit confirms calculator is absent from the dashboard and remains under More Options; its active keypad has one AC and one ANS control.
+- Source audit confirms course practicals are centralised in Laboratory and the duplicate course-level practical tile is absent.
+- Source audit confirms CHM no longer exposes a duplicate Quizzes tile; question practice and worked questions remain distinct.
+- Profile includes editable name, nickname, programme and level, Bablo ID / guest status, and account registration/login. Custom programme entry is available in onboarding and account registration.
+- Analytics remains course-level where that is what the available attempt data supports; no unsupported topic-level analytics are invented.
+- PHY101 Test reminder dated 24 November 2026 is merged into the client schedule and fallback schedule. It appears in the schedule panel on clients that load the schedule; browser push alerts depend on notification permission. This is not a Supabase schedule-table write.
+- Preview branch only. No production branch, database or production deployment was changed.

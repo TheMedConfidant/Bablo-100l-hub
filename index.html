@@ -2768,7 +2768,7 @@ function meView() {
         });
         save(); toast('Profile saved.');
       } }, 'Save profile'),
-      !signedIn() ? h('a', { class: 'btn gold block', href: '#profile-account' }, 'Create an account to sync progress') : null,\n      h('div', { id: 'profile-account' }, accountSection()))
+      !signedIn() ? h('button', { class: 'btn gold block', type: 'button', onclick: () => { const account = document.getElementById('profile-account'); if (account) { account.scrollIntoView({ behavior: 'smooth', block: 'start' }); const first = account.querySelector('input,select,button'); if (first) first.focus({ preventScroll: true }); } } }, 'Create an account to sync progress') : null,\n      h('div', { id: 'profile-account' }, accountSection()))
   )));
 }
 
