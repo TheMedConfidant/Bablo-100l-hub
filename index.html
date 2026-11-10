@@ -4502,6 +4502,7 @@ function holdPage(title, withPoll) {
 function notificationsView() {
   const box=h('div',{class:'stack-l notifications-page'});
   const now=Date.now(),DAY=86400000;
+  if('serviceWorker' in navigator)navigator.serviceWorker.ready.then(reg=>{if(reg.active)reg.active.postMessage({type:'BABLO_CLEAN_NOTIFICATIONS'});}).catch(()=>{});
   const QUIZ_TTL=7*DAY,EVENT_GRACE=60*60*1000,EXAM_GRACE=12*60*60*1000;
   const notices=[];
   const read=DB.readNotices||{};
