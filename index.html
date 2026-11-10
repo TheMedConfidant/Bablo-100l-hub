@@ -2397,7 +2397,7 @@ function sharedExamSchedulePanel() {
 function unreadNotificationCount(){
  const now=Date.now(),DAY=86400000,read=DB.readNotices||{},dismissed=DB.dismissedNotices||{};let count=0;
  const add=id=>{if(!read[id]&&!dismissed[id])count++;};
- (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=30*DAY)add('quiz-'+ts);});
+ (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=7*DAY)add('quiz-'+ts);});
  const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
  const gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08');
  const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
@@ -4499,7 +4499,7 @@ function notificationsView() {
   const dismissed=DB.dismissedNotices||{};
   DB.readNotices=read;DB.dismissedNotices=dismissed;
   const add=(id,type,title,body,href,when,icon,expiresAt)=>{
-    if(dismissed[id]||(expiresAt&&expiresAt<=now))return;
+    if(dismissed[id]||(read[id]&&type==='Study focus')||(expiresAt&&expiresAt<=now))return;
     notices.push({id,type,title,body,href,when:when||now,icon:icon||'•',expiresAt:expiresAt||null});
   };
   (DB.history||[]).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)).forEach(e=>{
