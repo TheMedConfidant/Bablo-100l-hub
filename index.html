@@ -2084,7 +2084,7 @@ function route() {
   try {
     if (v === 'calculator') { go('#/'); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
-    else if (v === 'premium') premiumPricingView();
+    else if (v === 'analytics') analyticsView(); else if (v === 'premium') premiumPricingView();
     else if (v === 'courses') coursesCatalogueView();
     else if (v === 'time') timeHubView();
     else if (v === 'arcade') arcadeHubView();
@@ -2285,7 +2285,7 @@ function premiumPricingView() {
  )));
 }
 
-function homeView() {
+function analyticsView() { const root = h('div', { class: 'stack-l' }, back('#/', 'Dashboard'), h('div', { class: 'stack' }, h('h1', null, 'Learning analytics'), h('p', { class: 'muted' }, 'Your performance across courses, calculated from your saved quiz history.')), h('div', { id: 'bablo-v2-analytics-root', class: 'panel stack' }, h('p', { class: 'muted' }, 'Preparing your analytics…'))); mount(wrap(root)); const target = document.getElementById('bablo-v2-analytics-root'); if (!signedIn()) { target.textContent = 'Sign in to load account-level analytics. Your local practice progress remains available on this device.'; return; } if (!window.BabloV2Analytics) { target.textContent = 'Analytics module is still loading. Please try again.'; return; } window.BabloV2Analytics.mountCourseAnalytics(target, { supabaseUrl: LB.url, publishableKey: LB.key, sessionToken: DB.account.token, days: 365 }).catch(error => { console.warn('[Bablo V2 analytics]', error); }); } function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
@@ -2293,7 +2293,7 @@ function homeView() {
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
-  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
+  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5'), dashboardCard('Analytics','Your course performance and review priorities','▥','#/analytics','#D6A82B')
  ];
  const communityCards=[
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
@@ -4728,6 +4728,7 @@ setTimeout(liveNotice, 1200);
 <script src="v2/smart-pq-engine.js"></script>
 <script src="v2/smart-pq-adapter.js"></script>
 <script src="v2/smart-pq-integration.js"></script>
+<script src="v2/analytics-dashboard.js"></script>
 <script src="challenge-arena.js"></script>
 <script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
 </body>
