@@ -2754,7 +2754,7 @@ function meView() {
         });
         save(); toast('Profile saved.');
       } }, 'Save profile'),
-      accountSection())
+      !signedIn() ? h('a', { class: 'btn gold block', href: '#profile-account' }, 'Create an account to sync progress') : null,\n      h('div', { id: 'profile-account' }, accountSection()))
   )));
 }
 
