@@ -1756,7 +1756,7 @@ async function hubCall(fn, body) {
   return r.json();
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
-function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+function setAccount(j) { const previous = DB.profile || {}; DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = Object.assign({}, previous, { name: j.fullName, nick: j.nickname, username: j.username || previous.username || '', programme: j.programme, level: previous.level || '100L', uid: j.uniqueId }); save(); }
 let CHESS_IDENTITY_BUSY = false;
 async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
 async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
@@ -1765,7 +1765,7 @@ async function signUp(f) {
   if (!f.nickname.trim()) throw new Error('Pick a nickname.');
   if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
   // the server creates the ID, so no one can pick someone else's
-  const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: f.programme.indexOf('Guest') === 0 });
+  const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: false });
   if (!reg.ok) throw new Error(reg.error);
   return signIn(reg.uniqueId, f.password);
 }
@@ -1780,7 +1780,7 @@ async function signIn(id, password) {
 }
 async function signOut() { try { if (signedIn()) await hubCall('hub_logout', { p_token: DB.account.token }); } catch (e) { /* ignore */ } DB.account = null; save(); }
 /* progress: what this device knows, saved to the account so nothing is lost */
-function localProgress() { return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {}, ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null }; }
+function localProgress() { return { history: DB.history.slice(-300), missed: DB.missed, stats: DB.stats || {}, ubest: DB.ubest, gpa: DB.gpa, chess: DB.chess || null, academicProfile: DB.profile ? { institution: DB.profile.institution || '', faculty: DB.profile.faculty || '', department: DB.profile.department || '', session: DB.profile.session || '', semester: DB.profile.semester || '', level: DB.profile.level || '100L' } : null }; }
 function mergeRemote(p) {
   const seen = {}; (DB.history || []).forEach(h => { seen[h.ts] = true; });
   (p.history || []).forEach(h => { if (!seen[h.ts]) DB.history.push(h); });
@@ -1790,14 +1790,36 @@ function mergeRemote(p) {
   DB.ubest = Object.assign({}, p.ubest || {}, DB.ubest || {});
   DB.gpa = Object.assign({}, p.gpa || {}, DB.gpa || {});
   if (p.chess && (!DB.chess || (p.chess.games || []).length > (DB.chess.games || []).length)) DB.chess = p.chess;
+  if (p.academicProfile && DB.profile) DB.profile = Object.assign({}, p.academicProfile, DB.profile);
   save();
 }
-let PUSH_T = null;
-function queuePush() { if (!signedIn()) return; clearTimeout(PUSH_T); PUSH_T = setTimeout(pushProgress, 4000); }
-async function pushProgress() {
+let PUSH_T = null, PUSH_BUSY = false, PUSH_AGAIN = false;
+function persistSyncState() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* local state remains in memory */ } }
+function queuePush() {
   if (!signedIn()) return;
-  try { await hubCall('hub_save_progress', { p_token: DB.account.token, p_progress: localProgress() }); } catch (e) { /* try again on the next change */ }
+  clearTimeout(PUSH_T);
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) { DB.syncState = 'pending'; persistSyncState(); return; }
+  PUSH_T = setTimeout(pushProgress, 4000);
 }
+async function pushProgress() {
+  if (!signedIn()) return false;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) { DB.syncState = 'pending'; persistSyncState(); return false; }
+  if (PUSH_BUSY) { PUSH_AGAIN = true; return false; }
+  PUSH_BUSY = true; DB.syncState = 'syncing'; persistSyncState();
+  try {
+    await hubCall('hub_save_progress', { p_token: DB.account.token, p_progress: localProgress() });
+    DB.syncState = 'synced'; DB.lastSyncedAt = Date.now(); persistSyncState(); return true;
+  } catch (e) {
+    DB.syncState = 'pending'; persistSyncState(); return false;
+  } finally {
+    PUSH_BUSY = false;
+    if (PUSH_AGAIN) { PUSH_AGAIN = false; queuePush(); }
+  }
+}
+window.addEventListener('online', function () {
+  if (!signedIn()) return;
+  DB.syncState = 'syncing'; persistSyncState(); pushProgress();
+});
 
 /* past device scores go to the leaderboard under the account, once each */
 async function syncPastScores() {
@@ -2043,22 +2065,22 @@ function calcEvaluate(raw){
 }
 function scientificCalculatorView(){
   const root=document.createElement('main');root.className='wrap calc-page';
-  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div><p class="tiny muted">Use × or * for multiplication. Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press Enter or = to evaluate.</p></section></div>';
+  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><h1>Scientific calculator</h1><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder=""><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button></div><div id="calcPad" class="calc-keypad"></div></section></div>';
   document.getElementById('app').replaceChildren(root);
   const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
-  let lastExpression='';
-  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';if(force)lastExpression=input.value;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
+  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=CALC_DEG?'DEG':'RAD';if(force)CALC_ANS=n;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
   const keys=[
     ['sin(','fn'],['cos(','fn'],['tan(','fn'],['ln(','fn'],['log(','fn'],
     ['√(','fn'],['x²','fn'],['xʸ','fn'],['π','fn'],['e','fn'],
     ['(','fn'],[')','fn'],['%','fn'],['÷','op'],['×','op'],
     ['7','num'],['8','num'],['9','num'],['−','op'],['+','op'],
     ['4','num'],['5','num'],['6','num'],['⌫','util'],['ANS','fn'],
-    ['1','num'],['2','num'],['3','num'],['AC','util'],['ANS','fn'],
+    ['1','num'],['2','num'],['3','num'],['AC','util'],
     ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
   ];
-  keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
-    if(label==='AC'){input.value='';out.textContent='0';status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';input.focus();return;}
+  const seenCalcKeys=new Set();
+  keys.filter(([label])=>{if(seenCalcKeys.has(label))return false;seenCalcKeys.add(label);return true;}).forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
+    if(label==='AC'){input.value='';out.textContent='0';status.textContent=CALC_DEG?'DEG':'RAD';input.focus();return;}
     if(label==='⌫'){input.value=input.value.slice(0,-1);show();input.focus();return;}
     if(label==='='){show(true);input.focus();return;}
     if(label==='±'){input.value=input.value.startsWith('-')?input.value.slice(1):'-('+input.value+')';show();input.focus();return;}
@@ -2068,8 +2090,7 @@ function scientificCalculatorView(){
   };if(label==='=')b.style.gridColumn='span 1';pad.append(b);});
   input.oninput=()=>show();input.onkeydown=e=>{if(e.key==='Enter'||e.key==='='){e.preventDefault();show(true);}else if(e.key==='Escape'){input.value='';show();}};
   root.querySelector('#calcAngle').onclick=e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';show();};
-  root.querySelector('#calcClear').onclick=()=>{input.value='';show();input.focus();};
-  root.querySelector('#calcBack').onclick=()=>{const a=input.selectionStart??input.value.length,z=input.selectionEnd??a;if(a!==z)input.value=input.value.slice(0,a)+input.value.slice(z);else if(a>0)input.value=input.value.slice(0,a-1)+input.value.slice(z);input.focus();show();};
+  /* Deletion is handled by the single ⌫ keypad key. */
 }
 
 function route() {
@@ -2082,9 +2103,9 @@ function route() {
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
-    if (v === 'calculator') { go('#/'); return; }
+    if (v === 'calculator') { scientificCalculatorView(); return; }
     else if (v === 'challenge') { if (typeof window.challengeDashboardView === 'function') window.challengeDashboardView(); else throw new Error('Challenge Arena is still loading.'); }
-    else if (v === 'premium') premiumPricingView();
+    else if (v === 'analytics') analyticsView(); else if (v === 'premium') premiumPricingView();
     else if (v === 'courses') coursesCatalogueView();
     else if (v === 'time') timeHubView();
     else if (v === 'arcade') arcadeHubView();
@@ -2121,6 +2142,7 @@ function route() {
     else if (v === 'chess') chessView();
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
+    else if (v === 'programme-audit') programmeAuditView(qs.get('programme'));
     else homeView();
   } catch (e) { console.error(e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'Something went wrong'), h('p', { class: 'muted' }, 'Go back home and try again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
 }
@@ -2129,19 +2151,24 @@ function route() {
 function onboarding() {
   const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
   const nick = h('input', { type: 'text', maxlength: '20', placeholder: 'Shown on the leaderboard' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
+  const prog = h('select', null, ...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME).map(p => h('option', { value: p }, p)), h('option', { value: '__custom__' }, 'My programme is not listed'));
+  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', style: { display: 'none' } });
+  prog.addEventListener('change', () => { customProg.style.display = prog.value === '__custom__' ? '' : 'none'; });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' } });
   const sub = () => {
     const n = name.value.trim().replace(/[\u0000-\u001f]/g, '');
     if (n.length < 2) { err.textContent = 'Enter your name so we can greet you.'; return; }
     const k = (nick.value.trim() || n.split(' ')[0]).slice(0, 20);
-    DB.profile = { name: n, nick: k, programme: prog.value, level: '100L' }; save(); document.querySelector('.overlay') && document.querySelector('.overlay').remove(); route();
+    const programme = prog.value === '__custom__' ? ('Guest — ' + customProg.value.trim()) : prog.value;
+    if (prog.value === '__custom__' && customProg.value.trim().length < 2) { err.textContent = 'Type your programme, or choose one from the list.'; return; }
+    DB.profile = { name: n, nick: k, programme, level: '100L', isGuest: prog.value === '__custom__' }; save(); document.querySelector('.overlay') && document.querySelector('.overlay').remove(); route();
   };
   modal(h('div', { class: 'stack' }, h('h2', null, 'Welcome to Bablo Hub'),
     h('p', { class: 'muted' }, 'Practice by topic, take timed quizzes, sit a mock exam and climb the leaderboard. Your details stay on this device.'),
     h('label', { class: 'field' }, h('span', null, 'Your name'), name),
     h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
     h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
+    customProg,
     err,
     h('button', { class: 'btn primary block', onclick: sub }, 'Start studying'),
     h('button', { class: 'btn ghost block', type: 'button', onclick: () => { DB.profile = { name: 'Guest learner', nick: 'Guest', programme: 'Independent', level: '100L', isGuest: true }; DB.account = null; save(); const ov = document.querySelector('.overlay'); if (ov) ov.remove(); route(); } }, 'Continue without an account')), false);
@@ -2187,6 +2214,7 @@ function openHubMenu(){
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
     group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
     group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Send feedback','#/feedback','✉')]),
+    group('MORE OPTIONS',[link('Scientific calculator','#/calculator','🧮')]),
     group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
     group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
     group('ADMINISTRATION',[link('Admin Panel','#/admin','🛠')]),
@@ -2204,17 +2232,19 @@ async function fetchPublicExamSchedule() {
     const r = await fetch(LB.url + '/rest/v1/rpc/hub_public_exam_schedule', { method: 'POST', headers: sbHeaders(), body: '{}' });
     if (!r.ok) throw new Error('Schedule unavailable (' + r.status + ')');
     const rows = await r.json();
-    EXAM_SCHEDULE_CACHE = Array.isArray(rows) ? rows : [];
+    const phyReminder = { id:'bablo-phy101-test-2026-11-24', course_code:'PHY101', assessment_type:'Test', scheduled_date:'2026-11-24', date_status:'confirmed', note:'PHY test reminder' };
+    const remoteRows = Array.isArray(rows) ? rows : [];
+    EXAM_SCHEDULE_CACHE = remoteRows.some(x => x.course_code === 'PHY101' && x.scheduled_date === phyReminder.scheduled_date) ? remoteRows : remoteRows.concat(phyReminder);
     maybeExamSchedulePush(EXAM_SCHEDULE_CACHE);
     return EXAM_SCHEDULE_CACHE;
-  } catch (e) { console.warn('[Exam schedule]', e); return []; }
+  } catch (e) { console.warn('[Exam schedule]', e); const fallback = [{ id:'bablo-phy101-test-2026-11-24', course_code:'PHY101', assessment_type:'Test', scheduled_date:'2026-11-24', date_status:'confirmed', note:'PHY test reminder' }]; EXAM_SCHEDULE_CACHE = fallback; maybeExamSchedulePush(fallback); return fallback; }
 }
 function examScheduleDate(row) {
   if (!row.scheduled_date) return row.date_status === 'tentative' ? 'Tentative · date to be confirmed' : 'Date to be confirmed';
   return new Date(row.scheduled_date + 'T00:00:00+01:00').toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
 }
 function maybeExamSchedulePush(rows) {
-  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   DB.examPushSent = DB.examPushSent || {};
   const now = Date.now();
   rows.forEach(row => {
@@ -2241,7 +2271,8 @@ function sharedExamSchedulePanel() {
     h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')));
   panel.append(h('p',{class:'small muted'},'Loading shared schedule…'));
   fetchPublicExamSchedule().then(rows => {
-    const items = rows.slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
+    const d = new Date(), todayKey = [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+    const items = rows.filter(row => !row.scheduled_date || row.scheduled_date >= todayKey).slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
     panel.replaceChildren(
       h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')),
       ...items.map(row => h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
@@ -2285,6 +2316,73 @@ function premiumPricingView() {
  )));
 }
 
+function localAnalyticsSummary(days) {
+  const windowDays = Math.max(1, Math.min(3650, Number(days) || 30));
+  const cutoff = Date.now() - windowDays * 86400000;
+  const history = (DB.history || []).filter(x => Number(x.ts) >= cutoff).slice().sort((a,b) => a.ts - b.ts);
+  const recent = history.filter(x => Number(x.ts) >= Date.now() - 7 * 86400000);
+  const previousWeek = history.filter(x => Number(x.ts) >= Date.now() - 14 * 86400000 && Number(x.ts) < Date.now() - 7 * 86400000);
+  const count = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.n) || 0), 0);
+  const correct = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.correct) || 0), 0);
+  const total = count(history), accuracy = total ? correct(history) / total * 100 : 0;
+  const recentN = count(recent), recentAccuracy = recentN ? correct(recent) / recentN * 100 : 0;
+  const previousN = count(previousWeek), previousAccuracy = previousN ? correct(previousWeek) / previousN * 100 : 0;
+  const accuracyDelta = recentN && previousN ? recentAccuracy - previousAccuracy : null;
+  const seconds = history.reduce((n,x) => n + Math.max(0, Number(x.secs) || 0), 0);
+  const activeDays = new Set(history.map(x => new Date(Number(x.ts)).toDateString())).size;
+  const avgSessionMinutes = history.length ? seconds / history.length / 60 : 0;
+  const topicMap = {};
+  BANK.forEach(q => {
+    const st = DB.stats && DB.stats[q.i]; if (!st || Number(st[0]) < 3) return;
+    const key = q.c + '|' + q.u, row = topicMap[key] || (topicMap[key] = {course:q.c,topic:q.u,seen:0,right:0});
+    row.seen += Number(st[0]) || 0; row.right += Number(st[1]) || 0;
+  });
+  const weak = Object.values(topicMap).map(x => Object.assign(x,{pct:x.seen ? x.right/x.seen*100 : 0})).filter(x => x.pct < 70).sort((a,b)=>a.pct-b.pct).slice(0,5);
+  const recentRows = history.slice(-5).reverse();
+  const courseMap = {};
+  history.forEach(x => { const key=String(x.course||'Other'); const row=courseMap[key]||(courseMap[key]={course:key,sessions:0,questions:0,correct:0,seconds:0}); row.sessions++; row.questions+=Math.max(0,Number(x.n)||0); row.correct+=Math.max(0,Number(x.correct)||0); row.seconds+=Math.max(0,Number(x.secs)||0); });
+  const courseRows = Object.values(courseMap).map(x=>Object.assign(x,{pct:x.questions?x.correct/x.questions*100:0})).sort((a,b)=>a.pct-b.pct);
+  const bestCourse = courseRows.filter(x=>x.questions>=10).slice().sort((a,b)=>b.pct-a.pct)[0] || null;
+  return h('section',{class:'panel stack'},
+    h('h2',null,'Your learning activity · '+(windowDays===3650?'All time':windowDays+' days')),
+    h('div',{class:'dashboard-metrics'},
+      h('div',null,h('b',null,String(history.length)),h('small',null,'Sessions')),
+      h('div',null,h('b',null,total ? accuracy.toFixed(1)+'%' : '—'),h('small',null,'Overall accuracy')),
+      h('div',null,h('b',null,String(recent.length)),h('small',null,'Last 7 days')),
+      h('div',null,h('b',null,recentN ? recentAccuracy.toFixed(1)+'%' : '—'),h('small',null,'7-day accuracy')),
+      h('div',null,h('b',null,String(activeDays)),h('small',null,'Active days')),
+      h('div',null,h('b',null,history.length ? avgSessionMinutes.toFixed(1)+'m' : '—'),h('small',null,'Avg. session'))),
+    h('p',{class:'muted small'},total ? 'Across '+total+' recorded questions in this period · average time '+Math.round(seconds/total)+' seconds per question.' : 'No sessions in this period. Try a wider date range or complete a practice session.'),
+    h('div',{class:'panel stack'},h('h3',null,'Progress signals'),
+      h('p',{class:'small muted'},accuracyDelta==null?'Complete sessions in two different weeks to compare your recent accuracy trend.':'Recent accuracy '+(accuracyDelta>=0?'improved by ':'fell by ')+Math.abs(accuracyDelta).toFixed(1)+' percentage points compared with the previous 7 days.'),
+      bestCourse?h('p',{class:'small'},'Strongest course (10+ questions): '+bestCourse.course+' · '+bestCourse.pct.toFixed(1)+'%'):h('p',{class:'small muted'},'A strongest-course signal appears after at least 10 questions in a course.')),
+    h('h3',null,'Course performance'),
+    courseRows.length ? h('div',{class:'rows'},...courseRows.map(x=>h('div',{class:'panel stack',style:{gap:'6px'}},h('div',{class:'row between wrapr'},h('b',null,x.course),h('span',{class:'chip '+(x.pct<60?'bad':'ok')},x.pct.toFixed(1)+'%')),h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(x.sessions)),h('small',null,'Sessions')),h('div',null,h('b',null,String(x.questions)),h('small',null,'Questions')),h('div',null,h('b',null,Math.round(x.seconds/60)+'m'),h('small',null,'Study time')))))) : h('p',{class:'muted small'},'Course breakdown will appear after your first recorded session.'),
+    h('h3',null,'Topics to revisit'),
+    h('p',{class:'tiny muted'},'Topic accuracy is based on all-time question-level attempts; the selected date range applies to session and course summaries.'),
+    weak.length ? h('div',{class:'rows'},...weak.map(x=>h('div',{class:'urow'},h('span',{class:'t'},x.topic),h('span',{class:'chip'},x.course),h('span',{class:'chip bad'},x.pct.toFixed(0)+'%')))) : h('p',{class:'muted small'},'No topic-level weak spots recorded in this period.'),
+    recentRows.length ? h('div',{class:'stack'},h('h3',null,'Recent sessions'),...recentRows.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.course||'Practice'),h('small',{class:'muted'},' · '+(x.mode||'session')+' · '+new Date(x.ts).toLocaleDateString())),h('span',{class:'chip'},(Number(x.pct)||0).toFixed(0)+'%')))) : null
+  );
+}
+function analyticsView() {
+  const range = h('select', { class:'field', 'aria-label':'Analytics date range' },
+    [['7','Last 7 days'],['30','Last 30 days'],['90','Last 90 days'],['365','Last 12 months'],['3650','All time']].map(([v,label])=>h('option',{value:v,selected:v==='30'?true:null},label)));
+  const localRoot = h('div', { id:'local-analytics-root' });
+  const remoteRoot = h('div', { id:'bablo-v2-analytics-root', class:'panel stack' });
+  const root = h('div', { class:'stack-l' }, back('#/', 'Dashboard'),
+    h('div', { class:'stack' }, h('h1', null, 'Learning analytics'), h('p', { class:'muted' }, 'Compare your study performance across different periods.'), h('label',{class:'field'},h('span',null,'Date range'),range)),
+    localRoot, remoteRoot);
+  const refresh = () => {
+    const days = Number(range.value) || 30;
+    localRoot.replaceChildren(localAnalyticsSummary(days));
+    if (!signedIn()) { remoteRoot.textContent = 'Sign in to add synced course analytics. Your local activity remains available on this device.'; return; }
+    if (!window.BabloV2Analytics) { remoteRoot.textContent = 'Synced analytics are temporarily unavailable.'; return; }
+    window.BabloV2Analytics.mountCourseAnalytics(remoteRoot, { supabaseUrl: LB.url, publishableKey: LB.key, sessionToken: DB.account.token, days }).catch(error => { console.warn('[Bablo V2 analytics]', error); });
+  };
+  range.addEventListener('change', refresh);
+  mount(wrap(root));
+  refresh();
+}
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
@@ -2293,7 +2391,7 @@ function homeView() {
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
-  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
+  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5'), dashboardCard('Analytics','Your course performance and review priorities','▥','#/analytics','#D6A82B')
  ];
  const communityCards=[
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
@@ -2333,8 +2431,11 @@ function arcadeHubView(){
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'Games, strategy and friendly competition.')),
  h('section',{class:'dashboard-grid'},
  dashboardCard('Bablo Chess','Play Dr ECG or challenge another player','♟','#/chess'),
+ 
  dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics'),
- h('div',{class:'dashboard-card','aria-disabled':'true',style:{'--card-accent':'#D6A82B',opacity:'0.78'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},'🐄'),h('span',{class:'dashboard-card-copy'},h('b',null,'Cow Dash'),h('small',null,'COMING SOON · Speed-based learning game')),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'◷'))
+ dashboardCard('Memory Matrix','Match academic terms and meanings','🧠','/memory-matrix.html','#67D6A2'),
+ dashboardCard('Reflex Arena','Rapid-fire academic recall under time pressure','⚡','/reflex-arena.html','#F0A36B'),
+ h('a',{class:'dashboard-card',href:'/bablo-rush.html','aria-label':'Play Bablo Rush',style:{'--card-accent':'#D6A82B'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},'🏃'),h('span',{class:'dashboard-card-copy'},h('b',null,'Bablo Rush'),h('small',null,'PLAY NOW · Speed-based learning game')),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'›'))
  )));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
@@ -2375,11 +2476,11 @@ function courseView(code) {
   });
   mount(wrap(back('#/courses', 'All courses'),
     h('div', { class: 'stack-l' },
-      h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
+      h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic') + '. Practice and CBT mode use this same question bank.')),
       sectionTiles(c, total, us.length),
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
-        h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
+        h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'CBT mode'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
         weakN ? h('button', { class: 'btn block', onclick: () => startWeak(code) }, 'Weak-spot practice (' + weakN + ')') : null),
       h('section', { class: 'stack' }, h('h2', null, 'Topics'), h('p', { class: 'muted small' }, 'Tap a topic to practise it, or open a quiz and tick several.'), h('div', { class: 'rows' }, rows)))));
 }
@@ -2452,23 +2553,24 @@ function openSessionCalculator(){
  const historyBox=h('div',{class:'tiny muted',style:{display:'grid',gap:'5px'}});
  const pad=h('div',{class:'calc-keypad'});const history=[];let memory=0,lastValue=0;
  const angle=h('button',{class:'btn sm ghost',onclick:e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';update();}},CALC_DEG?'DEG':'RAD');
- const status=h('span',{class:'tiny muted'},'ANS = previous result · M = 0');
+ const status=h('span',{class:'tiny muted'},'M = 0');
  const close=modal(h('div',{class:'stack',style:{gap:'12px'}},
-  h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('h2',null,'Scientific calculator'),h('span',{class:'tiny muted'},'Practice & quiz tool')),h('span',{class:'chip brand'},'Bablo Calc')),
-  h('p',{class:'tiny muted'},'Full scientific keypad, memory, calculation history and degree/radian mode. Your question and timer remain active.'),
+  h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('h2',null,'Scientific calculator'),null),h('span',{class:'chip brand'},'Bablo Calc')),
+
   h('section',{class:'calc-display'},h('label',{class:'tiny muted'},'EXPRESSION'),input,display,status),
-  h('div',{class:'row wrapr'},angle,h('button',{class:'btn sm ghost',onclick:()=>{input.value='';update();}},'AC'),h('button',{class:'btn sm ghost',onclick:()=>{input.value=input.value.slice(0,-1);update();}},'DEL'),h('button',{class:'btn sm ghost',onclick:async()=>{try{await navigator.clipboard.writeText(String(lastValue));toast('Result copied.');}catch(_){toast('Copy is not available on this device.');}}},'Copy result')),
+  h('div',{class:'row wrapr'},angle,h('button',{class:'btn sm ghost',onclick:()=>{input.value=input.value.slice(0,-1);update();}},'DEL'),h('button',{class:'btn sm ghost',onclick:async()=>{try{await navigator.clipboard.writeText(String(lastValue));toast('Result copied.');}catch(_){toast('Copy is not available on this device.');}}},'Copy result')),
   h('div',{class:'row between'},h('b',{class:'tiny'},'Memory'),h('span',{class:'tiny muted'},'MC clears · MR recalls · M+/M− adjust')),pad,
   h('section',{class:'panel stack',style:{gap:'6px'}},h('b',{class:'tiny'},'Recent calculations'),historyBox),
   h('button',{class:'btn primary block',onclick:()=>close()},'Back to question')),true);
  function update(commit=false){try{const n=calcEvaluate(input.value);lastValue=n;if(commit)CALC_ANS=n;
   display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',{style:{fontSize:'clamp(1.7rem,7vw,2.3rem)',fontVariantNumeric:'tabular-nums',overflowWrap:'anywhere'}},String(Number(n.toPrecision(12)))));
-  status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result · M = '+String(Number(memory.toPrecision(8)));
+  status.textContent=(CALC_DEG?'DEG':'RAD')+' · M = '+String(Number(memory.toPrecision(8)));
   if(commit&&input.value.trim()){history.unshift({expr:input.value,value:n});history.splice(5);renderHistory();}
  }catch(e){display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',null,input.value.trim()?(e.message||'Check expression'):'0'));status.textContent=(CALC_DEG?'DEG':'RAD')+' · Check brackets, function names or the operation domain';}}
  function renderHistory(){historyBox.replaceChildren(...(history.length?history.map(item=>h('button',{class:'btn sm ghost',style:{justifyContent:'space-between',width:'100%',fontWeight:'500'},onclick:()=>{input.value=item.expr;update();}},h('span',null,item.expr),h('b',null,String(Number(item.value.toPrecision(10)))))):[h('span',null,'Your recent calculations will appear here.')]));}
  const keys=[['MC','util'],['MR','util'],['M+','util'],['M−','util'],['⌫','util'],['sin(','fn'],['cos(','fn'],['tan(','fn'],['asin(','fn'],['acos(','fn'],['atan(','fn'],['sinh(','fn'],['cosh(','fn'],['tanh(','fn'],['ln(','fn'],['log(','fn'],['log2(','fn'],['√(','fn'],['∛(','fn'],['x²','fn'],['xʸ','fn'],['1/x','fn'],['!','fn'],['%','fn'],['π','fn'],['e','fn'],['(','fn'],[')','fn'],['ANS','fn'],['AC','util'],['7','num'],['8','num'],['9','num'],['÷','op'],['×','op'],['4','num'],['5','num'],['6','num'],['−','op'],['+','op'],['1','num'],['2','num'],['3','num'],['00','num'],['±','util'],['0','num'],['.','num'],['MS','util'],['=','equals']];
- keys.forEach(([label,type])=>{pad.append(h('button',{class:'calc-key '+type,type:'button','aria-label':label==='⌫'?'Delete last character':label,onclick:()=>{
+ const seenSessionCalcKeys=new Set();
+ keys.filter(([label])=>{if(seenSessionCalcKeys.has(label))return false;seenSessionCalcKeys.add(label);return true;}).forEach(([label,type])=>{pad.append(h('button',{class:'calc-key '+type,type:'button','aria-label':label==='⌫'?'Delete last character':label,onclick:()=>{
   if(label==='AC'){input.value='';update();return;}if(label==='⌫'){input.value=input.value.slice(0,-1);update();return;}
   if(label==='MC'){memory=0;update();return;}if(label==='MR'){input.value+=String(Number(memory.toPrecision(12)));update();return;}
   if(label==='M+'){memory+=lastValue;update();return;}if(label==='M−'){memory-=lastValue;update();return;}if(label==='MS'){memory=lastValue;update();return;}
@@ -2666,29 +2768,108 @@ function boardView() {
 }
 
 /* ---------- me ---------- */
+function programmeAuditView(requestedProgramme) {
+  const ownProgramme=String(DB.profile&&DB.profile.programme||'').trim();
+  let selected=String(requestedProgramme||ownProgramme||'MBBS').trim();
+  if(!selected)selected='MBBS';
+  const known=PROGRAMMES.includes(selected);
+  const isCustom=selected.startsWith('Guest — ')||(!known&&selected!==GUEST_PROGRAMME);
+  const options=PROGRAMMES.filter(p=>p!==GUEST_PROGRAMME).map(p=>h('option',{value:p,selected:p===selected?true:null},p));
+  if(isCustom&&!PROGRAMMES.includes(selected))options.push(h('option',{value:selected,selected:true},selected));
+  options.push(h('option',{value:'__custom__'},'Audit another programme…'));
+  const picker=h('select',null,...options);
+  const custom=h('input',{type:'text',maxlength:'70',placeholder:'Enter programme name',value:isCustom?(selected.startsWith('Guest — ')?selected.slice(8):selected):'',style:{display:'none'}});
+  const load=h('button',{class:'btn primary',type:'button',onclick:()=>{
+    const value=picker.value==='__custom__'?'Guest — '+custom.value.trim():picker.value;
+    if(!value||value==='Guest — '){toast('Enter a programme name first.');return;}
+    go('#/programme-audit?programme='+encodeURIComponent(value));
+  }},'View programme');
+  picker.addEventListener('change',()=>{custom.style.display=picker.value==='__custom__'?'':'none';});
+  const mapped=Object.prototype.hasOwnProperty.call(PROGRAMME_COURSES,selected);
+  const courses=coursesFor(selected);
+  const rows=courses.map(course=>{
+    const questions=(BANK||[]).filter(q=>q.c===course.code).length;
+    const packs=premiumPackInventory(course.code);
+    const resources=[];
+    if(questions)resources.push(questions+' question-bank items');
+    if(packs.notes)resources.push('Notes');
+    if(packs.flashcards)resources.push('Flashcards');
+    if(!resources.length)resources.push('Core course listed · resources pending');
+    return h('section',{class:'panel stack',style:{gap:'7px'}},
+      h('div',{class:'row between wrapr'},h('b',null,course.label),h('span',{class:'chip'},questions?questions+' questions':'Pending')),
+      h('p',{class:'small muted'},course.title),
+      h('p',{class:'tiny muted'},resources.join(' · ')));
+  });
+  const intro=h('div',{class:'stack'},
+    h('span',{class:'chip gold'},'PROGRAMME DIRECTORY'),
+    h('h1',null,'Programme audit'),
+    h('p',{class:'muted'},'Review the courses and learning resources currently mapped to a programme. This is a read-only catalogue view; it does not expose another student’s profile or grant access to restricted course content.'));
+  const selector=h('section',{class:'panel stack'},
+    h('label',{class:'field'},h('span',null,'Select a programme'),picker),
+    custom,h('div',{class:'row'},load));
+  const warning=!mapped?h('section',{class:'panel stack'},
+    h('b',null,'Programme mapping needs review'),
+    h('p',{class:'small muted'},'This programme is not yet mapped to its own course list. The directory is showing the shared CoHES core as a provisional reference, not claiming these are the programme’s complete requirements.')):null;
+  const courseSection=h('div',{class:'stack'},
+    h('div',{class:'row between wrapr'},h('h2',null,selected),h('span',{class:'chip'},courses.length+' mapped courses')),
+    ...rows);
+  const note=h('p',{class:'tiny muted'},'Laboratory practicals remain in the central Laboratory hub. Programme course mappings and pending resources require academic review before being treated as official.');
+  const root=h('div',{class:'stack-l'},intro,selector,warning,courseSection,note);
+  mount(wrap(back('#/me','Profile'),root));
+}
+
 function meView() {
   const p = DB.profile || {};
-  const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
+  const name = h('input', { type: 'text', value: p.name || '', maxlength: '60', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
-  const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
+  const prog = h('input', { type: 'text', value: p.programme || '', maxlength: '70', autocomplete: 'organization-title' });
+  const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '90', placeholder: 'Institution' });
+  const faculty = h('input', { type: 'text', value: p.faculty || '', maxlength: '90', placeholder: 'Faculty / College' });
+  const department = h('input', { type: 'text', value: p.department || '', maxlength: '90', placeholder: 'Department' });
+  const session = h('input', { type: 'text', value: p.session || '', maxlength: '20', placeholder: 'e.g. 2026/2027' });
+  const semester = h('input', { type: 'text', value: p.semester || '', maxlength: '40', placeholder: 'e.g. First semester' });
+  const level = h('select', null, ['100L','200L','300L','400L','500L','600L','Other'].map(x => h('option', { value: x, selected: x === (p.level || '100L') ? true : null }, x)));
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity and leaderboard details.'),
+    h('p', { class: 'muted small' }, 'Your student identity, institution and academic details.'),
     h('section', { class: 'panel stack' },
+      h('h2', null, 'Personal details'),
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
+      h('h2', null, 'Academic details'),
+      h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
+      h('label', { class: 'field' }, h('span', null, 'Faculty / College'), faculty),
+      h('label', { class: 'field' }, h('span', null, 'Department'), department),
       h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
+      h('label', { class: 'field' }, h('span', null, 'Academic level'), level),
+      h('label', { class: 'field' }, h('span', null, 'Academic session'), session),
+      h('label', { class: 'field' }, h('span', null, 'Semester'), semester),
+      DB.profile.uid ? h('p', { class: 'small' }, h('b', null, 'Bablo ID: '), DB.profile.uid) : h('p', { class: 'small muted' }, 'Guest profile · no account linked yet'),
+      DB.profile.username ? h('p', { class: 'small' }, h('b', null, 'Username: '), '@'+DB.profile.username) : null,
+      h('div', { class: 'row wrapr' }, h('span', { class: 'chip ' + (signedIn() ? 'ok' : 'gold') }, signedIn() ? 'Student' : 'Guest'), h('span', { class: 'chip ' + (premiumOn() ? 'gold' : '') }, premiumOn() ? 'Premium' : 'Standard')),
+      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, signedIn() ? 'Account status' : 'Access status'), h('small', { class: 'muted' }, signedIn() ? (DB.syncState === 'pending' ? 'Saved on this device · waiting for connection.' : DB.lastSyncedAt ? 'Last synced ' + new Date(DB.lastSyncedAt).toLocaleString() : 'Progress sync is enabled for this account.') : 'Guest mode · progress is stored on this device.'))),
       h('button', { class: 'btn primary block', onclick: () => {
         const n = name.value.trim();
         if (n.length < 2) { toast('Enter your name.'); return; }
         DB.profile = Object.assign({}, DB.profile, {
           name: n,
           nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20),
-          programme: prog.value,
-          level: '100L'
+          programme: prog.value.trim(),
+          institution: institution.value.trim(),
+          faculty: faculty.value.trim(),
+          department: department.value.trim(),
+          level: level.value,
+          session: session.value.trim(),
+          semester: semester.value.trim()
         });
         save(); toast('Profile saved.');
-      } }, 'Save profile'))
+      } }, 'Save profile'),
+      h('button', { class: 'btn block', type: 'button', onclick: () => go('#/programme-audit?programme='+encodeURIComponent(prog.value.trim()||p.programme||'')) }, 'Audit this programme'),
+      !signedIn() ? h('button', { class: 'btn gold block', type: 'button', onclick: () => {
+        const account = document.getElementById('profile-account');
+        if (account) { account.scrollIntoView({ behavior: 'smooth', block: 'start' }); const first = account.querySelector('input,select,button'); if (first) first.focus({ preventScroll: true }); }
+      } }, 'Create an account to sync progress') : null,
+      h('div', { id: 'profile-account' }, accountSection()))
   )));
 }
 
@@ -2723,7 +2904,7 @@ function weakView() {
   };
   const body = [];
   body.push(h('div', { class: 'stack' }, h('h1', null, 'Weak spots'), h('p', { class: 'muted' }, 'Topics where your accuracy is lowest, plus every question you have missed. Practice sends these back to you until you get them right.')));
-  body.push(h('section', { class: 'stack' }, h('h2', null, 'Topics to focus on'),
+  body.push(h('section', { class: 'panel stack' }, h('h2', null, 'Smart PQ · adaptive practice'), h('p', { class: 'muted small' }, 'A fresh set weighted towards weak topics, repeated mistakes and questions you have not yet attempted.'), h('button', { class: 'btn primary block', onclick: () => window.startBabloSmartPQ({ targetCount: 20 }) }, 'Build my Smart PQ set'))); body.push(h('section', { class: 'stack' }, h('h2', null, 'Topics to focus on'),
     focus.length ? focus.map(topicCard) : [h('div', { class: 'panel' }, topics.length ? h('p', { class: 'muted' }, 'Nothing below 70% yet. Keep it up.') : h('p', { class: 'muted' }, 'Answer a few questions in practice or a quiz (at least 3 per topic) and your weak topics will show up here.'))]));
   body.push(h('section', { class: 'panel stack' }, h('h2', null, 'Missed questions'),
     h('p', { class: 'muted' }, missed.length ? plural(missed.length, 'question') + ' you have not got right yet.' : 'No missed questions. Nice.'),
@@ -3656,24 +3837,28 @@ function accountSection() {
     return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')), h('label',{class:'field'},h('span',null,'Change username'),usernameInput), h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'), usernameError, h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'), h('p', null, h('b', null, 'Your ID: '), DB.profile.uid), h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'), h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
-  const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
-  const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
-  const pass = h('input', { type: 'password', placeholder: 'Password (6+ characters)', autocomplete: 'new-password' });
+  const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60', value: DB.profile && DB.profile.name || '' });
+  const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20', value: DB.profile && DB.profile.nick || '' });
+  const savedProgramme = DB.profile && DB.profile.programme || '';
+  const customSaved = savedProgramme.startsWith('Guest — ') || (!!savedProgramme && !PROGRAMMES.includes(savedProgramme));
+  const prog = h('select', null, ...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME).map(p => h('option', { value: p, selected: !customSaved && p === savedProgramme ? true : null }, p)), h('option', { value: '__custom__', selected: customSaved ? true : null }, 'My programme is not listed'));
+  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', value: savedProgramme.startsWith('Guest — ') ? savedProgramme.slice(8) : (customSaved ? savedProgramme : ''), style: { display: customSaved ? '' : 'none' } });
+  prog.addEventListener('change', () => { customProg.style.display = prog.value === '__custom__' ? '' : 'none'; });
+  const pass = h('input', { type: 'password', placeholder: 'Password (8+ characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const go2 = async (isUp) => {
     err.textContent = '';
     try {
-      if (isUp) { const r = await signUp({ name: name.value, nickname: nick.value, programme: prog.value, password: pass.value }); showNewId(r.uniqueId); }
+      if (isUp) { const programme = prog.value === '__custom__' ? customProg.value.trim() : prog.value; if (prog.value === '__custom__' && programme.length < 2) throw new Error('Type your programme, or choose one from the list.'); const r = await signUp({ name: name.value, nickname: nick.value, programme, password: pass.value }); showNewId(r.uniqueId); }
       else { const r = await signIn(loginId.value, loginPass.value); toast('Welcome back. ID ' + r.uniqueId); }
       meView();
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
   const tabs = h('div', { class: 'seg' }, h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'), h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
   const fields = mode === 'signup'
-    ? [name, nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
+    ? [name, nick, prog, customProg, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you. Save it with your password to log in later.')]
     : [loginId, loginPass];
   return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), tabs, ...fields, err,
     h('button', { class: 'btn primary block', onclick: () => go2(mode === 'signup') }, mode === 'signup' ? 'Create account' : 'Log in'),
@@ -3721,12 +3906,13 @@ const PLAN_KEY = 'plan';
 const PLAN_DEFAULTS = [
   { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.' },
   { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.' },
-  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' }
+  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' },
+  { id: 'phy101-test-2026-11-24', title: 'PHY 101 test', date: '2026-11-24', time: '09:00', note: 'PHY test reminder · time to confirm.' }
 ];
 function planEvents() {
-  if (!DB.events || DB.eventsVersion !== 3) {
+  if (!DB.events || DB.eventsVersion !== 4) {
     const own = (DB.events || []).filter(e => !PLAN_DEFAULTS.some(d => d.id === e.id) && e.id !== 'gst-test' && e.id !== 'lib-test' && e.id !== 'gel-ca-mbbs');
-    DB.events = PLAN_DEFAULTS.concat(own); DB.eventsVersion = 3; save();
+    DB.events = PLAN_DEFAULTS.concat(own); DB.eventsVersion = 4; save();
   }
   return DB.events;
 }
@@ -3896,7 +4082,7 @@ function pollCard(P) {
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
 function course200View(c) {
-  const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
+  const tabs = ['Questions', 'Notes'];
   const cur = (course200View.tab || 'Questions');
   const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
     'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
@@ -3926,13 +4112,11 @@ function sectionTiles(c, questions, topics) {
     h('button', { class: 'btn gold block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); go('#/premium'); } }, 'View premium prices'),
     h('button', { class: 'btn ghost block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); } }, 'Not now'));
   const secs = [
-    { name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
-    ...(c.code === 'CHM' ? [{ name: 'Worked Questions', sub: '22 worked questions with answers', live: true, go: () => go('#/worked/CHM') }] : []),
-    ...(c.code === 'CHM' ? [{ name: 'Quizzes', sub: '74 Thermochemistry MCQs', live: true, go: () => { const i = unitsOf('CHM').findIndex(u => u.name === 'Thermochemistry'); go('#/setup/CHM/quiz?u=' + i); } }] : []),
+    { name: 'Question bank', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
+    /* CHM worked items are part of the question bank; avoid a duplicate entry. */
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
-    { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
-  ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
+  ];
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
   if (c.code === 'COS') secs.push({ name: 'Bonus', sub: 'Computing timeline, pioneers and story', live: true, go: () => go('#/bonus/COS') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
@@ -4036,7 +4220,7 @@ function flashView(code) {
   const topicSelect = h('select', { 'aria-label': 'Choose flashcard topic', class: 'fc-topic-select' }, h('option', { value: 'all' }, 'All topics'), ...topics.map(t => h('option', { value: t }, t)));
   const cardEl = h('div', { class: 'fc-card', onclick: () => flip(), role: 'button', tabindex: '0', 'aria-label': 'Tap to reveal the answer' });
   const flipBtn = h('button', { class: 'btn primary block', onclick: () => flip() }, 'Show answer');
-  const ratingRow = h('div', { class: 'row' }, h('button', { class: 'btn danger grow', onclick: () => rate('hard') }, 'Hard'), h('button', { class: 'btn primary grow', onclick: () => rate('easy') }, 'Easy'));
+  const ratingRow = h('div', { class: 'row wrapr' }, h('button', { class: 'btn danger grow', onclick: () => rate('again') }, 'Again'), h('button', { class: 'btn ghost grow', onclick: () => rate('hard') }, 'Hard'), h('button', { class: 'btn primary grow', onclick: () => rate('good') }, 'Good'), h('button', { class: 'btn gold grow', onclick: () => rate('easy') }, 'Easy'));
   const flip = () => { showBack = !showBack; draw(); };
   const buildDeck = () => {
     const now = Date.now();
@@ -4049,19 +4233,26 @@ function flashView(code) {
     if (!x) { cardEl.replaceChildren(h('span', { class: 'chip ok' }, 'Review complete'), h('p', { class: 'fc-text' }, 'You have reviewed every card in this session.')); counter.textContent = sessionReviewed + ' cards reviewed'; flipBtn.hidden = true; ratingRow.hidden = true; status.textContent = 'Your Hard and Easy ratings are saved on this device.'; return; }
     counter.textContent = (i + 1) + ' of ' + deck.length + ' cards' + (selected === 'all' ? '' : ' · ' + x.u);
     cardEl.replaceChildren(h('span', { class: 'chip brand' }, showBack ? 'Answer' : 'Question'), h('p', { class: 'fc-text' }, showBack ? x.b : x.q), h('span', { class: 'tiny muted' }, showBack ? 'Choose how well you knew it' : 'Tap the card or Show answer'));
-    flipBtn.textContent = showBack ? 'Answer revealed' : 'Show answer'; flipBtn.disabled = showBack; ratingRow.hidden = !showBack; status.textContent = 'Hard = review sooner · Easy = review later';
+    flipBtn.textContent = showBack ? 'Answer revealed' : 'Show answer'; flipBtn.disabled = showBack; ratingRow.hidden = !showBack; status.textContent = 'Again = retry soon · Hard = shorter interval · Good = standard interval · Easy = longer interval';
   };
   const rate = level => {
     const x = deck[i]; if (!x || !showBack) return;
     const old = review[x.id] || {}, oldDays = Number(old.intervalDays) || 0;
-    const days = level === 'hard' ? (oldDays ? Math.max(1, oldDays * 1.2) : 1 / 144) : (oldDays ? Math.max(4, oldDays * 2.5) : 4);
-    review[x.id] = { rating: level, intervalDays: days, dueAt: Date.now() + days * 86400000, reviewedAt: Date.now() };
+    const repetitions = Number(old.repetitions) || 0;
+    const ease = Math.max(1.3, Math.min(3.0, Number(old.easeFactor) || 2.3));
+    let nextEase = ease, days;
+    if (level === 'again') { days = 10 / 1440; nextEase = Math.max(1.3, ease - 0.2); }
+    else if (level === 'hard') { days = repetitions === 0 ? 1 : Math.max(1, oldDays * 1.2); nextEase = Math.max(1.3, ease - 0.15); }
+    else if (level === 'good') { days = repetitions === 0 ? 1 : repetitions === 1 ? 3 : Math.max(1, oldDays * ease); }
+    else { days = repetitions === 0 ? 4 : Math.max(4, oldDays * (ease + 0.3)); nextEase = Math.min(3.0, ease + 0.15); }
+    const nextRepetitions = level === 'again' ? 0 : repetitions + 1;
+    review[x.id] = { rating: level, repetitions: nextRepetitions, easeFactor: nextEase, intervalDays: days, dueAt: Date.now() + days * 86400000, reviewedAt: Date.now() };
     try { localStorage.setItem(reviewKey, JSON.stringify(review)); } catch (e) {}
     sessionReviewed++; i++; showBack = false; draw();
   };
   topicSelect.addEventListener('change', () => { selected = topicSelect.value; buildDeck(); });
   cardEl.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flip(); } });
-  mount(wrap(back('#/course/' + code, c ? c.label : 'Course'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', { style: { color: c ? c.color : undefined } }, 'Flashcards'), h('p', { class: 'muted small' }, 'Anki-style active recall. Reveal each answer, then rate it Hard or Easy.'), topicSelect, counter), cardEl, flipBtn, ratingRow, status)));
+  mount(wrap(back('#/course/' + code, c ? c.label : 'Course'), h('div', { class: 'stack-l' }, h('div', { class: 'stack' }, h('h1', { style: { color: c ? c.color : undefined } }, 'Flashcards'), h('p', { class: 'muted small' }, 'Active recall with spaced repetition. Reveal the answer, then choose Again, Hard, Good or Easy.'), topicSelect, counter), cardEl, flipBtn, ratingRow, status)));
   buildDeck();
 }
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
@@ -4167,12 +4358,16 @@ function holdPage(title, withPoll) {
 /* ---------- settings (standard app layout: look, reminders, me, about) ---------- */
 function notificationsView() {
   const box=h('div',{class:'stack-l notifications-page'});
-  const now=Date.now(),today=new Date();today.setHours(0,0,0,0);
+  const now=Date.now(),quizTtl=14*24*60*60*1000;
   const notices=[];
   const add=(id,type,title,body,href,when,icon)=>{
+    if(notices.some(n=>n.id===id))return;
     notices.push({id,type,title,body,href,when:when||now,icon:icon||'•'});
   };
-  (DB.history||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8).forEach(e=>{
+  (DB.history||[]).filter(e=>{
+    const ts=Number(e.ts);
+    return Number.isFinite(ts)&&ts<=now&&now-ts<=quizTtl;
+  }).slice().sort((a,b)=>(Number(b.ts)||0)-(Number(a.ts)||0)).slice(0,8).forEach(e=>{
     const pct=Number(e.pct||0);
     add('quiz-'+e.ts,'Academic progress',(e.mode==='exam'?'Exam':'Quiz')+' completed · '+(e.course||'Course'),
       (e.correct??'—')+' correct out of '+(e.n??'—')+' · '+(Number.isFinite(pct)?Math.round(pct)+'%':'Score recorded'),
@@ -4194,9 +4389,18 @@ function notificationsView() {
     const timing=diff<3600000?'Starting soon':diff<86400000?'Today':diff<172800000?'Tomorrow':dt.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});
     add('event-'+ev.id,'Schedule',ev.title,timing+' · '+(ev.time||'Time not set')+(ev.note?' · '+ev.note:''),'#/plan',dt.getTime(),'◷');
   });
-  const read=DB.readNotices||{};
-  const unread=notices.filter(n=>!read[n.id]).length;
-  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{DB.readNotices=DB.readNotices||{};notices.forEach(n=>DB.readNotices[n.id]=true);save();notificationsView();}},'Mark all as read');
+  const read=DB.readNotices&&typeof DB.readNotices==='object'?DB.readNotices:{};
+  DB.readNotices=read;
+  const unreadLabel=h('p',{class:'muted small'});
+  const markAll=h('button',{class:'btn sm ghost',onclick:()=>{
+    notices.forEach(n=>read[n.id]=true);
+    save();render(); 
+  }},'Mark all as read');
+  const updateUnread=()=>{
+    const count=notices.filter(n=>!read[n.id]).length;
+    unreadLabel.textContent=count?count+' new update'+(count===1?'':'s'):'You’re up to date.';
+    markAll.disabled=count===0;
+  };
   const groups=['All','Schedule','Academic progress','Study focus'];
   let selected='All';
   const list=h('div',{class:'stack',id:'notice-list'});
@@ -4204,29 +4408,43 @@ function notificationsView() {
     const filtered=notices.filter(n=>selected==='All'||n.type===selected);
     list.replaceChildren(...(filtered.length?filtered.map(n=>{
       const isRead=!!read[n.id];
-      return h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':'')},
+      return h('a',{href:n.href,class:'notice-card'+(isRead?' is-read':''),'data-notice-id':n.id},
         h('span',{class:'notice-icon'},n.icon),
         h('span',{class:'notice-copy'},h('span',{class:'notice-meta'},n.type+' · '+new Date(n.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})),h('b',null,n.title),h('span',{class:'small muted'},n.body)),
         h('span',{class:'notice-dot','aria-label':isRead?'Read':'Unread'},isRead?'':'●'));
     }):[h('section',{class:'panel stack'},h('b',null,'You’re all caught up'),h('p',{class:'small muted'},selected==='All'?'New quiz results, schedule reminders and study prompts will appear here as they happen.':'No '+selected.toLowerCase()+' notifications right now.'))]));
+    updateUnread();
   };
-  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();}},g)));
-  notices.forEach(n=>{if(!read[n.id]){ /* keep unread until opened or marked read */ }});
-  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),h('p',{class:'muted small'},unread?unread+' new update'+(unread===1?'':'s'):'You’re up to date.')),markAll),
-    sharedExamSchedulePanel(), filters, list
-  );
+  const filters=h('div',{class:'seg notice-filters'},groups.map(g=>h('button',{class:'opt','aria-pressed':String(selected===g),onclick:()=>{
+    selected=g;filters.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(groups[i]===g)));render();
+  }},g)));
+  box.append(h('div',{class:'row between wrapr'},h('div',null,h('h1',null,'Notifications'),unreadLabel),markAll),
+    sharedExamSchedulePanel(),filters,list);
   render();
-  fetchPublicExamSchedule().then(rows => {
-    rows.forEach(row => {
-      const dateLabel = examScheduleDate(row);
-      const when = row.scheduled_date ? new Date(row.scheduled_date + 'T09:00:00+01:00').getTime() : now;
-      add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
+  fetchPublicExamSchedule().then(rows=>{
+    const d=new Date(),todayKey=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+    rows.forEach(row=>{
+      if(row.scheduled_date&&row.scheduled_date<todayKey)return;
+      const dateLabel=examScheduleDate(row);
+      const when=row.scheduled_date?new Date(row.scheduled_date+'T09:00:00+01:00').getTime():now;
+      add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,
+        dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
     });
     notices.sort((a,b)=>(a.when||0)-(b.when||0));
-    render();
-  });
+    const activeIds=new Set(notices.map(n=>n.id));
+    Object.keys(read).forEach(id=>{if(!activeIds.has(id))delete read[id];});
+    save();render();
+  }).catch(error=>{console.warn('[Notifications]',error);});
   mount(wrap(back('#/','Home'),box));
-  list.addEventListener('click',e=>{const card=e.target.closest('.notice-card');if(!card)return;const item=notices.find(n=>n.href===card.getAttribute('href')&& !read[n.id]);if(item){DB.readNotices=DB.readNotices||{};DB.readNotices[item.id]=true;save();}});
+  list.addEventListener('click',e=>{
+    const card=e.target.closest('.notice-card');if(!card)return;
+    const item=notices.find(n=>n.id===card.getAttribute('data-notice-id'));
+    if(item&&!read[item.id]){
+      read[item.id]=true;save();card.classList.add('is-read');
+      const dot=card.querySelector('.notice-dot');if(dot){dot.textContent='';dot.setAttribute('aria-label','Read');}
+      updateUnread();
+    }
+  });
 }
 function aboutView() {
   const box=h('div',{class:'stack-l'});
@@ -4260,6 +4478,10 @@ function settingsView() {
       h('div', { class: 'row between wrapr' },
         h('span', null, h('b', null, 'Sound effects'), h('small', { class: 'muted' }, 'Optional sounds for timers and activity.')),
         h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off'))),
+    h('section', { class: 'panel stack' },
+      h('h2', null, 'More options'),
+      h('p', { class: 'tiny muted' }, 'Useful tools and account controls.'),
+      h('button', { class: 'btn block', onclick: () => go('#/calculator') }, 'Scientific calculator')),
     h('section', { class: 'stack' },
       h('h2', null, 'Account'),
       installCard(),
@@ -4725,6 +4947,10 @@ startRestReminder();
 setTimeout(liveNotice, 1200);
 
 </script>
+<script src="v2/smart-pq-engine.js"></script>
+<script src="v2/smart-pq-adapter.js"></script>
+<script src="v2/smart-pq-integration.js"></script>
+<script src="v2/analytics-dashboard.js"></script>
 <script src="challenge-arena.js"></script>
 <script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
 </body>

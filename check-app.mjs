@@ -19,6 +19,13 @@ try {
   pass("HTML document and basic SEO metadata");
 } catch (e) { fail(e.message); }
 
+try {
+  const worker = read("sw.js");
+  if (/bablo-offline-v24-v2-offline-assets/.test(worker) &&
+      ["./v2/calculator.html","./v2/analytics-dashboard.js","./v2/smart-pq-adapter.js","./v2/smart-pq-engine.js","./v2/smart-pq-integration.js"].every(x => worker.includes(x))) pass("Offline shell pre-caches V2 calculator, analytics and Smart PQ assets");
+  else fail("Offline shell is missing one or more V2 assets");
+} catch (e) { fail(e.message); }
+
 if (html) {
   const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
     .filter(([, attrs, body]) => !/\bsrc\s*=/i.test(attrs) && body.trim());
@@ -56,12 +63,30 @@ if (html) {
   else fail("Event planner/calendar view missing");
   if (/function premiumPricingView\(/.test(html) && /₦500/.test(html)) pass("Premium pricing and Naira rates are present");
   else fail("Premium pricing page missing");
+  if (/function meView/.test(html) && /Faculty.{0,5}College/.test(html) && /Academic session/.test(html) && /Semester/.test(html)) pass("Expanded student profile fields are present");
+  else fail("Expanded student profile fields missing");
+  const sectionStart = html.indexOf("function sectionTiles(c, questions, topics)");
+  const sectionEnd = html.indexOf("/* ---------- Premium Library pricing ---------- */", sectionStart);
+  if (sectionStart >= 0 && sectionEnd > sectionStart && !/name: 'Practicals'/.test(html.slice(sectionStart, sectionEnd))) pass("Course pages do not duplicate Laboratory practical sections");
+  else fail("Practical section leaked back into a course page");
+  if (/function labHubView\(/.test(html) && /Laboratory/.test(html)) pass("Practical resources remain in the central Laboratory hub");
+  else fail("Central Laboratory hub missing");
+  if (/navigator\.onLine === false/.test(html) && /addEventListener\(["']online["'],\s*function/.test(html) && /syncState = ["']pending["']/.test(html)) pass("Offline progress is retained and retries on reconnect");
+  else fail("Offline progress reconnect handling missing");
+  if (!html.includes(": null," + String.fromCharCode(92) + "n")) pass("No escaped newline token remains in the Profile markup");
+  else fail("Escaped newline token detected in Profile markup");
   if (/hub_submit_scores/.test(html)) pass("Leaderboard uses the session-validated score RPC");
   else fail("Leaderboard still lacks the secure score RPC");
   if (/BONUS_COS101/.test(html) && /function cosBonusView\(/.test(html)) pass("COS history bonus and timeline renderer are present");
   else fail("COS history bonus is missing");
   if (/function premiumPricingView\(/.test(html) && /PREMIUM_ITEM_PRICE = 500/.test(html)) pass("Premium pricing page and ₦500 item price are present");
   else fail("Premium pricing page missing");
+  if (/window\.addEventListener\('online'/.test(html) && /DB\.syncState = 'pending'/.test(html) && /DB\.lastSyncedAt/.test(html)) pass("Offline progress is retained locally and retried when connectivity returns");
+  else fail("Offline progress reconnect sync is missing");
+  if (/academicProfile: DB\.profile/.test(html) && /p\.academicProfile && DB\.profile/.test(html)) pass("Academic profile details are included in account progress sync");
+  else fail("Academic profile details are not included in account progress sync");
+  if (/function setAccount\(j\).*Object\.assign\(\{\}, previous/.test(html)) pass("Extended profile fields survive account sign-in");
+  else fail("Account sign-in may overwrite extended profile fields");
   if (!/service_role|sk_live_|sk_test_/i.test(html)) pass("No server-side payment/database secret is embedded in the client");
   else fail("A server-side secret appears in client HTML");
 }

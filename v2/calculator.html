@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111318">
+<title>Bablo Hub V2 · Scientific Calculator</title>
+<style>
+:root{color-scheme:dark;--bg:#101216;--panel:#191d24;--panel2:#222833;--line:#303744;--text:#f4f6fa;--muted:#aab3c2;--gold:#e4b95e;--gold2:#f5d68e;--danger:#ff8e8e}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#29303b 0,transparent 45%),var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{width:min(100%,560px);margin:auto;padding:22px 16px 40px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-weight:800;letter-spacing:.02em}.brand span{color:var(--gold)}.tag{font-size:11px;color:var(--gold);border:1px solid #806a3b;border-radius:99px;padding:4px 9px}
+h1{font-size:23px;margin:8px 0 3px}.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.calc{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:15px;box-shadow:0 16px 44px #0005}
+.screen{background:#0d1015;border:1px solid #2b323d;border-radius:15px;padding:16px;min-height:112px;margin-bottom:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px}
+.expression{color:var(--muted);min-height:23px;overflow-wrap:anywhere;text-align:right;font-size:15px}.result{font-size:clamp(30px,8vw,42px);font-weight:650;text-align:right;overflow-wrap:anywhere;line-height:1.15}.status{font-size:11px;color:var(--gold);min-height:14px}
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}.pill{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px 11px;font-size:12px}.pill.active{border-color:var(--gold);color:var(--gold2)}.spacer{flex:1}
+.keys{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.key{min-height:51px;border:1px solid var(--line);border-radius:13px;background:#252b35;color:var(--text);font-size:16px;font-weight:600;cursor:pointer;touch-action:manipulation}.key:active{transform:scale(.97);background:#343d4b}.key.fn{background:#202630;color:#d9e0eb;font-size:14px}.key.op{color:var(--gold2);background:#302a20;border-color:#5b4a2c}.key.action{color:#ffb5b5;background:#332426}.key.equals{background:var(--gold);color:#17130b;border-color:var(--gold);font-size:20px}.key.zero{grid-column:span 2}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px}.card h2{font-size:13px;margin:0 0 8px;color:var(--gold2)}.history{max-height:170px;overflow:auto}.history-item{padding:7px 0;border-bottom:1px solid #303744;cursor:pointer}.history-item:last-child{border:0}.history-item small{display:block;color:var(--muted);overflow-wrap:anywhere}.history-item strong{display:block;text-align:right;font-size:14px}.empty{font-size:12px;color:var(--muted)}.memory-row{display:flex;gap:6px;flex-wrap:wrap}.memory-row button{flex:1;min-width:40px}
+.note{color:var(--muted);font-size:11px;margin-top:14px;text-align:center}
+@media(max-width:380px){.wrap{padding:16px 10px}.calc{padding:10px}.keys{gap:6px}.key{min-height:47px;font-size:14px}.key.fn{font-size:12px}.lower{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap">
+ <header class="top"><div class="brand">BABLO <span>HUB™</span></div><div class="tag">V2 PREVIEW</div></header>
+ <h1>Scientific Calculator</h1><p class="sub">A faster academic calculator. Your history stays on this device.</p>
+ <section class="calc" aria-label="Scientific calculator">
+  <div class="screen" aria-live="polite"><div class="expression" id="expression">Ready</div><div class="result" id="result">0</div><div class="status" id="status"></div></div>
+  <div class="toolbar"><button class="pill active" id="deg" type="button">DEG</button><button class="pill" id="rad" type="button">RAD</button><span class="spacer"></span><button class="pill" id="copy" type="button">Copy result</button><button class="pill" id="clearHistory" type="button">Clear history</button></div>
+  <div class="keys" id="keys">
+   <button class="key fn" data-insert="sin(">sin</button><button class="key fn" data-insert="cos(">cos</button><button class="key fn" data-insert="tan(">tan</button><button class="key fn" data-insert="log(">log</button><button class="key fn" data-insert="ln(">ln</button>
+   <button class="key fn" data-insert="asin(">sin⁻¹</button><button class="key fn" data-insert="acos(">cos⁻¹</button><button class="key fn" data-insert="atan(">tan⁻¹</button><button class="key fn" data-insert="sqrt(">√</button><button class="key fn" data-insert="^">xʸ</button>
+   <button class="key fn" data-insert="abs(">abs</button><button class="key fn" data-insert="exp(">eˣ</button><button class="key fn" data-action="square">x²</button><button class="key fn" data-action="reciprocal">1/x</button><button class="key fn" data-action="sign">±</button>
+   <button class="key fn" data-insert="π">π</button><button class="key fn" data-insert="e">e</button><button class="key fn" data-insert="(">(</button><button class="key fn" data-insert=")">)</button><button class="key action" data-action="back">⌫</button>
+   <button class="key" data-insert="7">7</button><button class="key" data-insert="8">8</button><button class="key" data-insert="9">9</button><button class="key op" data-insert="÷">÷</button><button class="key op" data-insert="!">x!</button>
+   <button class="key" data-insert="4">4</button><button class="key" data-insert="5">5</button><button class="key" data-insert="6">6</button><button class="key op" data-insert="×">×</button><button class="key op" data-insert="%">%</button>
+   <button class="key" data-insert="1">1</button><button class="key" data-insert="2">2</button><button class="key" data-insert="3">3</button><button class="key op" data-insert="−">−</button><button class="key op" data-insert="Ans">Ans</button>
+   <button class="key zero" data-insert="0">0</button><button class="key" data-insert=".">.</button><button class="key op" data-insert="+">+</button><button class="key equals" data-action="equals">=</button>
+   <button class="key fn" data-action="mc">MC</button><button class="key fn" data-action="mr">MR</button><button class="key fn" data-action="mplus">M+</button><button class="key fn" data-action="mminus">M−</button><button class="key action" data-action="clear">AC</button>
+  </div>
+ </section>
+ <section class="lower">
+  <div class="card"><h2>Memory</h2><div class="memory-row"><span class="empty" id="memoryValue">M = 0</span></div></div>
+  <div class="card"><h2>Recent calculations</h2><div class="history" id="history"><div class="empty">No calculations yet.</div></div></div>
+ </section>
+ <p class="note">Bablo Hub V2 preview · No account or payment data is accessed by this calculator.</p>
+</main>
+<script>
+(()=>{
+ const $=id=>document.getElementById(id), exprEl=$('expression'), resultEl=$('result'), statusEl=$('status');
+ let input='', answer=0, memory=0, angle='DEG', justSolved=false;
+ try{const saved=JSON.parse(localStorage.getItem('babloV2CalcState')||'{}');if(Number.isFinite(saved.memory))memory=saved.memory;if(saved.angle==='RAD'||saved.angle==='DEG')angle=saved.angle;if(Number.isFinite(saved.answer))answer=saved.answer}catch{}
+ function saveCalcState(){try{localStorage.setItem('babloV2CalcState',JSON.stringify({memory,angle,answer}))}catch{}}
+ const fmt=n=>{if(!Number.isFinite(n))throw Error('Result is not a finite number');return Number(n.toPrecision(12)).toString()};
+ function tokenize(s){
+  s=s.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/π/g,'pi');
+  const out=[];let i=0;
+  while(i<s.length){if(/\s/.test(s[i])){i++;continue}
+   const num=s.slice(i).match(/^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i);
+   if(num){out.push({t:'num',v:Number(num[0])});i+=num[0].length;continue}
+   const id=s.slice(i).match(/^[a-zA-Z]+/);if(id){out.push({t:'id',v:id[0].toLowerCase()});i+=id[0].length;continue}
+   if('+-*/^()%!'.includes(s[i])){out.push({t:s[i],v:s[i]});i++;continue}
+   throw Error('Unsupported character: '+s[i]);
+  }
+  const expanded=[];
+  const endsValue=x=>x.t==='num'||x.t===')'||x.t==='!'||x.t==='%'||(x.t==='id'&&['pi','e','ans'].includes(x.v));
+  const startsValue=x=>x.t==='num'||x.t==='('||x.t==='id';
+  for(let j=0;j<out.length;j++){const a=out[j],b=out[j+1];expanded.push(a);if(b&&endsValue(a)&&startsValue(b))expanded.push({t:'*',v:'*'});}
+  return expanded;
+ }
+ function parse(s){
+  const ts=tokenize(s);let p=0;
+  const peek=()=>ts[p], take=()=>ts[p++];
+  function primary(){
+   const x=take();if(!x)throw Error('Incomplete expression');
+   if(x.t==='num')return x.v;
+   if(x.t==='('){const v=add();if(!peek()||take().t!==')')throw Error('Missing closing parenthesis');return v}
+   if(x.t==='id'){
+    if(x.v==='pi')return Math.PI;if(x.v==='e')return Math.E;if(x.v==='ans')return answer;
+    if(!['sin','cos','tan','asin','acos','atan','sqrt','log','ln','abs','exp'].includes(x.v))throw Error('Unknown function: '+x.v);
+    if(!peek()||peek().t!=='(')throw Error(x.v+' needs parentheses');take();const a=add();if(!peek()||take().t!==')')throw Error('Missing closing parenthesis');
+    let v;
+    if(['sin','cos','tan'].includes(x.v)){const r=angle==='DEG'?a*Math.PI/180:a;v=Math[x.v](r)}
+    else if(['asin','acos','atan'].includes(x.v)){v=Math[x.v](a);if(angle==='DEG')v=v*180/Math.PI}
+    else if(x.v==='sqrt')v=Math.sqrt(a);else if(x.v==='log')v=Math.log10(a);else if(x.v==='ln')v=Math.log(a);else if(x.v==='abs')v=Math.abs(a);else v=Math.exp(a);
+    if(!Number.isFinite(v))throw Error('Function is outside its valid domain');return v;
+   }
+   throw Error('Expected a number or expression');
+  }
+  function postfix(){let v=primary();while(peek()&&(peek().t==='!'||peek().t==='%')){const op=take().t;if(op==='!'){if(v<0||v>170||!Number.isInteger(v))throw Error('Factorial requires an integer from 0 to 170');let f=1;for(let k=2;k<=v;k++)f*=k;v=f}else v=v/100}return v}
+  function power(){let v=postfix();if(peek()&&peek().t==='^'){take();v=Math.pow(v,unary())}return v}
+  function unary(){if(peek()&&peek().t==='+'){take();return unary()}if(peek()&&peek().t==='-'){take();return -unary()}return power()}
+  function mul(){let v=unary();while(peek()&&['*','/'].includes(peek().t)){const op=take().t,b=unary();if(op==='/'&&b===0)throw Error('Cannot divide by zero');v=op==='*'?v*b:v/b}return v}
+  function add(){let v=mul();while(peek()&&['+','-'].includes(peek().t)){const op=take().t,b=mul();v=op==='+'?v+b:v-b}return v}
+  if(!ts.length)throw Error('Enter a calculation');const v=add();if(p!==ts.length)throw Error('Check the expression');if(!Number.isFinite(v))throw Error('Result is outside the calculator range');return v;
+ }
+ function render(){exprEl.textContent=input||'Ready';resultEl.textContent=input?'…':'0';statusEl.textContent='';if(input){try{resultEl.textContent=fmt(parse(input))}catch(e){resultEl.textContent='';statusEl.textContent=e.message}}}
+ function insert(s){if(justSolved&&!['+','−','-','×','÷','*','/','^','%','!'].includes(s))input='';justSolved=false;input+=s;render()}
+ function solve(){if(!input)return;try{const n=parse(input),v=fmt(n);answer=n;saveCalcState();resultEl.textContent=v;exprEl.textContent=input+' =';statusEl.textContent='';saveHistory(input,v);input=v;justSolved=true;renderSolved(v)}catch(e){statusEl.textContent=e.message}}
+ function renderSolved(v){resultEl.textContent=v;exprEl.textContent=input+' =';}
+ function saveHistory(e,v){let h=[];try{h=JSON.parse(localStorage.getItem('babloV2CalcHistory')||'[]')}catch{}h.unshift({e,v});h=h.slice(0,12);try{localStorage.setItem('babloV2CalcHistory',JSON.stringify(h))}catch{}drawHistory()}
+ function drawHistory(){let h=[];try{h=JSON.parse(localStorage.getItem('babloV2CalcHistory')||'[]')}catch{}$('history').innerHTML=h.length?h.map((x,i)=>'<div class="history-item" data-history="'+i+'"><small>'+escapeHtml(x.e)+'</small><strong>'+escapeHtml(x.v)+'</strong></div>').join(''):'<div class="empty">No calculations yet.</div>'}
+ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function current(){return input?parse(input):answer}
+ $('keys').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.action,s=b.dataset.insert;if(s!==undefined){insert(s);return}if(a==='equals')solve();if(a==='clear'){input='';justSolved=false;render()}if(a==='back'){input=input.slice(0,-1);justSolved=false;render()}if(a==='square'||a==='reciprocal'||a==='sign'){try{const base=input||'Ans';if(a==='square')input='('+base+')^2';if(a==='reciprocal')input='1/('+base+')';if(a==='sign')input='-('+base+')';justSolved=false;render()}catch(err){statusEl.textContent=err.message}}if(a==='mc'){memory=0;updateMemory()}if(a==='mr')insert(fmt(memory));if(a==='mplus'||a==='mminus'){try{memory+=(a==='mplus'?1:-1)*current();updateMemory()}catch(err){statusEl.textContent=err.message}}});
+ function updateMemory(){$('memoryValue').textContent='M = '+fmt(memory);saveCalcState()}
+ $('deg').onclick=()=>setAngle('DEG');$('rad').onclick=()=>setAngle('RAD');function setAngle(v){angle=v;$('deg').classList.toggle('active',v==='DEG');$('rad').classList.toggle('active',v==='RAD');saveCalcState();render()}
+ $('copy').onclick=async()=>{const value=resultEl.textContent;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value)}else{const field=document.createElement('textarea');field.value=value;field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw Error('copy unavailable')}statusEl.textContent='Result copied'}catch{statusEl.textContent='Select and copy the result manually'}}
+ $('clearHistory').onclick=()=>{try{localStorage.removeItem('babloV2CalcHistory')}catch{}drawHistory()};
+ $('history').addEventListener('click',e=>{const item=e.target.closest('[data-history]');if(!item)return;let h=[];try{h=JSON.parse(localStorage.getItem('babloV2CalcHistory')||'[]')}catch{}const row=h[Number(item.dataset.history)];if(row){input=row.e;justSolved=false;render()}});
+ document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;if(/^[0-9.]$/.test(e.key)){insert(e.key);return}const map={'+':'+','-':'−','*':'×','/':'÷','^':'^','(': '(',')':')','%':'%','Enter':'=', 'Backspace':'back','Escape':'clear'};const v=map[e.key];if(v==='='){e.preventDefault();solve()}else if(v==='back'){e.preventDefault();input=input.slice(0,-1);render()}else if(v==='clear'){input='';render()}else if(v)insert(v)});
+ drawHistory();updateMemory();render();
+})();
+</script>
+</body></html>
