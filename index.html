@@ -3003,7 +3003,11 @@ function meView() {
   const auditPanel=h('section',{class:'panel stack'},h('div',{class:'stack'},h('h2',null,'Programme audit'),h('p',{class:'muted small'},'Inspect aggregate quiz performance across programmes. Individual private account details are not shown.')),h('label',{class:'field'},h('span',null,'Programme to inspect'),auditSelect),auditBody);
   function drawAudit(data){
     const programme=auditSelect.value;
-    const records=(data.rows||[]).filter(e=>Core.canonicalProgramme(String(e.programme||''))===Core.canonicalProgramme(programme)&&Core.eligible(e));
+    const records=(data.rows||[]).filter(e=>
+      Core.canonicalProgramme(String(e.programme||''))===Core.canonicalProgramme(programme) &&
+      (e.mode==='quiz'||e.mode==='exam') && Number(e.n)>=10 && Number(e.secs)>0 &&
+      Number(e.pct)>=0 && Number(e.pct)<=100 && Number(e.ts)>0 && !!String(e.nick||'').trim() && !!(e.uid||e.dev)
+    );
     const people=Core.rank(records);
     const bestByCourse={};
     records.forEach(e=>{const key=String(e.uid||e.dev)+'|'+String(e.course||'');const cur=bestByCourse[key];if(!cur||Number(e.pct)>Number(cur.pct))bestByCourse[key]=e;});
@@ -3011,14 +3015,15 @@ function meView() {
     Object.values(bestByCourse).forEach(e=>{const row=courseRows[e.course]||(courseRows[e.course]={scores:[],students:new Set()});row.scores.push(Number(e.pct));row.students.add(String(e.uid||e.dev));});
     const courses=Object.entries(courseRows).map(([code,row])=>({code,students:row.students.size,average:Math.round(row.scores.reduce((a,b)=>a+b,0)/row.scores.length*10)/10})).sort((a,b)=>b.average-a.average);
     const bestMeanRows=Object.values(bestByCourse),avg=bestMeanRows.length?Math.round(bestMeanRows.reduce((n,e)=>n+Number(e.pct),0)/bestMeanRows.length*10)/10:0;
+    const activeStudents=new Set(bestMeanRows.map(e=>String(e.uid||e.dev))).size;
     const metrics=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:'8px'}},
-      h('div',{class:'panel stack'},h('b',null,String(people.length)),h('small',{class:'muted'},'Ranked students')),
-      h('div',{class:'panel stack'},h('b',null,String(records.length)),h('small',{class:'muted'},'Qualifying sessions')),
+      h('div',{class:'panel stack'},h('b',null,String(activeStudents)),h('small',{class:'muted'},'Students with recorded sessions')),
+      h('div',{class:'panel stack'},h('b',null,String(records.length)),h('small',{class:'muted'},'Completed sessions')),
       h('div',{class:'panel stack'},h('b',null,records.length?avg+'%':'—'),h('small',{class:'muted'},'Best-per-course mean')));
     const status=h('p',{class:'tiny muted'},data.mode==='global'?'Live account-linked results.':'Limited data: live programme results are unavailable; showing records available on this device.');
     const courseList=courses.length?h('div',{class:'rows'},courses.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.code),h('small',{class:'muted'},x.students+' students')),h('b',null,x.average+'%')))):h('p',{class:'small muted'},'No qualifying programme results are available yet.');
     const top=people.length?h('div',{class:'rows'},people.slice(0,5).map((x,i)=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,(i+1)+'. '+x.nick)),h('b',null,x.score+'%')))):null;
-    auditBody.replaceChildren(status,metrics,h('h3',null,'Course performance'),courseList,top?h('h3',null,'Top programme performers'):null,top||h('p',{class:'small muted'},'Top performers will appear when qualifying results are recorded.'));
+    auditBody.replaceChildren(status,metrics,h('h3',null,'Course performance'),courseList,top?h('h3',null,'Top ranked performers (50%+)'):null,top||h('p',{class:'small muted'},'Top performers will appear when qualifying results are recorded.'));
   }
   auditSelect.addEventListener('change',()=>{if(window.__babloAuditData)drawAudit(window.__babloAuditData);});
   lbFetch().then(data=>{window.__babloAuditData=data;drawAudit(data);}).catch(()=>auditBody.replaceChildren(h('p',{class:'small muted'},'Programme audit could not load right now.')));
