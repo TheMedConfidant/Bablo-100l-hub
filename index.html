@@ -2436,11 +2436,11 @@ function courseView(code) {
   });
   mount(wrap(back('#/courses', 'All courses'),
     h('div', { class: 'stack-l' },
-      h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
+      h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic') + '. Practice and CBT mode use this same question bank.')),
       sectionTiles(c, total, us.length),
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
-        h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
+        h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'CBT mode'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
         weakN ? h('button', { class: 'btn block', onclick: () => startWeak(code) }, 'Weak-spot practice (' + weakN + ')') : null),
       h('section', { class: 'stack' }, h('h2', null, 'Topics'), h('p', { class: 'muted small' }, 'Tap a topic to practise it, or open a quiz and tick several.'), h('div', { class: 'rows' }, rows)))));
 }
