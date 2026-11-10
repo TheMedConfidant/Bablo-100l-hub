@@ -1765,7 +1765,7 @@ async function signUp(f) {
   if (!f.nickname.trim()) throw new Error('Pick a nickname.');
   if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
   // the server creates the ID, so no one can pick someone else's
-  const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: f.programme.indexOf('Guest') === 0 });
+  const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: false });
   if (!reg.ok) throw new Error(reg.error);
   return signIn(reg.uniqueId, f.password);
 }
@@ -2208,7 +2208,9 @@ async function fetchPublicExamSchedule() {
     const r = await fetch(LB.url + '/rest/v1/rpc/hub_public_exam_schedule', { method: 'POST', headers: sbHeaders(), body: '{}' });
     if (!r.ok) throw new Error('Schedule unavailable (' + r.status + ')');
     const rows = await r.json();
-    EXAM_SCHEDULE_CACHE = Array.isArray(rows) ? rows : [];
+    const phyReminder = { id:'bablo-phy101-test-2026-11-24', course_code:'PHY101', assessment_type:'Test', scheduled_date:'2026-11-24', date_status:'confirmed', note:'PHY test reminder' };
+    const remoteRows = Array.isArray(rows) ? rows : [];
+    EXAM_SCHEDULE_CACHE = remoteRows.some(x => x.course_code === 'PHY101' && x.scheduled_date === phyReminder.scheduled_date) ? remoteRows : remoteRows.concat(phyReminder);
     maybeExamSchedulePush(EXAM_SCHEDULE_CACHE);
     return EXAM_SCHEDULE_CACHE;
   } catch (e) { console.warn('[Exam schedule]', e); return []; }
@@ -3723,9 +3725,9 @@ function accountSection() {
   const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60', value: DB.profile && DB.profile.name || '' });
   const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20', value: DB.profile && DB.profile.nick || '' });
   const savedProgramme = DB.profile && DB.profile.programme || '';
-  const customSaved = savedProgramme.startsWith('Guest — ');
+  const customSaved = savedProgramme.startsWith('Guest — ') || (!!savedProgramme && !PROGRAMMES.includes(savedProgramme));
   const prog = h('select', null, ...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME).map(p => h('option', { value: p, selected: !customSaved && p === savedProgramme ? true : null }, p)), h('option', { value: '__custom__', selected: customSaved ? true : null }, 'My programme is not listed'));
-  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', value: customSaved ? savedProgramme.slice(8) : '', style: { display: customSaved ? '' : 'none' } });
+  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', value: savedProgramme.startsWith('Guest — ') ? savedProgramme.slice(8) : (customSaved ? savedProgramme : ''), style: { display: customSaved ? '' : 'none' } });
   prog.addEventListener('change', () => { customProg.style.display = prog.value === '__custom__' ? '' : 'none'; });
   const pass = h('input', { type: 'password', placeholder: 'Password (8+ characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
@@ -3734,7 +3736,7 @@ function accountSection() {
   const go2 = async (isUp) => {
     err.textContent = '';
     try {
-      if (isUp) { const programme = prog.value === '__custom__' ? ('Guest — ' + customProg.value.trim()) : prog.value; if (prog.value === '__custom__' && customProg.value.trim().length < 2) throw new Error('Type your programme, or choose one from the list.'); const r = await signUp({ name: name.value, nickname: nick.value, programme, password: pass.value }); showNewId(r.uniqueId); }
+      if (isUp) { const programme = prog.value === '__custom__' ? customProg.value.trim() : prog.value; if (prog.value === '__custom__' && programme.length < 2) throw new Error('Type your programme, or choose one from the list.'); const r = await signUp({ name: name.value, nickname: nick.value, programme, password: pass.value }); showNewId(r.uniqueId); }
       else { const r = await signIn(loginId.value, loginPass.value); toast('Welcome back. ID ' + r.uniqueId); }
       meView();
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
