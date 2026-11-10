@@ -4132,7 +4132,7 @@ function flashView(code) {
     if (!x) { cardEl.replaceChildren(h('span', { class: 'chip ok' }, 'Review complete'), h('p', { class: 'fc-text' }, 'You have reviewed every card in this session.')); counter.textContent = sessionReviewed + ' cards reviewed'; flipBtn.hidden = true; ratingRow.hidden = true; status.textContent = 'Your Hard and Easy ratings are saved on this device.'; return; }
     counter.textContent = (i + 1) + ' of ' + deck.length + ' cards' + (selected === 'all' ? '' : ' · ' + x.u);
     cardEl.replaceChildren(h('span', { class: 'chip brand' }, showBack ? 'Answer' : 'Question'), h('p', { class: 'fc-text' }, showBack ? x.b : x.q), h('span', { class: 'tiny muted' }, showBack ? 'Choose how well you knew it' : 'Tap the card or Show answer'));
-    flipBtn.textContent = showBack ? 'Answer revealed' : 'Show answer'; flipBtn.disabled = showBack; ratingRow.hidden = !showBack; status.textContent = 'Hard = review sooner · Easy = review later';
+    flipBtn.textContent = showBack ? 'Answer revealed' : 'Show answer'; flipBtn.disabled = showBack; ratingRow.hidden = !showBack; status.textContent = 'Again = retry soon · Hard = shorter interval · Good = standard interval · Easy = longer interval';
   };
   const rate = level => {
     const x = deck[i]; if (!x || !showBack) return;
