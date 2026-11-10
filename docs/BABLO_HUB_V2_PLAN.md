@@ -114,3 +114,12 @@
 - The adapter is deliberately pure and accepts snapshots from the host app; it does not read localStorage, mutate DB, or transmit progress.
 - Integration into the monolithic application entry point remains gated because the current `index.html` is a 1.2 MB single-file application and must not be replaced through a blind full-file write. The host must pass its existing question-bank array and progress snapshots after authentication.
 - No production branch, account, database, RLS policy, or deployment changed.
+
+
+### Preview build log — 2026-11-10 (Build 04)
+
+- Integrated the Smart PQ engine and V1 adapter into the existing app's Weak spots page.
+- Added a Smart PQ action that selects 20 questions using the existing `BANK`, `DB.stats`, and `DB.missed` snapshots, then starts the existing `Core.buildSession` / `startSession` practice flow. It does not create a parallel quiz runner or change account/session handling.
+- Added script loading for the engine, adapter, and bridge after the main application script so the bridge can reuse the existing app's lexical state and session runner.
+- Runtime smoke test passed against a representative legacy bank/progress snapshot; it verified that the bridge calls the existing practice runner with a unique ID set.
+- Browser/device interaction and deployed preview checks remain outstanding. Production branch and database remain untouched.
