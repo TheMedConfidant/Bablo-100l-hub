@@ -2296,11 +2296,16 @@ function localAnalyticsSummary(days) {
   const cutoff = Date.now() - windowDays * 86400000;
   const history = (DB.history || []).filter(x => Number(x.ts) >= cutoff).slice().sort((a,b) => a.ts - b.ts);
   const recent = history.filter(x => Number(x.ts) >= Date.now() - 7 * 86400000);
+  const previousWeek = history.filter(x => Number(x.ts) >= Date.now() - 14 * 86400000 && Number(x.ts) < Date.now() - 7 * 86400000);
   const count = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.n) || 0), 0);
   const correct = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.correct) || 0), 0);
   const total = count(history), accuracy = total ? correct(history) / total * 100 : 0;
   const recentN = count(recent), recentAccuracy = recentN ? correct(recent) / recentN * 100 : 0;
+  const previousN = count(previousWeek), previousAccuracy = previousN ? correct(previousWeek) / previousN * 100 : 0;
+  const accuracyDelta = recentN && previousN ? recentAccuracy - previousAccuracy : null;
   const seconds = history.reduce((n,x) => n + Math.max(0, Number(x.secs) || 0), 0);
+  const activeDays = new Set(history.map(x => new Date(Number(x.ts)).toDateString())).size;
+  const avgSessionMinutes = history.length ? seconds / history.length / 60 : 0;
   const topicMap = {};
   BANK.forEach(q => {
     const st = DB.stats && DB.stats[q.i]; if (!st || Number(st[0]) < 3) return;
@@ -2312,17 +2317,24 @@ function localAnalyticsSummary(days) {
   const courseMap = {};
   history.forEach(x => { const key=String(x.course||'Other'); const row=courseMap[key]||(courseMap[key]={course:key,sessions:0,questions:0,correct:0,seconds:0}); row.sessions++; row.questions+=Math.max(0,Number(x.n)||0); row.correct+=Math.max(0,Number(x.correct)||0); row.seconds+=Math.max(0,Number(x.secs)||0); });
   const courseRows = Object.values(courseMap).map(x=>Object.assign(x,{pct:x.questions?x.correct/x.questions*100:0})).sort((a,b)=>a.pct-b.pct);
+  const bestCourse = courseRows.filter(x=>x.questions>=10).slice().sort((a,b)=>b.pct-a.pct)[0] || null;
   return h('section',{class:'panel stack'},
     h('h2',null,'Your learning activity · '+(windowDays===3650?'All time':windowDays+' days')),
     h('div',{class:'dashboard-metrics'},
       h('div',null,h('b',null,String(history.length)),h('small',null,'Sessions')),
       h('div',null,h('b',null,total ? accuracy.toFixed(1)+'%' : '—'),h('small',null,'Overall accuracy')),
       h('div',null,h('b',null,String(recent.length)),h('small',null,'Last 7 days')),
-      h('div',null,h('b',null,recentN ? recentAccuracy.toFixed(1)+'%' : '—'),h('small',null,'7-day accuracy'))),
+      h('div',null,h('b',null,recentN ? recentAccuracy.toFixed(1)+'%' : '—'),h('small',null,'7-day accuracy')),
+      h('div',null,h('b',null,String(activeDays)),h('small',null,'Active days')),
+      h('div',null,h('b',null,history.length ? avgSessionMinutes.toFixed(1)+'m' : '—'),h('small',null,'Avg. session'))),
     h('p',{class:'muted small'},total ? 'Across '+total+' recorded questions in this period · average time '+Math.round(seconds/total)+' seconds per question.' : 'No sessions in this period. Try a wider date range or complete a practice session.'),
+    h('div',{class:'panel stack'},h('h3',null,'Progress signals'),
+      h('p',{class:'small muted'},accuracyDelta==null?'Complete sessions in two different weeks to compare your recent accuracy trend.':'Recent accuracy '+(accuracyDelta>=0?'improved by ':'fell by ')+Math.abs(accuracyDelta).toFixed(1)+' percentage points compared with the previous 7 days.'),
+      bestCourse?h('p',{class:'small'},'Strongest course (10+ questions): '+bestCourse.course+' · '+bestCourse.pct.toFixed(1)+'%'):h('p',{class:'small muted'},'A strongest-course signal appears after at least 10 questions in a course.')),
     h('h3',null,'Course performance'),
     courseRows.length ? h('div',{class:'rows'},...courseRows.map(x=>h('div',{class:'panel stack',style:{gap:'6px'}},h('div',{class:'row between wrapr'},h('b',null,x.course),h('span',{class:'chip '+(x.pct<60?'bad':'ok')},x.pct.toFixed(1)+'%')),h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(x.sessions)),h('small',null,'Sessions')),h('div',null,h('b',null,String(x.questions)),h('small',null,'Questions')),h('div',null,h('b',null,Math.round(x.seconds/60)+'m'),h('small',null,'Study time')))))) : h('p',{class:'muted small'},'Course breakdown will appear after your first recorded session.'),
     h('h3',null,'Topics to revisit'),
+    h('p',{class:'tiny muted'},'Topic accuracy is based on all-time question-level attempts; the selected date range applies to session and course summaries.'),
     weak.length ? h('div',{class:'rows'},...weak.map(x=>h('div',{class:'urow'},h('span',{class:'t'},x.topic),h('span',{class:'chip'},x.course),h('span',{class:'chip bad'},x.pct.toFixed(0)+'%')))) : h('p',{class:'muted small'},'No topic-level weak spots recorded in this period.'),
     recentRows.length ? h('div',{class:'stack'},h('h3',null,'Recent sessions'),...recentRows.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.course||'Practice'),h('small',{class:'muted'},' · '+(x.mode||'session')+' · '+new Date(x.ts).toLocaleDateString())),h('span',{class:'chip'},(Number(x.pct)||0).toFixed(0)+'%')))) : null
   );
