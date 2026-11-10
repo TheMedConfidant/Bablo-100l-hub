@@ -2712,8 +2712,9 @@ const verseBand = pct => pct >= 70 ? 'high' : pct >= 60 ? 'good' : pct >= 50 ? '
 
 /* In-session scientific calculator: stays inside the active question flow. */
 function openSessionCalculator(){
- const frame=h('iframe',{title:'Bablo scientific calculator',src:'/calculator/?embedded=1',loading:'eager',style:{display:'block',width:'100%',height:'min(76vh,760px)',minHeight:'560px',border:'0',borderRadius:'14px',background:'var(--surface)'}});
- modal(h('div',{class:'stack',style:{gap:'10px'}},h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('h2',null,'Scientific calculator'),h('span',{class:'tiny muted'},'Same full calculator used from the Hub menu. Your quiz timer and answers remain active.')),h('span',{class:'chip brand'},'Bablo Calc')),frame),true);
+ const frame=h('iframe',{title:'Bablo scientific calculator',src:'/calculator/?embedded=1',loading:'eager',style:{display:'block',width:'100%',height:'min(68vh,650px)',minHeight:'420px',border:'0',borderRadius:'14px',background:'var(--surface)'}});
+ let close;
+ close=modal(h('div',{class:'stack',style:{gap:'10px'}},h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('h2',null,'Scientific calculator'),h('span',{class:'tiny muted'},'Same full calculator used from the Hub menu. Your quiz timer and answers remain active.')),h('span',{class:'chip brand'},'Bablo Calc')),frame,h('button',{class:'btn primary block',onclick:()=>close()},'Back to question')),true);
 }
 /* ---------- run (practice / quiz / exam) ---------- */
 function runView() {
