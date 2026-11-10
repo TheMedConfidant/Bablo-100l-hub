@@ -1171,7 +1171,7 @@ window.__PRACTICALS__.COS = {
     for (let d = start.getTime(); d < toMs; d += 864e5) {
       const day = new Date(d).getUTCDay();
       W.filter(w => w.day === day).forEach(w => {
-        const s = d + w.from * 3600000, e = d + w.to * 3600000;
+        const s = d - LAGOS + w.from * 3600000, e = d - LAGOS + w.to * 3600000;
         if (e > fromMs && s < toMs) out.push({ start: s, end: e, label: w.label });
       });
     }
@@ -2907,15 +2907,8 @@ function boardView() {
       const above = data.rows.filter(r => Core.eligible(r));
       const pool = scope === 'prog' ? above.filter(r => r.programme === DB.profile.programme) : above;
       const ranked = Core.rank(pool, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 });
-      // Multiple devices can submit the same public nickname. Keep the strongest visible entry per nickname
-      // so a single displayed identity cannot occupy several leaderboard places.
-      const seenNames = new Set();
-      const rows = ranked.filter(row => {
-        const key = String(row.nick || '').normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
-        if (!key || seenNames.has(key)) return false;
-        seenNames.add(key);
-        return true;
-      }).slice(0, 50);
+      // Account identity is deduplicated by stable UID in Core.rank, never by display name.
+      const rows = ranked.slice(0, 50);
       const note = data.mode === 'global' ? 'Live leaderboard \u2022 best score per course counts.' : data.mode === 'offline' ? 'Could not reach the live leaderboard, showing this device only.' : 'Global leaderboard is not switched on yet. This board shows your attempts on this device.';
       kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes (10+ questions) and the Premium exam rank.' + (signedIn() ? '' : ' Create an account to appear on the boards.')));
       if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
@@ -4176,7 +4169,7 @@ function pollCard(P) {
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
 function course200View(c) {
-  const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
+  const tabs = ['Questions', 'Notes'];
   const cur = (course200View.tab || 'Questions');
   const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
     'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
