@@ -56,7 +56,7 @@ if (html) {
   else fail("Event planner/calendar view missing");
   if (/function premiumPricingView\(/.test(html) && /₦500/.test(html)) pass("Premium pricing and Naira rates are present");
   else fail("Premium pricing page missing");
-  if (/function meView\\(\\)/.test(html) && /Faculty \\/ College/.test(html) && /Academic session/.test(html) && /Semester/.test(html)) pass("Expanded student profile fields are present");
+  if (/function meView/.test(html) && /Faculty.{0,5}College/.test(html) && /Academic session/.test(html) && /Semester/.test(html)) pass("Expanded student profile fields are present");
   else fail("Expanded student profile fields missing");
   const sectionStart = html.indexOf("function sectionTiles(c, questions, topics)");
   const sectionEnd = html.indexOf("/* ---------- Premium Library pricing ---------- */", sectionStart);
@@ -64,7 +64,7 @@ if (html) {
   else fail("Practical section leaked back into a course page");
   if (/function labHubView\\(\\)/.test(html) && /'Laboratory'/.test(html)) pass("Practical resources remain in the central Laboratory hub");
   else fail("Central Laboratory hub missing");
-  if (!/: null,\\\\n\\s*h\\(/.test(html)) pass("No escaped newline token remains in the Profile markup");
+  if (!html.includes(": null," + String.fromCharCode(92) + "n")) pass("No escaped newline token remains in the Profile markup");
   else fail("Escaped newline token detected in Profile markup");
   if (/hub_submit_scores/.test(html)) pass("Leaderboard uses the session-validated score RPC");
   else fail("Leaderboard still lacks the secure score RPC");
