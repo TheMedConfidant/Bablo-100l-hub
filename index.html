@@ -1136,7 +1136,7 @@ window.__PRACTICALS__.COS = {
     const by = {};
     Object.keys(best).forEach(k => {
       const e = best[k],identity=String(e.uid||e.dev); const p = by[identity] || (by[identity] = { uid:e.uid||null,dev:e.dev,nick:e.nick,score:0,secs:0,courses:0,ts:0 });
-      p.score += e.pct; p.secs += e.secs; p.courses++; if (e.ts >= p.ts) { p.nick = e.nick; p.ts = e.ts; }
+      p.score += Number(e.pct); p.secs += Number(e.secs); p.courses++; if (Number(e.ts) >= p.ts) { p.nick = e.nick; p.ts = e.ts; }
     });
     return Object.values(by).map(p => Object.assign(p, { score: Math.round((p.score / Math.max(1,p.courses)) * 10) / 10 }))
       .sort((a, b) => b.score - a.score || b.courses - a.courses || a.secs - b.secs);
@@ -2916,7 +2916,7 @@ function boardView() {
       const rows = ranked.slice(0, 50);
       const note = data.mode === 'global' ? 'Live leaderboard \u2022 best score per course counts.' : data.mode === 'offline' ? 'Could not reach the live leaderboard, showing this device only.' : 'Global leaderboard is not switched on yet. This board shows your attempts on this device.';
       kids.push(h('p', { class: 'muted small' }, note + ' Only timed quizzes and completed exams with 10+ questions and a score of at least 50% rank.' + (signedIn() ? '' : ' Create an account to appear on the boards.')));
-      if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Finish a timed quiz or the Premium exam to get on the board.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
+      if (!rows.length) kids.push(h('div', { class: 'panel stack' }, h('h2', null, 'No scores yet'), h('p', { class: 'muted' }, 'Complete a timed quiz or exam with at least 10 questions and a score of 50% or higher to qualify.'), h('a', { class: 'btn primary', href: '#/' }, 'Pick a course')));
       else {
         if (rows.length >= 3) { const m = ['\uD83E\uDD48', '\uD83E\uDD47', '\uD83E\uDD49'], o = [1, 0, 2]; kids.push(h('div', { class: 'podium' }, o.map(k => h('div', { class: k === 0 ? 'p1' : '' }, h('div', { style: { fontSize: '1.6rem' } }, m[k === 0 ? 1 : k === 1 ? 0 : 2]), h('b', null, rows[k].nick), h('div', { class: 'small muted' }, rows[k].score + '%'))))); }
         kids.push(h('div', { class: 'rows' }, rows.map((p, i) => h('div', { class: 'lrow' + (p.dev === DB.dev ? ' me' : '') }, h('span', { class: 'rk' }, i + 1), h('span', { class: 'grow' }, h('b', null, p.nick), p.local ? h('span', { class: 'chip', style: { marginLeft: '6px' } }, 'not on an account') : null, p.dev === DB.dev ? h('span', { class: 'chip brand', style: { marginLeft: '8px' } }, 'You') : null, h('div', { class: 'tiny muted' }, Core.fmtTime(p.secs) + (course === '*' ? ' \u2022 ' + plural(p.courses, 'course') : ''))), h('b', null, p.score + '%')))));
