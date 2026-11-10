@@ -652,6 +652,11 @@ button,a,input,select,textarea{touch-action:manipulation}
 @media(min-width:760px){.dashboard-grid,.catalogue-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 </style>
 <script src="/phy101-data.js"></script>
+<script src="/gst111-data-01.js"></script>
+<script src="/gst111-data-02.js"></script>
+<script src="/gst111-data-03.js"></script>
+<script src="/gst111-data-04.js"></script>
+<script src="/gst111-data-05.js"></script>
 </head>
 <body>
 <div id="splash" aria-hidden="true"><div class="sp-wrap"><svg class="sp-logo" viewBox="0 0 64 64" width="120" height="120"><defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="sp-line"/></svg><div class="sp-name">Bablo Hub</div><div class="sp-sub">for CoHES students</div></div></div>
@@ -1866,6 +1871,18 @@ if (window.__PHY101_PACK__) {
   window.__NOTES__ = window.__NOTES__ || {}; window.__NOTES__.PHY = P.notes;
   window.__CARDS__ = window.__CARDS__ || {}; window.__CARDS__.PHY = P.cards;
   P.questions.forEach(q => { if (!(BYC.PHY || []).some(old => old.i === q.i)) { (BYC.PHY = BYC.PHY || []).push(q); BANK.push(q); } });
+}
+/* Load GST 111 source-aligned practice and flashcards into the existing course engine. */
+if (window.__GST111_PACK__) {
+  const P = window.__GST111_PACK__;
+  window.__CARDS__ = window.__CARDS__ || {};
+  window.__CARDS__.GST111 = P.cards || [];
+  (P.questions || []).forEach(q => {
+    if (!(BYC.GST111 || []).some(old => old.i === q.i)) {
+      (BYC.GST111 = BYC.GST111 || []).push(q);
+      BANK.push(q);
+    }
+  });
 }
 const unitsOf = code => { const m = new Map(); (BYC[code] || []).forEach(q => m.set(q.u, (m.get(q.u) || 0) + 1)); return Array.from(m, ([name, count]) => ({ name, count })); };
 const courseBy = code => COURSES.find(c => c.code === code);
