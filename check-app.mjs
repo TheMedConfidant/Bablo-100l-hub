@@ -19,6 +19,13 @@ try {
   pass("HTML document and basic SEO metadata");
 } catch (e) { fail(e.message); }
 
+try {
+  const worker = read("sw.js");
+  if (/bablo-offline-v24-v2-offline-assets/.test(worker) &&
+      ["./v2/calculator.html","./v2/analytics-dashboard.js","./v2/smart-pq-adapter.js","./v2/smart-pq-engine.js","./v2/smart-pq-integration.js"].every(x => worker.includes(x))) pass("Offline shell pre-caches V2 calculator, analytics and Smart PQ assets");
+  else fail("Offline shell is missing one or more V2 assets");
+} catch (e) { fail(e.message); }
+
 if (html) {
   const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
     .filter(([, attrs, body]) => !/\bsrc\s*=/i.test(attrs) && body.trim());
