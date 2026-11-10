@@ -31,4 +31,15 @@ assert.ok(first.questions.every(x => x.reason && Number.isFinite(x.priority)), "
 assert.equal(buildSmartPQSet({ questions: [], history, targetCount: 10, now }).returned, 0, "handles empty banks");
 assert.equal(buildSmartPQSet({ questions, history, targetCount: 200, now }).returned, questions.length, "caps output to available unique questions");
 assert.ok(first.topicSummary.some(x => x.topic === "Cell Biology" && x.accuracy === 0), "topic accuracy is calculated correctly");
+
+const calibrated = buildSmartPQSet({
+  questions: [
+    { id: "easy", topic: "Balanced", difficulty: "easy" },
+    { id: "medium", topic: "Balanced", difficulty: "medium" },
+    { id: "hard", topic: "Balanced", difficulty: "hard" }
+  ],
+  history: [], targetCount: 1, targetDifficulty: 3, now, seed: 9
+});
+assert.equal(calibrated.questions[0].difficulty, 3, "difficulty calibration favours the requested level");
+
 console.log("PASS: Smart PQ ranking, repeat protection, deterministic ordering, weak-topic prioritisation, diversity, reasons, empty bank, and bounds.");
