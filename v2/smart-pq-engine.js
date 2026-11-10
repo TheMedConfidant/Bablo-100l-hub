@@ -37,6 +37,7 @@
     const questions = Array.isArray(opts.questions) ? opts.questions : [];
     const history = Array.isArray(opts.history) ? opts.history : [];
     const targetCount = clamp(Math.floor(Number(opts.targetCount) || 20), 1, 200);
+    const targetDifficulty = clamp(Number(opts.targetDifficulty) || 2, 1, 3);
     const now = Number(opts.now) || Date.now();
     const random = seededRandom(opts.seed == null ? stableHash(questions.length + ":" + targetCount) : opts.seed);
     const byId = new Map();
@@ -85,13 +86,19 @@
       const difficulty = normaliseDifficulty(q.difficulty);
       const frequency = clamp(Number(q.frequencyWeight) || 1, 0.5, 3);
       const repeatedMistake = h ? clamp(h.wrong / Math.max(1, h.attempts), 0, 1) : 0;
+      const averageResponseMs = h && h.responseMs.length
+        ? h.responseMs.reduce((sum, value) => sum + value, 0) / h.responseMs.length : 0;
+      const slowResponse = clamp(averageResponseMs / 120000, 0, 1);
+      const difficultyFit = 1 - Math.abs(difficulty - targetDifficulty) / 2;
       const score =
-        topicWeakness * 0.30 +
-        questionWrongRate * 0.24 +
-        topicCoverageGap * 0.18 +
+        topicWeakness * 0.28 +
+        questionWrongRate * 0.22 +
+        topicCoverageGap * 0.17 +
         questionUnseen * 0.12 +
-        due * 0.10 +
-        (frequency - 0.5) / 2.5 * 0.06;
+        due * 0.09 +
+        (frequency - 0.5) / 2.5 * 0.06 +
+        difficultyFit * 0.04 +
+        slowResponse * 0.02;
       return {
         question: q,
         topic: topic,
@@ -103,7 +110,8 @@
           due >= 0.7 ? "Due for revision" : "Strengthen recall",
         difficulty: difficulty,
         frequency: frequency,
-        repeatedMistake: repeatedMistake
+        repeatedMistake: repeatedMistake,
+        slowResponse: slowResponse
       };
     });
 
@@ -131,7 +139,8 @@
         question: chosen.question,
         priority: Number(chosen.score.toFixed(4)),
         reason: chosen.reason,
-        topic: chosen.topic
+        topic: chosen.topic,
+        difficulty: chosen.difficulty
       });
     }
 
