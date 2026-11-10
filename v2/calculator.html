@@ -47,6 +47,8 @@ h1{font-size:23px;margin:8px 0 3px}.sub{color:var(--muted);font-size:13px;margin
 (()=>{
  const $=id=>document.getElementById(id), exprEl=$('expression'), resultEl=$('result'), statusEl=$('status');
  let input='', answer=0, memory=0, angle='DEG', justSolved=false;
+ try{const saved=JSON.parse(localStorage.getItem('babloV2CalcState')||'{}');if(Number.isFinite(saved.memory))memory=saved.memory;if(saved.angle==='RAD'||saved.angle==='DEG')angle=saved.angle;if(Number.isFinite(saved.answer))answer=saved.answer}catch{}
+ function saveCalcState(){try{localStorage.setItem('babloV2CalcState',JSON.stringify({memory,angle,answer}))}catch{}}
  const fmt=n=>{if(!Number.isFinite(n))throw Error('Result is not a finite number');return Number(n.toPrecision(12)).toString()};
  function tokenize(s){
   s=s.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/π/g,'pi');
@@ -92,16 +94,16 @@ h1{font-size:23px;margin:8px 0 3px}.sub{color:var(--muted);font-size:13px;margin
  }
  function render(){exprEl.textContent=input||'Ready';resultEl.textContent=input?'…':'0';statusEl.textContent='';if(input){try{resultEl.textContent=fmt(parse(input))}catch(e){resultEl.textContent='';statusEl.textContent=e.message}}}
  function insert(s){if(justSolved&&!['+','−','-','×','÷','*','/','^','%','!'].includes(s))input='';justSolved=false;input+=s;render()}
- function solve(){if(!input)return;try{const n=parse(input),v=fmt(n);answer=n;resultEl.textContent=v;exprEl.textContent=input+' =';statusEl.textContent='';saveHistory(input,v);input=v;justSolved=true;renderSolved(v)}catch(e){statusEl.textContent=e.message}}
+ function solve(){if(!input)return;try{const n=parse(input),v=fmt(n);answer=n;saveCalcState();resultEl.textContent=v;exprEl.textContent=input+' =';statusEl.textContent='';saveHistory(input,v);input=v;justSolved=true;renderSolved(v)}catch(e){statusEl.textContent=e.message}}
  function renderSolved(v){resultEl.textContent=v;exprEl.textContent=input+' =';}
  function saveHistory(e,v){let h=[];try{h=JSON.parse(localStorage.getItem('babloV2CalcHistory')||'[]')}catch{}h.unshift({e,v});h=h.slice(0,12);try{localStorage.setItem('babloV2CalcHistory',JSON.stringify(h))}catch{}drawHistory()}
  function drawHistory(){let h=[];try{h=JSON.parse(localStorage.getItem('babloV2CalcHistory')||'[]')}catch{}$('history').innerHTML=h.length?h.map((x,i)=>'<div class="history-item" data-history="'+i+'"><small>'+escapeHtml(x.e)+'</small><strong>'+escapeHtml(x.v)+'</strong></div>').join(''):'<div class="empty">No calculations yet.</div>'}
  function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  function current(){return input?parse(input):answer}
  $('keys').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.action,s=b.dataset.insert;if(s!==undefined){insert(s);return}if(a==='equals')solve();if(a==='clear'){input='';justSolved=false;render()}if(a==='back'){input=input.slice(0,-1);justSolved=false;render()}if(a==='mc'){memory=0;updateMemory()}if(a==='mr')insert(fmt(memory));if(a==='mplus'||a==='mminus'){try{memory+=(a==='mplus'?1:-1)*current();updateMemory()}catch(err){statusEl.textContent=err.message}}});
- function updateMemory(){$('memoryValue').textContent='M = '+fmt(memory)}
- $('deg').onclick=()=>setAngle('DEG');$('rad').onclick=()=>setAngle('RAD');function setAngle(v){angle=v;$('deg').classList.toggle('active',v==='DEG');$('rad').classList.toggle('active',v==='RAD');render()}
- $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(resultEl.textContent);statusEl.textContent='Result copied'}catch{statusEl.textContent='Clipboard unavailable in this browser'}}
+ function updateMemory(){$('memoryValue').textContent='M = '+fmt(memory);saveCalcState()}
+ $('deg').onclick=()=>setAngle('DEG');$('rad').onclick=()=>setAngle('RAD');function setAngle(v){angle=v;$('deg').classList.toggle('active',v==='DEG');$('rad').classList.toggle('active',v==='RAD');saveCalcState();render()}
+ $('copy').onclick=async()=>{const value=resultEl.textContent;try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value)}else{const field=document.createElement('textarea');field.value=value;field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied)throw Error('copy unavailable')}statusEl.textContent='Result copied'}catch{statusEl.textContent='Select and copy the result manually'}}
  $('clearHistory').onclick=()=>{try{localStorage.removeItem('babloV2CalcHistory')}catch{}drawHistory()};
  $('history').addEventListener('click',e=>{const item=e.target.closest('[data-history]');if(!item)return;let h=[];try{h=JSON.parse(localStorage.getItem('babloV2CalcHistory')||'[]')}catch{}const row=h[Number(item.dataset.history)];if(row){input=row.e;justSolved=false;render()}});
  document.addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;if(/^[0-9.]$/.test(e.key)){insert(e.key);return}const map={'+':'+','-':'−','*':'×','/':'÷','^':'^','(': '(',')':')','%':'%','Enter':'=', 'Backspace':'back','Escape':'clear'};const v=map[e.key];if(v==='='){e.preventDefault();solve()}else if(v==='back'){e.preventDefault();input=input.slice(0,-1);render()}else if(v==='clear'){input='';render()}else if(v)insert(v)});
