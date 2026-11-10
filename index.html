@@ -2089,7 +2089,7 @@ async function lbFetch() {
   try {
     const opts = { headers: { apikey: LB.key } };
     if (controller) opts.signal = controller.signal;
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=uid,dev,nick,course,mode,n,correct,pct,secs,ts,programme&order=ts.desc&limit=2000', opts);
+    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=uid,dev,nick,course,mode,n,correct,pct,secs,ts,programme&order=ts.desc&limit=5000', opts);
     if (!r.ok) throw new Error('Leaderboard request failed: ' + r.status);
     const remote = await r.json();
     const synced = DB.syncedTs || {};
@@ -4520,6 +4520,8 @@ function notificationsView() {
       '#/board',ts,'✓',ts+QUIZ_TTL);
   });
   const missed=DB.missed||{};
+  const phyTestAt=new Date('2026-11-24T00:00:00+01:00').getTime(),phyTestExpires=new Date('2026-11-25T00:59:59+01:00').getTime();
+  if(now<phyTestExpires)add('phy101-test-reminder-2026-11-24','Schedule','PHY 101 test reminder','PHY 101 test · Tuesday, 24 November. Check the course notice for the confirmed time and venue.','#/courses',phyTestAt,'📘',phyTestExpires);
   const missedIds=Object.keys(missed).filter(k=>missed[k]);
   const missedQs=missedIds.map(id=>(window.__BANK__||[]).find(q=>q.i===id)).filter(Boolean);
   const weakCourses=[...new Set(missedQs.map(q=>q.c).filter(Boolean))];
