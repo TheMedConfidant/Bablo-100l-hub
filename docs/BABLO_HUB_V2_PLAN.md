@@ -169,3 +169,18 @@
 - Analytics remains course-level where that is what the available attempt data supports; no unsupported topic-level analytics are invented.
 - PHY101 Test reminder dated 24 November 2026 is merged into the client schedule and fallback schedule. It appears in the schedule panel on clients that load the schedule; browser push alerts depend on notification permission. This is not a Supabase schedule-table write.
 - Preview branch only. No production branch, database or production deployment was changed.
+
+
+### Preview build log — 2026-11-10 (Profile, Laboratory and offline progress follow-up)
+
+- Expanded the Profile form with institution, faculty/college, department, academic session and semester fields, while retaining name, nickname, programme, level, Bablo ID and guest/account status.
+- Fixed a literal escaped newline in the Profile markup that caused an inline JavaScript parse error. All 11 inline application script blocks now pass source-level syntax compilation.
+- Confirmed the course `sectionTiles` renderer contains no Practicals tile; practical resources remain grouped under the central Laboratory hub (PHY, CHM, BIO and COS).
+- Preserved extended local academic profile fields when an existing account signs in.
+- Added the academic profile fields to the existing account progress payload and remote merge path. This is wired to the existing progress RPC but has not yet been verified against a real signed-in account or a second device.
+- Improved offline progress handling: local changes are marked pending when offline, progress sync retries on the browser's online event, and Profile displays pending/last-synced status.
+- The existing service worker already caches the app shell and listed learning assets for offline launch; this build does not yet add per-resource download controls.
+- Updated regression checks for the profile fields, guest account CTA, central Laboratory separation, escaped-newline regression, account profile preservation and reconnect sync.
+- Vercel preview deployment for commit `b0527fcf64bc257a7da95d687256e7441d759851` reached READY at `bablo-100l-mk5ron5ig-mosesbama4-3146s-projects.vercel.app`.
+- No changes to `main`, production deployment, Supabase schema, RLS policies or student records.
+- Remaining verification: execute the repository regression script in its Node environment, test profile/account sync with a real test account on two devices, and perform Android offline/online interaction checks.
