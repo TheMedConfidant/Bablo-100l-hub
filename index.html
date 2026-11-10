@@ -2043,7 +2043,7 @@ function calcEvaluate(raw){
 }
 function scientificCalculatorView(){
   const root=document.createElement('main');root.className='wrap calc-page';
-  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcClear" class="btn danger">AC</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div><p class="tiny muted">Use × or * for multiplication. Implicit multiplication is supported: 2π, 3sin(30), and 5ln(2). Press Enter or = to evaluate.</p></section></div>';
+  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1><p class="muted">Natural textbook-style input with a clear expression line, result display and scientific keypad.</p></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div></section></div>';
   document.getElementById('app').replaceChildren(root);
   const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
   let lastExpression='';
@@ -2054,7 +2054,7 @@ function scientificCalculatorView(){
     ['(','fn'],[')','fn'],['%','fn'],['÷','op'],['×','op'],
     ['7','num'],['8','num'],['9','num'],['−','op'],['+','op'],
     ['4','num'],['5','num'],['6','num'],['⌫','util'],['ANS','fn'],
-    ['1','num'],['2','num'],['3','num'],['AC','util'],['ANS','fn'],
+    ['1','num'],['2','num'],['3','num'],['AC','util'],
     ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
   ];
   keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
@@ -2129,19 +2129,24 @@ function route() {
 function onboarding() {
   const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
   const nick = h('input', { type: 'text', maxlength: '20', placeholder: 'Shown on the leaderboard' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
+  const prog = h('select', null, ...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME).map(p => h('option', { value: p }, p)), h('option', { value: '__custom__' }, 'My programme is not listed'));
+  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', style: { display: 'none' } });
+  prog.addEventListener('change', () => { customProg.style.display = prog.value === '__custom__' ? '' : 'none'; });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' } });
   const sub = () => {
     const n = name.value.trim().replace(/[\u0000-\u001f]/g, '');
     if (n.length < 2) { err.textContent = 'Enter your name so we can greet you.'; return; }
     const k = (nick.value.trim() || n.split(' ')[0]).slice(0, 20);
-    DB.profile = { name: n, nick: k, programme: prog.value, level: '100L' }; save(); document.querySelector('.overlay') && document.querySelector('.overlay').remove(); route();
+    const programme = prog.value === '__custom__' ? ('Guest — ' + customProg.value.trim()) : prog.value;
+    if (prog.value === '__custom__' && customProg.value.trim().length < 2) { err.textContent = 'Type your programme, or choose one from the list.'; return; }
+    DB.profile = { name: n, nick: k, programme, level: '100L', isGuest: prog.value === '__custom__' }; save(); document.querySelector('.overlay') && document.querySelector('.overlay').remove(); route();
   };
   modal(h('div', { class: 'stack' }, h('h2', null, 'Welcome to Bablo Hub'),
     h('p', { class: 'muted' }, 'Practice by topic, take timed quizzes, sit a mock exam and climb the leaderboard. Your details stay on this device.'),
     h('label', { class: 'field' }, h('span', null, 'Your name'), name),
     h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
     h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
+    customProg,
     err,
     h('button', { class: 'btn primary block', onclick: sub }, 'Start studying'),
     h('button', { class: 'btn ghost block', type: 'button', onclick: () => { DB.profile = { name: 'Guest learner', nick: 'Guest', programme: 'Independent', level: '100L', isGuest: true }; DB.account = null; save(); const ov = document.querySelector('.overlay'); if (ov) ov.remove(); route(); } }, 'Continue without an account')), false);
@@ -2187,6 +2192,7 @@ function openHubMenu(){
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
     group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
     group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Send feedback','#/feedback','✉')]),
+    group('MORE OPTIONS',[link('Scientific calculator','#/calculator','🧮')]),
     group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
     group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
     group('ADMINISTRATION',[link('Admin Panel','#/admin','🛠')]),
@@ -2293,7 +2299,7 @@ function analyticsView() { const root = h('div', { class: 'stack-l' }, back('#/'
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
   dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
-  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5'), dashboardCard('Scientific calculator','Scientific functions, angles and calculation history','🧮','#/calculator','#53B6A5'), dashboardCard('Analytics','Your course performance and review priorities','▥','#/analytics','#D6A82B')
+  dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5'), dashboardCard('Analytics','Your course performance and review priorities','▥','#/analytics','#D6A82B')
  ];
  const communityCards=[
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
@@ -2670,25 +2676,29 @@ function meView() {
   const p = DB.profile || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
-  const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
+  const prog = h('input', { type: 'text', value: p.programme || '', maxlength: '70', autocomplete: 'organization-title' });
+  const level = h('select', null, ['100L','200L','300L','400L','500L','600L','Other'].map(x => h('option', { value: x, selected: x === (p.level || '100L') ? true : null }, x)));
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity and leaderboard details.'),
+    h('p', { class: 'muted small' }, 'Your student identity, academic details and account access.'),
     h('section', { class: 'panel stack' },
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
-      h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
+      h('label', { class: 'field' }, h('span', null, 'Programme / department'), prog),
+      h('label', { class: 'field' }, h('span', null, 'Academic level'), level),
+      DB.profile.uid ? h('p', { class: 'small' }, h('b', null, 'Bablo ID: '), DB.profile.uid) : h('p', { class: 'small muted' }, 'Guest profile · no account linked yet'),
       h('button', { class: 'btn primary block', onclick: () => {
         const n = name.value.trim();
         if (n.length < 2) { toast('Enter your name.'); return; }
         DB.profile = Object.assign({}, DB.profile, {
           name: n,
           nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20),
-          programme: prog.value,
-          level: '100L'
+          programme: prog.value.trim(),
+          level: level.value
         });
         save(); toast('Profile saved.');
-      } }, 'Save profile'))
+      } }, 'Save profile'),
+      accountSection())
   )));
 }
 
@@ -3658,22 +3668,24 @@ function accountSection() {
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
-  const pass = h('input', { type: 'password', placeholder: 'Password (6+ characters)', autocomplete: 'new-password' });
+  const prog = h('select', null, ...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME).map(p => h('option', { value: p }, p)), h('option', { value: '__custom__' }, 'My programme is not listed'));
+  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', style: { display: 'none' } });
+  prog.addEventListener('change', () => { customProg.style.display = prog.value === '__custom__' ? '' : 'none'; });
+  const pass = h('input', { type: 'password', placeholder: 'Password (8+ characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const go2 = async (isUp) => {
     err.textContent = '';
     try {
-      if (isUp) { const r = await signUp({ name: name.value, nickname: nick.value, programme: prog.value, password: pass.value }); showNewId(r.uniqueId); }
+      if (isUp) { const programme = prog.value === '__custom__' ? ('Guest — ' + customProg.value.trim()) : prog.value; if (prog.value === '__custom__' && customProg.value.trim().length < 2) throw new Error('Type your programme, or choose one from the list.'); const r = await signUp({ name: name.value, nickname: nick.value, programme, password: pass.value }); showNewId(r.uniqueId); }
       else { const r = await signIn(loginId.value, loginPass.value); toast('Welcome back. ID ' + r.uniqueId); }
       meView();
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
   const tabs = h('div', { class: 'seg' }, h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'), h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
   const fields = mode === 'signup'
-    ? [name, nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
+    ? [name, nick, prog, customProg, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you. Save it with your password to log in later.')]
     : [loginId, loginPass];
   return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), tabs, ...fields, err,
     h('button', { class: 'btn primary block', onclick: () => go2(mode === 'signup') }, mode === 'signup' ? 'Create account' : 'Log in'),
@@ -3928,11 +3940,9 @@ function sectionTiles(c, questions, topics) {
   const secs = [
     { name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
     ...(c.code === 'CHM' ? [{ name: 'Worked Questions', sub: '22 worked questions with answers', live: true, go: () => go('#/worked/CHM') }] : []),
-    ...(c.code === 'CHM' ? [{ name: 'Quizzes', sub: '74 Thermochemistry MCQs', live: true, go: () => { const i = unitsOf('CHM').findIndex(u => u.name === 'Thermochemistry'); go('#/setup/CHM/quiz?u=' + i); } }] : []),
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
-    { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
-  ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
+  ];
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
   if (c.code === 'COS') secs.push({ name: 'Bonus', sub: 'Computing timeline, pioneers and story', live: true, go: () => go('#/bonus/COS') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
