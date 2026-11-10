@@ -194,3 +194,11 @@
 - Source-level JavaScript compilation passed for the calculator and game scripts. Source checks confirmed persistent calculator state, clipboard fallback, game question bank, speed scoring and Arcade launch link.
 - Vercel preview deployment for commit `7ae3f7c988a7a1b25b326e9559945c7f47eb8d99` reached READY at `bablo-100l-amijif57e-mosesbama4-3146s-projects.vercel.app`.
 - Not yet verified: real Android/browser interaction, gameplay balance, keyboard/screen-reader accessibility, or end-to-end use on a physical device. No production branch, production deployment, Supabase schema/data, or account records were changed.
+
+### Arcade and calculator continuation — 2026-11-10
+
+- Calculator: added absolute value and exponential function keys, square, reciprocal, and sign-toggle operations to the scientific keypad. Existing safe expression parser, DEG/RAD, memory, local history, persisted state and clipboard fallback remain.
+- Arcade now exposes three playable standalone learning games: Bablo Rush (timed sprint quiz), Memory Matrix (8 academic term/definition pairs across Biology, Physics, Computing and Chemistry), and Reflex Arena (15 rapid-fire questions with time-based bonus scoring and streak tracking). Existing Bablo Chess and Chess learning entries remain.
+- The three new game pages are standalone and use device-local best-score storage; they do not yet sync performance to Bablo Hub accounts or course analytics. Their starter question decks are hand-authored and are not yet connected to the verified course question banks.
+- JavaScript source compilation checks passed for calculator and all three game pages. The index page and arcade entries were verified in the preview source. GitHub combined status for commit `50556c045878dd69ef598e67e66027f7aa0c041f` reported Vercel success; deployment reached READY at `bablo-100l-kg9wi9kvq-mosesbama4-3146s-projects.vercel.app`.
+- Still pending: physical Android interaction tests, accessibility review, gameplay QA/balance, course-bank integration, account-level score sync, and deeper calculator numerical edge-case tests. Production remains untouched; no Supabase schema/data changes were made.
