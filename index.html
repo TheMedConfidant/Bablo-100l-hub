@@ -2043,11 +2043,11 @@ function calcEvaluate(raw){
 }
 function scientificCalculatorView(){
   const root=document.createElement('main');root.className='wrap calc-page';
-  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><div class="stack"><h1>Scientific calculator</h1></div><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Use the keypad below"><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div></section></div>';
+  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><h1>Scientific calculator</h1><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder=""><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG · ANS = previous result</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div></section></div>';
   document.getElementById('app').replaceChildren(root);
   const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
   let lastExpression='';
-  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';if(force)lastExpression=input.value;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
+  const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=CALC_DEG?'DEG':'RAD';if(force)lastExpression=input.value;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
   const keys=[
     ['sin(','fn'],['cos(','fn'],['tan(','fn'],['ln(','fn'],['log(','fn'],
     ['√(','fn'],['x²','fn'],['xʸ','fn'],['π','fn'],['e','fn'],
@@ -2058,7 +2058,7 @@ function scientificCalculatorView(){
     ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
   ];
   keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
-    if(label==='AC'){input.value='';out.textContent='0';status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result';input.focus();return;}
+    if(label==='AC'){input.value='';out.textContent='0';status.textContent=CALC_DEG?'DEG':'RAD';input.focus();return;}
     if(label==='⌫'){input.value=input.value.slice(0,-1);show();input.focus();return;}
     if(label==='='){show(true);input.focus();return;}
     if(label==='±'){input.value=input.value.startsWith('-')?input.value.slice(1):'-('+input.value+')';show();input.focus();return;}
@@ -2673,7 +2673,7 @@ function boardView() {
 /* ---------- me ---------- */
 function meView() {
   const p = DB.profile || {};
-  const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
+  const name = h('input', { type: 'text', value: p.name || '', maxlength: '60', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const prog = h('input', { type: 'text', value: p.programme || '', maxlength: '70', autocomplete: 'organization-title' });
   const level = h('select', null, ['100L','200L','300L','400L','500L','600L','Other'].map(x => h('option', { value: x, selected: x === (p.level || '100L') ? true : null }, x)));
@@ -2686,6 +2686,7 @@ function meView() {
       h('label', { class: 'field' }, h('span', null, 'Programme / department'), prog),
       h('label', { class: 'field' }, h('span', null, 'Academic level'), level),
       DB.profile.uid ? h('p', { class: 'small' }, h('b', null, 'Bablo ID: '), DB.profile.uid) : h('p', { class: 'small muted' }, 'Guest profile · no account linked yet'),
+      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, signedIn() ? 'Account status' : 'Access status'), h('small', { class: 'muted' }, signedIn() ? 'Progress sync enabled for this account.' : 'Guest mode · progress is stored on this device.')), h('span', { class: 'chip ' + (signedIn() ? 'ok' : 'gold') }, signedIn() ? 'Registered' : 'Guest')),
       h('button', { class: 'btn primary block', onclick: () => {
         const n = name.value.trim();
         if (n.length < 2) { toast('Enter your name.'); return; }
@@ -3665,10 +3666,12 @@ function accountSection() {
     return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')), h('label',{class:'field'},h('span',null,'Change username'),usernameInput), h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'), usernameError, h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'), h('p', null, h('b', null, 'Your ID: '), DB.profile.uid), h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'), h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
-  const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
-  const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const prog = h('select', null, ...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME).map(p => h('option', { value: p }, p)), h('option', { value: '__custom__' }, 'My programme is not listed'));
-  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', style: { display: 'none' } });
+  const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60', value: DB.profile && DB.profile.name || '' });
+  const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20', value: DB.profile && DB.profile.nick || '' });
+  const savedProgramme = DB.profile && DB.profile.programme || '';
+  const customSaved = savedProgramme.startsWith('Guest — ');
+  const prog = h('select', null, ...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME).map(p => h('option', { value: p, selected: !customSaved && p === savedProgramme ? true : null }, p)), h('option', { value: '__custom__', selected: customSaved ? true : null }, 'My programme is not listed'));
+  const customProg = h('input', { type: 'text', maxlength: '70', placeholder: 'Type your programme', value: customSaved ? savedProgramme.slice(8) : '', style: { display: customSaved ? '' : 'none' } });
   prog.addEventListener('change', () => { customProg.style.display = prog.value === '__custom__' ? '' : 'none'; });
   const pass = h('input', { type: 'password', placeholder: 'Password (8+ characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
