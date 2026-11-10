@@ -1123,18 +1123,19 @@ window.__PRACTICALS__.COS = {
     return { correct, wrong, skipped, pct, grade: gradeFor(pct) };
   }
   function eligible(e) {
-    return !!e && (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && e.pct >= 0 && e.pct <= 100 && !!e.nick;
+    const n=Number(e&&e.n),secs=Number(e&&e.secs),pct=Number(e&&e.pct),ts=Number(e&&e.ts);
+    return !!e && (e.mode === 'quiz' || e.mode === 'exam') && Number.isFinite(n) && n >= 10 && Number.isFinite(secs) && secs > 0 && Number.isFinite(pct) && pct >= PASS_MARK && pct <= 100 && Number.isFinite(ts) && ts > 0 && !!String(e.nick||'').trim() && !!(e.uid||e.dev);
   }
   function rank(entries, opt) {
     opt = opt || {};
     const best = {};
     entries.filter(eligible).filter(e => !opt.since || e.ts >= opt.since).filter(e => !opt.course || e.course === opt.course).forEach(e => {
-      const k = e.dev + '|' + e.course, b = best[k];
+      const identity=String(e.uid||e.dev),k = identity + '|' + e.course, b = best[k];
       if (!b || e.pct > b.pct || (e.pct === b.pct && e.secs < b.secs)) best[k] = e;
     });
     const by = {};
     Object.keys(best).forEach(k => {
-      const e = best[k]; const p = by[e.dev] || (by[e.dev] = { dev: e.dev, nick: e.nick, score: 0, secs: 0, courses: 0, ts: 0 });
+      const e = best[k],identity=String(e.uid||e.dev); const p = by[identity] || (by[identity] = { uid:e.uid||null,dev:e.dev,nick:e.nick,score:0,secs:0,courses:0,ts:0 });
       p.score += e.pct; p.secs += e.secs; p.courses++; if (e.ts >= p.ts) { p.nick = e.nick; p.ts = e.ts; }
     });
     return Object.values(by).map(p => Object.assign(p, { score: Math.round(p.score * 10) / 10 }))
@@ -1170,7 +1171,7 @@ window.__PRACTICALS__.COS = {
     for (let d = start.getTime(); d < toMs; d += 864e5) {
       const day = new Date(d).getUTCDay();
       W.filter(w => w.day === day).forEach(w => {
-        const s = d + (w.from - 1) * 3600000, e = d + (w.to - 1) * 3600000;
+        const s = d + w.from * 3600000, e = d + w.to * 3600000;
         if (e > fromMs && s < toMs) out.push({ start: s, end: e, label: w.label });
       });
     }
@@ -1253,8 +1254,8 @@ function canAccessCourse(code) { return !!(DB.profile && coursesFor(DB.profile.p
 /* ---------- Programme Cup ---------- */
 /* Event windows repeat every week. Times are Lagos time (UTC+1). day: 0 Sun .. 6 Sat. */
 const EVENT_WINDOWS = [
-  { day: 3, from: 19, to: 23, label: 'Wednesday night' },
-  { day: 6, from: 13, to: 17, label: 'Saturday afternoon' }
+  { day: 3, from: 0, to: 24, label: 'Wednesday · Batch A qualifier' },
+  { day: 6, from: 0, to: 24, label: 'Saturday · Batch B qualifier' }
 ];
 const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 };
 /* Course weights. Equal weights mean no programme is favoured. Tune here if you decide on different weights. */
@@ -1284,7 +1285,7 @@ const BONUS_GEL101 = {
   caveat: 'Built from the uploaded study guide and public summaries. Not checked against the film or lecture notes. The 30 practice questions are flagged until verified. Check with your lecturer before relying on the details.'
 };
 
-const CUP_ON_HOLD = true; // the Programme Cup and qualifications stay on hold until the tests are done
+const CUP_ON_HOLD = false; // qualifiers are scheduled for 11 and 14 November 2026
 /* 100 level first semester timetable 2026/2027 (from the timetable image). AGR 101 is on Monday, as the note on the timetable says it clashes with BUI-GEL 101 and GST 111. */
 const TIMETABLE_100_1 = [
   { day: 'Monday', code: 'COS 101', time: '8:00am-10:00am', venue: '1500 Lecture Hall' },
@@ -1896,7 +1897,7 @@ async function pushProgress() {
 async function syncPastScores() {
   if (!signedIn() || !LB.url) return;
   DB.syncedTs = DB.syncedTs || {};
-  const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && e.n >= 10 && e.secs >= e.n * 3 && !DB.syncedTs[e.ts])
+  const rows = (DB.history || []).filter(e => (e.mode === 'quiz' || e.mode === 'exam') && Number(e.n) >= 10 && Number(e.secs) > 0 && Number(e.pct) >= PASS_MARK && Number(e.pct) <= 100 && !DB.syncedTs[e.ts])
     .map(e => ({ dev: DB.dev, nick: DB.profile.nick.slice(0, 30), course: e.course, mode: e.mode, n: e.n, correct: e.correct, pct: e.pct, secs: e.secs, ts: e.ts, programme: DB.profile.programme, uid: DB.profile.uid }));
   if (!rows.length) return;
   try {
@@ -2087,7 +2088,7 @@ async function lbFetch() {
   try {
     const opts = { headers: { apikey: LB.key } };
     if (controller) opts.signal = controller.signal;
-    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', opts);
+    const r = await fetch(LB.url + '/rest/v1/' + LB.table + '?select=uid,dev,nick,course,mode,n,correct,pct,secs,ts,programme&uid=not.is.null&order=ts.desc&limit=2000', opts);
     if (!r.ok) throw new Error('Leaderboard request failed: ' + r.status);
     const remote = await r.json();
     const synced = DB.syncedTs || {};
@@ -2398,7 +2399,7 @@ function unreadNotificationCount(){
  const add=id=>{if(!read[id]&&!dismissed[id])count++;};
  (DB.history||[]).forEach(e=>{const ts=Number(e.ts)||0;if(ts>0&&ts<=now&&now-ts<=30*DAY)add('quiz-'+ts);});
  const missed=Object.keys(DB.missed||{}).filter(k=>DB.missed[k]);if(missed.length)add('weak-topics-'+missed.length);
- const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime();if(now-gstUpdateAt<14*DAY)add('timetable-gst111-thursday-2026-11-08');
+ const gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08');
  const grace=60*60*1000;(typeof planEvents==='function'?planEvents():DB.events||[]).forEach(ev=>{const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));if(!Number.isNaN(dt.getTime())&&dt.getTime()>=now-grace)add('event-'+ev.id+'-'+ev.date+'-'+(ev.time||'00:00'));});
  return count;
 }
@@ -2424,7 +2425,7 @@ function homeView() {
  const communityCards=[
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
   dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
-  dashboardCard('Arcade','Bablo Rush, Memory Matrix and Reaction Arena','🎮','/arcade/','#D6A82B')
+  dashboardCard('Arcade','Bablo Rush, Memory Matrix and Reaction Arena','🎮','#/arcade','#D6A82B')
  ];
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
@@ -2457,10 +2458,9 @@ function timeHubView(){
  )));
 }
 function arcadeHubView(){
- mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'All games in one place: Chess, Bablo Rush, Memory Matrix and Reaction Arena.')),
- h('section',{class:'dashboard-grid'},
- dashboardCard('Enter Bablo Arcade','Play Chess and the full collection of games','🎮','/arcade/','#D6A82B')
- )));
+ const frame=h('iframe',{title:'Bablo Arcade games',src:'/arcade/?embedded=1',loading:'eager',allow:'fullscreen',style:{display:'block',width:'100%',height:'min(82vh,900px)',minHeight:'650px',border:'1px solid var(--line)',borderRadius:'18px',background:'#10100f'}});
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Bablo Arcade'),h('p',{class:'muted'},'Games, scores and progression inside Bablo Hub. Use the game controls below; return to your dashboard with the button above.')),
+ h('section',{class:'stack'},frame)));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
 function ecgBeatPath(x0, variant) {
@@ -2932,7 +2932,7 @@ function boardView() {
     if (!data) kids.push(h('p', { class: 'muted' }, 'Loading\u2026'));
     else {
       // only scores above 50% are shown on the board; lower scores stay saved, just not ranked
-      const above = data.rows.filter(r => Number(r.pct) > 50);
+      const above = data.rows.filter(r => Core.eligible(r));
       const pool = scope === 'prog' ? above.filter(r => r.programme === DB.profile.programme) : above;
       const ranked = Core.rank(pool, { course: course === '*' ? null : course, since: scope === 'week' ? Date.now() - 7 * 864e5 : 0 });
       // Multiple devices can submit the same public nickname. Keep the strongest visible entry per nickname
@@ -3004,6 +3004,32 @@ function meView() {
         save(); toast('Profile saved.'); meView();
       } }, 'Save profile'))
   )));
+  const auditSelect=h('select',null,PROGRAMMES.map(x=>h('option',{value:x,selected:x===(p.programme||PROGRAMMES[0])?true:null},x)));
+  const auditBody=h('div',{class:'stack'},h('p',{class:'muted small'},'Loading programme performance…'));
+  const auditPanel=h('section',{class:'panel stack'},h('div',{class:'stack'},h('h2',null,'Programme audit'),h('p',{class:'muted small'},'Inspect aggregate quiz performance across programmes. Individual private account details are not shown.')),h('label',{class:'field'},h('span',null,'Programme to inspect'),auditSelect),auditBody);
+  function drawAudit(data){
+    const programme=auditSelect.value;
+    const records=(data.rows||[]).filter(e=>String(e.programme||'')===programme&&Core.eligible(e));
+    const people=Core.rank(records);
+    const bestByCourse={};
+    records.forEach(e=>{const key=String(e.uid||e.dev)+'|'+String(e.course||'');const cur=bestByCourse[key];if(!cur||Number(e.pct)>Number(cur.pct))bestByCourse[key]=e;});
+    const courseRows={};
+    Object.values(bestByCourse).forEach(e=>{const row=courseRows[e.course]||(courseRows[e.course]={scores:[],students:new Set()});row.scores.push(Number(e.pct));row.students.add(String(e.uid||e.dev));});
+    const courses=Object.entries(courseRows).map(([code,row])=>({code,students:row.students.size,average:Math.round(row.scores.reduce((a,b)=>a+b,0)/row.scores.length*10)/10})).sort((a,b)=>b.average-a.average);
+    const avg=records.length?Math.round(records.reduce((n,e)=>n+Number(e.pct),0)/records.length*10)/10:0;
+    const metrics=h('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:'8px'}},
+      h('div',{class:'panel stack'},h('b',null,String(people.length)),h('small',{class:'muted'},'Ranked students')),
+      h('div',{class:'panel stack'},h('b',null,String(records.length)),h('small',{class:'muted'},'Qualifying sessions')),
+      h('div',{class:'panel stack'},h('b',null,records.length?avg+'%':'—'),h('small',{class:'muted'},'Mean session score')));
+    const status=h('p',{class:'tiny muted'},data.mode==='global'?'Live account-linked results.':'Limited data: live programme results are unavailable; showing records available on this device.');
+    const courseList=courses.length?h('div',{class:'rows'},courses.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.code),h('small',{class:'muted'},x.students+' students')),h('b',null,x.average+'%')))):h('p',{class:'small muted'},'No qualifying programme results are available yet.');
+    const top=people.length?h('div',{class:'rows'},people.slice(0,5).map((x,i)=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,(i+1)+'. '+x.nick)),h('b',null,x.score+' pts')))):null;
+    auditBody.replaceChildren(status,metrics,h('h3',null,'Course performance'),courseList,top?h('h3',null,'Top programme performers'):null,top||h('p',{class:'small muted'},'Top performers will appear when qualifying results are recorded.'));
+  }
+  auditSelect.addEventListener('change',()=>{if(window.__babloAuditData)drawAudit(window.__babloAuditData);});
+  lbFetch().then(data=>{window.__babloAuditData=data;drawAudit(data);}).catch(()=>auditBody.replaceChildren(h('p',{class:'small muted'},'Programme audit could not load right now.')));
+  const root=document.querySelector('.stack-l');
+  if(root)root.insertBefore(auditPanel,root.lastElementChild||null);
   if (signedIn() && (!username || typeof p.isGuest !== 'boolean')) ensureChessIdentity();
 }
 
@@ -4369,9 +4395,9 @@ function flashView(code) {
   refresh();
 }
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
-const QUAL = { date: '2026-10-17', A: [14 * 60, 18 * 60], B: [22 * 60, 23 * 60], questions: 60, minutes: 40, topN: 5 };
+const QUAL = { dateA:'2026-11-11',dateB:'2026-11-14',A:[0,1440],B:[0,1440],questions:60,minutes:40,topN:5 };
 function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d.toISOString().slice(0, 10), mins: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
-function qualBatch() { const t = lagosNow(); if (t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
+function qualBatch() { const t=lagosNow(); if(t.date===QUAL.dateA)return 'A'; if(t.date===QUAL.dateB)return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
   if (!signedIn() || !DB.profile || !DB.profile.uid) return 'none';
@@ -4389,7 +4415,7 @@ function qualifyView() {
   qualStatus().then(st => { holder.replaceChildren(qualCard(batch, st)); });
 }
 function qualCard(batch, st) {
-  const info = h('p', { class: 'muted' }, 'Qualifications run on 17 October 2026, Lagos time. Batch A: ' + fmtMin(QUAL.A[0]) + ' to ' + fmtMin(QUAL.A[1]) + '. Batch B: ' + fmtMin(QUAL.B[0]) + ' to ' + fmtMin(QUAL.B[1]) + '.');
+  const info = h('p', { class: 'muted' }, 'Programme Cup qualifiers run all day (Lagos time): Batch A on Wednesday, 11 November 2026; Batch B on Saturday, 14 November 2026. Both are qualifier sessions.');
   let body;
   if (!signedIn()) body = h('div', { class: 'panel stack' }, h('h2', null, 'Create an account first'), h('p', { class: 'muted small' }, 'Only account holders can qualify for their programme.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to my account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
@@ -4503,7 +4529,7 @@ function holdPage(title, withPoll) {
 function notificationsView() {
   const box=h('div',{class:'stack-l notifications-page'});
   const now=Date.now(),DAY=86400000;
-  const QUIZ_TTL=30*DAY,EVENT_GRACE=60*60*1000,EXAM_GRACE=12*60*60*1000;
+  const QUIZ_TTL=7*DAY,EVENT_GRACE=60*60*1000,EXAM_GRACE=12*60*60*1000;
   const notices=[];
   const read=DB.readNotices||{};
   const dismissed=DB.dismissedNotices||{};
@@ -4527,9 +4553,9 @@ function notificationsView() {
   if(missedIds.length)add('weak-topics-'+missedIds.length,'Study focus','Topics to revisit',
     missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.',
     '#/weak',now,'↗',now+14*DAY);
-  const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime();
-  if(now-gstUpdateAt<14*DAY)add('timetable-gst111-thursday-2026-11-08','Schedule','Timetable update · GST 111',
-    'GST 111 is now on Thursday, 3:00pm–4:00pm · 1500 Lecture Hall.','#/timetable',gstUpdateAt,'◷',gstUpdateAt+14*DAY);
+  const gstUpdateAt=new Date('2026-11-08T00:00:00+01:00').getTime(),gstNoticeExpires=new Date('2026-11-10T23:59:59+01:00').getTime();
+  if(now<gstNoticeExpires)add('timetable-gst111-thursday-2026-11-08','Schedule','Timetable update · GST 111',
+    'GST 111 is now on Thursday, 3:00pm–4:00pm · 1500 Lecture Hall.','#/timetable',gstUpdateAt,'◷',gstNoticeExpires);
   const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
     const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
     return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-EVENT_GRACE;
