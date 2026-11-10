@@ -202,3 +202,12 @@
 - The three new game pages are standalone and use device-local best-score storage; they do not yet sync performance to Bablo Hub accounts or course analytics. Their starter question decks are hand-authored and are not yet connected to the verified course question banks.
 - JavaScript source compilation checks passed for calculator and all three game pages. The index page and arcade entries were verified in the preview source. GitHub combined status for commit `50556c045878dd69ef598e67e66027f7aa0c041f` reported Vercel success; deployment reached READY at `bablo-100l-kg9wi9kvq-mosesbama4-3146s-projects.vercel.app`.
 - Still pending: physical Android interaction tests, accessibility review, gameplay QA/balance, course-bank integration, account-level score sync, and deeper calculator numerical edge-case tests. Production remains untouched; no Supabase schema/data changes were made.
+
+### Preview follow-up — 2026-11-10 (Arcade expansion and navigation cleanup)
+
+- Added **Memory Matrix**, a playable academic matching game with Biology, Chemistry, Physics and Computing decks. Each deck contains eight term/definition pairs; players flip cards, match concepts, track moves/time, and retain a best record locally by deck.
+- Audited the Arcade launcher and removed a duplicate Memory Matrix card so the game appears once. Bablo Chess and Chess learning remain available; Bablo Rush and Reflex Arena remain linked as separate games.
+- Source-level JavaScript compilation passed for the calculator, Bablo Rush, Memory Matrix, Reflex Arena, and all 23 executable inline application scripts (JSON-LD structured data excluded from JavaScript compilation).
+- Preview deployment for commit `78f33d38dfc5a4d243efd9fda0da8a339d2c295d` reached READY at `bablo-100l-fpizjx4vd-mosesbama4-3146s-projects.vercel.app`.
+- Not yet verified: physical Android interaction, accessibility with assistive technology, gameplay quality with students, and live account/cloud sync of game records. Scores and best records for these standalone games are device-local.
+- Production branch and production deployment remain untouched; no Supabase schema or student data was changed.
