@@ -2363,6 +2363,21 @@ function brand() {
 
 /* ---------- course page ---------- */
 function courseView(code) {
+  if (code === 'GST111') {
+    const c = courseBy(code);
+    if (!c || !canAccessCourse(code)) { go('#/'); return; }
+    mount(wrap(back('#/courses', 'All courses'),
+      h('div', { class: 'stack-l' },
+        h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' · topical practice and active-recall resources')),
+        h('section', { class: 'panel stack' },
+          h('span', { class: 'chip gold' }, 'GST 111 Study Room'),
+          h('h2', null, 'Communication in English'),
+          h('p', { class: 'muted small' }, 'The study room contains all 14 topic clusters from the supplied past-question PDF, with source-record counts mapped for coverage tracking. The current published build contains 140 original practice questions and 140 flashcards; the remaining source records are still being converted and verified.'),
+          h('a', { class: 'btn primary block', href: '/gst111-study-hub.html' }, 'Open topical questions & flashcards'),
+          h('p', { class: 'tiny muted' }, 'Practice and flashcards open in the GST 111 study room. Your main Hub course navigation and other courses remain unchanged.'))
+      )));
+    return;
+  }
   const c200 = COURSES_200.find(x => x.code === code);
   if (c200) { course200View(c200); return; }
   const c = courseBy(code); if (!c || !isAvail(c) || !canAccessCourse(code)) { go('#/'); return; }
