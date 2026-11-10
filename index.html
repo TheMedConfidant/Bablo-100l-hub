@@ -2290,7 +2290,46 @@ function premiumPricingView() {
  )));
 }
 
-function analyticsView() { const root = h('div', { class: 'stack-l' }, back('#/', 'Dashboard'), h('div', { class: 'stack' }, h('h1', null, 'Learning analytics'), h('p', { class: 'muted' }, 'Your performance across courses, calculated from your saved quiz history.')), h('div', { id: 'bablo-v2-analytics-root', class: 'panel stack' }, h('p', { class: 'muted' }, 'Preparing your analytics…'))); mount(wrap(root)); const target = document.getElementById('bablo-v2-analytics-root'); if (!signedIn()) { target.textContent = 'Sign in to load account-level analytics. Your local practice progress remains available on this device.'; return; } if (!window.BabloV2Analytics) { target.textContent = 'Analytics module is still loading. Please try again.'; return; } window.BabloV2Analytics.mountCourseAnalytics(target, { supabaseUrl: LB.url, publishableKey: LB.key, sessionToken: DB.account.token, days: 365 }).catch(error => { console.warn('[Bablo V2 analytics]', error); }); } function homeView() {
+function localAnalyticsSummary() {
+  const history = (DB.history || []).slice().sort((a,b) => a.ts - b.ts);
+  const recent = history.filter(x => Number(x.ts) >= Date.now() - 7 * 86400000);
+  const count = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.n) || 0), 0);
+  const correct = rows => rows.reduce((n,x) => n + Math.max(0, Number(x.correct) || 0), 0);
+  const total = count(history), accuracy = total ? correct(history) / total * 100 : 0;
+  const recentN = count(recent), recentAccuracy = recentN ? correct(recent) / recentN * 100 : 0;
+  const seconds = history.reduce((n,x) => n + Math.max(0, Number(x.secs) || 0), 0);
+  const topicMap = {};
+  BANK.forEach(q => {
+    const st = DB.stats && DB.stats[q.i]; if (!st || Number(st[0]) < 3) return;
+    const key = q.c + '|' + q.u, row = topicMap[key] || (topicMap[key] = {course:q.c,topic:q.u,seen:0,right:0});
+    row.seen += Number(st[0]) || 0; row.right += Number(st[1]) || 0;
+  });
+  const weak = Object.values(topicMap).map(x => Object.assign(x,{pct:x.seen ? x.right/x.seen*100 : 0})).filter(x => x.pct < 70).sort((a,b)=>a.pct-b.pct).slice(0,5);
+  const recentRows = history.slice(-5).reverse();
+  return h('section',{class:'panel stack'},
+    h('h2',null,'Your learning activity'),
+    h('div',{class:'dashboard-metrics'},
+      h('div',null,h('b',null,String(history.length)),h('small',null,'Sessions')),
+      h('div',null,h('b',null,total ? accuracy.toFixed(1)+'%' : '—'),h('small',null,'Overall accuracy')),
+      h('div',null,h('b',null,String(recent.length)),h('small',null,'Last 7 days')),
+      h('div',null,h('b',null,recentN ? recentAccuracy.toFixed(1)+'%' : '—'),h('small',null,'7-day accuracy'))),
+    h('p',{class:'muted small'},total ? 'Across '+total+' recorded questions · average time '+Math.round(seconds/total)+' seconds per question.' : 'Complete a practice session or quiz to start building your personal learning record.'),
+    h('h3',null,'Topics to revisit'),
+    weak.length ? h('div',{class:'rows'},...weak.map(x=>h('div',{class:'urow'},h('span',{class:'t'},x.topic),h('span',{class:'chip'},x.course),h('span',{class:'chip bad'},x.pct.toFixed(0)+'%')))) : h('p',{class:'muted small'},'No topic-level weak spots recorded yet. Answer at least three questions in a topic to establish a useful signal.'),
+    recentRows.length ? h('div',{class:'stack'},h('h3',null,'Recent sessions'),...recentRows.map(x=>h('div',{class:'row between wrapr'},h('span',null,h('b',null,x.course||'Practice'),h('small',{class:'muted'},' · '+(x.mode||'session')+' · '+new Date(x.ts).toLocaleDateString())),h('span',{class:'chip'},(Number(x.pct)||0).toFixed(0)+'%')))) : null
+  );
+}
+function analyticsView() {
+  const root = h('div', { class: 'stack-l' }, back('#/', 'Dashboard'),
+    h('div', { class: 'stack' }, h('h1', null, 'Learning analytics'), h('p', { class: 'muted' }, 'Performance, consistency and topics that need another pass.')),
+    localAnalyticsSummary(),
+    h('div', { id: 'bablo-v2-analytics-root', class: 'panel stack' }, h('p', { class: 'muted' }, 'Preparing account-level course analytics…')));
+  mount(wrap(root));
+  const target = document.getElementById('bablo-v2-analytics-root');
+  if (!signedIn()) { target.textContent = 'Sign in to add synced course analytics. Your local activity above remains available on this device.'; return; }
+  if (!window.BabloV2Analytics) { target.textContent = 'Synced analytics are temporarily unavailable.'; return; }
+  window.BabloV2Analytics.mountCourseAnalytics(target, { supabaseUrl: LB.url, publishableKey: LB.key, sessionToken: DB.account.token, days: 365 }).catch(error => { console.warn('[Bablo V2 analytics]', error); });
+}function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
@@ -3940,7 +3979,7 @@ function sectionTiles(c, questions, topics) {
     h('button', { class: 'btn gold block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); go('#/premium'); } }, 'View premium prices'),
     h('button', { class: 'btn ghost block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); } }, 'Not now'));
   const secs = [
-    { name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
+    { name: 'Question bank', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
     ...(c.code === 'CHM' ? [{ name: 'Worked Questions', sub: '22 worked questions with answers', live: true, go: () => go('#/worked/CHM') }] : []),
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
