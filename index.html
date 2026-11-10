@@ -4408,8 +4408,10 @@ function qualBatch() { const t=lagosNow(); if(t.date===QUAL.dateA)return 'A'; if
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
   if (!signedIn() || !DB.account || !DB.account.token) return 'none';
-  const result=await hubCall('hub_qualifier_status',{p_token:DB.account.token});
-  return result&&result.ok?result.status:'none';
+  try{
+    const result=await hubCall('hub_qualifier_status',{p_token:DB.account.token});
+    return result&&result.ok?result.status:'error';
+  }catch(e){return 'error';}
 }
 function qualifyView() {
   if (CUP_ON_HOLD) return holdPage('Qualifications');
@@ -4423,7 +4425,8 @@ function qualCard(batch, st) {
   let body;
   if (!signedIn() || DB.profile.isGuest || Core.isGuest(DB.profile.programme)) body = h('div', { class: 'panel stack' }, h('h2', null, 'Student account required'), h('p', { class: 'muted small' }, 'Programme Cup qualification is for registered student accounts. Guests can still inspect the public programme standings.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Create or log in to a student account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
-  else if (st === 'started') body = h('div', { class: 'panel stack' }, h('h2', null, 'Your attempt was already started'), h('p', { class: 'muted small' }, 'Each account gets one attempt, and it cannot be restarted. Contact the admin if your attempt was lost.'));
+  else if (st === 'started') body = h('div', { class: 'panel stack' }, h('h2', null, 'Your attempt was already started'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your current November attempt is already registered.'));
+  else if (st === 'error') body = h('div', { class: 'panel stack' }, h('h2', null, 'Could not verify your status'), h('p', { class: 'muted small' }, 'Your attempt has not been started from this screen. Check your connection and retry before beginning.'), h('button', { class: 'btn primary block', onclick: qualifyView }, 'Retry status check'));
   else if (!batch) body = h('div', { class: 'panel stack' }, h('h2', null, 'Not open right now'), h('p', { class: 'muted small' }, 'Come back during one of the batch windows above.'));
   else body = h('div', { class: 'panel stack' }, h('h2', null, 'Batch ' + batch + ' is open'), h('p', { class: 'muted small' }, QUAL.questions + ' questions from across the courses. ' + QUAL.minutes + ' minutes. One attempt only, and it cannot be restarted once you begin.'),
     h('button', { class: 'btn gold block', onclick: () => startQualifier(batch) }, 'Start qualifications'));
