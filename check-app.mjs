@@ -62,7 +62,7 @@ if (html) {
   const sectionEnd = html.indexOf("/* ---------- Premium Library pricing ---------- */", sectionStart);
   if (sectionStart >= 0 && sectionEnd > sectionStart && !/name: 'Practicals'/.test(html.slice(sectionStart, sectionEnd))) pass("Course pages do not duplicate Laboratory practical sections");
   else fail("Practical section leaked back into a course page");
-  if (/function labHubView/.test(html) && /'Laboratory'/.test(html)) pass("Practical resources remain in the central Laboratory hub");
+  if (/function labHubView\\(\\)/.test(html) && /'Laboratory'/.test(html)) pass("Practical resources remain in the central Laboratory hub");
   else fail("Central Laboratory hub missing");
   if (!html.includes(": null," + String.fromCharCode(92) + "n")) pass("No escaped newline token remains in the Profile markup");
   else fail("Escaped newline token detected in Profile markup");
@@ -72,6 +72,10 @@ if (html) {
   else fail("COS history bonus is missing");
   if (/function premiumPricingView\(/.test(html) && /PREMIUM_ITEM_PRICE = 500/.test(html)) pass("Premium pricing page and ₦500 item price are present");
   else fail("Premium pricing page missing");
+  if (/window\.addEventListener\('online'/.test(html) && /DB\.syncState = 'pending'/.test(html) && /DB\.lastSyncedAt/.test(html)) pass("Offline progress is retained locally and retried when connectivity returns");
+  else fail("Offline progress reconnect sync is missing");
+  if (/function setAccount\(j\).*Object\.assign\(\{\}, previous/.test(html)) pass("Extended profile fields survive account sign-in");
+  else fail("Account sign-in may overwrite extended profile fields");
   if (!/service_role|sk_live_|sk_test_/i.test(html)) pass("No server-side payment/database secret is embedded in the client");
   else fail("A server-side secret appears in client HTML");
 }

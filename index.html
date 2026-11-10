@@ -1756,7 +1756,7 @@ async function hubCall(fn, body) {
   return r.json();
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
-function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+function setAccount(j) { const previous = DB.profile || {}; DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = Object.assign({}, previous, { name: j.fullName, nick: j.nickname, username: j.username || previous.username || '', programme: j.programme, level: previous.level || '100L', uid: j.uniqueId }); save(); }
 let CHESS_IDENTITY_BUSY = false;
 async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
 async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
@@ -1792,12 +1792,33 @@ function mergeRemote(p) {
   if (p.chess && (!DB.chess || (p.chess.games || []).length > (DB.chess.games || []).length)) DB.chess = p.chess;
   save();
 }
-let PUSH_T = null;
-function queuePush() { if (!signedIn()) return; clearTimeout(PUSH_T); PUSH_T = setTimeout(pushProgress, 4000); }
-async function pushProgress() {
+let PUSH_T = null, PUSH_BUSY = false, PUSH_AGAIN = false;
+function persistSyncState() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* local state remains in memory */ } }
+function queuePush() {
   if (!signedIn()) return;
-  try { await hubCall('hub_save_progress', { p_token: DB.account.token, p_progress: localProgress() }); } catch (e) { /* try again on the next change */ }
+  clearTimeout(PUSH_T);
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) { DB.syncState = 'pending'; persistSyncState(); return; }
+  PUSH_T = setTimeout(pushProgress, 4000);
 }
+async function pushProgress() {
+  if (!signedIn()) return false;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) { DB.syncState = 'pending'; persistSyncState(); return false; }
+  if (PUSH_BUSY) { PUSH_AGAIN = true; return false; }
+  PUSH_BUSY = true; DB.syncState = 'syncing'; persistSyncState();
+  try {
+    await hubCall('hub_save_progress', { p_token: DB.account.token, p_progress: localProgress() });
+    DB.syncState = 'synced'; DB.lastSyncedAt = Date.now(); persistSyncState(); return true;
+  } catch (e) {
+    DB.syncState = 'pending'; persistSyncState(); return false;
+  } finally {
+    PUSH_BUSY = false;
+    if (PUSH_AGAIN) { PUSH_AGAIN = false; queuePush(); }
+  }
+}
+window.addEventListener('online', function () {
+  if (!signedIn()) return;
+  DB.syncState = 'syncing'; persistSyncState(); pushProgress();
+});
 
 /* past device scores go to the leaderboard under the account, once each */
 async function syncPastScores() {
@@ -2768,7 +2789,7 @@ function meView() {
       h('label', { class: 'field' }, h('span', null, 'Academic session'), session),
       h('label', { class: 'field' }, h('span', null, 'Semester'), semester),
       DB.profile.uid ? h('p', { class: 'small' }, h('b', null, 'Bablo ID: '), DB.profile.uid) : h('p', { class: 'small muted' }, 'Guest profile · no account linked yet'),
-      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, signedIn() ? 'Account status' : 'Access status'), h('small', { class: 'muted' }, signedIn() ? 'Progress sync enabled for this account.' : 'Guest mode · progress is stored on this device.')), h('span', { class: 'chip ' + (signedIn() ? 'ok' : 'gold') }, signedIn() ? 'Registered' : 'Guest')),
+      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, signedIn() ? 'Account status' : 'Access status'), h('small', { class: 'muted' }, signedIn() ? (DB.syncState === 'pending' ? 'Saved on this device · waiting for connection.' : DB.lastSyncedAt ? 'Last synced ' + new Date(DB.lastSyncedAt).toLocaleString() : 'Progress sync is enabled for this account.') : 'Guest mode · progress is stored on this device.')), h('span', { class: 'chip ' + (signedIn() ? 'ok' : 'gold') }, signedIn() ? 'Registered' : 'Guest')),
       h('button', { class: 'btn primary block', onclick: () => {
         const n = name.value.trim();
         if (n.length < 2) { toast('Enter your name.'); return; }
