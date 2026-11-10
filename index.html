@@ -4447,7 +4447,7 @@ function postQualifier(s) {
     .catch(()=>toast('Could not save your qualification score. Check your connection.'));
 }
 async function qualifiersCard() {
-  const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading\u2026'));
+  const box = h('div', { class: 'stack' }, h('p', { class: 'muted small' }, 'Loading…'));
   const section = h('section', { class: 'panel stack' }, h('h2', null, 'Qualifiers'), box, h('a', { class: 'btn block', href: '#/qualify' }, 'Qualifications'));
   const rows = await sbGet('qualifier_results?select=programme,nickname,pct,secs,batch,created_at,season&season=eq.2026-11&order=pct.desc,secs.asc&limit=500');
   if (!Array.isArray(rows)) { box.replaceChildren(h('p', { class: 'muted small' }, 'Could not load qualifiers.')); return section; }
@@ -4459,11 +4459,32 @@ async function qualifiersCard() {
     const batch=r.batch==='B'?'B':'A';
     (by[programme]=by[programme]||{A:[],B:[]})[batch].push(r);
   });
-  box.replaceChildren(...Object.keys(by).sort().map(programme=>h('div',{class:'stack'},
+  const programmes=Object.keys(by).sort();
+  const batchBoards=['A','B'].map(batch=>{
+    const standings=programmes.map(programme=>{
+      const participants=by[programme][batch].slice().sort((a,b)=>Number(b.pct)-Number(a.pct)||Number(a.secs)-Number(b.secs));
+      const top=participants.slice(0,CUP.topN),ready=participants.length>=CUP.minPlayers;
+      const score=ready?Math.round(top.reduce((sum,r)=>sum+Number(r.pct),0)/top.length*10)/10:null;
+      return {programme,participants,top,ready,score};
+    }).filter(row=>row.participants.length).sort((a,b)=>(b.ready?1:0)-(a.ready?1:0)||(b.score||0)-(a.score||0));
+    return h('div',{class:'stack'},
+      h('h3',null,'Batch '+batch+' · programme standings'),
+      standings.length?h('div',{class:'rows'},standings.map((row,i)=>h('div',{class:'lrow'},
+        h('span',{class:'rk'},row.ready?i+1:'—'),
+        h('span',{class:'grow'},h('b',null,row.programme),h('small',{class:'muted'},row.participants.length+' qualifier'+(row.participants.length===1?'':'s')+(row.ready?' · top '+row.top.length+' count':' · needs '+(CUP.minPlayers-row.participants.length)+' more'))),
+        h('b',null,row.ready?row.score+'%':'Not ranked'))))
+        :h('p',{class:'muted small'},'No Batch '+batch+' results yet.'));
+  });
+  const individual=programmes.map(programme=>h('div',{class:'stack'},
     h('b',null,programme),
     ...['A','B'].map(batch=>h('div',{class:'stack'},
       h('span',{class:'tiny muted'},'Batch '+batch),
-      by[programme][batch].slice(0,QUAL.topN).map((r,i)=>h('div',{class:'lrow'},h('span',{class:'rk'},i+1),h('span',{class:'grow'},r.nickname),h('b',null,r.pct+'% · '+Core.fmtTime(r.secs)))))))));
+      by[programme][batch].length
+        ?by[programme][batch].slice(0,QUAL.topN).map((r,i)=>h('div',{class:'lrow'},h('span',{class:'rk'},i+1),h('span',{class:'grow'},r.nickname),h('b',null,r.pct+'% · '+Core.fmtTime(r.secs))))
+        :h('p',{class:'tiny muted'},'No results yet.')
+    ))
+  ));
+  box.replaceChildren(...batchBoards,h('h3',null,'Top individual qualifiers by programme'),...individual);
   return section;
 }
 
