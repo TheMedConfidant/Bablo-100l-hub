@@ -2723,7 +2723,7 @@ function weakView() {
   };
   const body = [];
   body.push(h('div', { class: 'stack' }, h('h1', null, 'Weak spots'), h('p', { class: 'muted' }, 'Topics where your accuracy is lowest, plus every question you have missed. Practice sends these back to you until you get them right.')));
-  body.push(h('section', { class: 'stack' }, h('h2', null, 'Topics to focus on'),
+  body.push(h('section', { class: 'panel stack' }, h('h2', null, 'Smart PQ · adaptive practice'), h('p', { class: 'muted small' }, 'A fresh set weighted towards weak topics, repeated mistakes and questions you have not yet attempted.'), h('button', { class: 'btn primary block', onclick: () => window.startBabloSmartPQ({ targetCount: 20 }) }, 'Build my Smart PQ set'))); body.push(h('section', { class: 'stack' }, h('h2', null, 'Topics to focus on'),
     focus.length ? focus.map(topicCard) : [h('div', { class: 'panel' }, topics.length ? h('p', { class: 'muted' }, 'Nothing below 70% yet. Keep it up.') : h('p', { class: 'muted' }, 'Answer a few questions in practice or a quiz (at least 3 per topic) and your weak topics will show up here.'))]));
   body.push(h('section', { class: 'panel stack' }, h('h2', null, 'Missed questions'),
     h('p', { class: 'muted' }, missed.length ? plural(missed.length, 'question') + ' you have not got right yet.' : 'No missed questions. Nice.'),
@@ -4725,6 +4725,9 @@ startRestReminder();
 setTimeout(liveNotice, 1200);
 
 </script>
+<script src="v2/smart-pq-engine.js"></script>
+<script src="v2/smart-pq-adapter.js"></script>
+<script src="v2/smart-pq-integration.js"></script>
 <script src="challenge-arena.js"></script>
 <script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
 </body>
