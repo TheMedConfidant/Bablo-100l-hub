@@ -2709,36 +2709,8 @@ const verseBand = pct => pct >= 70 ? 'high' : pct >= 60 ? 'good' : pct >= 50 ? '
 
 /* In-session scientific calculator: stays inside the active question flow. */
 function openSessionCalculator(){
- const input=h('input',{type:'text',inputmode:'none',readOnly:true,'aria-readonly':'true',placeholder:'Use the scientific keypad',style:{width:'100%',fontSize:'1.15rem',fontVariantNumeric:'tabular-nums'},'aria-label':'Calculator expression'});
- const display=h('div',{class:'panel stack',style:{gap:'4px',background:'var(--surface2)',overflowWrap:'anywhere'}},h('span',{class:'tiny muted'},'RESULT'),h('strong',{style:{fontSize:'clamp(1.7rem,7vw,2.3rem)',fontVariantNumeric:'tabular-nums'}},'0'));
- const historyBox=h('div',{class:'tiny muted',style:{display:'grid',gap:'5px'}});
- const pad=h('div',{class:'calc-keypad'});const history=[];let memory=0,lastValue=0;
- const angle=h('button',{class:'btn sm ghost',onclick:e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';update();}},CALC_DEG?'DEG':'RAD');
- const status=h('span',{class:'tiny muted'},'ANS = previous result · M = 0');
- const close=modal(h('div',{class:'stack',style:{gap:'12px'}},
-  h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('h2',null,'Scientific calculator'),h('span',{class:'tiny muted'},'Practice & quiz tool')),h('span',{class:'chip brand'},'Bablo Calc')),
-  h('p',{class:'tiny muted'},'Full scientific keypad, memory, calculation history and degree/radian mode. Your question and timer remain active.'),
-  h('section',{class:'calc-display'},h('label',{class:'tiny muted'},'EXPRESSION'),input,display,status),
-  h('div',{class:'row wrapr'},angle,h('button',{class:'btn sm ghost',onclick:()=>{input.value='';update();}},'AC'),h('button',{class:'btn sm ghost',onclick:()=>{input.value=input.value.slice(0,-1);update();}},'DEL'),h('button',{class:'btn sm ghost',onclick:async()=>{try{await navigator.clipboard.writeText(String(lastValue));toast('Result copied.');}catch(_){toast('Copy is not available on this device.');}}},'Copy result')),
-  h('div',{class:'row between'},h('b',{class:'tiny'},'Memory'),h('span',{class:'tiny muted'},'MC clears · MR recalls · M+/M− adjust')),pad,
-  h('section',{class:'panel stack',style:{gap:'6px'}},h('b',{class:'tiny'},'Recent calculations'),historyBox),
-  h('button',{class:'btn primary block',onclick:()=>close()},'Back to question')),true);
- function update(commit=false){try{const n=calcEvaluate(input.value);lastValue=n;if(commit)CALC_ANS=n;
-  display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',{style:{fontSize:'clamp(1.7rem,7vw,2.3rem)',fontVariantNumeric:'tabular-nums',overflowWrap:'anywhere'}},String(Number(n.toPrecision(12)))));
-  status.textContent=(CALC_DEG?'DEG':'RAD')+' · ANS = previous result · M = '+String(Number(memory.toPrecision(8)));
-  if(commit&&input.value.trim()){history.unshift({expr:input.value,value:n});history.splice(5);renderHistory();}
- }catch(e){display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',null,input.value.trim()?(e.message||'Check expression'):'0'));status.textContent=(CALC_DEG?'DEG':'RAD')+' · Check brackets, function names or the operation domain';}}
- function renderHistory(){historyBox.replaceChildren(...(history.length?history.map(item=>h('button',{class:'btn sm ghost',style:{justifyContent:'space-between',width:'100%',fontWeight:'500'},onclick:()=>{input.value=item.expr;update();}},h('span',null,item.expr),h('b',null,String(Number(item.value.toPrecision(10)))))):[h('span',null,'Your recent calculations will appear here.')]));}
- const keys=[['MC','util'],['MR','util'],['M+','util'],['M−','util'],['⌫','util'],['sin(','fn'],['cos(','fn'],['tan(','fn'],['asin(','fn'],['acos(','fn'],['atan(','fn'],['sinh(','fn'],['cosh(','fn'],['tanh(','fn'],['ln(','fn'],['log(','fn'],['log2(','fn'],['√(','fn'],['∛(','fn'],['x²','fn'],['xʸ','fn'],['1/x','fn'],['!','fn'],['%','fn'],['π','fn'],['e','fn'],['(','fn'],[')','fn'],['ANS','fn'],['AC','util'],['7','num'],['8','num'],['9','num'],['÷','op'],['×','op'],['4','num'],['5','num'],['6','num'],['−','op'],['+','op'],['1','num'],['2','num'],['3','num'],['00','num'],['±','util'],['0','num'],['.','num'],['MS','util'],['=','equals']];
- keys.forEach(([label,type])=>{pad.append(h('button',{class:'calc-key '+type,type:'button','aria-label':label==='⌫'?'Delete last character':label,onclick:()=>{
-  if(label==='AC'){input.value='';update();return;}if(label==='⌫'){input.value=input.value.slice(0,-1);update();return;}
-  if(label==='MC'){memory=0;update();return;}if(label==='MR'){input.value+=String(Number(memory.toPrecision(12)));update();return;}
-  if(label==='M+'){memory+=lastValue;update();return;}if(label==='M−'){memory-=lastValue;update();return;}if(label==='MS'){memory=lastValue;update();return;}
-  if(label==='='){update(true);return;}if(label==='±'){input.value=input.value?'-('+input.value+')':'-';update();return;}
-  const insert=label==='√('? 'sqrt(':label==='∛('? 'cbrt(':label==='x²'?'^2':label==='xʸ'?'^':label==='1/x'?'^(-1)':label==='×'?'*':label==='÷'?'/':label==='−'?'-':label;
-  input.value+=insert;update();
- }},label));});
- input.addEventListener('input',()=>update());renderHistory();update();
+ const frame=h('iframe',{title:'Bablo scientific calculator',src:'/calculator/?embedded=1',loading:'eager',style:{display:'block',width:'100%',height:'min(76vh,760px)',minHeight:'560px',border:'0',borderRadius:'14px',background:'var(--surface)'}});
+ modal(h('div',{class:'stack',style:{gap:'10px'}},h('div',{class:'row between wrapr'},h('div',{class:'stack',style:{gap:'2px'}},h('h2',null,'Scientific calculator'),h('span',{class:'tiny muted'},'Same full calculator used from the Hub menu. Your quiz timer and answers remain active.')),h('span',{class:'chip brand'},'Bablo Calc')),frame),true);
 }
 /* ---------- run (practice / quiz / exam) ---------- */
 function runView() {
@@ -4238,8 +4210,7 @@ function sectionTiles(c, questions, topics) {
     ...(c.code === 'CHM' ? [{ name: 'Quizzes', sub: '74 Thermochemistry MCQs', live: true, go: () => { const i = unitsOf('CHM').findIndex(u => u.name === 'Thermochemistry'); go('#/setup/CHM/quiz?u=' + i); } }] : []),
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
-    { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
-  ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
+  ];
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
     const freeWeek = s.name === 'Practicals' && Date.now() < PRACTICAL_FREE_UNTIL;
