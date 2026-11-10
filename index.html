@@ -2043,7 +2043,7 @@ function calcEvaluate(raw){
 }
 function scientificCalculatorView(){
   const root=document.createElement('main');root.className='wrap calc-page';
-  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><h1>Scientific calculator</h1><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder=""><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button><button id="calcBack" class="btn ghost">DEL</button></div><div id="calcPad" class="calc-keypad"></div></section></div>';
+  root.innerHTML='<a class="back" href="#/">‹ Home</a><div class="stack-l"><h1>Scientific calculator</h1><section class="panel stack calc-shell"><div class="calc-display"><label for="calcExpr" class="tiny muted">Expression</label><input id="calcExpr" type="text" inputmode="none" readonly aria-readonly="true" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder=""><div id="calcResult" class="calc-result" aria-live="polite">0</div><div id="calcStatus" class="tiny muted">DEG</div></div><div class="row wrapr"><button id="calcAngle" class="btn ghost">DEG</button></div><div id="calcPad" class="calc-keypad"></div></section></div>';
   document.getElementById('app').replaceChildren(root);
   const input=root.querySelector('#calcExpr'),out=root.querySelector('#calcResult'),status=root.querySelector('#calcStatus'),pad=root.querySelector('#calcPad');
   const show=(force=false)=>{try{const n=calcEvaluate(input.value);if(!Number.isFinite(n))throw Error();out.textContent=String(Number(n.toPrecision(12)));status.textContent=CALC_DEG?'DEG':'RAD';if(force)CALC_ANS=n;}catch(e){out.textContent=input.value.trim()?'Check expression':'0';status.textContent='Check brackets, operators and function names';}};
@@ -2067,7 +2067,7 @@ function scientificCalculatorView(){
   };if(label==='=')b.style.gridColumn='span 1';pad.append(b);});
   input.oninput=()=>show();input.onkeydown=e=>{if(e.key==='Enter'||e.key==='='){e.preventDefault();show(true);}else if(e.key==='Escape'){input.value='';show();}};
   root.querySelector('#calcAngle').onclick=e=>{CALC_DEG=!CALC_DEG;e.currentTarget.textContent=CALC_DEG?'DEG':'RAD';show();};
-  root.querySelector('#calcBack').onclick=()=>{const a=input.selectionStart??input.value.length,z=input.selectionEnd??a;if(a!==z)input.value=input.value.slice(0,a)+input.value.slice(z);else if(a>0)input.value=input.value.slice(0,a-1)+input.value.slice(z);input.focus();show();};
+  /* Deletion is handled by the single ⌫ keypad key. */
 }
 
 function route() {
@@ -3791,12 +3791,13 @@ const PLAN_KEY = 'plan';
 const PLAN_DEFAULTS = [
   { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.' },
   { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.' },
-  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' }
+  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' },
+  { id: 'phy101-test-2026-11-24', title: 'PHY 101 test', date: '2026-11-24', time: '09:00', note: 'PHY test reminder · time to confirm.' }
 ];
 function planEvents() {
-  if (!DB.events || DB.eventsVersion !== 3) {
+  if (!DB.events || DB.eventsVersion !== 4) {
     const own = (DB.events || []).filter(e => !PLAN_DEFAULTS.some(d => d.id === e.id) && e.id !== 'gst-test' && e.id !== 'lib-test' && e.id !== 'gel-ca-mbbs');
-    DB.events = PLAN_DEFAULTS.concat(own); DB.eventsVersion = 3; save();
+    DB.events = PLAN_DEFAULTS.concat(own); DB.eventsVersion = 4; save();
   }
   return DB.events;
 }
@@ -3966,7 +3967,7 @@ function pollCard(P) {
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
 function course200View(c) {
-  const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
+  const tabs = ['Questions', 'Notes'];
   const cur = (course200View.tab || 'Questions');
   const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
     'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
@@ -3997,7 +3998,7 @@ function sectionTiles(c, questions, topics) {
     h('button', { class: 'btn ghost block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); } }, 'Not now'));
   const secs = [
     { name: 'Question bank', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
-    ...(c.code === 'CHM' ? [{ name: 'Worked Questions', sub: '22 worked questions with answers', live: true, go: () => go('#/worked/CHM') }] : []),
+    /* CHM worked items are part of the question bank; avoid a duplicate entry. */
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
   ];
@@ -4328,6 +4329,10 @@ function settingsView() {
       h('div', { class: 'row between wrapr' },
         h('span', null, h('b', null, 'Sound effects'), h('small', { class: 'muted' }, 'Optional sounds for timers and activity.')),
         h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off'))),
+    h('section', { class: 'panel stack' },
+      h('h2', null, 'More options'),
+      h('p', { class: 'tiny muted' }, 'Useful tools and account controls.'),
+      h('button', { class: 'btn block', onclick: () => go('#/calculator') }, 'Scientific calculator')),
     h('section', { class: 'stack' },
       h('h2', null, 'Account'),
       installCard(),
