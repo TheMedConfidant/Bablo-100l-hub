@@ -124,7 +124,7 @@ html,body{height:100%;overflow:hidden}
  *,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
 
-</style></head>
+</style><style id="bablo-arcade-embedded">body.embedded{background:transparent;min-height:0}body.embedded .wrap{max-width:none;padding:10px 8px 28px}body.embedded .top{display:none!important}body.embedded .hero{margin:0 0 14px}body.embedded .hero h1{font-size:clamp(1.8rem,5vw,2.8rem)}body.embedded .stats{margin:12px 0 18px}body.embedded .arcade-shell{max-width:none}</style></head>
 <body><main class="wrap arcade-shell">
 <div id="homeview" class="page-view"><header class="top"><div class="brand">BABLO <span>ARCADE</span></div><a class="back" href="/">← Back to Hub</a></header>
 <section class="hero"><div class="eyebrow">Play • Think • Compete</div><h1>Your next<br><span style="color:var(--gold)">move starts here.</span></h1><p>Quick games built for sharp minds. Play a round, beat your best score, and keep improving.</p></section>
@@ -266,4 +266,4 @@ function tapReaction(){
 }
 $('mathanswer').addEventListener('keydown',e=>{if(e.key==='Enter'&&reactionState==='math')tapReaction()});
 setReactionMode();if(['#rush','#memory','#reaction'].includes(location.hash))openGame(location.hash.slice(1),false);$('best').textContent=localStorage.rushBest||0;$('pairs').textContent=localStorage.memPairs||0;if(localStorage.memBestMoves)$('memorybest').textContent=localStorage.memBestMoves+' moves';if(localStorage.reactionBest)$('reactionbest').textContent=localStorage.reactionBest+' ms';populateRushCourses();populateMemoryCourses();refreshProgress();
-</script></body></html>
+</script><script>if(new URLSearchParams(location.search).has('embedded'))document.body.classList.add('embedded');</script></body></html>
