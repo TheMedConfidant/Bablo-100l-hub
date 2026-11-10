@@ -2056,7 +2056,8 @@ function scientificCalculatorView(){
     ['1','num'],['2','num'],['3','num'],['AC','util'],
     ['0','num'],['.','num'],['±','util'],['00','num'],['=','equals']
   ];
-  keys.forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
+  const seenCalcKeys=new Set();
+  keys.filter(([label])=>{if(seenCalcKeys.has(label))return false;seenCalcKeys.add(label);return true;}).forEach(([label,type],idx)=>{const b=document.createElement('button');b.type='button';b.className='calc-key '+type;b.textContent=label;b.setAttribute('aria-label',label==='⌫'?'Delete last character':label);b.onclick=()=>{
     if(label==='AC'){input.value='';out.textContent='0';status.textContent=CALC_DEG?'DEG':'RAD';input.focus();return;}
     if(label==='⌫'){input.value=input.value.slice(0,-1);show();input.focus();return;}
     if(label==='='){show(true);input.focus();return;}
@@ -2541,7 +2542,8 @@ function openSessionCalculator(){
  }catch(e){display.replaceChildren(h('span',{class:'tiny muted'},'RESULT'),h('strong',null,input.value.trim()?(e.message||'Check expression'):'0'));status.textContent=(CALC_DEG?'DEG':'RAD')+' · Check brackets, function names or the operation domain';}}
  function renderHistory(){historyBox.replaceChildren(...(history.length?history.map(item=>h('button',{class:'btn sm ghost',style:{justifyContent:'space-between',width:'100%',fontWeight:'500'},onclick:()=>{input.value=item.expr;update();}},h('span',null,item.expr),h('b',null,String(Number(item.value.toPrecision(10)))))):[h('span',null,'Your recent calculations will appear here.')]));}
  const keys=[['MC','util'],['MR','util'],['M+','util'],['M−','util'],['⌫','util'],['sin(','fn'],['cos(','fn'],['tan(','fn'],['asin(','fn'],['acos(','fn'],['atan(','fn'],['sinh(','fn'],['cosh(','fn'],['tanh(','fn'],['ln(','fn'],['log(','fn'],['log2(','fn'],['√(','fn'],['∛(','fn'],['x²','fn'],['xʸ','fn'],['1/x','fn'],['!','fn'],['%','fn'],['π','fn'],['e','fn'],['(','fn'],[')','fn'],['ANS','fn'],['AC','util'],['7','num'],['8','num'],['9','num'],['÷','op'],['×','op'],['4','num'],['5','num'],['6','num'],['−','op'],['+','op'],['1','num'],['2','num'],['3','num'],['00','num'],['±','util'],['0','num'],['.','num'],['MS','util'],['=','equals']];
- keys.forEach(([label,type])=>{pad.append(h('button',{class:'calc-key '+type,type:'button','aria-label':label==='⌫'?'Delete last character':label,onclick:()=>{
+ const seenSessionCalcKeys=new Set();
+ keys.filter(([label])=>{if(seenSessionCalcKeys.has(label))return false;seenSessionCalcKeys.add(label);return true;}).forEach(([label,type])=>{pad.append(h('button',{class:'calc-key '+type,type:'button','aria-label':label==='⌫'?'Delete last character':label,onclick:()=>{
   if(label==='AC'){input.value='';update();return;}if(label==='⌫'){input.value=input.value.slice(0,-1);update();return;}
   if(label==='MC'){memory=0;update();return;}if(label==='MR'){input.value+=String(Number(memory.toPrecision(12)));update();return;}
   if(label==='M+'){memory+=lastValue;update();return;}if(label==='M−'){memory-=lastValue;update();return;}if(label==='MS'){memory=lastValue;update();return;}
