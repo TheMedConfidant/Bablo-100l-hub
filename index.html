@@ -2142,6 +2142,7 @@ function route() {
     else if (v === 'chess') chessView();
     else if (v === 'gpa') gpaView();
     else if (v === 'me') meView();
+    else if (v === 'programme-audit') programmeAuditView(qs.get('programme'));
     else homeView();
   } catch (e) { console.error(e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'Something went wrong'), h('p', { class: 'muted' }, 'Go back home and try again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
 }
@@ -2767,6 +2768,47 @@ function boardView() {
 }
 
 /* ---------- me ---------- */
+function programmeAuditView(requestedProgramme) {
+  const ownProgramme=String(DB.profile&&DB.profile.programme||'').trim();
+  let selected=String(requestedProgramme||ownProgramme||'MBBS').trim();
+  if(!selected)selected='MBBS';
+  const known=PROGRAMMES.includes(selected);
+  const isCustom=selected.startsWith('Guest — ')||(!known&&selected!==GUEST_PROGRAMME);
+  const options=PROGRAMMES.filter(p=>p!==GUEST_PROGRAMME).map(p=>h('option',{value:p,selected:p===selected?true:null},p));
+  if(isCustom&&!PROGRAMMES.includes(selected))options.push(h('option',{value:selected,selected:true},selected));
+  options.push(h('option',{value:'__custom__'},'Audit another programme…'));
+  const picker=h('select',null,...options);
+  const custom=h('input',{type:'text',maxlength:'70',placeholder:'Enter programme name',value:isCustom?(selected.startsWith('Guest — ')?selected.slice(8):selected):'',style:{display:'none'}});
+  const load=h('button',{class:'btn primary',type:'button',onclick:()=>{
+    const value=picker.value==='__custom__'?'Guest — '+custom.value.trim():picker.value;
+    if(!value||value==='Guest — '){toast('Enter a programme name first.');return;}
+    go('#/programme-audit?programme='+encodeURIComponent(value));
+  }},'View programme');
+  picker.addEventListener('change',()=>{custom.style.display=picker.value==='__custom__'?'':'none';});
+  const mapped=Object.prototype.hasOwnProperty.call(PROGRAMME_COURSES,selected);
+  const courses=coursesFor(selected);
+  const rows=courses.map(course=>{
+    const questions=(BANK||[]).filter(q=>q.c===course.code).length;
+    const packs=premiumPackInventory(course.code);
+    const resources=[];
+    if(questions)resources.push(questions+' question-bank items');
+    if(packs.notes)resources.push('Notes');
+    if(packs.flashcards)resources.push('Flashcards');
+    if(!resources.length)resources.push('Core course listed · resources pending');
+    return h('section',{class:'panel stack',style:{gap:'7px'}},
+      h('div',{class:'row between wrapr'},h('b',null,course.label),h('span',{class:'chip'},questions?questions+' questions':'Pending')),
+      h('p',{class:'small muted'},course.title),
+      h('p',{class:'tiny muted'},resources.join(' · ')));
+  });
+  mount(wrap(back('#/me','Profile'),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('span',{class:'chip gold'},'PROGRAMME DIRECTORY'),h('h1',null,'Programme audit'),
+      h('p',{class:'muted'},'Review the courses and learning resources currently mapped to a programme. This is a read-only catalogue view; it does not expose another student’s profile or grant access to restricted course content.')),
+    h('section',{class:'panel stack'},h('label',{class:'field'},h('span',null,'Select a programme'),picker),custom,h('div',{class:'row'},load)),
+    !mapped?h('section',{class:'panel stack'},h('b',null,'Programme mapping needs review'),h('p',{class:'small muted'},'This programme is not yet mapped to its own course list. The directory is showing the shared CoHES core as a provisional reference, not claiming these are the programme’s complete requirements.')):null,
+    h('div',{class:'stack'},h('div',{class:'row between wrapr'},h('h2',null,selected),h('span',{class:'chip'},courses.length+' mapped courses')),...rows),
+    h('p',{class:'tiny muted'},'Laboratory practicals remain in the central Laboratory hub. Programme course mappings and pending resources require academic review before being treated as official.')))));
+}
+
 function meView() {
   const p = DB.profile || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '60', autocomplete: 'name' });
@@ -2794,7 +2836,9 @@ function meView() {
       h('label', { class: 'field' }, h('span', null, 'Academic session'), session),
       h('label', { class: 'field' }, h('span', null, 'Semester'), semester),
       DB.profile.uid ? h('p', { class: 'small' }, h('b', null, 'Bablo ID: '), DB.profile.uid) : h('p', { class: 'small muted' }, 'Guest profile · no account linked yet'),
-      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, signedIn() ? 'Account status' : 'Access status'), h('small', { class: 'muted' }, signedIn() ? (DB.syncState === 'pending' ? 'Saved on this device · waiting for connection.' : DB.lastSyncedAt ? 'Last synced ' + new Date(DB.lastSyncedAt).toLocaleString() : 'Progress sync is enabled for this account.') : 'Guest mode · progress is stored on this device.')), h('span', { class: 'chip ' + (signedIn() ? 'ok' : 'gold') }, signedIn() ? 'Registered' : 'Guest')),
+      DB.profile.username ? h('p', { class: 'small' }, h('b', null, 'Username: '), '@'+DB.profile.username) : null,
+      h('div', { class: 'row wrapr' }, h('span', { class: 'chip ' + (signedIn() ? 'ok' : 'gold') }, signedIn() ? 'Student' : 'Guest'), h('span', { class: 'chip ' + (premiumOn() ? 'gold' : '') }, premiumOn() ? 'Premium' : 'Standard')),
+      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, signedIn() ? 'Account status' : 'Access status'), h('small', { class: 'muted' }, signedIn() ? (DB.syncState === 'pending' ? 'Saved on this device · waiting for connection.' : DB.lastSyncedAt ? 'Last synced ' + new Date(DB.lastSyncedAt).toLocaleString() : 'Progress sync is enabled for this account.') : 'Guest mode · progress is stored on this device.'))),
       h('button', { class: 'btn primary block', onclick: () => {
         const n = name.value.trim();
         if (n.length < 2) { toast('Enter your name.'); return; }
@@ -2811,6 +2855,7 @@ function meView() {
         });
         save(); toast('Profile saved.');
       } }, 'Save profile'),
+      h('button', { class: 'btn block', type: 'button', onclick: () => go('#/programme-audit?programme='+encodeURIComponent(prog.value.trim()||p.programme||'')) }, 'Audit this programme'),
       !signedIn() ? h('button', { class: 'btn gold block', type: 'button', onclick: () => {
         const account = document.getElementById('profile-account');
         if (account) { account.scrollIntoView({ behavior: 'smooth', block: 'start' }); const first = account.querySelector('input,select,button'); if (first) first.focus({ preventScroll: true }); }
