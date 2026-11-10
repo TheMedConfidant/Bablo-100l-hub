@@ -249,3 +249,10 @@
 #### Release status
 - Preview branch only. No production deployment has been performed.
 - Vercel preview deployment and real Android interaction checks are still required.
+
+
+#### Deployment gate update — 2026-11-10
+- The latest source commit is 7b0d504d5857b467c1388fc8027de5724e4abc87 on bablo-hub-v2-preview.
+- A new Vercel preview deployment could not be created: the Vercel deployment API returned a 402 resource-limit response (more than 100 API deployments in the current 24-hour window; retry after 24 hours).
+- The most recent READY deployment available to inspect is commit c497ba6ad8c5ae5b7d2f5e02c67264785e777cb3. It predates the Profile Audit, Arcade cache and Phase 6 commits and must not be treated as validation of the latest source.
+- No production deployment or promotion was attempted. No CLI deployment fallback is installed in the current runtime.
