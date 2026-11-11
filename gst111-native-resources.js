@@ -38,36 +38,56 @@
  const byStem=new Map();
  bank.filter(q=>q.c==="GST111").forEach(q=>{const k=stemKey(q);if(!byStem.has(k))byStem.set(k,[]);byStem.get(k).push(q);});
  const seen=new Set(bank.filter(q=>q.c==="GST111").map(fingerprint));
- let added=0,duplicates=0,reconciled=0,conflicts=0,reviewSkipped=0;const conflictRecords=[];
+ let added=0,duplicates=0,reconciled=0,conflicts=0,reviewSkipped=0,variantsAdded=0;const conflictRecords=[];
  rawQuestions.forEach((q,i)=>{
    if(!q.q||!Array.isArray(q.o)||q.o.length<2){reviewSkipped++;return;}
    const cleaned={q:q.q,o:q.o.map(cleanOption)};
    const contaminated=q.o.some(x=>/(?:ANWER|ANSWER)\s*:|[a-z]ANSWER[a-z]|\b\d{1,4}\.\s+[A-Z]/i.test(String(x||"")));
    const sameStem=byStem.get(stemKey(q))||[];
    if(sameStem.length){
-     if(validOptions(cleaned)){
-       sameStem.forEach(existing=>{
+     if(!validOptions(cleaned)){reviewSkipped++;return;}
+     const fp=fingerprint(cleaned);
+     const sameOptions=sameStem.filter(existing=>fingerprint(existing)===fp);
+     const uploadAnswer=Number.isInteger(q.a)&&q.a>=0&&q.a<cleaned.o.length?norm(cleaned.o[q.a]):"";
+     if(sameOptions.length){
+       sameOptions.forEach(existing=>{
          const oldOptions=Array.isArray(existing.o)?existing.o:[];
+         const oldAnswer=Number.isInteger(existing.a)&&existing.a>=0&&existing.a<oldOptions.length?norm(cleanOption(oldOptions[existing.a])):"";
+         if(oldAnswer&&uploadAnswer&&oldAnswer!==uploadAnswer){
+           existing.f=true;
+           existing.e=(existing.e||"")+" Conflicting supplied answer keys: PDF key "+oldAnswer+"; HTML pack key "+uploadAnswer+". Flagged for review; neither source key is independently verified.";
+           if(!conflictRecords.some(x=>x.id===existing.i&&x.record===i+1))conflictRecords.push({record:i+1,id:existing.i,pdf:oldAnswer,html:uploadAnswer});
+           conflicts++;
+           return;
+         }
          const oldDirty=oldOptions.some(x=>/(?:ANWER|ANSWER)/i.test(String(x||""))||!String(x||"").trim())||oldOptions.length!==cleaned.o.length;
          if(!oldDirty)return;
-         const oldAnswer=Number.isInteger(existing.a)&&existing.a>=0&&existing.a<oldOptions.length?norm(cleanOption(oldOptions[existing.a])):"";
-         const uploadAnswer=Number.isInteger(q.a)&&q.a>=0&&q.a<cleaned.o.length?norm(cleaned.o[q.a]):"";
-         if(oldAnswer&&uploadAnswer&&oldAnswer!==uploadAnswer){existing.f=true;existing.e=(existing.e||"")+" Conflicting supplied answer keys: PDF key "+oldAnswer+"; HTML pack key "+uploadAnswer+". Requires review.";conflicts++;conflictRecords.push({record:i+1,id:existing.i,pdf:oldAnswer,html:uploadAnswer});return;}
          existing.o=cleaned.o.slice();
-         if(!oldAnswer&&uploadAnswer){existing.a=q.a;existing.f=false;existing.e=(existing.e||"")+" Answer key supplied in GST111_Study_Pack.html; not independently verified.";}
-         else if(uploadAnswer){existing.e=(existing.e||"")+" Options reconciled against GST111_Study_Pack.html; supplied key not independently verified.";}
+         if(oldAnswer){existing.a=cleaned.o.findIndex(x=>norm(x)===oldAnswer);}
+         else if(uploadAnswer){existing.a=q.a;existing.f=false;existing.e=(existing.e||"")+" Answer key supplied in GST111_Study_Pack.html; not independently verified.";}
+         if(uploadAnswer)existing.e=(existing.e||"")+" Options reconciled against GST111_Study_Pack.html; supplied key not independently verified.";
          reconciled++;
        });
+       duplicates++;return;
      }
-     duplicates++;if(!validOptions(cleaned))reviewSkipped++;return;
+     if(contaminated){reviewSkipped++;return;}
+     const answerConflict=sameStem.some(existing=>{
+       const opts=Array.isArray(existing.o)?existing.o:[];
+       const oldAnswer=Number.isInteger(existing.a)&&existing.a>=0&&existing.a<opts.length?norm(cleanOption(opts[existing.a])):"";
+       return !!(oldAnswer&&uploadAnswer&&oldAnswer!==uploadAnswer);
+     });
+     const a=Number.isInteger(q.a)&&q.a>=0&&q.a<cleaned.o.length?q.a:-1;
+     const item={i:"GST111-UPLOAD-PQ-"+String(i+1).padStart(4,"0"),c:"GST111",u:q.t||"Uncategorised",s:"mcq",q:q.q,o:cleaned.o,a,e:"Distinct option variant from GST111_Study_Pack.html; supplied answer key is not independently verified.",f:a<0||answerConflict,source_file:"GST111_Study_Pack.html",source_record:i+1};
+     if(answerConflict)item.e+=" Conflicting answer text exists among same-stem source records; flagged for review.";
+     bank.push(item);seen.add(fp);byStem.set(stemKey(q),[...sameStem,item]);added++;variantsAdded++;return;
    }
-   if(contaminated||!validOptions(cleaned)){reviewSkipped++;duplicates++;return;}
+   if(contaminated||!validOptions(cleaned)){reviewSkipped++;return;}
    const fp=fingerprint(cleaned);
    if(seen.has(fp)){duplicates++;return;}
    const a=Number.isInteger(q.a)&&q.a>=0&&q.a<cleaned.o.length?q.a:-1;
    const item={i:"GST111-UPLOAD-PQ-"+String(i+1).padStart(4,"0"),c:"GST111",u:q.t||"Uncategorised",s:"mcq",q:q.q,o:cleaned.o,a,e:"Answer key supplied in GST111_Study_Pack.html; not independently verified.",f:a<0,source_file:"GST111_Study_Pack.html",source_record:i+1};
    bank.push(item);seen.add(fp);byStem.set(stemKey(q),[...(byStem.get(stemKey(q))||[]),item]);added++;
  });
- window.__GST111_UPLOADED_PACK__={notes:pack.topics.length,flashcards:window.__CARDS__.GST111.length,uploadedQuestions:rawQuestions.length,uniqueQuestionsAdded:added,duplicateQuestionsSkipped:duplicates,reconciledExistingQuestions:reconciled,answerKeyConflicts:conflicts,conflictRecords,malformedRecordsHeldForReview:reviewSkipped};
+ window.__GST111_UPLOADED_PACK__={notes:pack.topics.length,flashcards:window.__CARDS__.GST111.length,uploadedQuestions:rawQuestions.length,uniqueQuestionsAdded:added,variantQuestionsAdded:variantsAdded,duplicateQuestionsSkipped:duplicates,reconciledExistingQuestions:reconciled,answerKeyConflicts:conflicts,conflictRecords,malformedRecordsHeldForReview:reviewSkipped};
  window.__GST111_SOURCE_IMPORT__=Object.assign({},window.__GST111_SOURCE_IMPORT__||{},{uploadedNotes:pack.topics.length,uploadedFlashcards:window.__CARDS__.GST111.length,uploadedQuestions:rawQuestions.length,uploadedUniqueQuestionsAdded:added,flashcards:window.__CARDS__.GST111.length,cards:window.__CARDS__.GST111.length});
 })();
