@@ -37,8 +37,15 @@
     studentFacingQuestionSource: "gst111-curated-pack.js",
     curatedOriginalPracticeQuestions: 382,
     preExistingGST111QuestionsPreserved: 131,
-    studentFacingTotalQuestions: 513,
-    exactDuplicateSourceRecordsConsolidated: 279
+    totalStudentFacingQuestions: 513,
+    examEligibleQuestions: 481,
+    uniqueStudentFacingQuestions: 513,
+    uniqueStudentFacingFlashcards: 246,
+    nativeNotesTopics: 14,
+    quizTopics: 14,
+    sourceQuestionsImportedVerbatim: 0,
+    coverageStatus: "All 1,093 source records topic-mapped; repeated records consolidated; original practice variants used instead of a verbatim one-to-one copy."
+
   };
   window.__GST111_SOURCE_IMPORT__ = Object.assign({}, window.__GST111_SOURCE_IMPORT__ || {}, {
     questions: 0,
