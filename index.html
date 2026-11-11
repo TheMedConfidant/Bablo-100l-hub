@@ -1760,18 +1760,47 @@ async function hubCall(fn, body) {
   return r.json();
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
-function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, institution: j.institution || '', programmeCategory: j.programmeCategory || (j.programme === GUEST_PROGRAMME ? 'other' : 'cohes'), level: j.academicLevel || '100L', bscPathway: j.bscPathway || '', academicDetailsVerified: !!j.academicDetailsVerified, uid: j.uniqueId }; save(); }
 let CHESS_IDENTITY_BUSY = false;
 async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
 async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
+async function saveAcademicProfile(f) {
+  if (!signedIn()) throw new Error('Log in before saving academic details.');
+  const result = await hubCall('hub_save_academic_profile', {
+    p_token: DB.account.token,
+    p_institution: f.institution,
+    p_programme: f.programme,
+    p_programme_category: f.programmeCategory,
+    p_academic_level: f.academicLevel,
+    p_bsc_pathway: f.bscPathway || null
+  });
+  if (!result || !result.ok) throw new Error((result && result.error) || 'Could not save academic details.');
+  DB.profile.institution = result.institution;
+  DB.profile.programme = result.programme;
+  DB.profile.programmeCategory = result.programmeCategory;
+  DB.profile.level = result.academicLevel;
+  DB.profile.bscPathway = result.bscPathway || '';
+  DB.profile.academicDetailsVerified = false;
+  save();
+  return result;
+}
 async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
   if (!f.nickname.trim()) throw new Error('Pick a nickname.');
   if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
-  // the server creates the ID, so no one can pick someone else's
-  const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: f.programme.indexOf('Guest') === 0 });
+  if (f.institution.trim().length < 2) throw new Error('Enter your institution.');
+  if (f.programme.trim().length < 2) throw new Error('Select or enter your programme.');
+  const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: f.programmeCategory === 'other' });
   if (!reg.ok) throw new Error(reg.error);
-  return signIn(reg.uniqueId, f.password);
+  const signed = await signIn(reg.uniqueId, f.password);
+  let profileSaved = false;
+  try {
+    await saveAcademicProfile(f);
+    profileSaved = true;
+  } catch (e) {
+    // The account exists; allow the student to complete academic details from Profile.
+  }
+  return Object.assign({}, signed, { profileSaved });
 }
 async function signIn(id, password) {
   const j = await hubCall('hub_login', { p_unique_id: String(id).trim().toUpperCase(), p_password: password });
@@ -2675,25 +2704,51 @@ function meView() {
   const p = DB.profile || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
-  const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
+  const known = PROGRAMMES.filter(x => x !== GUEST_PROGRAMME);
+  const isCustom = !known.includes(p.programme) && p.programme !== GUEST_PROGRAMME;
+  const prog = h('select', null, [...known, 'Other / not listed'].map(x => h('option', { value: x, selected: x === (isCustom ? 'Other / not listed' : p.programme) ? true : null }, x)));
+  const otherProgramme = h('input', { type: 'text', value: isCustom ? p.programme : '', placeholder: 'Enter your programme', maxlength: '80' });
+  const institution = h('input', { type: 'text', value: p.institution || '', placeholder: 'Institution / university', maxlength: '100' });
+  const level = h('select', null, ['100L','200L','300L','400L','500L','600L','700L','Other'].map(x => h('option', { value: x, selected: x === (p.level || '100L') ? true : null }, x)));
+  const pathway = h('input', { type: 'text', value: p.bscPathway || '', placeholder: 'Enter your BSc pathway', maxlength: '100' });
+  const otherWrap = h('div', { class: 'field', hidden: !isCustom }, h('span', null, 'Programme'), otherProgramme);
+  const pathwayWrap = h('div', { class: 'field', hidden: !(p.programme === 'MBBS' && p.level && p.level !== '100L' && p.level !== 'Other') }, h('span', null, 'BSc pathway (MBBS students from around 200L)'), pathway);
+  const updateConditional = () => {
+    otherWrap.hidden = prog.value === 'Other / not listed' ? false : true;
+    pathwayWrap.hidden = !(prog.value === 'MBBS' && level.value !== '100L' && level.value !== 'Other');
+  };
+  prog.addEventListener('change', updateConditional);
+  level.addEventListener('change', updateConditional);
+  const saveProfile = async () => {
+    const n = name.value.trim();
+    const programme = prog.value === 'Other / not listed' ? otherProgramme.value.trim() : prog.value;
+    const category = prog.value === 'Other / not listed' || prog.value === GUEST_PROGRAMME ? 'other' : 'cohes';
+    if (n.length < 2) { toast('Enter your name.'); return; }
+    if (institution.value.trim().length < 2) { toast('Enter your institution.'); return; }
+    if (programme.length < 2) { toast('Enter your programme.'); return; }
+    try {
+      if (signedIn()) {
+        await saveAcademicProfile({ institution: institution.value.trim(), programme, programmeCategory: category, academicLevel: level.value, bscPathway: pathway.value.trim() });
+      }
+      DB.profile = Object.assign({}, DB.profile, {
+        name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20),
+        programme, institution: institution.value.trim(), programmeCategory: category,
+        level: level.value, bscPathway: prog.value === 'MBBS' && level.value !== '100L' && level.value !== 'Other' ? pathway.value.trim() : '',
+        academicDetailsVerified: false
+      });
+      save(); toast('Profile saved.');
+    } catch (e) { toast(e.message || 'Could not save profile.'); }
+  };
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity and leaderboard details.'),
+    h('p', { class: 'muted small' }, 'Your student identity and academic details. Details are self-declared until verified.'),
     h('section', { class: 'panel stack' },
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
-      h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
-      h('button', { class: 'btn primary block', onclick: () => {
-        const n = name.value.trim();
-        if (n.length < 2) { toast('Enter your name.'); return; }
-        DB.profile = Object.assign({}, DB.profile, {
-          name: n,
-          nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20),
-          programme: prog.value,
-          level: '100L'
-        });
-        save(); toast('Profile saved.');
-      } }, 'Save profile'))
+      h('label', { class: 'field' }, h('span', null, 'Programme'), prog), otherWrap,
+      h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
+      h('label', { class: 'field' }, h('span', null, 'Academic level'), level), pathwayWrap,
+      h('button', { class: 'btn primary block', onclick: saveProfile }, 'Save profile'))
   )));
 }
 
@@ -3723,36 +3778,75 @@ function showNewId(id) {
 }
 /* ---------- account section (Me page): unique ID and password, no email ---------- */
 function accountSection() {
-  if (!authConfigured()) return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', { class: 'muted small' }, 'Accounts turn on when the live database is connected.'));
+  if (!authConfigured()) return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', { class: 'muted small' }, 'Accounts turn on when the live connection is available.'));
   if (signedIn() && DB.profile && DB.profile.uid) {
-    ensureChessIdentity(); const usernameInput=h('input',{type:'text',maxlength:'20',placeholder:'your_username',value:DB.profile.username||'',autocapitalize:'none',autocomplete:'off',spellcheck:'false'}); const usernameError=h('p',{class:'small',style:{color:'var(--bad)'},role:'alert'});
-    return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')), h('label',{class:'field'},h('span',null,'Change username'),usernameInput), h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'), usernameError, h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'), h('p', null, h('b', null, 'Your ID: '), DB.profile.uid), h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'), h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
+    ensureChessIdentity();
+    const usernameInput=h('input',{type:'text',maxlength:'20',placeholder:'your_username',value:DB.profile.username||'',autocapitalize:'none',autocomplete:'off',spellcheck:'false'});
+    const usernameError=h('p',{class:'small',style:{color:'var(--bad)'},role:'alert'});
+    return h('section', { class: 'panel stack' },
+      h('h2', null, 'Your account'),
+      h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')),
+      h('label',{class:'field'},h('span',null,'Change username'),usernameInput),
+      h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'),
+      usernameError,
+      h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'),
+      h('p', null, h('b', null, 'Your ID: '), DB.profile.uid),
+      h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'),
+      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
-  const pass = h('input', { type: 'password', placeholder: 'Password (6+ characters)', autocomplete: 'new-password' });
+  const prog = h('select', null, [...PROGRAMMES.filter(p => p !== GUEST_PROGRAMME), 'Other / not listed'].map(p => h('option', { value: p }, p)));
+  const otherProgramme = h('input', { type: 'text', placeholder: 'Enter your programme', maxlength: '80' });
+  const institution = h('input', { type: 'text', placeholder: 'Institution / university', maxlength: '100' });
+  const level = h('select', null, ['100L','200L','300L','400L','500L','600L','700L','Other'].map(x => h('option', { value: x }, x)));
+  const pathway = h('input', { type: 'text', placeholder: 'Enter your BSc pathway', maxlength: '100' });
+  const otherWrap = h('div', { class: 'field', hidden: true }, h('span', null, 'Programme'), otherProgramme);
+  const pathwayWrap = h('div', { class: 'field', hidden: true }, h('span', null, 'BSc pathway (MBBS students from around 200L)'), pathway);
+  const updateConditional = () => {
+    otherWrap.hidden = prog.value === 'Other / not listed' ? false : true;
+    pathwayWrap.hidden = !(prog.value === 'MBBS' && level.value !== '100L' && level.value !== 'Other');
+  };
+  prog.addEventListener('change', updateConditional);
+  level.addEventListener('change', updateConditional);
+  const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const go2 = async (isUp) => {
     err.textContent = '';
     try {
-      if (isUp) { const r = await signUp({ name: name.value, nickname: nick.value, programme: prog.value, password: pass.value }); showNewId(r.uniqueId); }
-      else { const r = await signIn(loginId.value, loginPass.value); toast('Welcome back. ID ' + r.uniqueId); }
+      if (isUp) {
+        const external = prog.value === 'Other / not listed';
+        const programme = external ? otherProgramme.value.trim() : prog.value;
+        const programmeCategory = external ? 'other' : 'cohes';
+        const result = await signUp({
+          name: name.value, nickname: nick.value, programme, programmeCategory,
+          institution: institution.value.trim(), academicLevel: level.value,
+          bscPathway: pathway.value.trim(), password: pass.value
+        });
+        if (!result.profileSaved) toast('Account created. Complete your academic details from Profile.');
+        showNewId(result.uniqueId);
+      } else {
+        const result = await signIn(loginId.value, loginPass.value);
+        toast('Welcome back. ID ' + result.uniqueId);
+      }
       meView();
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
   const tabs = h('div', { class: 'seg' }, h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'), h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
   const fields = mode === 'signup'
-    ? [name, nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
+    ? [name, nick, h('label', { class: 'field' }, h('span', null, 'Programme'), prog), otherWrap,
+       h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
+       h('label', { class: 'field' }, h('span', null, 'Academic level'), level), pathwayWrap, pass,
+       h('p', { class: 'tiny muted' }, 'Bablo Hub is COHES-first. 100L is open to all programmes; MBBS students can add their BSc pathway from around 200L. Academic details are self-declared until verified.'),
+       h('p', { class: 'tiny muted' }, 'We create your ID for you. Write it down; you need it to log in.')]
     : [loginId, loginPass];
   return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), tabs, ...fields, err,
     h('button', { class: 'btn primary block', onclick: () => go2(mode === 'signup') }, mode === 'signup' ? 'Create account' : 'Log in'),
     h('p', { class: 'tiny muted' }, 'Practice works without an account. An account keeps your progress and lets you join the Cup, Social Corner and friend challenges.'));
 }
-
 /* ---------- item analysis: question id and right/wrong only, no names or devices ---------- */
 function postItemAnswers(s) {
   if (!liveOn()) return;
