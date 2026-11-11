@@ -1159,6 +1159,7 @@ function canAccessCourse(code) {
   const category = p.programmeCategory || inferProgrammeCategory(p.programme);
   const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
   const BowenCohes = category === 'cohes' && institution.includes('bowen');
+  if (levelNumber === 200 && BowenCohes) return COURSES_200.some(c => c.code === code);
   if (levelNumber >= 200 && !BowenCohes) return CORE_COURSES.includes(code);
   return coursesFor(p.programme).some(c => c.code === code);
 }
@@ -1284,7 +1285,7 @@ function academicProfileFields(profile) {
   const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
   const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
   const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
-  programme.addEventListener('input', syncPathway);
+  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
   return {
@@ -1951,7 +1952,18 @@ const unitsOf = code => { const m = new Map(); (BYC[code] || []).forEach(q => m.
 const courseBy = code => COURSES.find(c => c.code === code);
 const isAvail = c => !!(BYC[c.code] && BYC[c.code].length);
 let HOME_SEM = 'first';
-const homeCourses = () => (DB.profile && DB.profile.level === '200L') ? COURSES_200.filter(c => c.semester === HOME_SEM).map(c => Object.assign({}, c, { pending200: true })) : coursesFor(DB.profile.programme);
+const homeCourses = () => {
+  const p = DB.profile || {};
+  const levelNumber = parseInt(p.level || '100L', 10) || 100;
+  const category = p.programmeCategory || inferProgrammeCategory(p.programme);
+  const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
+  const BowenCohes = category === 'cohes' && institution.includes('bowen');
+  if (levelNumber === 200 && BowenCohes) {
+    return COURSES_200.filter(c => c.semester === HOME_SEM).map(c => Object.assign({}, c, { pending200: true }));
+  }
+  if (levelNumber >= 200 && !BowenCohes) return coursesFor(p.programme).filter(c => CORE_COURSES.includes(c.code));
+  return coursesFor(p.programme);
+};
 function open200(code, tab) { course200View.tab = tab; go('#/course/' + code); }
 
 /* ---------- DOM helpers (no innerHTML with user data) ---------- */
@@ -2451,7 +2463,7 @@ function brand() {
 /* ---------- course page ---------- */
 function courseView(code) {
   const c200 = COURSES_200.find(x => x.code === code);
-  if (c200) { course200View(c200); return; }
+  if (c200) { if (!canAccessCourse(code)) { go('#/courses'); return; } course200View(c200); return; }
   const c = courseBy(code); if (!c || !isAvail(c) || !canAccessCourse(code)) { go('#/'); return; }
   const us = unitsOf(code), total = BYC[code].length, weakN = BYC[code].filter(q => DB.missed[q.i]).length;
   const rows = us.map((u, i) => {
@@ -4005,7 +4017,7 @@ function pollCard(P) {
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
 function course200View(c) {
-  const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
+  const tabs = ['Questions', 'Notes', 'Flashcards'];
   const cur = (course200View.tab || 'Questions');
   const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
     'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
