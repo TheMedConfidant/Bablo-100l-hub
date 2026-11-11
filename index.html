@@ -3375,38 +3375,52 @@ async function loadUploadsPage(pass, container) {
 
 /* ---------- admin: analytics (server-side key, admin session and passcode checked on every call) ---------- */
 async function loadAnalytics(pass, container) {
-  const box = h('section', { class: 'panel stack' }, h('h2', null, 'Analytics (last 30 days)'), h('p', { class: 'muted small' }, 'Loading\u2026'));
+  const box = h('section', { class: 'panel stack' }, h('h2', null, 'Usage analytics'), h('p', { class: 'muted small' }, 'Loading…'));
   container.append(box);
   const d = await adminPost('hub_admin_analytics', { p_pass: pass, p_days: 30 });
-  if (!d || !d.ok) { box.replaceChildren(h('h2', null, 'Analytics'), h('p', { class: 'muted small' }, d && d.error ? d.error : 'Could not load analytics.')); return; }
+  if (!d || !d.ok) {
+    box.replaceChildren(h('h2', null, 'Usage analytics'), h('p', { class: 'muted small' }, d && d.error ? d.error : 'Could not load analytics.'));
+    return;
+  }
   const data = d.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : {};
-  const labels = {
-    visitors: 'Unique visitors',
-    page_views: 'Page views',
-    quiz_starts: 'Quiz starts',
-    quiz_completions: 'Quiz completions',
-    avg_score: 'Average quiz score',
-    adaptive_starts: 'Adaptive practice starts',
-    flashcard_sessions: 'Flashcard sessions'
-  };
-  const rows = Object.entries(labels).filter(([key]) => Object.prototype.hasOwnProperty.call(data, key)).map(([key, label]) => {
+  const metricLabels = [
+    ['visitors', 'Unique visitors'],
+    ['page_views', 'Page views'],
+    ['quiz_starts', 'Quiz starts'],
+    ['quiz_completions', 'Quiz completions'],
+    ['avg_score', 'Average quiz score (%)'],
+    ['adaptive_starts', 'Adaptive practice starts'],
+    ['flashcard_sessions', 'Flashcard sessions']
+  ];
+  const metricRows = metricLabels.map(([key, label]) => {
     const value = data[key];
     const shown = typeof value === 'number' && Number.isFinite(value)
       ? (key === 'avg_score' ? value.toFixed(1) + '%' : value.toLocaleString())
-      : 'No data yet';
+      : '—';
     return h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
       h('span', { class: 'small' }, label), h('b', null, shown));
   });
-  const interest = Array.isArray(data.feature_interest) ? data.feature_interest.slice(0, 5).map(item =>
-    h('div', { class: 'row between wrapr', style: { padding: '6px 0' } },
-      h('span', { class: 'small' }, String(item.feature || 'Other')),
-      h('b', null, String(Number(item.count) || 0)))
-  ) : [];
+  const featureRows = list => (Array.isArray(list) ? list : [])
+    .filter(item => item && typeof item.feature === 'string')
+    .slice(0, 8)
+    .map(item => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } },
+      h('span', { class: 'small' }, item.feature.replace(/[_-]+/g, ' ')),
+      h('b', null, Number.isFinite(Number(item.count)) ? Number(item.count).toLocaleString() : '—')));
+  const dailyRows = (Array.isArray(data.daily) ? data.daily : [])
+    .filter(item => item && typeof item.date === 'string')
+    .slice(-14)
+    .map(item => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } },
+      h('span', { class: 'small' }, item.date),
+      h('span', { class: 'tiny muted' }, 'Visitors ' + (Number(item.visitors) || 0) + ' · Views ' + (Number(item.views) || 0) + ' · Quiz completions ' + (Number(item.completions) || 0))));
+  const section = (title, rows) => h('section', { class: 'stack', style: { gap: '4px' } },
+    h('h3', { class: 'small' }, title),
+    rows.length ? rows : [h('p', { class: 'muted tiny' }, 'No recorded activity yet.')]);
   box.replaceChildren(
-    h('h2', null, 'Analytics · last ' + (Number(data.days) || 30) + ' days'),
-    rows.length ? rows : h('p', { class: 'muted small' }, 'No supported activity metrics are available yet.'),
-    h('h3', null, 'Most viewed features'),
-    interest.length ? interest : h('p', { class: 'muted small' }, 'No feature activity recorded yet.')
+    h('h2', null, 'Usage analytics · last ' + (Number(data.days) || 30) + ' days'),
+    section('Activity', metricRows),
+    section('Feature interest', featureRows(data.feature_interest)),
+    section('Purchase interest', featureRows(data.purchase_interest)),
+    section('Daily activity · last 14 active days', dailyRows)
   );
 }
 
