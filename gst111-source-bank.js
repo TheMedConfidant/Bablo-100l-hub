@@ -12,4 +12,31 @@
  questions.forEach(q=>{const k=String(q.q||"").toLowerCase().trim().replace(/\s+/g," ").replace(/[.,!?;:]+$/g,"");if(!seen.has(k)){bank.push(q);seen.add(k);}});
  window.__GST111_SOURCE_REVIEW__=review;
  window.__GST111_SOURCE_IMPORT__={sourceFile:"GST 111 PQ(4)(1).pdf",sourceRecords:1093,recordsWithQuestionStem:1087,missingQuestionStems:6,uniqueNormalizedGroups:817,importedSourceQuestions:questions.length,preservedPreexistingQuestions:131,removedGeneratedVariants:542,reviewOnlyQuestions:review.length,answerKeysIndependentlyVerified:false,sourceQuestionTextImported:true,topicGrouping:"Source-topic classification; one question per normalized stem."};
+}
+ const allSource=questions.concat(review);
+ const topicCounts={}; allSource.forEach(q=>{topicCounts[q.u]=(topicCounts[q.u]||0)+1;});
+ const sourceOccurrences=allSource.reduce((n,q)=>n+((q.sourceRecords||[]).length),0);
+ const duplicateStemGroups=allSource.filter(q=>(q.sourceRecords||[]).length>1).length;
+ const active=bank.filter(q=>q.c==="GST111");
+ window.__GST111_SOURCE_IMPORT__=Object.assign({},window.__GST111_SOURCE_IMPORT__||{}, {
+   sourceRecordsExtracted:1093, recordsWithQuestionStem:1087, recordsMissingQuestionStem:6,
+   duplicateOccurrencesConsolidated:sourceOccurrences-allSource.length, duplicateStemGroups,
+   reviewOnlyQuestionGroups:review.length, importedQuestionGroupsFlagged:questions.filter(q=>!!q.f).length,
+   studentFacingQuestionCount:active.length, examEligibleQuestions:active.filter(q=>!q.f).length,
+   topicCounts, answerKeysIndependentlyVerified:false
+ });
+ window.__GST111_SOURCE_AUDIT__=Object.assign({},window.__GST111_SOURCE_AUDIT__||{}, {
+   sourceFile:"GST 111 PQ(4)(1).pdf", candidateRecords:1093, recordsWithQuestionStem:1087,
+   recordsMissingQuestionStem:6, normalizedUniqueStems:allSource.length,
+   exactDuplicateOccurrences:sourceOccurrences-allSource.length, duplicateStemGroups,
+   unmappedAnswerRecords:16, answerMappingsRequiringReview:16, answerKeysIndependentlyVerified:false,
+   studentFacingQuestionSource:"gst111-source-bank.js", curatedOriginalPracticeQuestions:0,
+   preExistingGST111QuestionsPreserved:131, totalStudentFacingQuestions:active.length,
+   examEligibleQuestions:active.filter(q=>!q.f).length, uniqueStudentFacingQuestions:active.length,
+   uniqueStudentFacingFlashcards:(window.__CARDS__&&window.__CARDS__.GST111||[]).length,
+   nativeNotesTopics:14, quizTopics:Object.keys(topicCounts).length,
+   sourceQuestionsImportedVerbatim:questions.length, sourceTextImported:true,
+   topicCandidateCounts:topicCounts,
+   coverageStatus:"809 recovered source questions active; 8 conflicting or unmapped groups held aside; 6 missing stems held aside; source keys are transcribed and not independently verified."
+ });
 })();
