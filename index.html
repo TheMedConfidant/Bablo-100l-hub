@@ -731,6 +731,7 @@ window.__PRACTICALS__.COS = {
 <script src="/thermochemistry-data.js"></script>
 <script src="/gst111-curated-pack.js"></script>
 <script src="/gst111-native-bank.js"></script>
+<script src="/gst111-native-resources.js"></script>
 <script>
 
 /* BH_CHM101_THERMODYNAMICS_V1 — course resources in their native sections */
@@ -3931,6 +3932,7 @@ function sectionTiles(c, questions, topics) {
     { name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
     ...(c.code === 'CHM' ? [{ name: 'Worked Questions', sub: '22 worked questions with answers', live: true, go: () => go('#/worked/CHM') }] : []),
     ...(c.code === 'CHM' ? [{ name: 'Quizzes', sub: '74 Thermochemistry MCQs', live: true, go: () => { const i = unitsOf('CHM').findIndex(u => u.name === 'Thermochemistry'); go('#/setup/CHM/quiz?u=' + i); } }] : []),
+    ...(c.code === 'GST111' ? [{ name: 'Quizzes', sub: 'Timed quizzes, mock tests and practice sets', live: true, go: () => go('#/setup/GST111/quiz') }] : []),
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: 'Flip through the questions', live: true, premium: true, go: () => go('#/flash/' + c.code) },
     { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
