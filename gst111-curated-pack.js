@@ -20,20 +20,20 @@
     "Vocabulary and register"
   ]);
   const topicRules = [
-    ["Study skills", /\\b(note|study|distraction|lecture|class notes|revision|learning strategy|time management|recording points)\\b/i],
-    ["Morphology and word formation", /\\b(morpheme|morphology|affix|prefix|suffix|inflection|derivation|clipping|blending|compound|word formation|root word)\\b/i],
-    ["Phonetics and phonology", /\\b(phonetic|phonolog|vowel|consonant|diphthong|monophthong|syllable|stress|voiced|voiceless|articulat|sound production|ipa|transcription)\\b/i],
-    ["Communication skills", /\\b(communication|communicat|sender|receiver|message|feedback|channel|verbal|nonverbal|proxemic|haptic|occulesic|barrier|encoding|decoding|mass media|print media|broadcast media|speech)\\b/i],
-    ["Meetings and reports", /\\b(meeting|agenda|minutes|quorum|chairperson|motion|report writing|meeting report)\\b/i],
-    ["Research and academic writing", /\\b(research|citation|bibliography|plagiarism|methodology|proposal|thesis|reference list|academic writing|literature review)\\b/i],
-    ["Paragraph development", /\\b(paragraph|topic sentence|unity|coherence|paragraph development|supporting sentence)\\b/i],
-    ["Essay writing", /\\b(essay|narrative|argumentative|expository|descriptive|introduction|conclusion|outline|thesis statement)\\b/i],
-    ["Correspondence", /\\b(correspondence|memo|memorandum|formal letter|application letter|business letter|salutation|complimentary close|email)\\b/i],
-    ["Dictionary skills, lexis and vocabulary", /\\b(dictionary|headword|guide word|lexis|vocabulary|synonym|antonym|spelling|word meaning|word associated|word choice|pronunciation guide|i\\.e\\.)\\b/i],
-    ["Reading and listening", /\\b(reading|listening|skimming|scanning|inference|comprehension|active listening|critical reading|listen|read|reader|listener)\\b/i],
-    ["Creative writing and literary forms", /\\b(creative writing|plot|character|setting|dialogue|literary|imagery|metaphor|simile|poem|poetry|fiction|theme|storyline)\\b/i],
-    ["Language, society and English in Nigeria", /\\b(language|nigeria|pidgin|dialect|register|multilingual|code[- ]switch|lingua franca|sociolinguistic|indigenous language|english language)\\b/i],
-    ["Grammar and sentence construction", /\\b(grammar|sentence|clause|subject|predicate|concord|tense|verb|pronoun|adverb|adjective|punctuation|syntax|phrase|parts of speech)\\b/i]
+    ["Study skills", /\b(note|study|distraction|lecture|class notes|revision|learning strategy|time management|recording points)\b/i],
+    ["Morphology and word formation", /\b(morpheme|morphology|affix|prefix|suffix|inflection|derivation|clipping|blending|compound|word formation|root word)\b/i],
+    ["Phonetics and phonology", /\b(phonetic|phonolog|vowel|consonant|diphthong|monophthong|syllable|stress|voiced|voiceless|articulat|sound production|ipa|transcription)\b/i],
+    ["Communication skills", /\b(communication|communicat|sender|receiver|message|feedback|channel|verbal|nonverbal|proxemic|haptic|occulesic|barrier|encoding|decoding|mass media|print media|broadcast media|speech)\b/i],
+    ["Meetings and reports", /\b(meeting|agenda|minutes|quorum|chairperson|motion|report writing|meeting report)\b/i],
+    ["Research and academic writing", /\b(research|citation|bibliography|plagiarism|methodology|proposal|thesis|reference list|academic writing|literature review)\b/i],
+    ["Paragraph development", /\b(paragraph|topic sentence|unity|coherence|paragraph development|supporting sentence)\b/i],
+    ["Essay writing", /\b(essay|narrative|argumentative|expository|descriptive|introduction|conclusion|outline|thesis statement)\b/i],
+    ["Correspondence", /\b(correspondence|memo|memorandum|formal letter|application letter|business letter|salutation|complimentary close|email)\b/i],
+    ["Dictionary skills, lexis and vocabulary", /\b(dictionary|headword|guide word|lexis|vocabulary|synonym|antonym|spelling|word meaning|word associated|word choice|pronunciation guide|i\.e\.)\b/i],
+    ["Reading and listening", /\b(reading|listening|skimming|scanning|inference|comprehension|active listening|critical reading|listen|read|reader|listener)\b/i],
+    ["Creative writing and literary forms", /\b(creative writing|plot|character|setting|dialogue|literary|imagery|metaphor|simile|poem|poetry|fiction|theme|storyline)\b/i],
+    ["Language, society and English in Nigeria", /\b(language|nigeria|pidgin|dialect|register|multilingual|code[- ]switch|lingua franca|sociolinguistic|indigenous language|english language)\b/i],
+    ["Grammar and sentence construction", /\b(grammar|sentence|clause|subject|predicate|concord|tense|verb|pronoun|adverb|adjective|punctuation|syntax|phrase|parts of speech)\b/i]
   ];
   (window.__BANK__ || []).forEach(q => {
     if (q.c !== "GST111" || !legacyUnits.has(q.u)) return;
