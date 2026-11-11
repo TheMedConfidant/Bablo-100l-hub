@@ -36,7 +36,9 @@
    conflictRecords:[],
    malformedRecordsHeldForReview:sourceAudit.unkeyedOrMalformedCandidates||1,
    sourceRecordsAudited:sourceAudit.candidateRecords||1093,
-   studentFacingQuestions:"original topical variants only"
+   studentFacingQuestions:"original topical variants only",
+   studentFacingQuestionCount:(window.__BANK__||[]).filter(q=>q.c==="GST111").length,
+   studentFacingFlashcardCount:window.__CARDS__.GST111.length
  };
  window.__GST111_SOURCE_IMPORT__=Object.assign({},window.__GST111_SOURCE_IMPORT__||{},{
    uploadedNotes:pack.topics.length,
@@ -46,6 +48,7 @@
    flashcards:window.__CARDS__.GST111.length,
    cards:window.__CARDS__.GST111.length,
    sourceRecordsAudited:sourceAudit.candidateRecords||1093,
-   sourceTextImported:false
+   sourceTextImported:false,
+   studentFacingQuestionCount:(window.__BANK__||[]).filter(q=>q.c==="GST111").length
  });
 })();
