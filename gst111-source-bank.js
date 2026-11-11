@@ -12,7 +12,6 @@
  questions.forEach(q=>{const k=String(q.q||"").toLowerCase().trim().replace(/\s+/g," ").replace(/[.,!?;:]+$/g,"");if(!seen.has(k)){bank.push(q);seen.add(k);}});
  window.__GST111_SOURCE_REVIEW__=review;
  window.__GST111_SOURCE_IMPORT__={sourceFile:"GST 111 PQ(4)(1).pdf",sourceRecords:1093,recordsWithQuestionStem:1087,missingQuestionStems:6,uniqueNormalizedGroups:817,importedSourceQuestions:questions.length,preservedPreexistingQuestions:131,removedGeneratedVariants:542,reviewOnlyQuestions:review.length,answerKeysIndependentlyVerified:false,sourceQuestionTextImported:true,topicGrouping:"Source-topic classification; one question per normalized stem."};
-}
  const allSource=questions.concat(review);
  const topicCounts={}; allSource.forEach(q=>{topicCounts[q.u]=(topicCounts[q.u]||0)+1;});
  const sourceOccurrences=allSource.reduce((n,q)=>n+((q.sourceRecords||[]).length),0);
