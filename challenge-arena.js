@@ -1,6 +1,12 @@
 (function(){
 const $=s=>document.querySelector(s), E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let CA={match:null,qs:[],idx:0,done:false,end:0,timer:null,tab:'overview',inbox:[],opted:false,ready:false,finishing:false};
+try{
+  const initialQuery=String(location.hash||'').split('?')[1]||'';
+  const initialCode=new URLSearchParams(initialQuery).get('code');
+  if(initialCode)sessionStorage.setItem('bablo_pending_challenge_code',initialCode);
+}catch(_){}
+
 function frame(node){style();const root=h('div',{id:'challenge-dashboard',class:'challenge-arena-root'});const isHome=!!(node&&node.classList&&node.classList.contains('challenge-home'));if(!isHome){root.append(h('div',{class:'cd-screen-nav'},h('button',{class:'secondary cd-back',onclick:()=>{clearInterval(CA.timer);dashboard()}},'← Back to Arena'),h('span',{class:'cd-nav-label'},'CHALLENGE ARENA')))}root.append(node);mount(wrap(root));}
 function cleanText(value){return String(value??'').replaceAll('\\n',' ').replaceAll('/n',' ').replaceAll('\\r',' ').replaceAll('\\t',' ').replaceAll('\r',' ').replaceAll('\n',' ').replace(/\s{2,}/g,' ').trim();}
 async function call(fn,args={}){if(!DB||!DB.account||!DB.account.token)throw Error('Log in to use Challenge Arena.');let last;for(let attempt=0;attempt<3;attempt++){try{return await hubCall(fn,{p_token:DB.account.token,...args})}catch(e){last=e;const m=String(e&&e.message||e);console.warn('[Challenge Arena RPC]',fn,'attempt',attempt+1,m);if(!/failed to fetch|network|timeout|502|503|504|temporar/i.test(m)||attempt===2)throw e;await new Promise(r=>setTimeout(r,350*Math.pow(2,attempt)));}}throw last;}
@@ -294,7 +300,8 @@ function showReview(x){
 window.challengeDashboardView=function(){try{
   clearInterval(CA.timer);
   const raw=String(location.hash||'').split('?')[1]||'';
-  const incomingCode=new URLSearchParams(raw).get('code');
+  let incomingCode=new URLSearchParams(raw).get('code');
+  try{incomingCode=incomingCode||sessionStorage.getItem('bablo_pending_challenge_code');sessionStorage.removeItem('bablo_pending_challenge_code')}catch(_){}
   if(incomingCode){
     history.replaceState(null,'',location.pathname+location.search+'#/challenge');
     joinByCode(incomingCode);
