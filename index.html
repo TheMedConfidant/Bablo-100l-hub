@@ -2385,7 +2385,7 @@ function courseView(code) {
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
         h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
         weakN ? h('button', { class: 'btn block', onclick: () => startWeak(code) }, 'Weak-spot practice (' + weakN + ')') : null),
-      h('section', { class: 'stack' }, h('h2', null, 'Topics'), h('p', { class: 'muted small' }, 'Tap a topic to practise it, or open a quiz and tick several.'), h('div', { class: 'rows' }, rows)))));
+      c.code === 'GST111' ? null : h('section', { class: 'stack' }, h('h2', null, 'Topics'), h('p', { class: 'muted small' }, 'Tap a topic to practise it, or open a quiz and tick several.'), h('div', { class: 'rows' }, rows)))));
 }
 function startWeak(code) {
   startSession({ course: code, mode: 'practice', n: 20, order: 'shuffle', timerKind: 'up', minutes: 0, ids: DB.missed });
@@ -3930,10 +3930,10 @@ function sectionTiles(c, questions, topics) {
     h('button', { class: 'btn gold block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); go('#/premium'); } }, 'View premium prices'),
     h('button', { class: 'btn ghost block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); } }, 'Not now'));
   const secs = [
-    { name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } },
+    ...(c.code === 'GST111' ? [] : [{ name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } }]),
     ...(c.code === 'CHM' ? [{ name: 'Worked Questions', sub: '22 worked questions with answers', live: true, go: () => go('#/worked/CHM') }] : []),
     ...(c.code === 'CHM' ? [{ name: 'Quizzes', sub: '74 Thermochemistry MCQs', live: true, go: () => { const i = unitsOf('CHM').findIndex(u => u.name === 'Thermochemistry'); go('#/setup/CHM/quiz?u=' + i); } }] : []),
-    ...(c.code === 'GST111' ? [{ name: 'Quizzes', sub: 'Timed quizzes, mock tests and practice sets', live: true, go: () => go('#/setup/GST111/quiz') }] : []),
+    ...(c.code === 'GST111' ? [{ name: 'Quizzes', sub: ((window.__GST111_SOURCE_IMPORT__ && window.__GST111_SOURCE_IMPORT__.importedSourceQuestions) || questions) + ' source questions · all topics, practice, timed quizzes and mock tests', live: true, go: () => go('#/setup/GST111/quiz') }] : []),
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: (window.__CARDS__ && window.__CARDS__.GST111 ? window.__CARDS__.GST111.length + ' active-recall cards' : 'Flashcards'), live: true, premium: true, go: () => go('#/flash/' + c.code) },
     { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
