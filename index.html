@@ -4132,36 +4132,31 @@ function pendingPage(title) {
     h('section', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'Pending'), h('p', { class: 'muted small' }, 'Send the ' + title.toLowerCase() + ' for your 200L courses, and it goes in here.')))));
 }
 
-/* ---------- course sections: Questions, Notes, Practicals, Labs (used by every course page) ---------- */
+/* ---------- course sections: Questions, Notes and Flashcards ---------- */
 function premiumOn() { return !!(signedIn() && DB.account && DB.account.premium); }
-const NO_PRACTICALS = ['MTH101', 'AGR', 'AGR101', 'GEL101', 'LIB101', 'GST111'];
-function practicalCode(code) { if (NO_PRACTICALS.includes(code)) return null; const dept = code.replace(/[0-9]+$/, ''); return dept === 'COS' ? 'COS' : dept + '107'; }
 function sectionTiles(c, questions, topics) {
   const premiumBlock = (name) => () => h('div', { class: 'panel stack' }, h('span', { class: 'chip gold' }, 'Premium'), h('h2', null, name + ' is premium'),
     h('p', { class: 'muted small' }, 'Notes and flashcards are priced at ₦500 each per course. See the full programme bundle and current availability before purchasing.'),
     h('button', { class: 'btn gold block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); go('#/premium'); } }, 'View premium prices'),
     h('button', { class: 'btn ghost block', onclick: () => { const el=document.querySelector('.overlay'); if(el)el.remove(); } }, 'Not now'));
   const secs = [
-    ...(c.code === 'GST111' ? [] : [{ name: 'Questions', sub: questions + ' questions \u2022 ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } }]),
+    ...(c.code === 'GST111' ? [] : [{ name: 'Questions', sub: questions + ' questions · ' + topics + ' topics', live: true, go: () => { const el = document.querySelector('h2'); if (el) el.scrollIntoView({ behavior: 'smooth' }); } }]),
     ...(c.code === 'CHM' ? [{ name: 'Worked Questions', sub: '22 worked questions with answers', live: true, go: () => go('#/worked/CHM') }] : []),
     ...(c.code === 'CHM' ? [{ name: 'Quizzes', sub: '74 Thermochemistry MCQs', live: true, go: () => { const i = unitsOf('CHM').findIndex(u => u.name === 'Thermochemistry'); go('#/setup/CHM/quiz?u=' + i); } }] : []),
     ...(c.code === 'GST111' ? [{ name: 'Quizzes', sub: ((window.__GST111_SOURCE_IMPORT__ && window.__GST111_SOURCE_IMPORT__.importedSourceQuestions) || questions) + ' source questions · all topics, practice, timed quizzes and mock tests', live: true, go: () => go('#/setup/GST111/quiz') }] : []),
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
-    { name: 'Flashcards', sub: (window.__CARDS__ && window.__CARDS__.GST111 ? window.__CARDS__.GST111.length + ' active-recall cards' : 'Flashcards'), live: true, premium: true, go: () => go('#/flash/' + c.code) },
-    { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
-  ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
+    { name: 'Flashcards', sub: (window.__CARDS__ && window.__CARDS__.GST111 ? window.__CARDS__.GST111.length + ' active-recall cards' : 'Flashcards'), live: true, premium: true, go: () => go('#/flash/' + c.code) }
+  ];
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
   if (c.code === 'COS') secs.push({ name: 'Bonus', sub: 'Computing timeline, pioneers and story', live: true, go: () => go('#/bonus/COS') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
-    const freeWeek = s.name === 'Practicals' && Date.now() < PRACTICAL_FREE_UNTIL;
-    const locked = s.premium && !premiumOn() && !freeWeek;
-    const open = () => { if (locked) { const close = modal(h('div', { class: 'stack' }, premiumBlock(s.name)()), true); return; } s.live ? s.go() : pendingPage(s.name + ' \u00B7 ' + c.label); };
+    const locked = s.premium && !premiumOn();
+    const open = () => { if (locked) { modal(h('div', { class: 'stack' }, premiumBlock(s.name)()), true); return; } s.live ? s.go() : pendingPage(s.name + ' · ' + c.label); };
     return h('button', { class: 'sec-tile' + (s.live ? ' live' : ''), style: { '--c': c.color }, onclick: open },
       h('span', { class: 'sec-name' }, s.name), h('span', { class: 'sec-sub' }, s.sub),
       h('span', { class: 'sec-state' }, locked ? 'Premium' : (s.live ? 'Open' : 'Pending')));
   }));
 }
-
 /* ---------- Premium Library pricing ---------- */
 const PREMIUM_ITEM_PRICE = 500;
 
