@@ -3302,19 +3302,46 @@ function adminView() {
   const out = h('div', { class: 'stack' });
   const sec = (title, rows) => h('section', { class: 'panel stack' }, h('h2', null, title), rows.length ? rows : [h('p', { class: 'muted small' }, 'Nothing yet.')]);
   const show = d => {
+    const list = value => Array.isArray(value) ? value : [];
+    const count = value => Number.isFinite(Number(value)) ? Number(value).toLocaleString() : '—';
+    const academicRows = list(d.academic_profile_counts).map(p => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
+      h('div', { class: 'stack', style: { gap: '2px' } },
+        h('b', { class: 'small' }, [p.programme || 'Unspecified programme', p.bsc_pathway ? ' · ' + p.bsc_pathway : ''].join('')),
+        h('span', { class: 'tiny muted' }, [
+          p.institution || 'Institution not supplied',
+          p.academic_level || 'Level not supplied',
+          p.account_type === 'guest' ? 'Guest' : 'Registered',
+          p.programme_category === 'cohes' ? 'COHES' : 'Other programme',
+          'Self-declared; not verified'
+        ].join(' · '))),
+      h('b', null, count(p.people))));
     out.replaceChildren(
-      sec('Summary', [h('p', null, 'Registered accounts: ' + (Number(d.accounts) || 0)), ...(d.programme_counts || []).map(p => h('p', { class: 'small' }, String(p.programme || 'Unspecified') + ': ' + (Number(p.people) || 0)))]),
-      sec('Academic profile breakdown', (d.academic_profile_counts || []).map(p => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
-        h('div', { class: 'stack', style: { gap: '2px' } },
-          h('b', { class: 'small' }, [p.programme || 'Unspecified', p.bsc_pathway ? ' · ' + p.bsc_pathway : ''].join('')),
-          h('span', { class: 'tiny muted' }, [p.institution || 'Institution not supplied', p.academic_level || 'Level not supplied', p.account_type === 'guest' ? 'Guest' : 'Registered', p.programme_category === 'cohes' ? 'COHES' : 'Other programme'].join(' · '))),
-        h('b', null, String(Number(p.people) || 0))))),
-      sec('Qualifications poll', (d.poll || []).map(p => h('p', { class: 'small' }, p.option_id + ': ' + p.votes))),
-      sec('Feedback (newest first)', (d.feedback || []).map(f => h('div', { class: 'rev' }, h('span', { class: 'chip brand' }, f.kind), h('span', { class: 'tiny muted' }, ' ' + (f.nick || '') + ' \u2022 ' + (f.programme || '') + ' \u2022 ' + new Date(f.created_at).toLocaleString()), h('p', { class: 'small', style: { margin: '6px 0 0', whiteSpace: 'pre-wrap' } }, f.body)))),
-      sec('Reported questions', (d.reports || []).map(r => h('p', { class: 'small' }, r.question_id + ': ' + r.reports + ' report(s)'))),
-      sec('Weakest questions (5+ answers)', (d.weakest_questions || []).map(q => h('p', { class: 'small' }, q.question_id + ': ' + q.percent_correct + '% correct over ' + q.attempts))),
-      sec('Programme preview', [h('p', { class: 'muted small' }, 'Admin-only local preview controls. Visible only after the admin session and passcode are verified.'), h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: previewLevel200 }, 'Preview 200L here'), h('button', { class: 'btn ghost grow', onclick: resetPreviewLevel }, 'Back to 100L'))]),
-      sec('Corrections', (d.corrections || []).map(c => h('div', { class: 'rev' }, h('span', { class: 'chip' }, c.status), h('p', { class: 'small', style: { margin: '6px 0 0' } }, c.question_id + ' \u2192 ' + c.correct_text), h('p', { class: 'tiny muted' }, 'Source: ' + c.source))))
+      sec('Account overview', [
+        h('p', { class: 'small' }, 'Registered accounts: ' + count(d.accounts)),
+        h('p', { class: 'small' }, 'Guest academic profiles: ' + count(d.guest_profiles))
+      ]),
+      sec('Registered programme distribution', list(d.programme_counts).map(p =>
+        h('p', { class: 'small' }, String(p.programme || 'Unspecified') + ': ' + count(p.people)))),
+      sec('Academic profile breakdown', academicRows),
+      sec('Qualifications poll', list(d.poll).map(p =>
+        h('p', { class: 'small' }, String(p.option_id || 'Unspecified option') + ': ' + count(p.votes)))),
+      sec('Reported questions', list(d.reports).map(r =>
+        h('p', { class: 'small' }, String(r.question_id || 'Unknown question') + ': ' + count(r.reports) + ' report(s)'))),
+      sec('Questions needing review · 5+ attempts', list(d.weakest_questions).map(q =>
+        h('p', { class: 'small' }, String(q.question_id || 'Unknown question') + ': ' +
+          (Number.isFinite(Number(q.percent_correct)) ? Number(q.percent_correct).toFixed(1) + '% correct' : 'score unavailable') +
+          ' across ' + count(q.attempts) + ' attempts'))),
+      sec('Programme preview', [
+        h('p', { class: 'muted small' }, 'Admin-only local preview controls. These do not change a student’s saved academic level.'),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn grow', onclick: previewLevel200 }, 'Preview 200L here'),
+          h('button', { class: 'btn ghost grow', onclick: resetPreviewLevel }, 'Back to 100L'))
+      ]),
+      sec('Corrections', list(d.corrections).map(c =>
+        h('div', { class: 'rev' },
+          h('span', { class: 'chip' }, String(c.status || 'Unspecified')),
+          h('p', { class: 'small', style: { margin: '6px 0 0' } }, String(c.question_id || 'Unknown question') + ' → ' + String(c.correct_text || 'No correction text')),
+          h('p', { class: 'tiny muted' }, 'Source: ' + String(c.source || 'Not supplied')))))
     );
   };
   const go2 = async () => {
