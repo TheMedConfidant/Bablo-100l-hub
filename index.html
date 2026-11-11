@@ -2160,24 +2160,65 @@ function route() {
 
 /* ---------- onboarding ---------- */
 function onboarding() {
-  const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
+  const name = h('input', { type: 'text', maxlength: '40', placeholder: 'Your name', autocomplete: 'name' });
   const nick = h('input', { type: 'text', maxlength: '20', placeholder: 'Shown on the leaderboard' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
-  const err = h('p', { class: 'small', style: { color: 'var(--bad)' } });
-  const sub = () => {
+  const knownProgrammes = PROGRAMMES.filter(p => p !== GUEST_PROGRAMME);
+  const prog = h('select', null, [...knownProgrammes, 'Other / not listed'].map(p => h('option', { value: p }, p)));
+  const otherProgramme = h('input', { type: 'text', maxlength: '80', placeholder: 'Enter your programme' });
+  const institution = h('input', { type: 'text', maxlength: '100', placeholder: 'Institution / university' });
+  const level = h('select', null, ['100L','200L','300L','400L','500L','600L','700L','Other'].map(x => h('option', { value: x }, x)));
+  const pathway = h('input', { type: 'text', maxlength: '100', placeholder: 'Enter your BSc pathway' });
+  const otherWrap = h('div', { class: 'field', hidden: true }, h('span', null, 'Programme'), otherProgramme);
+  const pathwayWrap = h('div', { class: 'field', hidden: true }, h('span', null, 'BSc pathway (MBBS students from around 200L)'), pathway);
+  const updateConditional = () => {
+    otherWrap.hidden = prog.value === 'Other / not listed';
+    pathwayWrap.hidden = !(prog.value === 'MBBS' && level.value !== '100L' && level.value !== 'Other');
+  };
+  prog.addEventListener('change', updateConditional);
+  level.addEventListener('change', updateConditional);
+  const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
+  const sub = async () => {
+    err.textContent = '';
     const n = name.value.trim().replace(/[\u0000-\u001f]/g, '');
+    const programme = prog.value === 'Other / not listed' ? otherProgramme.value.trim() : prog.value;
+    const category = prog.value === 'Other / not listed' ? 'other' : 'cohes';
     if (n.length < 2) { err.textContent = 'Enter your name so we can greet you.'; return; }
+    if (institution.value.trim().length < 2) { err.textContent = 'Enter your institution.'; return; }
+    if (programme.length < 2) { err.textContent = 'Select or enter your programme.'; return; }
     const k = (nick.value.trim() || n.split(' ')[0]).slice(0, 20);
-    DB.profile = { name: n, nick: k, programme: prog.value, level: '100L' }; save(); document.querySelector('.overlay') && document.querySelector('.overlay').remove(); route();
+    DB.profile = {
+      name: n, nick: k, programme, programmeCategory: category,
+      institution: institution.value.trim(), level: level.value,
+      bscPathway: prog.value === 'MBBS' && level.value !== '100L' && level.value !== 'Other' ? pathway.value.trim() : '',
+      academicDetailsVerified: false, isGuest: true
+    };
+    save();
+    if (authConfigured()) {
+      try {
+        await hubCall('hub_save_guest_academic_profile', {
+          p_anon_id: DB.dev, p_institution: DB.profile.institution,
+          p_programme: programme, p_programme_category: category,
+          p_academic_level: level.value, p_bsc_pathway: DB.profile.bscPathway || null
+        });
+      } catch (e) { /* local profile remains available if the network is down */ }
+    }
+    const overlay = document.querySelector('.overlay');
+    if (overlay) overlay.remove();
+    route();
   };
   modal(h('div', { class: 'stack' }, h('h2', null, 'Welcome to Bablo Hub'),
-    h('p', { class: 'muted' }, 'Practice by topic, take timed quizzes, sit a mock exam and climb the leaderboard. Your details stay on this device.'),
+    h('p', { class: 'muted' }, 'Bablo Hub is COHES-first. 100L is open to all programmes. Your academic details are self-declared until verified.'),
     h('label', { class: 'field' }, h('span', null, 'Your name'), name),
     h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
-    h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
+    h('label', { class: 'field' }, h('span', null, 'Programme'), prog), otherWrap,
+    h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
+    h('label', { class: 'field' }, h('span', null, 'Academic level'), level), pathwayWrap,
     err,
     h('button', { class: 'btn primary block', onclick: sub }, 'Start studying'),
-    h('button', { class: 'btn ghost block', type: 'button', onclick: () => { DB.profile = { name: 'Guest learner', nick: 'Guest', programme: 'Independent', level: '100L', isGuest: true }; DB.account = null; save(); const ov = document.querySelector('.overlay'); if (ov) ov.remove(); route(); } }, 'Continue without an account')), false);
+    h('button', { class: 'btn ghost block', type: 'button', onclick: () => {
+      DB.profile = { name: 'Guest learner', nick: 'Guest', programme: 'Other / not supplied', programmeCategory: 'other', institution: '', level: '100L', isGuest: true, academicDetailsVerified: false };
+      DB.account = null; save(); const ov = document.querySelector('.overlay'); if (ov) ov.remove(); route();
+    } }, 'Continue without an account')), false);
 }
 
 /* ---------- home ---------- */
@@ -2705,9 +2746,9 @@ function meView() {
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const known = PROGRAMMES.filter(x => x !== GUEST_PROGRAMME);
-  const isCustom = !known.includes(p.programme) && p.programme !== GUEST_PROGRAMME;
+  const isCustom = !known.includes(p.programme);
   const prog = h('select', null, [...known, 'Other / not listed'].map(x => h('option', { value: x, selected: x === (isCustom ? 'Other / not listed' : p.programme) ? true : null }, x)));
-  const otherProgramme = h('input', { type: 'text', value: isCustom ? p.programme : '', placeholder: 'Enter your programme', maxlength: '80' });
+  const otherProgramme = h('input', { type: 'text', value: isCustom && p.programme !== GUEST_PROGRAMME ? p.programme : '', placeholder: 'Enter your programme', maxlength: '80' });
   const institution = h('input', { type: 'text', value: p.institution || '', placeholder: 'Institution / university', maxlength: '100' });
   const level = h('select', null, ['100L','200L','300L','400L','500L','600L','700L','Other'].map(x => h('option', { value: x, selected: x === (p.level || '100L') ? true : null }, x)));
   const pathway = h('input', { type: 'text', value: p.bscPathway || '', placeholder: 'Enter your BSc pathway', maxlength: '100' });
@@ -2727,8 +2768,16 @@ function meView() {
     if (institution.value.trim().length < 2) { toast('Enter your institution.'); return; }
     if (programme.length < 2) { toast('Enter your programme.'); return; }
     try {
+      const academic = { institution: institution.value.trim(), programme, programmeCategory: category, academicLevel: level.value, bscPathway: pathway.value.trim() };
       if (signedIn()) {
-        await saveAcademicProfile({ institution: institution.value.trim(), programme, programmeCategory: category, academicLevel: level.value, bscPathway: pathway.value.trim() });
+        await saveAcademicProfile(academic);
+      } else if (authConfigured() && DB.dev) {
+        const result = await hubCall('hub_save_guest_academic_profile', {
+          p_anon_id: DB.dev, p_institution: academic.institution, p_programme: academic.programme,
+          p_programme_category: academic.programmeCategory, p_academic_level: academic.academicLevel,
+          p_bsc_pathway: academic.bscPathway || null
+        });
+        if (!result || !result.ok) throw new Error((result && result.error) || 'Could not save guest academic details.');
       }
       DB.profile = Object.assign({}, DB.profile, {
         name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20),
