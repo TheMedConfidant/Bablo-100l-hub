@@ -3757,9 +3757,9 @@ function accountSection() {
       h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
-  const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
-  const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const academic = academicProfileFields({ programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
+  const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
+  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
   const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
