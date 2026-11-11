@@ -17,34 +17,20 @@
     duplicateStemGroups: 146,
     answerMappingsRequiringReview: 22,
     answerKeysIndependentlyVerified: false,
-    topicCounts: {
-      "Study skills": 71,
-      "Morphology and word formation": 224,
-      "Phonetics and phonology": 180,
-      "Communication skills": 80,
-      "Essay writing": 67,
-      "Correspondence": 60,
-      "Dictionary skills, lexis and vocabulary": 46,
-      "Paragraph development": 31,
-      "Language, society and English in Nigeria": 29,
-      "Creative writing and literary forms": 25,
-      "Meetings and reports": 20,
-      "Research and academic writing": 17,
-      "Reading and listening": 12,
-      "Grammar and sentence construction": 231
-    },
+    topicCounts: {"Study skills":43,"Research and academic writing":13,"Grammar and sentence construction":405,"Morphology and word formation":227,"Phonetics and phonology":121,"Language, society and English in Nigeria":2,"Meetings and reports":32,"Communication skills":53,"Reading and listening":11,"Dictionary skills, lexis and vocabulary":57,"Creative writing and literary forms":23,"Paragraph development":23,"Essay writing":39,"Correspondence":43},
+
 
     studentFacingQuestionSource: "gst111-curated-pack.js",
     curatedOriginalPracticeQuestions: 542,
     preExistingGST111QuestionsPreserved: 131,
-    totalStudentFacingQuestions: 513,
-    examEligibleQuestions: 481,
-    uniqueStudentFacingQuestions: 513,
+    totalStudentFacingQuestions: 673,
+    examEligibleQuestions: 641,
+    uniqueStudentFacingQuestions: 673,
     uniqueStudentFacingFlashcards: 246,
     nativeNotesTopics: 14,
     quizTopics: 14,
     sourceQuestionsImportedVerbatim: 0,
-    coverageStatus: "All 1,093 source records topic-mapped; repeated records consolidated; original practice variants used instead of a verbatim one-to-one copy."
+    coverageStatus: "All 1,092 answer-keyed records classified across 14 topics; one malformed candidate held out; repeated records consolidated; original practice variants used instead of verbatim source text."
 
   };
   window.__GST111_SOURCE_IMPORT__ = Object.assign({}, window.__GST111_SOURCE_IMPORT__ || {}, {
