@@ -3303,7 +3303,12 @@ function adminView() {
   const sec = (title, rows) => h('section', { class: 'panel stack' }, h('h2', null, title), rows.length ? rows : [h('p', { class: 'muted small' }, 'Nothing yet.')]);
   const show = d => {
     out.replaceChildren(
-      sec('Summary', [h('p', null, 'People with accounts: ' + d.accounts), ...(d.programme_counts || []).map(p => h('p', { class: 'small' }, p.programme + ': ' + p.people))]),
+      sec('Summary', [h('p', null, 'Registered accounts: ' + (Number(d.accounts) || 0)), ...(d.programme_counts || []).map(p => h('p', { class: 'small' }, String(p.programme || 'Unspecified') + ': ' + (Number(p.people) || 0)))]),
+      sec('Academic profile breakdown', (d.academic_profile_counts || []).map(p => h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
+        h('div', { class: 'stack', style: { gap: '2px' } },
+          h('b', { class: 'small' }, [p.programme || 'Unspecified', p.bsc_pathway ? ' · ' + p.bsc_pathway : ''].join('')),
+          h('span', { class: 'tiny muted' }, [p.institution || 'Institution not supplied', p.academic_level || 'Level not supplied', p.account_type === 'guest' ? 'Guest' : 'Registered', p.programme_category === 'cohes' ? 'COHES' : 'Other programme'].join(' · '))),
+        h('b', null, String(Number(p.people) || 0))))),
       sec('Qualifications poll', (d.poll || []).map(p => h('p', { class: 'small' }, p.option_id + ': ' + p.votes))),
       sec('Feedback (newest first)', (d.feedback || []).map(f => h('div', { class: 'rev' }, h('span', { class: 'chip brand' }, f.kind), h('span', { class: 'tiny muted' }, ' ' + (f.nick || '') + ' \u2022 ' + (f.programme || '') + ' \u2022 ' + new Date(f.created_at).toLocaleString()), h('p', { class: 'small', style: { margin: '6px 0 0', whiteSpace: 'pre-wrap' } }, f.body)))),
       sec('Reported questions', (d.reports || []).map(r => h('p', { class: 'small' }, r.question_id + ': ' + r.reports + ' report(s)'))),
@@ -3374,13 +3379,35 @@ async function loadAnalytics(pass, container) {
   container.append(box);
   const d = await adminPost('hub_admin_analytics', { p_pass: pass, p_days: 30 });
   if (!d || !d.ok) { box.replaceChildren(h('h2', null, 'Analytics'), h('p', { class: 'muted small' }, d && d.error ? d.error : 'Could not load analytics.')); return; }
-  const data = d.data || {};
-  const rows = Object.keys(data).filter(k => k !== 'days').map(k => {
-    const v = data[k];
-    const shown = v === null || v === undefined ? 'no data yet' : (typeof v === 'object' ? JSON.stringify(v) : String(v));
-    return h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } }, h('span', { class: 'small' }, k.replace(/_/g, ' ')), h('b', null, shown));
+  const data = d.data && typeof d.data === 'object' && !Array.isArray(d.data) ? d.data : {};
+  const labels = {
+    visitors: 'Unique visitors',
+    page_views: 'Page views',
+    quiz_starts: 'Quiz starts',
+    quiz_completions: 'Quiz completions',
+    avg_score: 'Average quiz score',
+    adaptive_starts: 'Adaptive practice starts',
+    flashcard_sessions: 'Flashcard sessions'
+  };
+  const rows = Object.entries(labels).filter(([key]) => Object.prototype.hasOwnProperty.call(data, key)).map(([key, label]) => {
+    const value = data[key];
+    const shown = typeof value === 'number' && Number.isFinite(value)
+      ? (key === 'avg_score' ? value.toFixed(1) + '%' : value.toLocaleString())
+      : 'No data yet';
+    return h('div', { class: 'row between wrapr', style: { padding: '8px 0', borderBottom: '1px solid var(--line)' } },
+      h('span', { class: 'small' }, label), h('b', null, shown));
   });
-  box.replaceChildren(h('h2', null, 'Analytics (last ' + (data.days || 30) + ' days)'), rows.length ? rows : h('p', { class: 'muted small' }, 'No events yet.'));
+  const interest = Array.isArray(data.feature_interest) ? data.feature_interest.slice(0, 5).map(item =>
+    h('div', { class: 'row between wrapr', style: { padding: '6px 0' } },
+      h('span', { class: 'small' }, String(item.feature || 'Other')),
+      h('b', null, String(Number(item.count) || 0)))
+  ) : [];
+  box.replaceChildren(
+    h('h2', null, 'Analytics · last ' + (Number(data.days) || 30) + ' days'),
+    rows.length ? rows : h('p', { class: 'muted small' }, 'No supported activity metrics are available yet.'),
+    h('h3', null, 'Most viewed features'),
+    interest.length ? interest : h('p', { class: 'muted small' }, 'No feature activity recorded yet.')
+  );
 }
 
 ;
