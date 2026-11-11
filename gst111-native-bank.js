@@ -35,7 +35,7 @@
     },
 
     studentFacingQuestionSource: "gst111-curated-pack.js",
-    curatedOriginalPracticeQuestions: 382,
+    curatedOriginalPracticeQuestions: 542,
     preExistingGST111QuestionsPreserved: 131,
     totalStudentFacingQuestions: 513,
     examEligibleQuestions: 481,
