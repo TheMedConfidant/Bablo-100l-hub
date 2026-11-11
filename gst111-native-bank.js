@@ -34,7 +34,10 @@
       "Grammar and sentence construction": 231
     },
 
-    studentFacingQuestionSource: "gst111-curated-pack.js"
+    studentFacingQuestionSource: "gst111-curated-pack.js",
+    curatedOriginalPracticeQuestions: 252,
+    preExistingGST111QuestionsPreserved: 131,
+    exactDuplicateSourceRecordsConsolidated: 279
   };
   window.__GST111_SOURCE_IMPORT__ = Object.assign({}, window.__GST111_SOURCE_IMPORT__ || {}, {
     questions: 0,
