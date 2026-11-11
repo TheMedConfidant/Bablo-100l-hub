@@ -3411,7 +3411,7 @@ async function loadAnalytics(pass, container) {
     .slice(-14)
     .map(item => h('div', { class: 'row between wrapr', style: { padding: '6px 0', borderBottom: '1px solid var(--line)' } },
       h('span', { class: 'small' }, item.date),
-      h('span', { class: 'tiny muted' }, 'Visitors ' + (Number(item.visitors) || 0) + ' · Views ' + (Number(item.views) || 0) + ' · Quiz completions ' + (Number(item.completions) || 0))));
+      h('span', { class: 'tiny muted' }, 'Visitors ' + (Number(item.visitors) || 0) + ' · Views ' + (Number(item.page_views) || 0) + ' · Quiz completions ' + (Number(item.quiz_completions) || 0))));
   const section = (title, rows) => h('section', { class: 'stack', style: { gap: '4px' } },
     h('h3', { class: 'small' }, title),
     rows.length ? rows : [h('p', { class: 'muted tiny' }, 'No recorded activity yet.')]);
