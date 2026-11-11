@@ -2748,7 +2748,7 @@ function meView() {
   const known = PROGRAMMES.filter(x => x !== GUEST_PROGRAMME);
   const isCustom = !known.includes(p.programme);
   const prog = h('select', null, [...known, 'Other / not listed'].map(x => h('option', { value: x, selected: x === (isCustom ? 'Other / not listed' : p.programme) ? true : null }, x)));
-  const otherProgramme = h('input', { type: 'text', value: isCustom && p.programme !== GUEST_PROGRAMME ? p.programme : '', placeholder: 'Enter your programme', maxlength: '80' });
+  const otherProgramme = h('input', { type: 'text', value: isCustom && p.programme !== GUEST_PROGRAMME && p.programme !== 'Other / not supplied' ? p.programme : '', placeholder: 'Enter your programme', maxlength: '80' });
   const institution = h('input', { type: 'text', value: p.institution || '', placeholder: 'Institution / university', maxlength: '100' });
   const level = h('select', null, ['100L','200L','300L','400L','500L','600L','700L','Other'].map(x => h('option', { value: x, selected: x === (p.level || '100L') ? true : null }, x)));
   const pathway = h('input', { type: 'text', value: p.bscPathway || '', placeholder: 'Enter your BSc pathway', maxlength: '100' });
