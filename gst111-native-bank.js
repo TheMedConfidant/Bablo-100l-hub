@@ -17,7 +17,23 @@
     duplicateStemGroups: 146,
     answerMappingsRequiringReview: 22,
     answerKeysIndependentlyVerified: false,
-    topicCounts: {"Study skills":43,"Research and academic writing":13,"Grammar and sentence construction":405,"Morphology and word formation":227,"Phonetics and phonology":121,"Language, society and English in Nigeria":2,"Meetings and reports":32,"Communication skills":53,"Reading and listening":11,"Dictionary skills, lexis and vocabulary":57,"Creative writing and literary forms":23,"Paragraph development":23,"Essay writing":39,"Correspondence":43},
+    topicCandidateCounts: {
+      "Study skills": 71,
+      "Morphology and word formation": 224,
+      "Phonetics and phonology": 180,
+      "Communication skills": 80,
+      "Essay writing": 67,
+      "Correspondence": 60,
+      "Dictionary skills, lexis and vocabulary": 46,
+      "Paragraph development": 31,
+      "Language, society and English in Nigeria": 29,
+      "Creative writing and literary forms": 25,
+      "Meetings and reports": 20,
+      "Research and academic writing": 17,
+      "Reading and listening": 12,
+      "Grammar and sentence construction": 231
+    },
+    topicCandidateCountsIncludeMalformedCandidate: true,
 
 
     studentFacingQuestionSource: "gst111-curated-pack.js",
