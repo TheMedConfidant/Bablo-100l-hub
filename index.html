@@ -2406,6 +2406,7 @@ function setupView(code, mode, qs) {
     const n = Math.min(S.n, avail), minutes = S.minCustom ? S.min : Math.max(1, Math.ceil(n * (mode === 'exam' ? 1 : 0.75)));
     const seg = (items, cur, set) => h('div', { class: 'seg' }, items.map(([val, lab]) => h('button', { class: 'opt', 'aria-pressed': String(cur === val), onclick: () => { set(val); draw(); } }, lab)));
     const kids = [];
+     if (code === 'GST111') kids.push(h('div', { class: 'warnbox' }, 'GST 111 answer keys are transcribed from the source PDF and have not been independently verified. Questions flagged for answer review are excluded from timed quizzes, mock tests and exams.'));
     if (mode === 'mock') kids.unshift(h('div', { class: 'warnbox' }, 'Mock test: some questions are not yet verified and are marked. Mock results do not count toward the Cup or the leaderboard.'));
     if (mode !== 'exam' && mode !== 'mock') kids.push(h('div', { class: 'stack' }, h('h2', null, 'Mode'), seg([['practice', 'Practice (instant feedback)'], ['quiz', 'Quiz (score at the end)']], mode, v => { SETUP = null; go('#/setup/' + code + '/' + v); })));
     if (mode !== 'exam') kids.push(h('div', { class: 'stack' }, h('div', { class: 'row between' }, h('h2', null, 'Topics'), h('button', { class: 'btn sm ghost', onclick: () => { S.units.clear(); draw(); } }, 'All topics')),
