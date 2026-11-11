@@ -1,5 +1,5 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v26-gst111-notes-boundary-fix';
+const VERSION='bablo-offline-v27-challenge-invite-links';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./mls101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./challenge-arena.js','./wifi-challenge.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./chm-practicals-native.js','./agr-101-food-security.html','./gst103-study-hub.html','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html'];
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
