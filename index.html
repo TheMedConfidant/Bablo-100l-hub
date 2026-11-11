@@ -1152,7 +1152,17 @@ const PROGRAMME_COURSES = {
   [GUEST_PROGRAMME]: [...CORE_COURSES, 'MTH101']
 };
 const coursesFor = programme => (PROGRAMME_COURSES[programme] || CORE_COURSES).map(code => COURSES.find(c => c.code === code)).filter(Boolean);
-function canAccessCourse(code) { return !!(DB.profile && coursesFor(DB.profile.programme).some(c => c.code === code)); }
+function canAccessCourse(code) {
+  const p = DB.profile;
+  if (!p) return false;
+  const levelNumber = parseInt(p.level || '100L', 10) || 100;
+  const category = p.programmeCategory || inferProgrammeCategory(p.programme);
+  const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
+  const BowenCohes = category === 'cohes' && institution.includes('bowen');
+  if (levelNumber === 200 && BowenCohes) return COURSES_200.some(c => c.code === code);
+  if (levelNumber >= 200 && !BowenCohes) return CORE_COURSES.includes(code);
+  return coursesFor(p.programme).some(c => c.code === code);
+}
 
 /* ---------- Programme Cup ---------- */
 /* Event windows repeat every week. Times are Lagos time (UTC+1). day: 0 Sun .. 6 Sat. */
@@ -1257,7 +1267,41 @@ const COURSES_200 = [
   { code: 'BCH', label: 'BCH', title: 'Biochemistry (code to confirm)', color: '#7C3AED', units: 2, semester: 'first' },
   { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
 ];
-const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME];
+const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
+const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
+function inferProgrammeCategory(programme) {
+  return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
+}
+function academicProfileFields(profile) {
+  const p = profile || {};
+  const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
+  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
+  const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
+  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
+  const category = h('select', null,
+    h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
+    h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
+  const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
+  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
+  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
+  const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
+  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
+  level.addEventListener('change', syncPathway);
+  syncPathway();
+  return {
+    nodes: [h('label', { class: 'field' }, h('span', null, 'Programme'), programme), suggestions,
+      h('label', { class: 'field' }, h('span', null, 'Academic group'), category),
+      h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
+      h('label', { class: 'field' }, h('span', null, 'Current level'), level), pathwayField],
+    read: () => ({
+      programme: programme.value.trim(),
+      programmeCategory: category.value,
+      institution: institution.value.trim(),
+      level: level.value,
+      bscPathway: pathway.value.trim()
+    })
+  };
+}
 
 /* Encouragement: King James Version (public domain). */
 const VERSES = {
@@ -1760,7 +1804,33 @@ async function hubCall(fn, body) {
   return r.json();
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
-function setAccount(j) { DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium }; DB.profile = { name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme, level: '100L', uid: j.uniqueId }; save(); }
+function setAccount(j) {
+  DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium };
+  DB.profile = {
+    name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme,
+    programmeCategory: j.programmeCategory || inferProgrammeCategory(j.programme),
+    institution: j.institution || 'Bowen University', level: j.academicLevel || '100L',
+    bscPathway: j.bscPathway || '', academicDetailsVerified: !!j.academicDetailsVerified,
+    isGuest: !!j.isGuest, uid: j.uniqueId
+  };
+  save();
+}
+async function persistAcademicProfile(data) {
+  const payload = {
+    p_institution: data.institution, p_programme: data.programme,
+    p_programme_category: data.programmeCategory, p_academic_level: data.level,
+    p_bsc_pathway: data.bscPathway || null
+  };
+  if (authConfigured()) {
+    let result;
+    if (signedIn()) result = await hubCall('hub_save_academic_profile', Object.assign({ p_token: DB.account.token }, payload));
+    else result = await hubCall('hub_save_guest_academic_profile', Object.assign({ p_anon_id: DB.dev }, payload));
+    if (!result || !result.ok) throw new Error((result && result.error) || 'Could not save academic details.');
+  }
+  DB.profile = Object.assign({}, DB.profile || {}, data);
+  save();
+  return true;
+}
 let CHESS_IDENTITY_BUSY = false;
 async function ensureChessIdentity() { if (!signedIn() || !DB.profile || DB.profile.username || CHESS_IDENTITY_BUSY) return; CHESS_IDENTITY_BUSY = true; try { const j = await hubCall('hub_chess_identity', { p_token: DB.account.token }); if (j && j.ok) { DB.profile.uid=j.uniqueId; DB.profile.username=j.username; DB.profile.nick=j.nickname||DB.profile.nick; DB.profile.programme=j.programme||DB.profile.programme; save(); if (location.hash === '#/me') setTimeout(meView, 0); } } catch(e) {} finally { CHESS_IDENTITY_BUSY=false; } }
 async function saveChessUsername(raw) { const username=String(raw||'').trim().toLowerCase(); const j=await hubCall('hub_set_chess_username',{p_token:DB.account.token,p_username:username}); if(!j||!j.ok) throw new Error((j&&j.error)||'Could not save username.'); DB.profile.username=j.username; save(); toast('Username saved: @'+j.username); meView(); }
@@ -1768,10 +1838,17 @@ async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
   if (!f.nickname.trim()) throw new Error('Pick a nickname.');
   if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
-  // the server creates the ID, so no one can pick someone else's
-  const reg = await hubCall('hub_register', { p_unique_id: null, p_password: f.password, p_full_name: f.name, p_nickname: f.nickname, p_programme: f.programme, p_is_guest: f.programme.indexOf('Guest') === 0 });
+  if (!f.programme || f.programme.length < 2) throw new Error('Enter your programme.');
+  if (!f.institution || f.institution.length < 2) throw new Error('Enter your institution.');
+  const reg = await hubCall('hub_register', {
+    p_unique_id: null, p_password: f.password, p_full_name: f.name,
+    p_nickname: f.nickname, p_programme: f.programme, p_is_guest: false
+  });
   if (!reg.ok) throw new Error(reg.error);
-  return signIn(reg.uniqueId, f.password);
+  const signed = await signIn(reg.uniqueId, f.password);
+  try { await persistAcademicProfile(f); signed.profileSaved = true; }
+  catch (e) { signed.profileSaved = false; signed.profileError = e.message || 'Academic details will need to be saved from your profile.'; }
+  return signed;
 }
 async function signIn(id, password) {
   const j = await hubCall('hub_login', { p_unique_id: String(id).trim().toUpperCase(), p_password: password });
@@ -1875,7 +1952,18 @@ const unitsOf = code => { const m = new Map(); (BYC[code] || []).forEach(q => m.
 const courseBy = code => COURSES.find(c => c.code === code);
 const isAvail = c => !!(BYC[c.code] && BYC[c.code].length);
 let HOME_SEM = 'first';
-const homeCourses = () => (DB.profile && DB.profile.level === '200L') ? COURSES_200.filter(c => c.semester === HOME_SEM).map(c => Object.assign({}, c, { pending200: true })) : coursesFor(DB.profile.programme);
+const homeCourses = () => {
+  const p = DB.profile || {};
+  const levelNumber = parseInt(p.level || '100L', 10) || 100;
+  const category = p.programmeCategory || inferProgrammeCategory(p.programme);
+  const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
+  const BowenCohes = category === 'cohes' && institution.includes('bowen');
+  if (levelNumber === 200 && BowenCohes) {
+    return COURSES_200.filter(c => c.semester === HOME_SEM).map(c => Object.assign({}, c, { pending200: true }));
+  }
+  if (levelNumber >= 200 && !BowenCohes) return coursesFor(p.programme).filter(c => CORE_COURSES.includes(c.code));
+  return coursesFor(p.programme);
+};
 function open200(code, tab) { course200View.tab = tab; go('#/course/' + code); }
 
 /* ---------- DOM helpers (no innerHTML with user data) ---------- */
@@ -2133,22 +2221,29 @@ function route() {
 function onboarding() {
   const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
   const nick = h('input', { type: 'text', maxlength: '20', placeholder: 'Shown on the leaderboard' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
-  const err = h('p', { class: 'small', style: { color: 'var(--bad)' } });
-  const sub = () => {
-    const n = name.value.trim().replace(/[\u0000-\u001f]/g, '');
+  const academic = academicProfileFields({ programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
+  const sub = async () => {
+    const n = name.value.trim();
     if (n.length < 2) { err.textContent = 'Enter your name so we can greet you.'; return; }
+    const details = academic.read();
+    if (details.programme.length < 2 || details.institution.length < 2) { err.textContent = 'Enter your programme and institution.'; return; }
     const k = (nick.value.trim() || n.split(' ')[0]).slice(0, 20);
-    DB.profile = { name: n, nick: k, programme: prog.value, level: '100L' }; save(); document.querySelector('.overlay') && document.querySelector('.overlay').remove(); route();
+    DB.profile = Object.assign({ name: n, nick: k, isGuest: true }, details);
+    save();
+    try { await persistAcademicProfile(details); }
+    catch (e) { toast('Profile saved on this device; online sync can be retried from Profile.'); }
+    const ov = document.querySelector('.overlay'); if (ov) ov.remove();
+    route();
   };
   modal(h('div', { class: 'stack' }, h('h2', null, 'Welcome to Bablo Hub'),
-    h('p', { class: 'muted' }, 'Practice by topic, take timed quizzes, sit a mock exam and climb the leaderboard. Your details stay on this device.'),
+    h('p', { class: 'muted' }, 'Bablo Hub is COHES-first. 100L access is open across programmes and institutions; higher-level COHES access follows the platform’s academic scope.'),
     h('label', { class: 'field' }, h('span', null, 'Your name'), name),
     h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
-    h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
+    ...academic.nodes,
     err,
-    h('button', { class: 'btn primary block', onclick: sub }, 'Start studying'),
-    h('button', { class: 'btn ghost block', type: 'button', onclick: () => { DB.profile = { name: 'Guest learner', nick: 'Guest', programme: 'Independent', level: '100L', isGuest: true }; DB.account = null; save(); const ov = document.querySelector('.overlay'); if (ov) ov.remove(); route(); } }, 'Continue without an account')), false);
+    h('button', { class: 'btn primary block', onclick: sub }, 'Continue as guest'),
+    h('p', { class: 'tiny muted' }, 'You can create an account later to sync progress across devices.')), false);
 }
 
 /* ---------- home ---------- */
@@ -2318,7 +2413,7 @@ function homeView() {
 }
 function coursesCatalogueView(){
  const p=DB.profile,L200=p&&p.level==='200L';
- const list=homeCourses().map(c=>{const ok=isAvail(c),n=ok?BYC[c.code].length:0;
+ const list=homeCourses().filter(c=>canAccessCourse(c.code)).map(c=>{const ok=isAvail(c),n=ok?BYC[c.code].length:0;
   return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Questions'):go('#/course/'+c.code)},
    h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
  });
@@ -2368,7 +2463,7 @@ function brand() {
 /* ---------- course page ---------- */
 function courseView(code) {
   const c200 = COURSES_200.find(x => x.code === code);
-  if (c200) { course200View(c200); return; }
+  if (c200) { if (!canAccessCourse(code)) { go('#/courses'); return; } course200View(c200); return; }
   const c = courseBy(code); if (!c || !isAvail(c) || !canAccessCourse(code)) { go('#/'); return; }
   const us = unitsOf(code), total = BYC[code].length, weakN = BYC[code].filter(q => DB.missed[q.i]).length;
   const rows = us.map((u, i) => {
@@ -2675,30 +2770,32 @@ function meView() {
   const p = DB.profile || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
-  const prog = h('select', null, PROGRAMMES.map(x => h('option', { value: x, selected: x === p.programme ? true : null }, x)));
+  const academic = academicProfileFields(p);
+  const status = h('p', { class: 'tiny muted', role: 'status', 'aria-live': 'polite' });
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity and leaderboard details.'),
+    h('p', { class: 'muted small' }, 'Your student identity and academic details. These details are self-declared until verified.'),
     h('section', { class: 'panel stack' },
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
-      h('label', { class: 'field' }, h('span', null, 'Programme'), prog),
-      h('button', { class: 'btn primary block', onclick: () => {
+      ...academic.nodes,
+      status,
+      h('button', { class: 'btn primary block', onclick: async () => {
         const n = name.value.trim();
-        if (n.length < 2) { toast('Enter your name.'); return; }
-        DB.profile = Object.assign({}, DB.profile, {
-          name: n,
-          nick: (nick.value.trim() || n.split(' ')[0]).slice(0, 20),
-          programme: prog.value,
-          level: '100L'
-        });
-        save(); toast('Profile saved.');
+        if (n.length < 2) { status.textContent = 'Enter your name.'; return; }
+        const details = academic.read();
+        if (details.programme.length < 2 || details.institution.length < 2) { status.textContent = 'Enter both your programme and institution.'; return; }
+        DB.profile = Object.assign({}, DB.profile, { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20) });
+        try {
+          await persistAcademicProfile(details);
+          status.textContent = 'Profile saved. Academic details remain self-declared until verified.';
+          toast('Profile saved.');
+        } catch (e) { save(); status.textContent = e.message || 'Could not sync your academic details. Your local profile is preserved.'; }
       } }, 'Save profile'))
   )));
 }
 
 
-;
 /* Bablo 100L Hub - UI part 4: Weak Spots and Chess */
 
 /* ---------- Weak Spots ---------- */
@@ -3304,6 +3401,7 @@ function adminView() {
   const show = d => {
     out.replaceChildren(
       sec('Summary', [h('p', null, 'People with accounts: ' + d.accounts), ...(d.programme_counts || []).map(p => h('p', { class: 'small' }, p.programme + ': ' + p.people))]),
+      sec('Academic profiles (self-declared)', [h('p', { class: 'muted small' }, 'Guest profiles: ' + (d.guest_profiles || 0) + ' · registered accounts are counted separately. Details are self-declared, not verified.'), ...(d.academic_profile_counts || []).map(p => h('p', { class: 'small' }, (p.institution || 'Institution not stated') + ' · ' + p.programme + ' · ' + p.academic_level + ' · ' + p.programme_category + ' · ' + p.account_type + ': ' + p.people + (p.bsc_pathway ? ' · BSc: ' + p.bsc_pathway : '')))]),
       sec('Qualifications poll', (d.poll || []).map(p => h('p', { class: 'small' }, p.option_id + ': ' + p.votes))),
       sec('Feedback (newest first)', (d.feedback || []).map(f => h('div', { class: 'rev' }, h('span', { class: 'chip brand' }, f.kind), h('span', { class: 'tiny muted' }, ' ' + (f.nick || '') + ' \u2022 ' + (f.programme || '') + ' \u2022 ' + new Date(f.created_at).toLocaleString()), h('p', { class: 'small', style: { margin: '6px 0 0', whiteSpace: 'pre-wrap' } }, f.body)))),
       sec('Reported questions', (d.reports || []).map(r => h('p', { class: 'small' }, r.question_id + ': ' + r.reports + ' report(s)'))),
@@ -3657,28 +3755,46 @@ function showNewId(id) {
 function accountSection() {
   if (!authConfigured()) return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', { class: 'muted small' }, 'Accounts turn on when the live database is connected.'));
   if (signedIn() && DB.profile && DB.profile.uid) {
-    ensureChessIdentity(); const usernameInput=h('input',{type:'text',maxlength:'20',placeholder:'your_username',value:DB.profile.username||'',autocapitalize:'none',autocomplete:'off',spellcheck:'false'}); const usernameError=h('p',{class:'small',style:{color:'var(--bad)'},role:'alert'});
-    return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')), h('label',{class:'field'},h('span',null,'Change username'),usernameInput), h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'), usernameError, h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'), h('p', null, h('b', null, 'Your ID: '), DB.profile.uid), h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'), h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
+    ensureChessIdentity();
+    const usernameInput=h('input',{type:'text',maxlength:'20',placeholder:'your_username',value:DB.profile.username||'',autocapitalize:'none',autocomplete:'off',spellcheck:'false'});
+    const usernameError=h('p',{class:'small',style:{color:'var(--bad)'},role:'alert'});
+    return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'),
+      h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')),
+      h('label',{class:'field'},h('span',null,'Change username'),usernameInput),
+      h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'),
+      usernameError,
+      h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'),
+      h('p', null, h('b', null, 'Your ID: '), DB.profile.uid),
+      h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'),
+      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
-  const name = h('input', { type: 'text', placeholder: 'Full name', maxlength: '60' });
-  const nick = h('input', { type: 'text', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const prog = h('select', null, PROGRAMMES.map(p => h('option', { value: p }, p)));
-  const pass = h('input', { type: 'password', placeholder: 'Password (6+ characters)', autocomplete: 'new-password' });
+  const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
+  const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
+  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const go2 = async (isUp) => {
     err.textContent = '';
     try {
-      if (isUp) { const r = await signUp({ name: name.value, nickname: nick.value, programme: prog.value, password: pass.value }); showNewId(r.uniqueId); }
-      else { const r = await signIn(loginId.value, loginPass.value); toast('Welcome back. ID ' + r.uniqueId); }
+      if (isUp) {
+        const r = await signUp(Object.assign({ name: name.value, nickname: nick.value, password: pass.value }, academic.read()));
+        showNewId(r.uniqueId);
+        if (!r.profileSaved) toast('Account created. Review and save academic details in your profile.');
+      } else {
+        const r = await signIn(loginId.value, loginPass.value);
+        toast('Welcome back. ID ' + r.uniqueId);
+      }
       meView();
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
-  const tabs = h('div', { class: 'seg' }, h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'), h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
+  const tabs = h('div', { class: 'seg' },
+    h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'),
+    h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
   const fields = mode === 'signup'
-    ? [name, nick, prog, pass, h('p', { class: 'tiny muted' }, 'We create your ID for you, for example MBB-7342. You will see it once, so write it down. You need it to log in.')]
+    ? [name, nick, ...academic.nodes, pass, h('p', { class: 'tiny muted' }, 'Your ID is generated automatically. Save it after registration; it is required to log in.')]
     : [loginId, loginPass];
   return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'), tabs, ...fields, err,
     h('button', { class: 'btn primary block', onclick: () => go2(mode === 'signup') }, mode === 'signup' ? 'Create account' : 'Log in'),
@@ -3901,7 +4017,7 @@ function pollCard(P) {
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
 function course200View(c) {
-  const tabs = ['Questions', 'Notes', 'Practicals', 'Labs'];
+  const tabs = ['Questions', 'Notes', 'Flashcards'];
   const cur = (course200View.tab || 'Questions');
   const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
     'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
@@ -3938,7 +4054,7 @@ function sectionTiles(c, questions, topics) {
     { name: 'Notes', sub: notesFor(c.code) ? notesFor(c.code).topics.length + ' topics' : 'Summaries and lecture notes', live: !!notesFor(c.code), premium: true, go: () => go('#/notes/' + c.code) },
     { name: 'Flashcards', sub: (window.__CARDS__ && window.__CARDS__.GST111 ? window.__CARDS__.GST111.length + ' active-recall cards' : 'Flashcards'), live: true, premium: true, go: () => go('#/flash/' + c.code) },
     { name: 'Practicals', sub: practicalCode(c.code) + ' practicals', live: !!practicalsFor(c.code) || !!practicalsFor(practicalCode(c.code)) || ['CHM107','PHY107'].includes(practicalCode(c.code)), premium: false, go: () => go(practicalCode(c.code) === 'CHM107' ? '#/lab/chm107' : practicalCode(c.code) === 'PHY107' ? '#/practicals/PHY' : practicalCode(c.code) === 'COS' ? '#/practicals/COS' : '#/practicals/' + c.code) }
-  ].filter(x => x.name !== 'Practicals' || practicalCode(c.code));
+  ].filter(x => x.name !== 'Practicals');
   if (c.code === 'GEL101') secs.push({ name: 'Bonus', sub: 'Lean on Me: summary, plot and cast', live: true, go: () => go('#/bonus/GEL101') });
   if (c.code === 'COS') secs.push({ name: 'Bonus', sub: 'Computing timeline, pioneers and story', live: true, go: () => go('#/bonus/COS') });
   return h('div', { class: 'sec-grid' }, secs.map(s => {
