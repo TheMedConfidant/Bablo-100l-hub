@@ -1268,28 +1268,38 @@ const COURSES_200 = [
   { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
-const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
+const ACADEMIC_LEVELS = ['100L','200L','300L','400L'];
 function inferProgrammeCategory(programme) {
   return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
 }
 function academicProfileFields(profile) {
   const p = profile || {};
-  const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
-  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
+  const selectedProgramme = String(p.programme || '').trim();
+  const programme = h('select', { required: true },
+    h('option', { value: '', selected: !selectedProgramme ? true : null }, 'Select your programme'),
+    PROGRAMMES.filter(x => x !== GUEST_PROGRAMME).map(x => h('option', { value: x, selected: selectedProgramme === x ? true : null }, x)));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
+  const initialCategory = p.programmeCategory || inferProgrammeCategory(selectedProgramme);
   const category = h('select', null,
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
-  const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
-  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
-  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
-  const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
-  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
+  const selectedLevel = ACADEMIC_LEVELS.includes(p.level) ? p.level : '100L';
+  const level = h('select', { required: true }, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: selectedLevel === x ? true : null }, x)));
+  const pathway = h('select', { required: false },
+    h('option', { value: '', selected: !p.bscPathway ? true : null }, 'Select BSc option'),
+    ...['PIO', 'BCH', 'ANA'].map(x => h('option', { value: x, selected: p.bscPathway === x ? true : null }, x)));
+  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc option (MBBS students, from 200L)'), pathway);
+  const syncPathway = () => {
+    const show = programme.value === 'MBBS' && parseInt(level.value, 10) >= 200;
+    pathwayField.hidden = !show;
+    pathway.required = show;
+    if (!show) pathway.value = '';
+  };
+  programme.addEventListener('change', () => { category.value = inferProgrammeCategory(programme.value); syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
   return {
-    nodes: [h('label', { class: 'field' }, h('span', null, 'Programme'), programme), suggestions,
+    nodes: [h('label', { class: 'field' }, h('span', null, 'Programme'), programme),
       h('label', { class: 'field' }, h('span', null, 'Academic group'), category),
       h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
       h('label', { class: 'field' }, h('span', null, 'Current level'), level), pathwayField],
@@ -2009,7 +2019,7 @@ const plural = (n, s) => n + ' ' + s + (n === 1 ? '' : 's');
 
 /* ---------- saved state (this device) ---------- */
 const KEY = 'bablo100l:v1';
-let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'glass', dev: '', soundAlerts: false };
+let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'midnight', dev: '', soundAlerts: false };
 try { Object.assign(DB, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* storage unavailable: stay in memory */ }
 if (!DB.dev) DB.dev = uid();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* ignore */ } if (typeof queuePush === 'function') queuePush(); }
@@ -2018,7 +2028,7 @@ function applyTheme() {
   const mode = DB.theme === 'system' ? (sysDark ? 'dark' : 'light') : DB.theme;
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
-  const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
+  const skin = (!DB.skin || DB.skin === 'glass' || DB.skin === 'green') ? 'midnight' : DB.skin;
   if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', 'gold'); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
@@ -4368,7 +4378,7 @@ function settingsView() {
     h('section', { class: 'panel stack' },
       h('h2', null, 'Appearance'),
       h('p', { class: 'tiny muted' }, 'Choose the Hub look that is easiest to read.'),
-      h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
+      h('div', { class: 'seg' }, sk('midnight', 'Midnight'), sk('charcoal', 'Charcoal'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'),
       h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' },
@@ -4900,4 +4910,20 @@ setTimeout(liveNotice, 1200);
  .dashboard-card-copy small{font-size:10px}
 }
 @media(min-width:760px){.dashboard-module-section .dashboard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Midnight and Charcoal: solid, low-motion surfaces replace the old frosted-glass treatment. */
+:root[data-skin="midnight"]{--page:linear-gradient(155deg,#080F1C 0%,#101B2D 58%,#0A1423 100%);--surface:#152338;--line:#293B53;--ink:#F3F6FC;--ink2:#B7C4D7;--bg:#0B1422;--brand:#77B7D8;--brand-ink:#071521;--brand-soft:rgba(119,183,216,.15);--glass-fill:#152338;--glass-edge:#293B53;--glass-shadow:0 10px 26px rgba(0,0,0,.22);--glow-a:transparent;--glow-b:transparent;--glow-c:transparent}
+:root[data-skin="charcoal"]{--page:linear-gradient(155deg,#111315 0%,#1A1E22 58%,#121619 100%);--surface:#22282E;--line:#394149;--ink:#F4F5F6;--ink2:#BCC4CA;--bg:#15191D;--brand:#D5B36A;--brand-ink:#211A0B;--brand-soft:rgba(213,179,106,.15);--glass-fill:#22282E;--glass-edge:#394149;--glass-shadow:0 10px 26px rgba(0,0,0,.25);--glow-a:transparent;--glow-b:transparent;--glow-c:transparent}
+:root[data-skin="midnight"] body::before,:root[data-skin="charcoal"] body::before{display:none!important;animation:none!important}
+:root[data-skin="midnight"] .panel,:root[data-skin="midnight"] .tile,:root[data-skin="midnight"] .rows,:root[data-skin="midnight"] .nav,:root[data-skin="midnight"] .dock,:root[data-skin="midnight"] .modal,:root[data-skin="midnight"] .rev,:root[data-skin="midnight"] .qcard,:root[data-skin="charcoal"] .panel,:root[data-skin="charcoal"] .tile,:root[data-skin="charcoal"] .rows,:root[data-skin="charcoal"] .nav,:root[data-skin="charcoal"] .dock,:root[data-skin="charcoal"] .modal,:root[data-skin="charcoal"] .rev,:root[data-skin="charcoal"] .qcard{background:var(--surface)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid var(--line)!important;box-shadow:0 8px 22px rgba(0,0,0,.18)!important;border-radius:18px}
+:root[data-skin="midnight"] .hero{background:linear-gradient(135deg,#1D3852,#1B2C43)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid #36536D!important}
+:root[data-skin="charcoal"] .hero{background:linear-gradient(135deg,#303941,#252B31)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid #46515A!important}
+:root[data-skin="midnight"] .btn,:root[data-skin="charcoal"] .btn{background:#273747!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:12px}
+:root[data-skin="charcoal"] .btn{background:#30373D!important}
+:root[data-skin="midnight"] .btn.primary,:root[data-skin="charcoal"] .btn.primary{background:var(--brand)!important;color:var(--brand-ink)!important;border-color:transparent!important}
+:root[data-skin="midnight"] .opt,:root[data-skin="charcoal"] .opt,:root[data-skin="midnight"] input[type=text],:root[data-skin="midnight"] input[type=number],:root[data-skin="midnight"] select,:root[data-skin="midnight"] textarea,:root[data-skin="charcoal"] input[type=text],:root[data-skin="charcoal"] input[type=number],:root[data-skin="charcoal"] select,:root[data-skin="charcoal"] textarea{background:#1C2A3A!important;color:var(--ink)!important;border:1px solid var(--line)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+:root[data-skin="charcoal"] .opt,:root[data-skin="charcoal"] input[type=text],:root[data-skin="charcoal"] input[type=number],:root[data-skin="charcoal"] select,:root[data-skin="charcoal"] textarea{background:#292F35!important}
+:root[data-skin="midnight"] .opt[aria-pressed=true],:root[data-skin="charcoal"] .opt[aria-pressed=true]{background:var(--brand)!important;color:var(--brand-ink)!important}
+:root[data-skin="midnight"] .nav,:root[data-skin="charcoal"] .nav{background:var(--surface)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid var(--line)!important;box-shadow:0 8px 22px rgba(0,0,0,.25)!important}
+:root[data-skin="midnight"] .chess-board,:root[data-skin="charcoal"] .chess-board{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 </style>
