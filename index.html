@@ -2800,7 +2800,16 @@ function meView() {
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const academic = academicProfileFields(p);
+  const faculty = h('input', { type: 'text', value: p.faculty || '', maxlength: '100', placeholder: 'e.g. College of Health Sciences' });
+  const department = h('input', { type: 'text', value: p.department || '', maxlength: '100', placeholder: 'e.g. Medicine & Surgery' });
+  const academicSession = h('input', { type: 'text', value: p.academicSession || '', maxlength: '30', placeholder: 'e.g. 2026/2027' });
   const status = h('p', { class: 'tiny muted', role: 'status', 'aria-live': 'polite' });
+  const attempts = (DB.history || []).length;
+  const totalQuestions = (DB.history || []).reduce((n, x) => n + (Number(x.n) || 0), 0);
+  const totalCorrect = (DB.history || []).reduce((n, x) => n + (Number(x.correct) || 0), 0);
+  const accuracy = totalQuestions ? Math.round(totalCorrect / totalQuestions * 100) : 0;
+  const activeCourses = new Set((DB.history || []).map(x => x.course).filter(Boolean)).size;
+  const studyStreak = Core.streak((DB.history || []).map(x => x.ts), Date.now());
   const signed = !!(signedIn() && p.uid);
   const username = p.username ? '@' + p.username : 'Not set';
   const babloId = p.uid || account.uniqueId || account.unique_id || 'Guest profile';
@@ -2827,11 +2836,22 @@ function meView() {
         h('div', { class: 'row between' }, h('span', { class: 'tiny muted' }, 'Profile completion'), h('b', null, completion + '%')),
         h('div', { class: 'bar' }, h('i', { style: { width: completion + '%' } })))),
     h('section', { class: 'panel stack' },
+      h('h2', null, 'Learning activity'),
+      h('div', { class: 'dashboard-metrics' },
+        h('div', null, h('b', null, String(attempts)), h('small', null, 'Quiz attempts')),
+        h('div', null, h('b', null, accuracy + '%'), h('small', null, 'Question accuracy')),
+        h('div', null, h('b', null, String(activeCourses)), h('small', null, 'Courses practised')),
+        h('div', null, h('b', null, String(studyStreak)), h('small', null, 'Day streak'))),
+      h('p', { class: 'tiny muted' }, 'Activity is calculated from saved attempts on this device. Synced activity may differ across devices.')),
+    h('section', { class: 'panel stack' },
       h('div', { class: 'row between wrapr' }, h('h2', null, 'Academic identity'), h('span', { class: 'chip' }, p.programmeCategory === 'cohes' ? 'COHES' : 'Other programme')),
       h('div', { class: 'grid' },
         h('div', null, h('span', { class: 'tiny muted' }, 'Institution'), h('b', { style: { display: 'block' } }, p.institution || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Programme'), h('b', { style: { display: 'block' } }, p.programme || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Current level'), h('b', { style: { display: 'block' } }, p.level || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'Faculty'), h('b', { style: { display: 'block' } }, p.faculty || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'Department'), h('b', { style: { display: 'block' } }, p.department || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'Academic session'), h('b', { style: { display: 'block' } }, p.academicSession || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'BSc pathway'), h('b', { style: { display: 'block' } }, p.bscPathway || '—'))),
       h('p', { class: 'tiny muted' }, 'These details describe your academic profile; they are not proof of institutional enrolment.')),
     h('section', { class: 'panel stack' },
@@ -2839,13 +2859,20 @@ function meView() {
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
       ...academic.nodes,
+      h('label', { class: 'field' }, h('span', null, 'Faculty (optional)'), faculty),
+      h('label', { class: 'field' }, h('span', null, 'Department (optional)'), department),
+      h('label', { class: 'field' }, h('span', null, 'Academic session (optional)'), academicSession),
       status,
       h('button', { class: 'btn primary block', onclick: async () => {
         const n = name.value.trim();
         if (n.length < 2) { status.textContent = 'Enter your name.'; return; }
         const details = academic.read();
         if (details.programme.length < 2 || details.institution.length < 2) { status.textContent = 'Enter both your programme and institution.'; return; }
-        DB.profile = Object.assign({}, DB.profile, { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20) });
+        DB.profile = Object.assign({}, DB.profile, {
+          name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20),
+          faculty: faculty.value.trim(), department: department.value.trim(),
+          academicSession: academicSession.value.trim()
+        });
         try {
           await persistAcademicProfile(details);
           status.textContent = 'Profile saved and synchronised where the live account service is available. Academic details remain self-declared until verified.';
