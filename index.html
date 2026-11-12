@@ -1298,7 +1298,7 @@ function academicProfileFields(profile) {
     ...PROGRAMMES.filter(x => x !== GUEST_PROGRAMME).map(x => h('option', { value: x, selected: p.programme === x ? true : null }, x)));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
   const initialCategory = p.programmeCategory || (p.programme ? inferProgrammeCategory(p.programme) : '');
-  const category = h('select', null,
+  const category = h('select', { required: true },
     h('option', { value: '', selected: !initialCategory ? true : null }, 'Select academic group'),
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
@@ -1310,6 +1310,7 @@ function academicProfileFields(profile) {
   const syncPathway = () => {
     const visible = programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200;
     pathwayField.hidden = !visible;
+    pathway.required = visible;
     if (!visible) pathway.value = '';
   };
   programme.addEventListener('change', () => { category.value = programme.value ? inferProgrammeCategory(programme.value.trim()) : ''; syncPathway(); });
