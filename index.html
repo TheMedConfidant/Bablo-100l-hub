@@ -1279,8 +1279,9 @@ function academicProfileFields(profile) {
     h('option', { value: '', selected: !selectedProgramme ? true : null }, 'Select your programme'),
     PROGRAMMES.filter(x => x !== GUEST_PROGRAMME).map(x => h('option', { value: x, selected: selectedProgramme === x ? true : null }, x)));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(selectedProgramme);
-  const category = h('select', null,
+  const initialCategory = p.programmeCategory || (selectedProgramme ? inferProgrammeCategory(selectedProgramme) : '');
+  const category = h('select', { required: true },
+    h('option', { value: '', selected: !initialCategory ? true : null }, 'Select academic group'),
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const selectedLevel = ACADEMIC_LEVELS.includes(p.level) ? p.level : '100L';
@@ -1295,7 +1296,7 @@ function academicProfileFields(profile) {
     pathway.required = show;
     if (!show) pathway.value = '';
   };
-  programme.addEventListener('change', () => { category.value = inferProgrammeCategory(programme.value); syncPathway(); });
+  programme.addEventListener('change', () => { category.value = programme.value ? inferProgrammeCategory(programme.value) : ''; syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
   return {
@@ -3782,7 +3783,7 @@ function accountSection() {
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const academic = academicProfileFields(DB.profile || { programme: '', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const academic = academicProfileFields(Object.assign({}, DB.profile || {}, { programme: '', programmeCategory: '' }));
   const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
