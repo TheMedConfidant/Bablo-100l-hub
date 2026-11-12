@@ -2796,14 +2796,46 @@ function boardView() {
 /* ---------- me ---------- */
 function meView() {
   const p = DB.profile || {};
+  const account = DB.account || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const academic = academicProfileFields(p);
   const status = h('p', { class: 'tiny muted', role: 'status', 'aria-live': 'polite' });
+  const signed = !!(signedIn() && p.uid);
+  const username = p.username ? '@' + p.username : 'Not set';
+  const babloId = p.uid || account.uniqueId || account.unique_id || 'Guest profile';
+  const completionFields = [p.name, p.nick, p.programme, p.institution, p.level, p.username];
+  const completion = Math.round(completionFields.filter(x => String(x || '').trim()).length / completionFields.length * 100);
+  const copyId = h('button', { class: 'btn sm ghost', onclick: async () => {
+    try { await navigator.clipboard.writeText(String(babloId)); toast('Bablo ID copied.'); }
+    catch (e) { toast('Copy is unavailable on this browser. Your ID is shown above.'); }
+  } }, 'Copy ID');
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('h1', null, 'Profile'),
-    h('p', { class: 'muted small' }, 'Your student identity and academic details. These details are self-declared until verified.'),
+    h('div', { class: 'stack' },
+      h('div', { class: 'row between wrapr' }, h('h1', null, 'My Profile'), h('span', { class: 'chip ' + (signed ? 'ok' : 'gold') }, signed ? 'Registered account' : 'Guest profile')),
+      h('p', { class: 'muted small' }, 'Your Bablo identity, academic information and account activity. Academic details are self-declared unless independently verified.')),
+    h('section', { class: 'hero stack' },
+      h('div', { class: 'row between wrapr' },
+        h('div', { class: 'stack', style: { gap: '3px', minWidth: '0' } },
+          h('span', { class: 'tiny', style: { opacity: '.82', fontWeight: '800', letterSpacing: '.08em' } }, 'BABLO HUB IDENTITY'),
+          h('h2', { style: { fontSize: '1.5rem', overflowWrap: 'anywhere' } }, p.name || p.nick || 'Bablo learner'),
+          h('p', { class: 'small', style: { color: 'inherit', opacity: '.86' } }, username)),
+        h('span', { class: 'chip gold' }, p.isPremium || p.premium ? 'Premium' : 'Standard')),
+      h('div', { class: 'panel stack', style: { color: 'var(--ink)', background: 'var(--surface)' } },
+        h('div', { class: 'row between wrapr' }, h('span', { class: 'tiny muted' }, 'YOUR UNIQUE BABLO ID'), copyId),
+        h('b', { style: { fontSize: '1.1rem', overflowWrap: 'anywhere', letterSpacing: '.04em' } }, String(babloId)),
+        h('div', { class: 'row between' }, h('span', { class: 'tiny muted' }, 'Profile completion'), h('b', null, completion + '%')),
+        h('div', { class: 'bar' }, h('i', { style: { width: completion + '%' } })))),
     h('section', { class: 'panel stack' },
+      h('div', { class: 'row between wrapr' }, h('h2', null, 'Academic identity'), h('span', { class: 'chip' }, p.programmeCategory === 'cohes' ? 'COHES' : 'Other programme')),
+      h('div', { class: 'grid' },
+        h('div', null, h('span', { class: 'tiny muted' }, 'Institution'), h('b', { style: { display: 'block' } }, p.institution || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'Programme'), h('b', { style: { display: 'block' } }, p.programme || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'Current level'), h('b', { style: { display: 'block' } }, p.level || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'BSc pathway'), h('b', { style: { display: 'block' } }, p.bscPathway || '—'))),
+      h('p', { class: 'tiny muted' }, 'These details describe your academic profile; they are not proof of institutional enrolment.')),
+    h('section', { class: 'panel stack' },
+      h('h2', null, 'Edit profile'),
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
       ...academic.nodes,
@@ -2816,13 +2848,22 @@ function meView() {
         DB.profile = Object.assign({}, DB.profile, { name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20) });
         try {
           await persistAcademicProfile(details);
-          status.textContent = 'Profile saved. Academic details remain self-declared until verified.';
+          status.textContent = 'Profile saved and synchronised where the live account service is available. Academic details remain self-declared until verified.';
           toast('Profile saved.');
+          meView();
         } catch (e) { save(); status.textContent = e.message || 'Could not sync your academic details. Your local profile is preserved.'; }
-      } }, 'Save profile'))
+      } }, 'Save profile')),
+    signed ? h('section', { class: 'panel stack' },
+      h('h2', null, 'Account & security'),
+      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, 'Account status'), h('small', { class: 'muted', style: { display: 'block' } }, 'Your sign-in identity is separate from your public username.')), h('span', { class: 'chip ok' }, 'Signed in')),
+      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, 'Chess / public username'), h('small', { class: 'muted', style: { display: 'block' } }, 'Used for player discovery and challenges.')), h('b', null, username)),
+      h('p', { class: 'tiny muted' }, 'Your Bablo ID is your account identifier. Keep it private; share your username when other students need to find you.'),
+      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out')) : h('section', { class: 'panel stack' },
+      h('h2', null, 'Create a permanent account'),
+      h('p', { class: 'small muted' }, 'A guest profile is saved on this device. Register to keep your identity and eligible progress connected across devices.'),
+      h('a', { class: 'btn primary block', href: '#/settings' }, 'Create account / Log in'))
   )));
 }
-
 
 /* Bablo 100L Hub - UI part 4: Weak Spots and Chess */
 
