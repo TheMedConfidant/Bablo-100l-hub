@@ -257,6 +257,20 @@ input[type=text],input[type=number],select{width:100%;min-height:46px;padding:0 
 :root[data-skin="purple"] .btn,:root[data-skin="purple"] .opt,:root[data-skin="purple"] input,:root[data-skin="purple"] select,:root[data-skin="purple"] textarea{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
 :root[data-skin="pink"] .btn.primary,:root[data-skin="pink"] .opt[aria-pressed=true],:root[data-skin="purple"] .btn.primary,:root[data-skin="purple"] .opt[aria-pressed=true]{background:var(--brand)!important;color:#fff!important;border-color:var(--brand)!important}
 
+/* Midnight and Charcoal: solid, low-motion surfaces; no frosted glass or backdrop blur. */
+:root[data-skin="midnight"]{--page:#0B1220;--bg:#0B1220;--surface:#141E2E;--surface2:#1C2A3D;--line:#2A3A50;--ink:#F1F5F9;--ink2:#A9B8CC;--brand:#E8A33D;--brand-ink:#211505;--brand-soft:rgba(232,163,61,.14);--shadow:0 8px 24px rgba(0,0,0,.22)}
+:root[data-skin="charcoal"]{--page:#17191D;--bg:#17191D;--surface:#22262B;--surface2:#2C3239;--line:#3B424A;--ink:#F4F5F6;--ink2:#B6BEC8;--brand:#D6A85F;--brand-ink:#21190D;--brand-soft:rgba(214,168,95,.14);--shadow:0 8px 24px rgba(0,0,0,.24)}
+:root[data-skin="midnight"] body,:root[data-skin="charcoal"] body{background:var(--page)!important;background-attachment:scroll!important}
+:root[data-skin="midnight"] body::before,:root[data-skin="charcoal"] body::before{display:none!important}
+:root[data-skin="midnight"] .panel,:root[data-skin="midnight"] .tile,:root[data-skin="midnight"] .rows,:root[data-skin="midnight"] .rev,:root[data-skin="midnight"] .qcard,:root[data-skin="midnight"] .modal,:root[data-skin="midnight"] .slip,:root[data-skin="midnight"] .nav,:root[data-skin="midnight"] .dock,:root[data-skin="midnight"] .hero,
+:root[data-skin="charcoal"] .panel,:root[data-skin="charcoal"] .tile,:root[data-skin="charcoal"] .rows,:root[data-skin="charcoal"] .rev,:root[data-skin="charcoal"] .qcard,:root[data-skin="charcoal"] .modal,:root[data-skin="charcoal"] .slip,:root[data-skin="charcoal"] .nav,:root[data-skin="charcoal"] .dock,:root[data-skin="charcoal"] .hero{background:var(--surface)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1px solid var(--line)!important;box-shadow:var(--shadow)!important;border-radius:14px}
+:root[data-skin="midnight"] .hero,:root[data-skin="charcoal"] .hero{background:var(--surface2)!important;color:var(--ink)!important}
+:root[data-skin="midnight"] .btn,:root[data-skin="midnight"] .opt,:root[data-skin="midnight"] input,:root[data-skin="midnight"] select,:root[data-skin="midnight"] textarea,
+:root[data-skin="charcoal"] .btn,:root[data-skin="charcoal"] .opt,:root[data-skin="charcoal"] input,:root[data-skin="charcoal"] select,:root[data-skin="charcoal"] textarea{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+:root[data-skin="midnight"] .btn.primary,:root[data-skin="midnight"] .opt[aria-pressed=true],:root[data-skin="charcoal"] .btn.primary,:root[data-skin="charcoal"] .opt[aria-pressed=true]{background:var(--brand)!important;color:var(--brand-ink)!important;border-color:var(--brand)!important}
+:root[data-skin="midnight"] .sq.light{background:#D9E2EC}:root[data-skin="midnight"] .sq.dark{background:#64748B}
+:root[data-skin="charcoal"] .sq.light{background:#D7DADF}:root[data-skin="charcoal"] .sq.dark{background:#626B75}
+
 /* laptop and tablet layout */
 @media (min-width: 900px){
   .wrap{max-width:1120px;padding-left:28px;padding-right:28px}
@@ -1268,28 +1282,41 @@ const COURSES_200 = [
   { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
-const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
+const ACADEMIC_LEVELS = ['100L','200L','300L','400L'];
+const MBBS_BSC_PATHWAYS = [
+  { value: 'PIO', label: 'PIO — Physiology' },
+  { value: 'BCH', label: 'BCH — Biochemistry' },
+  { value: 'ANA', label: 'ANA — Anatomy' }
+];
 function inferProgrammeCategory(programme) {
   return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
 }
 function academicProfileFields(profile) {
   const p = profile || {};
-  const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
-  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
+  const programme = h('select', null,
+    h('option', { value: '', selected: !p.programme ? true : null }, 'Select your programme'),
+    ...PROGRAMMES.filter(x => x !== GUEST_PROGRAMME).map(x => h('option', { value: x, selected: p.programme === x ? true : null }, x)));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
+  const initialCategory = p.programmeCategory || (p.programme ? inferProgrammeCategory(p.programme) : '');
   const category = h('select', null,
+    h('option', { value: '', selected: !initialCategory ? true : null }, 'Select academic group'),
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
-  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
-  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
-  const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
-  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
+  const pathway = h('select', null,
+    h('option', { value: '', selected: !p.bscPathway ? true : null }, 'Select BSc option'),
+    ...MBBS_BSC_PATHWAYS.map(x => h('option', { value: x.value, selected: p.bscPathway === x.value || p.bscPathway === x.label ? true : null }, x.label)));
+  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc option (MBBS students, from 200L)'), pathway);
+  const syncPathway = () => {
+    const visible = programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200;
+    pathwayField.hidden = !visible;
+    if (!visible) pathway.value = '';
+  };
+  programme.addEventListener('change', () => { category.value = programme.value ? inferProgrammeCategory(programme.value.trim()) : ''; syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
   return {
-    nodes: [h('label', { class: 'field' }, h('span', null, 'Programme'), programme), suggestions,
+    nodes: [h('label', { class: 'field' }, h('span', null, 'Programme'), programme),
       h('label', { class: 'field' }, h('span', null, 'Academic group'), category),
       h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
       h('label', { class: 'field' }, h('span', null, 'Current level'), level), pathwayField],
@@ -1298,7 +1325,7 @@ function academicProfileFields(profile) {
       programmeCategory: category.value,
       institution: institution.value.trim(),
       level: level.value,
-      bscPathway: pathway.value.trim()
+      bscPathway: pathway.value
     })
   };
 }
@@ -2009,7 +2036,7 @@ const plural = (n, s) => n + ' ' + s + (n === 1 ? '' : 's');
 
 /* ---------- saved state (this device) ---------- */
 const KEY = 'bablo100l:v1';
-let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'glass', dev: '', soundAlerts: false };
+let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'midnight', dev: '', soundAlerts: false };
 try { Object.assign(DB, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* storage unavailable: stay in memory */ }
 if (!DB.dev) DB.dev = uid();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* ignore */ } if (typeof queuePush === 'function') queuePush(); }
@@ -2018,8 +2045,8 @@ function applyTheme() {
   const mode = DB.theme === 'system' ? (sysDark ? 'dark' : 'light') : DB.theme;
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
-  const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
-  if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', 'gold'); }
+  const skin = (!DB.skin || DB.skin === 'glass' || DB.skin === 'green') ? 'midnight' : DB.skin;
+  if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'midnight'); document.documentElement.setAttribute('data-tint', 'gold'); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
 function bestPct(code) { const l = DB.history.filter(x => x.course === code && x.mode !== 'practice'); return l.length ? Math.max.apply(null, l.map(x => x.pct)) : null; }
@@ -4361,14 +4388,14 @@ function aboutView() {
   mount(wrap(back('#/','Home'),box));
 }
 function settingsView() {
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'midnight') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Settings'),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Appearance'),
       h('p', { class: 'tiny muted' }, 'Choose the Hub look that is easiest to read.'),
-      h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
+      h('div', { class: 'seg' }, sk('midnight', 'Midnight'), sk('charcoal', 'Charcoal'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'),
       h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' },
