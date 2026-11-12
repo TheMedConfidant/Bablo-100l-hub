@@ -2413,28 +2413,30 @@ function premiumPricingView() {
 
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
+ const levelNumber=parseInt(p.level||'100L',10)||100,advancedLevel=levelNumber>=200;
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
-  dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
+  dashboardCard(advancedLevel?'Biomedical & Diagnostic Laboratory':'Laboratory',
+   advancedLevel?'Microbiology · Pathology · Histology · Haematology':'PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  const communityCards=[
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
-  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
-  dashboardCard('Arcade','Chess, strategy and games','🎮','#/arcade','#D6A82B')
+  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B')
  ];
+ if(!advancedLevel) communityCards.push(dashboardCard('Arcade','Chess, strategy and games','🎮','#/arcade','#D6A82B'));
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
-  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
+  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR '+levelNumber+' LEVEL ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,advancedLevel?'Focused tools for deeper biomedical and clinical-science learning.':'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,advancedLevel?'Core learning & laboratory':'Study & practise'),h('span',null,advancedLevel?'Build applied understanding':'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,advancedLevel?'Academic community':'Connect & compete'),h('span',null,advancedLevel?'Collaborate and test your knowledge':'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
  ));
 }
