@@ -15,7 +15,7 @@ async function save(req,res){
 }
 async function decorate(res){
  if(!res||!res.ok||!(res.headers.get('content-type')||'').includes('text/html'))return res;
- try{let html=await res.text();if(!html.includes('id="app"')||html.includes('bablo-startup-guard'))return new Response(html,{status:res.status,headers:res.headers});
+ try{let html=await res.text();const broken="    ...P.writtenQuestions.map((q, i) => h('article', { class: 'panel stack' }, h('h3', null, (i + 1) + '. ' + q.question), h('span', { class: 'chip' }, q.kind), h('details', null, h('summary', null, 'Show source answer'), h('p', { class: 'note-paragraph' }, q.answer))))))));";if(html.includes(broken))html=html.replace(broken,"    ...P.writtenQuestions.map((q, i) => h('article', { class: 'panel stack' }, h('h3', null, (i + 1) + '. ' + q.question), h('span', { class: 'chip' }, q.kind), h('details', null, h('summary', null, 'Show source answer'), h('p', { class: 'note-paragraph' }, q.answer)))))));");if(!html.includes('id="app"')||html.includes('bablo-startup-guard'))return new Response(html,{status:res.status,headers:res.headers});
  const guard=`<script id="bablo-storage-manager">(function(){
 function add(){
  if((location.hash||'').indexOf('#/settings')!==0&&(location.hash||'').indexOf('#settings')!==0)return;
