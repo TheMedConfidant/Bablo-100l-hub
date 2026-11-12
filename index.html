@@ -1279,11 +1279,11 @@ function inferProgrammeCategory(programme) {
 }
 function academicProfileFields(profile) {
   const p = profile || {};
-  const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Select or enter your programme' });
+  const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Select or enter your programme', required: true });
   const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
   const initialCategory = p.programmeCategory || (p.programme ? inferProgrammeCategory(p.programme) : '');
-  const category = h('select', null,
+  const category = h('select', { required: true },
     h('option', { value: '', selected: !initialCategory }, 'Select academic group'),
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
@@ -1295,6 +1295,7 @@ function academicProfileFields(profile) {
   const syncPathway = () => {
     const eligible = programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200;
     pathwayField.hidden = !eligible;
+    pathway.required = eligible;
     if (!eligible) pathway.value = '';
   };
   programme.addEventListener('input', () => { category.value = programme.value.trim() ? inferProgrammeCategory(programme.value.trim()) : ''; syncPathway(); });
