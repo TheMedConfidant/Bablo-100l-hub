@@ -2021,6 +2021,7 @@ function applyTheme() {
   const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
   if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', 'gold'); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
+  applyAdaptiveTheme();
 }
 function bestPct(code) { const l = DB.history.filter(x => x.course === code && x.mode !== 'practice'); return l.length ? Math.max.apply(null, l.map(x => x.pct)) : null; }
 function toast(msg) { const t = h('div', { class: 'toast', role: 'status' }, msg); document.body.append(t); setTimeout(() => t.remove(), 2600); }
@@ -4360,6 +4361,92 @@ function aboutView() {
   box.append(panel);
   mount(wrap(back('#/','Home'),box));
 }
+/* ---------- Adaptive Themes (Full Premium) ---------- */
+function fullPremiumForAdaptive() { return !!(signedIn() && DB.account && DB.account.premium); }
+function adaptiveHexMix(a,b,t) {
+  const x=parseInt(a.slice(1),16), y=parseInt(b.slice(1),16);
+  const ch=n=>Math.round(((x>>n)&255)*(1-t)+((y>>n)&255)*t);
+  return '#'+[16,8,0].map(n=>ch(n).toString(16).padStart(2,'0')).join('');
+}
+function adaptiveText(hex) {
+  const n=parseInt(hex.slice(1),16), r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+  const lum=(0.2126*r+0.7152*g+0.0722*b)/255;
+  return lum>0.58?'#142033':'#F5F7FB';
+}
+function applyAdaptiveTheme() {
+  const root=document.documentElement, p=DB.adaptiveTheme;
+  if(!p || !p.base || !fullPremiumForAdaptive()) {
+    ['--bg','--surface','--surface2','--ink','--ink2','--line','--brand','--brand-ink','--brand-soft'].forEach(k=>root.style.removeProperty(k));
+    root.style.removeProperty('--adaptive-base');
+    document.body.style.backgroundImage='';
+    return;
+  }
+  const dark=root.getAttribute('data-mode')==='dark';
+  const strength=Math.max(.2,Math.min(1,Number(p.intensity)||.72));
+  const base=p.base;
+  const bg=adaptiveHexMix(base,dark?'#07111F':'#FFFFFF',dark?(.76-.20*strength):(.91-.18*strength));
+  const surface=adaptiveHexMix(base,dark?'#142238':'#FFFFFF',dark?(.62-.20*strength):(.84-.18*strength));
+  const surface2=adaptiveHexMix(base,dark?'#1B2D46':'#F1F4F8',dark?(.48-.18*strength):(.72-.16*strength));
+  const brand=adaptiveHexMix(base,dark?'#FFFFFF':'#142033',dark?.12:.08);
+  const ink=adaptiveText(bg), ink2=adaptiveText(surface);
+  root.style.setProperty('--bg',bg); root.style.setProperty('--surface',surface);
+  root.style.setProperty('--surface2',surface2); root.style.setProperty('--ink',ink);
+  root.style.setProperty('--ink2',ink2); root.style.setProperty('--line',adaptiveHexMix(base,dark?'#FFFFFF':'#142033',.72));
+  root.style.setProperty('--brand',brand); root.style.setProperty('--brand-ink',adaptiveText(brand));
+  root.style.setProperty('--brand-soft',adaptiveHexMix(base,dark?'#07111F':'#FFFFFF',.45));
+  root.style.setProperty('--adaptive-base',base);
+  document.body.style.backgroundImage='linear-gradient(145deg, '+adaptiveHexMix(base,dark?'#07111F':'#FFFFFF',.72)+', var(--bg) 58%, '+adaptiveHexMix(base,dark?'#07111F':'#FFFFFF',.88)+')';
+}
+function extractAdaptivePalette(file) {
+  return new Promise((resolve,reject)=>{
+    if(!file || !/^image\\/(png|jpeg|webp)$/.test(file.type)) return reject(new Error('Choose a PNG, JPG or WebP image.'));
+    if(file.size>8*1024*1024) return reject(new Error('Choose an image under 8 MB.'));
+    const url=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{
+      try {
+        const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
+        canvas.width=48; canvas.height=48; ctx.drawImage(img,0,0,48,48);
+        const data=ctx.getImageData(0,0,48,48).data, bins={};
+        for(let i=0;i<data.length;i+=16){
+          if(data[i+3]<180) continue;
+          const r=Math.round(data[i]/32)*32,g=Math.round(data[i+1]/32)*32,b=Math.round(data[i+2]/32)*32;
+          const key=[Math.min(255,r),Math.min(255,g),Math.min(255,b)].map(v=>v.toString(16).padStart(2,'0')).join('');
+          bins[key]=(bins[key]||0)+1;
+        }
+        const best=Object.keys(bins).sort((a,b)=>bins[b]-bins[a])[0];
+        if(!best) throw new Error('Could not read colours from that image.');
+        resolve('#'+best);
+      } catch(e) { reject(new Error('This image could not be read. Try another image.')); }
+      finally { URL.revokeObjectURL(url); }
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('This image could not be opened.'));};
+    img.src=url;
+  });
+}
+function adaptiveThemePanel() {
+  if(!fullPremiumForAdaptive()) return h('section',{class:'panel stack'},
+    h('span',{class:'chip gold'},'Full Premium feature'),h('h2',null,'Adaptive Themes'),
+    h('p',{class:'small muted'},'Choose a wallpaper and Bablo Hub will build a coordinated colour palette. This feature is reserved for Full Premium.'));
+  const p=DB.adaptiveTheme||{base:'',intensity:.72};
+  const preview=p.base?h('div',{class:'row wrapr',style:{alignItems:'center'}},
+    h('span',{style:{width:'34px',height:'34px',borderRadius:'10px',background:p.base,border:'1px solid var(--line)'}}),
+    h('span',{class:'small muted'},'Palette '+p.base)):h('p',{class:'tiny muted'},'Your selected image is analysed on this device. The image itself is not uploaded; only its extracted colour is saved here.');
+  const file=h('input',{type:'file',accept:'image/png,image/jpeg,image/webp',class:'input','aria-label':'Choose wallpaper image'});
+  file.addEventListener('change',async()=>{
+    const f=file.files&&file.files[0]; if(!f)return;
+    try { const base=await extractAdaptivePalette(f); DB.adaptiveTheme={base,intensity:p.intensity||.72}; save(); applyTheme(); settingsView(); toast('Adaptive palette applied.'); }
+    catch(e){toast(e.message||'Could not analyse that image.');}
+  });
+  const range=h('input',{type:'range',min:'20',max:'100',step:'5',value:String(Math.round((p.intensity||.72)*100)),style:{width:'100%'}});
+  range.addEventListener('input',()=>{DB.adaptiveTheme=Object.assign({},DB.adaptiveTheme||p,{intensity:Number(range.value)/100});save();applyAdaptiveTheme();});
+  const controls=[h('label',{class:'small'},'Wallpaper image'),file,preview];
+  if(p.base) controls.push(h('label',{class:'small'},'Colour intensity'),range,
+    h('button',{class:'btn ghost',onclick:()=>{delete DB.adaptiveTheme;save();applyTheme();settingsView();}},'Remove adaptive palette'));
+  return h('section',{class:'panel stack'},h('span',{class:'chip gold'},'Full Premium'),
+    h('h2',null,'Adaptive Themes'),
+    h('p',{class:'small muted'},'Use colours from a wallpaper to tint the Hub background, cards and accents. Text colours are adjusted for contrast.'),
+    ...controls);
+}
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
@@ -4371,6 +4458,7 @@ function settingsView() {
       h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'),
       h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
+    adaptiveThemePanel(),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Notifications & reminders'),
       h('div', { class: 'row between wrapr' },
