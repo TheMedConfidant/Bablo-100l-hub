@@ -1805,7 +1805,7 @@ async function hubCall(fn, body) {
 }
 function authConfigured() { return !!LB.url && !!LB.key; }
 function setAccount(j) {
-  DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium };
+  DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium, fullPremium: j.fullPremium === true };
   DB.profile = {
     name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme,
     programmeCategory: j.programmeCategory || inferProgrammeCategory(j.programme),
@@ -4362,7 +4362,7 @@ function aboutView() {
   mount(wrap(back('#/','Home'),box));
 }
 /* ---------- Adaptive Themes (Full Premium) ---------- */
-function fullPremiumForAdaptive() { return !!(signedIn() && DB.account && DB.account.premium); }
+function fullPremiumForAdaptive() { return !!(signedIn() && DB.account && DB.account.fullPremium === true); }
 function adaptiveHexMix(a,b,t) {
   const x=parseInt(a.slice(1),16), y=parseInt(b.slice(1),16);
   const ch=n=>Math.round(((x>>n)&255)*(1-t)+((y>>n)&255)*t);
