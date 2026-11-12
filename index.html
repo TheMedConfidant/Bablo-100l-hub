@@ -2170,7 +2170,14 @@ function route() {
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
-  if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
+  if (!DB.profile) {
+    mount(wrap()); renderNav(null);
+    if (v === 'login' || v === 'signup') authPageView(v);
+    else if (v === 'guest') onboarding();
+    else publicLandingView();
+    return;
+  }
+  if (v === 'login' || v === 'signup') { authPageView(v); return; }
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
@@ -2215,6 +2222,48 @@ function route() {
     else if (v === 'me') meView();
     else homeView();
   } catch (e) { console.error(e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'Something went wrong'), h('p', { class: 'muted' }, 'Go back home and try again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
+}
+
+/* ---------- public landing and direct authentication ---------- */
+function publicLandingView() {
+  const action=(label,href,primary)=>h('a',{class:'btn '+(primary?'primary':'')+' block',href,style:{display:'block',textAlign:'center',textDecoration:'none',padding:'14px 18px',borderRadius:'14px',fontWeight:'800'}},label);
+  const feature=(icon,title,desc)=>h('article',{class:'panel stack',style:{padding:'18px',minWidth:'0'}},
+    h('span',{style:{fontSize:'1.5rem'}},icon),h('h3',null,title),h('p',{class:'small muted'},desc));
+  mount(wrap(
+    h('header',{class:'row between wrapr',style:{padding:'18px 0'}},
+      h('div',{class:'stack',style:{gap:'2px'}},h('strong',{style:{fontSize:'1.2rem'}},'Bablo Hub ™'),h('small',{class:'muted'},'TheMedConfidant')),
+      h('div',{class:'row',style:{gap:'8px'}},h('a',{class:'btn sm',href:'#/login'},'Log in'),h('a',{class:'btn sm primary',href:'#/signup'},'Create account'))),
+    h('section',{class:'panel stack',style:{padding:'clamp(22px,5vw,48px)',marginTop:'12px',textAlign:'left',background:'linear-gradient(135deg,rgba(214,168,43,.14),transparent 65%)'}},
+      h('span',{class:'chip gold'},'A COHES-first learning platform'),
+      h('h1',{style:{fontSize:'clamp(2rem,7vw,3.6rem)',lineHeight:'1.08',maxWidth:'760px',margin:'10px 0'}},'Learn with clarity. Practise with purpose.'),
+      h('p',{class:'muted',style:{fontSize:'1.05rem',maxWidth:'680px',lineHeight:'1.7'}},'Bablo Hub brings academic practice, learning resources, progress tracking and student challenges into one organised space.'),
+      h('div',{class:'stack',style:{maxWidth:'380px',gap:'10px',marginTop:'12px'}},action('Create your account','#/signup',true),action('I already have an account — Log in','#/login',false)),
+      h('p',{class:'tiny muted'},'Want to explore first? ',h('a',{href:'#/guest'},'Continue as a guest'),' .')),
+    h('section',{class:'stack',style:{marginTop:'26px'}},
+      h('h2',null,'One hub for your academic workflow'),
+      h('div',{class:'dashboard-grid'},
+        feature('📚','Study & practise','Access course questions, quizzes, notes and flashcards.'),
+        feature('📊','Track progress','Review your performance and identify topics to revisit.'),
+        feature('⚔️','Learn together','Join academic challenges and programme competitions.'),
+        feature('🗓️','Stay organised','Keep up with tests, exams and study events.'))),
+    h('section',{class:'panel stack',style:{marginTop:'22px',padding:'22px'}},
+      h('h2',null,'Built for students across COHES'),
+      h('p',{class:'muted'},'Start with the resources available to your programme, build consistent study habits and keep your academic activity organised.'),
+      action('Get started','#/signup',true)),
+    h('footer',{class:'tiny muted',style:{textAlign:'center',padding:'24px 8px'}},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
+  ));
+}
+function authPageView(mode) {
+  if (signedIn()) { meView(); return; }
+  ACCOUNT_MODE = mode === 'login' ? 'login' : 'signup';
+  mount(wrap(
+    h('div',{class:'stack-l',style:{maxWidth:'560px',margin:'0 auto',paddingTop:'12px'}},
+      h('a',{class:'back',href:DB.profile?'#/':'#/'},'‹ Back to Bablo Hub'),
+      h('section',{class:'panel stack',style:{padding:'clamp(18px,4vw,30px)'}},
+        h('div',{class:'stack',style:{gap:'4px'}},h('strong',null,'Bablo Hub ™'),h('p',{class:'muted small'},'Your academic workspace starts here.')),
+        accountSection())
+    )
+  ));
 }
 
 /* ---------- onboarding ---------- */
@@ -3793,8 +3842,8 @@ function accountSection() {
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
   const tabs = h('div', { class: 'seg' },
-    h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'),
-    h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
+    h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; authPageView('signup'); } }, 'Create account'),
+    h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; authPageView('login'); } }, 'Log in'));
   const fields = mode === 'signup'
     ? [name, nick, ...academic.nodes, pass, h('p', { class: 'tiny muted' }, 'Your ID is generated automatically. Save it after registration; it is required to log in.')]
     : [loginId, loginPass];
