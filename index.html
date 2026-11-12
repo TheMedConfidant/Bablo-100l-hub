@@ -4306,10 +4306,17 @@ function notificationsView() {
   const weakCourses=[...new Set(missedQs.map(q=>q.c).filter(Boolean))];
   if(missedIds.length)add('weak-topics','Study focus','Topics to revisit',
     missedIds.length+' question(s) marked for review across '+(weakCourses.length?weakCourses.join(', '):'your question bank')+'.','#/weak',now,'↗');
+  // Timed events stay in the feed until two hours after their start.
+  // Date-only events stay visible through their calendar day. The calendar
+  // record itself is preserved; only its completed notification is hidden.
   const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
-    const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
-    return !Number.isNaN(dt.getTime())&&dt.getTime()>=now-3600000;
-  }).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,8);
+    const date=String(ev.date||'');
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return false;
+    const hasTime=/^\\d{2}:\\d{2}$/.test(String(ev.time||''));
+    const dt=new Date(date+'T'+(hasTime?ev.time:'23:59')+(hasTime?':00':'')+'+01:00');
+    const expiry=dt.getTime()+(hasTime?2*3600000:60000);
+    return !Number.isNaN(dt.getTime())&&expiry>now;
+  }).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))).slice(0,8);
   events.forEach(ev=>{
     const dt=new Date(ev.date+'T'+(ev.time||'00:00'));
     const diff=dt.getTime()-now;
@@ -4339,7 +4346,8 @@ function notificationsView() {
   );
   render();
   fetchPublicExamSchedule().then(rows => {
-    rows.forEach(row => {
+    const todayKey=new Date(now+3600000).toISOString().slice(0,10);
+    rows.filter(row=>!row.scheduled_date||row.scheduled_date>=todayKey).forEach(row => {
       const dateLabel = examScheduleDate(row);
       const when = row.scheduled_date ? new Date(row.scheduled_date + 'T09:00:00+01:00').getTime() : now;
       add('shared-exam-'+row.id,'Schedule',row.course_code+' · '+row.assessment_type,dateLabel+' · '+(row.note||'Shared academic schedule'),'#/plan',when,'📅');
