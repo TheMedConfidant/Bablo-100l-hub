@@ -78,8 +78,9 @@ function dashboard(){
   const content=h('div',{class:'challenge-home'});
   const actions=h('div',{class:'cd-actions'});
   actions.append(
-    h('button',{onclick:()=>createPanel('quick_duel')},'＋ Create a challenge'),
-    h('button',{class:'secondary',onclick:joinPrompt},'↗ Join a challenge'),
+    h('button',{onclick:quickPlay},'⚡ Quick Play · Auto match'),
+    h('button',{class:'secondary',onclick:()=>createPanel('quick_duel')},'＋ Create a challenge'),
+    h('button',{class:'secondary',onclick:joinPrompt},'↗ Join by link or code'),
     h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Browse public rooms'),
     h('button',{class:'secondary',onclick:openLocalWifiBattle},'📶 Local Wi-Fi Battle · No data')
   );
@@ -89,7 +90,7 @@ function dashboard(){
     hero(),
     h('p',{class:'muted'},'Challenge classmates with questions from your courses. You can invite someone privately or open a room for other students.'),
     h('section',{class:'cd-panel'},h('h3',null,'How challenges work'),
-      h('div',{class:'cd-row'},h('div',null,h('b',null,'1. Create'),h('div',{class:'muted'},'Choose a game mode, course, number of questions and time limit.'))),
+      h('div',{class:'cd-row'},h('div',null,h('b',null,'1. Create'),h('div',{class:'muted'},'Quick Play picks a suitable course and game mode automatically. Hosts can still configure a custom challenge.'))),
       h('div',{class:'cd-row'},h('div',null,h('b',null,'2. Invite'),h('div',{class:'muted'},'Share the room link or 6-character code with your opponent. Public rooms can also be found in Discover.'))),
       h('div',{class:'cd-row'},h('div',null,h('b',null,'3. Play'),h('div',{class:'muted'},'Everyone joins the lobby, presses Ready, then answers the same questions. Results appear when the match is complete.')))
     ),
@@ -251,6 +252,70 @@ function joinPrompt(){
   const input=$('#cd-join-code');if(input)input.focus();
 }
 
+const QUICK_MODE_LABELS={quick_duel:'First to Answer',multi_course:'Mixed Challenge',course_clash:'Timed Test',topic_battle:'Topic Master',survival:'Survival',marathon:'Best of Several Rounds'};
+function quickModeFor(pool,selectedCourses){
+  const topicCounts=new Map();
+  pool.forEach(q=>{const t=String(q.u||q.topic||'').trim();if(t)topicCounts.set(t,(topicCounts.get(t)||0)+1)});
+  const eligible=['quick_duel','course_clash','survival'];
+  if(selectedCourses.length>1)eligible.push('multi_course');
+  if([...topicCounts.values()].some(n=>n>=5))eligible.push('topic_battle');
+  if(pool.length>=15)eligible.push('marathon');
+  let last='';try{last=localStorage.getItem('bablo_challenge_auto_mode')||''}catch(_){}
+  const start=eligible.indexOf(last);
+  const next=eligible[(start+1+eligible.length)%eligible.length];
+  try{localStorage.setItem('bablo_challenge_auto_mode',next)}catch(_){}
+  return next;
+}
+function challengeQuestionPayload(pool,count){
+  return [...pool].sort(()=>Math.random()-.5).slice(0,count).map(q=>{
+    const choices=q.o.map(String),raw=q.a;
+    let answer=typeof raw==='number'?raw:(/^[A-D]$/i.test(String(raw))?String(raw).toUpperCase().charCodeAt(0)-65:choices.findIndex(v=>v.trim()===String(raw).trim()));
+    if(answer<0)answer=Number.parseInt(raw,10);
+    if(!Number.isInteger(answer)||answer<0||answer>=choices.length)throw Error('A selected question has an unrecognised answer key. Please report this question.');
+    return {prompt:cleanText(q.q),choices:choices.map(cleanText),answer_key:String(answer),course:cleanText(q.c),topic:cleanText(q.u||q.topic||''),explanation:cleanText(q.explanation||q.e||'')};
+  });
+}
+async function quickPlay(){
+  if(CA.quickBusy)return;
+  CA.quickBusy=true;
+  frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Finding your match…'),h('p',{class:'muted'},'Checking open rooms and choosing a suitable challenge for you.'))));
+  try{
+    const bank=questions(),availableCourses=courses().filter(course=>bank.filter(q=>String(q.c||'').trim()===course).length>=5);
+    if(!availableCourses.length)throw Error('There are not enough usable questions in your course bank to start Quick Play yet.');
+    const found=await call('hub_challenge_discover',{});
+    const availableSet=new Set(availableCourses);
+    const compatible=(found.challenges||[]).find(room=>(room.courses||[]).some(course=>availableSet.has(String(course)))&&Number(room.question_count||0)>=5);
+    if(compatible){
+      toast('Found an open room. Joining now…');
+      await accept(compatible.id);
+      return;
+    }
+    let selectedCourses=[availableCourses[Math.floor(Math.random()*availableCourses.length)]];
+    let pool=bank.filter(q=>selectedCourses.includes(String(q.c||'').trim()));
+    if(availableCourses.length>1&&Math.random()<0.35){
+      const second=availableCourses.find(c=>!selectedCourses.includes(c));
+      if(second){selectedCourses.push(second);pool=bank.filter(q=>selectedCourses.includes(String(q.c||'').trim()))}
+    }
+    let mode=quickModeFor(pool,selectedCourses);
+    let topics=[];
+    if(mode==='topic_battle'){
+      const counts=new Map();
+      pool.forEach(q=>{const t=String(q.u||q.topic||'').trim();if(t)counts.set(t,(counts.get(t)||0)+1)});
+      const topic=[...counts.entries()].filter(([,n])=>n>=5).sort((a,b)=>b[1]-a[1])[0]?.[0];
+      if(topic){topics=[topic];pool=pool.filter(q=>String(q.u||q.topic||'').trim()===topic)}
+      else mode='quick_duel';
+    }
+    const count=pool.length>=10?10:5;
+    if(pool.length<count)throw Error('Not enough questions are available for a Quick Play match.');
+    const payload=challengeQuestionPayload(pool,count);
+    toast('Bablo picked '+QUICK_MODE_LABELS[mode]+'. Setting up your room…');
+    const x=await call('hub_challenge_create',{p_mode:mode,p_courses:selectedCourses,p_topics:topics,p_question_count:count,p_duration_seconds:300,p_question_set:payload,p_invited_username:null,p_leaderboard_opt_in:false,p_max_players:4});
+    CA.match=x.id||x.match_id;CA.opted=false;CA.ready=false;
+    room(CA.match,x.invite_code,{...x,mode,question_count:count,courses:selectedCourses});
+    watchLobby();
+  }catch(e){dashboard();toast(e.message||'Quick Play could not find a match. Please try again.')}
+  finally{CA.quickBusy=false}
+}
 async function quick(){createPanel('quick_duel')}
 async function accept(id){try{await call('hub_challenge_accept',{p_match_id:id});open(id)}catch(e){toast(e.message)}}
 async function open(id){try{clearInterval(CA.timer);CA.match=id;let x=await call('hub_challenge_get_questions',{p_match_id:id});CA.qs=x.questions||[];CA.answers=x.my_answers||{};CA.idx=nextUnanswered(0);if(x.status==='completed'){const review=await call('hub_challenge_review',{p_match_id:id});showReview(review);return;}room(id,x.invite_code,x);if(x.status==='active')startMatch(x);else watchLobby()}catch(e){console.warn('[Challenge Arena resume]',e);toast(e.message)}}
