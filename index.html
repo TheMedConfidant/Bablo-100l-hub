@@ -1293,7 +1293,7 @@ function inferProgrammeCategory(programme) {
 }
 function academicProfileFields(profile) {
   const p = profile || {};
-  const programme = h('select', null,
+  const programme = h('select', { required: true },
     h('option', { value: '', selected: !p.programme ? true : null }, 'Select your programme'),
     ...PROGRAMMES.filter(x => x !== GUEST_PROGRAMME).map(x => h('option', { value: x, selected: p.programme === x ? true : null }, x)));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
@@ -1305,7 +1305,7 @@ function academicProfileFields(profile) {
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
   const pathway = h('select', null,
     h('option', { value: '', selected: !p.bscPathway ? true : null }, 'Select BSc option'),
-    ...MBBS_BSC_PATHWAYS.map(x => h('option', { value: x.value, selected: p.bscPathway === x.value || p.bscPathway === x.label ? true : null }, x.label)));
+    ...MBBS_BSC_PATHWAYS.map(x => h('option', { value: x.value, selected: p.bscPathway === x.value || p.bscPathway === x.label || ({ Physiology: 'PIO', Biochemistry: 'BCH', Anatomy: 'ANA' })[p.bscPathway] === x.value ? true : null }, x.label)));
   const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc option (MBBS students, from 200L)'), pathway);
   const syncPathway = () => {
     const visible = programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200;
