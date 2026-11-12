@@ -1,13 +1,42 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v31-soc101-nursing-pack';
+const VERSION='bablo-offline-v32-storage-safe';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./mls101-data.js','./SOC101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./gst111-source-bank.js','./challenge-arena.js','./wifi-challenge.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./chm-practicals-native.js','./agr-101-food-security.html','./gst103-study-hub.html','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html'];
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
-async function save(req,res){if(res&&res.ok&&res.type!=='opaque'){const c=await caches.open(VERSION);await c.put(req,res.clone());}}
+async function save(req,res){
+ if(!res||!res.ok||res.type==='opaque')return;
+ try{const c=await caches.open(VERSION);await c.put(req,res.clone());}
+ catch(e){
+  try{
+   const c=await caches.open(VERSION),keys=await c.keys(),protectedUrls=new Set(SHELL.map(p=>new URL(p,self.location.href).href));
+   for(const k of keys){if(!protectedUrls.has(k.url)){await c.delete(k);try{await c.put(req,res.clone());return}catch(_){} }}
+  }catch(_){}
+ }
+}
 async function decorate(res){
  if(!res||!res.ok||!(res.headers.get('content-type')||'').includes('text/html'))return res;
  try{let html=await res.text();if(!html.includes('id="app"')||html.includes('bablo-startup-guard'))return new Response(html,{status:res.status,headers:res.headers});
- const guard=`<script id="bablo-startup-guard">(function(){function show(t,d){if(document.getElementById('bablo-startup-error'))return;var x=document.createElement('div');x.id='bablo-startup-error';x.style.cssText='position:fixed;z-index:2147483647;inset:0;background:#0a1020;color:white;padding:26px 20px;font:16px/1.5 system-ui;overflow:auto';var h=document.createElement('h2');h.textContent=t;x.appendChild(h);var p=document.createElement('p');p.textContent=d;x.appendChild(p);var b=document.createElement('button');b.textContent='Try again';b.style.cssText='padding:12px 18px;border:0;border-radius:10px;background:#f0bd43;color:#111;font-weight:bold';b.onclick=function(){location.reload()};x.appendChild(b);document.body.appendChild(x)}window.addEventListener('error',function(e){show('Bablo Hub startup error',String(e.message||'Script error')+(e.filename?' • '+e.filename.split('/').pop():'')+(e.lineno?':'+e.lineno:''))});window.addEventListener('unhandledrejection',function(e){show('Bablo Hub startup error',String(e.reason&&e.reason.message||e.reason||'Promise failed'))});setTimeout(function(){var a=document.getElementById('app');if(a&&!a.children.length)show('Bablo Hub did not finish loading','The app failed to render. Tap Try again; if it repeats, send us this screen.')},25000)})();</script>`;
+ const guard=`<script id="bablo-storage-manager">(function(){
+function add(){
+ if(!/^#\\/?settings(?:[/?]|$)/.test(location.hash||''))return;
+ var root=document.getElementById('app');if(!root||root.querySelector('[data-bablo-storage-card]'))return;
+ var card=document.createElement('section');card.className='panel stack';card.setAttribute('data-bablo-storage-card','1');
+ var title=document.createElement('h2');title.textContent='Phone storage';
+ var copy=document.createElement('p');copy.className='small muted';copy.textContent='Clear Bablo Hub’s temporary offline files if your phone is low on space. Your account, quiz history, notes progress and saved study records are not deleted.';
+ var usage=document.createElement('p');usage.className='tiny muted';usage.textContent='Checking Bablo cache size…';
+ var button=document.createElement('button');button.className='btn ghost block';button.textContent='Clear Bablo offline cache';
+ button.onclick=async function(){
+  if(!confirm('Clear only Bablo Hub offline cache files? Your account and study progress will be kept. Some content will need internet to load again.'))return;
+  button.disabled=true;button.textContent='Clearing…';
+  try{var names=await caches.keys();await Promise.all(names.filter(function(n){return n.indexOf('bablo-offline-')===0||n.indexOf('bablo-shell-')===0;}).map(function(n){return caches.delete(n);}));
+   usage.textContent='Bablo offline cache cleared. Your study data was kept.';button.textContent='Cache cleared';setTimeout(function(){location.reload()},900);
+  }catch(e){usage.textContent='Could not clear the offline cache in this browser. Use Android app/browser storage settings.';button.disabled=false;button.textContent='Try again';}
+ };
+ card.append(title,copy,usage,button);root.appendChild(card);
+ if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(function(x){var mb=(Number(x.usage)||0)/1048576;usage.textContent='Browser storage used by this site: '+mb.toFixed(1)+' MB (estimate).';}).catch(function(){usage.textContent='Storage estimate is unavailable on this browser.';});
+}
+window.addEventListener('hashchange',add);new MutationObserver(add).observe(document.documentElement,{childList:true,subtree:true});add();
+})();</script><script id="bablo-startup-guard">(function(){function show(t,d){if(document.getElementById('bablo-startup-error'))return;var x=document.createElement('div');x.id='bablo-startup-error';x.style.cssText='position:fixed;z-index:2147483647;inset:0;background:#0a1020;color:white;padding:26px 20px;font:16px/1.5 system-ui;overflow:auto';var h=document.createElement('h2');h.textContent=t;x.appendChild(h);var p=document.createElement('p');p.textContent=d;x.appendChild(p);var b=document.createElement('button');b.textContent='Try again';b.style.cssText='padding:12px 18px;border:0;border-radius:10px;background:#f0bd43;color:#111;font-weight:bold';b.onclick=function(){location.reload()};x.appendChild(b);document.body.appendChild(x)}window.addEventListener('error',function(e){show('Bablo Hub startup error',String(e.message||'Script error')+(e.filename?' • '+e.filename.split('/').pop():'')+(e.lineno?':'+e.lineno:''))});window.addEventListener('unhandledrejection',function(e){show('Bablo Hub startup error',String(e.reason&&e.reason.message||e.reason||'Promise failed'))});setTimeout(function(){var a=document.getElementById('app');if(a&&!a.children.length)show('Bablo Hub did not finish loading','The app failed to render. Tap Try again; if it repeats, send us this screen.')},25000)})();</script>`;
  html=html.replace(/<body([^>]*)>/i,m=>m+guard);const h=new Headers(res.headers);h.delete('content-length');return new Response(html,{status:res.status,statusText:res.statusText,headers:h});
  }catch(e){return res}
 }
