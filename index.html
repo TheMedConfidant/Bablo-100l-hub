@@ -2028,7 +2028,8 @@ function applyTheme() {
   const mode = DB.theme === 'system' ? (sysDark ? 'dark' : 'light') : DB.theme;
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
-  const skin = (!DB.skin || DB.skin === 'glass' || DB.skin === 'green') ? 'midnight' : DB.skin;
+  if (!DB.skin || DB.skin === 'glass' || DB.skin === 'green') DB.skin = 'midnight';
+  const skin = DB.skin;
   if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', 'gold'); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
