@@ -2170,7 +2170,8 @@ function route() {
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
-  if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
+  if (!DB.profile && v !== 'account') { mount(wrap()); renderNav(null); onboarding(); return; }
+  if (v === 'account') { mount(wrap(back('#/', 'Home'), h('div',{class:'stack-l'},h('h1',null,'Log in or create account'),accountSection()))); renderNav(null); return; }
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
   try {
@@ -2243,7 +2244,8 @@ function onboarding() {
     ...academic.nodes,
     err,
     h('button', { class: 'btn primary block', onclick: sub }, 'Continue as guest'),
-    h('p', { class: 'tiny muted' }, 'You can create an account later to sync progress across devices.')), false);
+    h('a', { class: 'btn block', href: '#/account' }, 'Log in or create an account'),
+    h('p', { class: 'tiny muted' }, 'Already registered? Log in to restore your account and progress.')), false);
 }
 
 /* ---------- home ---------- */
@@ -2782,6 +2784,7 @@ function meView() {
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
       ...academic.nodes,
       status,
+      accountSection(),
       h('button', { class: 'btn primary block', onclick: async () => {
         const n = name.value.trim();
         if (n.length < 2) { status.textContent = 'Enter your name.'; return; }
@@ -3789,7 +3792,7 @@ function accountSection() {
         const r = await signIn(loginId.value, loginPass.value);
         toast('Welcome back. ID ' + r.uniqueId);
       }
-      meView();
+      go('#/');
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
   const tabs = h('div', { class: 'seg' },
