@@ -1,6 +1,6 @@
 (function(){
 const $=s=>document.querySelector(s), E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let CA={match:null,qs:[],idx:0,done:false,end:0,timer:null,tab:'overview',inbox:[],opted:false,ready:false,finishing:false};
+let CA={match:null,qs:[],idx:0,done:false,end:0,timer:null,tab:'overview',inbox:[],opted:false,ready:false,finishing:false,heartbeatTimer:null};
 try{
   const initialQuery=String(location.hash||'').split('?')[1]||'';
   const initialCode=new URLSearchParams(initialQuery).get('code');
@@ -73,13 +73,16 @@ function openLocalWifiBattle(){
   document.head.append(script);
 }
 function dashboard(){
+  clearInterval(CA.timer);CA.timer=null;
+  clearInterval(CA.heartbeatTimer);CA.heartbeatTimer=null;
   CA.tab='overview';
   const nav=['Discover','My Challenges','Champions League'].map((t)=>h('button',{class:'secondary',onclick:()=>tab(t)},t));
   const content=h('div',{class:'challenge-home'});
   const actions=h('div',{class:'cd-actions'});
   actions.append(
-    h('button',{onclick:()=>createPanel('quick_duel')},'＋ Create a challenge'),
-    h('button',{class:'secondary',onclick:joinPrompt},'↗ Join a challenge'),
+    h('button',{onclick:quickPlay},'⚡ Quick Play · Auto match'),
+    h('button',{class:'secondary',onclick:()=>createPanel('quick_duel')},'＋ Create a challenge'),
+    h('button',{class:'secondary',onclick:joinPrompt},'↗ Join by link or code'),
     h('button',{class:'secondary',onclick:()=>tab('Discover')},'🌐 Browse public rooms'),
     h('button',{class:'secondary',onclick:openLocalWifiBattle},'📶 Local Wi-Fi Battle · No data')
   );
@@ -89,7 +92,7 @@ function dashboard(){
     hero(),
     h('p',{class:'muted'},'Challenge classmates with questions from your courses. You can invite someone privately or open a room for other students.'),
     h('section',{class:'cd-panel'},h('h3',null,'How challenges work'),
-      h('div',{class:'cd-row'},h('div',null,h('b',null,'1. Create'),h('div',{class:'muted'},'Choose a game mode, course, number of questions and time limit.'))),
+      h('div',{class:'cd-row'},h('div',null,h('b',null,'1. Create'),h('div',{class:'muted'},'Quick Play picks a suitable course and game mode automatically. Hosts can still configure a custom challenge.'))),
       h('div',{class:'cd-row'},h('div',null,h('b',null,'2. Invite'),h('div',{class:'muted'},'Share the room link or 6-character code with your opponent. Public rooms can also be found in Discover.'))),
       h('div',{class:'cd-row'},h('div',null,h('b',null,'3. Play'),h('div',{class:'muted'},'Everyone joins the lobby, presses Ready, then answers the same questions. Results appear when the match is complete.')))
     ),
@@ -110,7 +113,7 @@ async function tab(name){
       const x=await call('hub_challenge_discover',{});
       const rows=x.challenges||[];
       const panel=h('section',{class:'cd-panel'},h('h2',null,'Open challenges'),h('p',{class:'muted'},'Join a public room and compete with another Bablo student.'));
-      panel.append(...(rows.length?rows.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Student'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions'),h('div',{class:'muted'},m.mode+' · '+Math.round((m.duration_seconds||300)/60)+' min')),h('button',{onclick:()=>accept(m.id)},'Join'))):[h('p',{class:'muted'},'No open public challenges right now. Create one and invite others.')] ));
+      panel.append(...(rows.length?rows.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Student'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions'),h('div',{class:'muted'},(QUICK_MODE_LABELS[m.mode]||m.mode)+' · '+(m.player_count||0)+'/'+(m.max_players||2)+' players · '+Math.round((m.duration_seconds||300)/60)+' min')),h('button',{onclick:()=>accept(m.id)},'Join'))):[h('p',{class:'muted'},'No open public challenges right now. Create one and invite others.')] ));
       frame(h('div',null,shell(),panel));return;
     }
     if(name==='My Challenges'){
@@ -251,15 +254,85 @@ function joinPrompt(){
   const input=$('#cd-join-code');if(input)input.focus();
 }
 
+const QUICK_MODE_LABELS={quick_duel:'First to Answer',multi_course:'Mixed Challenge',course_clash:'Timed Test',topic_battle:'Topic Master',survival:'Survival',marathon:'Best of Several Rounds'};
+function quickModeFor(pool,selectedCourses){
+  const topicCounts=new Map();
+  pool.forEach(q=>{const t=String(q.u||q.topic||'').trim();if(t)topicCounts.set(t,(topicCounts.get(t)||0)+1)});
+  const eligible=['quick_duel','course_clash','survival'];
+  if(selectedCourses.length>1)eligible.push('multi_course');
+  if([...topicCounts.values()].some(n=>n>=5))eligible.push('topic_battle');
+  if(pool.length>=15)eligible.push('marathon');
+  let last='';try{last=localStorage.getItem('bablo_challenge_auto_mode')||''}catch(_){}
+  const start=eligible.indexOf(last);
+  const next=eligible[start<0?0:(start+1)%eligible.length];
+  try{localStorage.setItem('bablo_challenge_auto_mode',next)}catch(_){}
+  return next;
+}
+function challengeQuestionPayload(pool,count){
+  return [...pool].sort(()=>Math.random()-.5).slice(0,count).map(q=>{
+    const choices=q.o.map(String),raw=q.a;
+    let answer=typeof raw==='number'?raw:(/^[A-D]$/i.test(String(raw))?String(raw).toUpperCase().charCodeAt(0)-65:choices.findIndex(v=>v.trim()===String(raw).trim()));
+    if(answer<0)answer=Number.parseInt(raw,10);
+    if(!Number.isInteger(answer)||answer<0||answer>=choices.length)throw Error('A selected question has an unrecognised answer key. Please report this question.');
+    return {prompt:cleanText(q.q),choices:choices.map(cleanText),answer_key:String(answer),course:cleanText(q.c),topic:cleanText(q.u||q.topic||''),explanation:cleanText(q.explanation||q.e||'')};
+  });
+}
+async function quickPlay(){
+  if(CA.quickBusy)return;
+  CA.quickBusy=true;
+  frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Finding your match…'),h('p',{class:'muted'},'Checking open rooms and choosing a suitable challenge for you.'))));
+  try{
+    const bank=questions(),availableCourses=courses().filter(course=>bank.filter(q=>String(q.c||'').trim()===course).length>=5);
+    if(!availableCourses.length)throw Error('There are not enough usable questions in your course bank to start Quick Play yet.');
+    const found=await call('hub_challenge_discover',{});
+    const availableSet=new Set(availableCourses);
+    const compatible=(found.challenges||[]).filter(room=>(room.courses||[]).some(course=>availableSet.has(String(course)))&&Number(room.question_count||0)>=5&&Number(room.player_count||0)<Number(room.max_players||2));
+    for(const candidate of compatible){
+      try{
+        await call('hub_challenge_accept',{p_match_id:candidate.id});
+        toast('Found an open room. Joining now…');
+        await open(candidate.id);
+        return;
+      }catch(joinError){
+        if(/room is full|no longer accepting|not accepting players/i.test(String(joinError.message||joinError)))continue;
+        throw joinError;
+      }
+    }
+    let selectedCourses=[availableCourses[Math.floor(Math.random()*availableCourses.length)]];
+    let pool=bank.filter(q=>selectedCourses.includes(String(q.c||'').trim()));
+    if(availableCourses.length>1&&Math.random()<0.35){
+      const second=availableCourses.find(c=>!selectedCourses.includes(c));
+      if(second){selectedCourses.push(second);pool=bank.filter(q=>selectedCourses.includes(String(q.c||'').trim()))}
+    }
+    let mode=quickModeFor(pool,selectedCourses);
+    let topics=[];
+    if(mode==='topic_battle'){
+      const counts=new Map();
+      pool.forEach(q=>{const t=String(q.u||q.topic||'').trim();if(t)counts.set(t,(counts.get(t)||0)+1)});
+      const topic=[...counts.entries()].filter(([,n])=>n>=5).sort((a,b)=>b[1]-a[1])[0]?.[0];
+      if(topic){topics=[topic];pool=pool.filter(q=>String(q.u||q.topic||'').trim()===topic)}
+      else mode='quick_duel';
+    }
+    const count=pool.length>=10?10:5;
+    if(pool.length<count)throw Error('Not enough questions are available for a Quick Play match.');
+    const payload=challengeQuestionPayload(pool,count);
+    toast('Bablo picked '+QUICK_MODE_LABELS[mode]+'. Setting up your room…');
+    const x=await call('hub_challenge_create',{p_mode:mode,p_courses:selectedCourses,p_topics:topics,p_question_count:count,p_duration_seconds:300,p_question_set:payload,p_invited_username:null,p_leaderboard_opt_in:false,p_max_players:4});
+    CA.match=x.id||x.match_id;CA.opted=false;CA.ready=false;
+    room(CA.match,x.invite_code,{...x,mode,question_count:count,courses:selectedCourses});
+    watchLobby();
+  }catch(e){dashboard();toast(e.message||'Quick Play could not find a match. Please try again.')}
+  finally{CA.quickBusy=false}
+}
 async function quick(){createPanel('quick_duel')}
 async function accept(id){try{await call('hub_challenge_accept',{p_match_id:id});open(id)}catch(e){toast(e.message)}}
 async function open(id){try{clearInterval(CA.timer);CA.match=id;let x=await call('hub_challenge_get_questions',{p_match_id:id});CA.qs=x.questions||[];CA.answers=x.my_answers||{};CA.idx=nextUnanswered(0);if(x.status==='completed'){const review=await call('hub_challenge_review',{p_match_id:id});showReview(review);return;}room(id,x.invite_code,x);if(x.status==='active')startMatch(x);else watchLobby()}catch(e){console.warn('[Challenge Arena resume]',e);toast(e.message)}}
 function nextUnanswered(from){for(let i=Math.max(0,from);i<CA.qs.length;i++)if(!Object.prototype.hasOwnProperty.call(CA.answers||{},String(i)))return i;return CA.qs.length;}
-function room(id,code,x={}){let status=x.status||'waiting';CA.ready=x.my_status==='ready';frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Challenge lobby'),h('p',null,'Room code: '+(code||'Open inbox for code')),h('button',{class:'secondary',onclick:()=>copyChallengeCode(code),disabled:!code},'Copy room code'),h('p',{class:'muted'},'Send your opponent the link below. Opening it takes them straight back to Bablo Hub and into this room.'),h('p',{class:'muted',style:'overflow-wrap:anywhere'},code?'Bablo Hub invite: '+challengeInviteUrl(code):'Invite link is being prepared…'),h('button',{onclick:()=>shareChallenge(code),disabled:!code},'↗ Share challenge link'),h('button',{class:'secondary',onclick:()=>copyChallengeLink(code),disabled:!code},'Copy invite link'),h('p',{class:'muted'},(x.question_count||CA.qs.length)+' questions · '+Math.round((x.duration_seconds||300)/60)+' minutes · '+(x.max_players||2)+' player slots'),h('p',{id:'cd-lobby-status'},status==='active'?'Starting match…':'Players can ready up as they join.'),h('div',{id:'cd-player-list',class:'stack'},(x.players||[]).map(p=>h('p',{class:'small muted'},'@'+(p.username||'student')+' · '+p.status))),h('p',null,'Both players should press Ready. The match starts when everyone is ready.'),h('button',{id:'cd-ready',onclick:ready,disabled:status==='active'||CA.ready},CA.ready?'Ready ✓':status==='active'?'Starting…':'I’m ready'),h('button',{id:'cd-start-now',class:'secondary',onclick:startNow,hidden:true},'Start with ready players'),h('button',{class:'secondary',onclick:dashboard},'Back to Arena'))))}
+function room(id,code,x={}){let status=x.status||'waiting';CA.ready=x.my_status==='ready';frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Challenge lobby'),h('p',null,'Room code: '+(code||'Open inbox for code')),h('button',{class:'secondary',onclick:()=>copyChallengeCode(code),disabled:!code},'Copy room code'),h('p',{class:'muted'},'Send your opponent the link below. Opening it takes them straight back to Bablo Hub and into this room.'),h('p',{class:'muted',style:'overflow-wrap:anywhere'},code?'Bablo Hub invite: '+challengeInviteUrl(code):'Invite link is being prepared…'),h('button',{onclick:()=>shareChallenge(code),disabled:!code},'↗ Share challenge link'),h('button',{class:'secondary',onclick:()=>copyChallengeLink(code),disabled:!code},'Copy invite link'),h('p',{class:'muted'},(x.question_count||CA.qs.length)+' questions · '+Math.round((x.duration_seconds||300)/60)+' minutes · '+(x.max_players||2)+' player slots'+(x.mode?' · '+(QUICK_MODE_LABELS[x.mode]||x.mode):'')),h('p',{id:'cd-lobby-status'},status==='active'?'Starting match…':'Players can ready up as they join.'),h('div',{id:'cd-player-list',class:'stack'},(x.players||[]).map(p=>h('p',{class:'small muted'},'@'+(p.username||'student')+' · '+p.status))),h('p',null,'Everyone in the room should press Ready. The host can start once all joined players are ready; a full room starts automatically.'),h('button',{id:'cd-ready',onclick:ready,disabled:status==='active'||CA.ready},CA.ready?'Ready ✓':status==='active'?'Starting…':'I’m ready'),h('button',{id:'cd-start-now',class:'secondary',onclick:startNow,hidden:true},'Start with ready players'),h('button',{class:'secondary',onclick:dashboard},'Back to Arena'))))}
 async function ready(){try{let b=$('#cd-ready');if(b)b.disabled=true;let x=await call('hub_challenge_ready',{p_match_id:CA.match});CA.ready=true;if(x.status==='active'){let detail=await call('hub_challenge_get_questions',{p_match_id:CA.match});startMatch(detail)}else{if(b)b.textContent='Ready ✓';let st=$('#cd-lobby-status');if(st)st.textContent='You’re ready ('+(x.ready_count||1)+'/'+(x.player_count||2)+'). Waiting for the others…';watchLobby()}}catch(e){let b=$('#cd-ready');if(b)b.disabled=false;toast(e.message)}}
-function watchLobby(){clearInterval(CA.timer);CA.timer=setInterval(async()=>{try{let x=await call('hub_challenge_get_questions',{p_match_id:CA.match});if(x.status==='active'){clearInterval(CA.timer);CA.qs=x.questions||CA.qs;startMatch(x);return}let st=$('#cd-lobby-status'),b=$('#cd-ready'),list=$('#cd-player-list'),start=$('#cd-start-now');if(st)st.textContent='Players ready: '+(x.ready_count||0)+' / '+(x.player_count||0)+' · Joined: '+(x.player_count||0)+' / '+(x.max_players||2);if(list)list.replaceChildren(...(x.players||[]).map(p=>h('p',{class:'small muted'},'@'+(p.username||'student')+' · '+p.status)));if(b){b.disabled=CA.ready||x.my_status==='ready';if(!CA.ready&&x.my_status!=='ready'){b.textContent='I’m ready';if(x.status==='waiting'||x.status==='ready')b.disabled=false}else b.textContent='Ready ✓'}if(start){const canStart=!!x.is_host&&(x.player_count||0)>=2&&(x.ready_count||0)===(x.player_count||0);start.hidden=!canStart;start.style.display=canStart?'':'none'}}catch(e){let st=$('#cd-lobby-status');if(st)st.textContent=e.message}},2000)}
+function watchLobby(){clearInterval(CA.timer);clearInterval(CA.heartbeatTimer);CA.heartbeatTimer=setInterval(()=>{if(CA.match)call('hub_challenge_heartbeat',{p_match_id:CA.match}).catch(e=>console.warn('[Challenge Arena heartbeat]',e))},15000);CA.timer=setInterval(async()=>{try{let x=await call('hub_challenge_get_questions',{p_match_id:CA.match});if(x.status==='active'){clearInterval(CA.timer);clearInterval(CA.heartbeatTimer);CA.heartbeatTimer=null;CA.qs=x.questions||CA.qs;startMatch(x);return}let st=$('#cd-lobby-status'),b=$('#cd-ready'),list=$('#cd-player-list'),start=$('#cd-start-now');if(st)st.textContent='Players ready: '+(x.ready_count||0)+' / '+(x.player_count||0)+' · Joined: '+(x.player_count||0)+' / '+(x.max_players||2);if(list)list.replaceChildren(...(x.players||[]).map(p=>h('p',{class:'small muted'},'@'+(p.username||'student')+' · '+p.status)));if(b){b.disabled=CA.ready||x.my_status==='ready';if(!CA.ready&&x.my_status!=='ready'){b.textContent='I’m ready';if(x.status==='waiting'||x.status==='ready')b.disabled=false}else b.textContent='Ready ✓'}if(start){const full=(x.player_count||0)>=(x.max_players||2);const everyoneReady=(x.player_count||0)>=2&&(x.ready_count||0)===(x.player_count||0);const canStart=!!x.is_host&&everyoneReady;start.hidden=!canStart;start.style.display=canStart?'':'none';if(full&&everyoneReady&&x.is_host&&!CA.autoStarting){CA.autoStarting=true;startNow().finally(()=>{CA.autoStarting=false})}}}catch(e){let st=$('#cd-lobby-status');if(st)st.textContent=/failed to fetch|network|timeout|502|503|504|temporar/i.test(String(e.message||e))?'Connection interrupted — reconnecting automatically…':e.message}},2000)}
 async function startNow(){try{const b=$('#cd-start-now');if(b)b.disabled=true;const x=await call('hub_challenge_start_now',{p_match_id:CA.match});if(x.status==='active'){clearInterval(CA.timer);const detail=await call('hub_challenge_get_questions',{p_match_id:CA.match});startMatch(detail)}else{toast('Waiting for every joined player to press Ready.');if(b)b.disabled=false}}catch(e){const b=$('#cd-start-now');if(b)b.disabled=false;toast(e.message)}}
-function startMatch(x){clearInterval(CA.timer);CA.qs=x.questions||CA.qs;CA.answers=x.my_answers||CA.answers||{};CA.idx=nextUnanswered(0);let start=Date.parse(x.starts_at||new Date().toISOString());let duration=Number(x.duration_seconds)||300;CA.startAt=start;CA.end=start+duration*1000;let wait=Math.max(0,start-Date.now());if(wait){frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Match starting'),h('p',{class:'muted'},'Both players are ready. Your shared timer begins in a moment.'),h('strong',{id:'cd-start-count'},Math.ceil(wait/1000)+' seconds'))));CA.timer=setInterval(()=>{let left=Math.max(0,CA.startAt-Date.now()),el=$('#cd-start-count');if(el)el.textContent=Math.ceil(left/1000)+' seconds';if(!left){clearInterval(CA.timer);play()}},200)}else play()}
+function startMatch(x){clearInterval(CA.timer);clearInterval(CA.heartbeatTimer);CA.heartbeatTimer=null;CA.qs=x.questions||CA.qs;CA.answers=x.my_answers||CA.answers||{};CA.idx=nextUnanswered(0);let start=Date.parse(x.starts_at||new Date().toISOString());let duration=Number(x.duration_seconds)||300;CA.startAt=start;CA.end=start+duration*1000;let wait=Math.max(0,start-Date.now());if(wait){frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('h2',null,'Match starting'),h('p',{class:'muted'},'Both players are ready. Your shared timer begins in a moment.'),h('strong',{id:'cd-start-count'},Math.ceil(wait/1000)+' seconds'))));CA.timer=setInterval(()=>{let left=Math.max(0,CA.startAt-Date.now()),el=$('#cd-start-count');if(el)el.textContent=Math.ceil(left/1000)+' seconds';if(!left){clearInterval(CA.timer);play()}},200)}else play()}
 function play(){CA.idx=nextUnanswered(CA.idx);let q=CA.qs[CA.idx];if(!q){finish();return}CA.done=false;CA.started=Date.now();frame(h('div',null,hero(),h('section',{class:'cd-panel'},h('div',{class:'cd-row'},h('b',null,'Question '+(CA.idx+1)+' / '+CA.qs.length),h('strong',{id:'cd-clock'},'')),h('p',{class:'muted'},(q.course||'')+' · '+(q.topic||'')),h('div',{class:'cd-q'},cleanText(q.prompt)),h('div',{id:'cd-options'},...q.choices.map((c,i)=>h('button',{class:'cd-choice',onclick:()=>answer(i)},String.fromCharCode(65+i)+'. '+cleanText(c)))),h('div',{id:'cd-feedback'}),h('div',{class:'cd-quick'},h('button',{class:'secondary',onclick:react},'🔥'),h('button',{id:'cd-next',disabled:true,onclick:()=>{CA.idx++;play()}},'Next question')),h('div',{id:'cd-score',class:'muted'}))));tick();clearInterval(CA.timer);CA.timer=setInterval(tick,500);feed()}
 function tick(){let el=$('#cd-clock');if(!el)return;let left=Math.max(0,CA.end-Date.now());el.textContent=Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0');if(!left)finish()}
 async function answer(i){if(CA.done)return;CA.done=true;let bs=[...$('#cd-options').querySelectorAll('button')];bs.forEach(b=>b.disabled=true);try{let x=await call('hub_challenge_submit_answer',{p_match_id:CA.match,p_question_index:CA.idx,p_answer_key:String(i),p_response_ms:Math.max(0,Date.now()-(CA.started||Date.now()))});CA.answers=CA.answers||{};CA.answers[String(CA.idx)]={answer_key:String(i),is_correct:!!x.correct,awarded_point:!!x.point_awarded};$('#cd-feedback').textContent=x.correct?(x.point_awarded?'Correct — first point secured.':'Correct — the point was already claimed.'):'Answer submitted — not correct.';$('#cd-next').disabled=false;feed()}catch(e){try{const state=await call('hub_challenge_get_questions',{p_match_id:CA.match});CA.answers=state.my_answers||{};if(Object.prototype.hasOwnProperty.call(CA.answers,String(CA.idx))){const saved=CA.answers[String(CA.idx)];$('#cd-feedback').textContent=saved.is_correct?(saved.awarded_point?'Answer saved — first point secured.':'Answer saved — correct, but the point was already claimed.'):'Answer saved.';$('#cd-next').disabled=false;feed();return;}}catch(syncError){}CA.done=false;bs.forEach(b=>b.disabled=false);toast('Connection interrupted. Your answer was not confirmed. Retry this answer when your connection returns. '+String(e.message||e));}}
