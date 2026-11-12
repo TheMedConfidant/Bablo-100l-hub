@@ -4345,8 +4345,8 @@ function notificationsView() {
   // record itself is preserved; only its completed notification is hidden.
   const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
     const date=String(ev.date||'');
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return false;
-    const hasTime=/^\\d{2}:\\d{2}$/.test(String(ev.time||''));
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+    const hasTime=/^\d{2}:\d{2}$/.test(String(ev.time||''));
     const dt=new Date(date+'T'+(hasTime?ev.time:'23:59')+(hasTime?':00':'')+'+01:00');
     const expiry=dt.getTime()+(hasTime?2*3600000:60000);
     return !Number.isNaN(dt.getTime())&&expiry>now;
