@@ -2170,7 +2170,7 @@ function route() {
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
-  if (!DB.profile && v !== 'account') { mount(wrap()); renderNav(null); onboarding(); return; }
+  if (!DB.profile && v !== 'account') { landingView(); renderNav(null); return; }
   if (v === 'account') { mount(wrap(back('#/', 'Home'), h('div',{class:'stack-l'},h('h1',null,'Log in or create account'),accountSection()))); renderNav(null); return; }
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
@@ -2216,6 +2216,35 @@ function route() {
     else if (v === 'me') meView();
     else homeView();
   } catch (e) { console.error(e); mount(wrap(h('div', { class: 'panel stack' }, h('h2', null, 'Something went wrong'), h('p', { class: 'muted' }, 'Go back home and try again.'), h('a', { class: 'btn primary', href: '#/' }, 'Back home')))); }
+}
+
+/* ---------- public landing page ---------- */
+function landingView() {
+  const feature=(icon,title,desc)=>h('article',{class:'panel stack',style:{padding:'18px'}},
+    h('span',{style:{fontSize:'1.5rem'},'aria-hidden':'true'},icon),
+    h('b',null,title),h('p',{class:'small muted'},desc));
+  mount(wrap(
+    h('header',{class:'row between wrapr',style:{padding:'12px 0'}},
+      brand(),h('div',{class:'row wrapr'},
+        h('a',{class:'btn',href:'#/account',onclick:()=>{ACCOUNT_MODE='login';}},'Log in'),
+        h('a',{class:'btn primary',href:'#/account',onclick:()=>{ACCOUNT_MODE='signup';}},'Create account'))),
+    h('section',{class:'panel stack',style:{padding:'clamp(24px,6vw,52px)',marginTop:'18px'}},
+      h('span',{class:'dashboard-eyebrow'},'THE COHES STUDENT LEARNING HUB'),
+      h('h1',{style:{fontSize:'clamp(2rem,6vw,3.6rem)',lineHeight:'1.08',maxWidth:'760px'}},'Learn with clarity. Practise with purpose. Progress together.'),
+      h('p',{class:'muted',style:{fontSize:'1.05rem',maxWidth:'680px'}},'Bablo Hub brings course practice, academic resources, progress tracking and student challenges into one focused learning space.'),
+      h('div',{class:'row wrapr'},
+        h('a',{class:'btn primary',href:'#/account',onclick:()=>{ACCOUNT_MODE='signup';}},'Get started — create account'),
+        h('a',{class:'btn',href:'#/account',onclick:()=>{ACCOUNT_MODE='login';}},'Log in')),
+      h('p',{class:'tiny muted'},'Built for the wider College of Health and Medical Sciences learning community.')),
+    h('section',{class:'stack',style:{marginTop:'24px'}},
+      h('h2',null,'A focused space for your academic work'),
+      h('div',{class:'dashboard-grid'},
+        feature('📚','Study & practise','Course questions, quizzes, notes and flashcards in one place.'),
+        feature('📈','Track progress','Review your learning activity and identify topics that need attention.'),
+        feature('⚔️','Learn together','Take part in student challenges and academic competitions.'),
+        feature('🧪','Practical learning','Access laboratory and practical learning resources.'))),
+    h('footer',{class:'tiny muted',style:{textAlign:'center',padding:'24px 0'}},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
+  ));
 }
 
 /* ---------- onboarding ---------- */
@@ -3796,8 +3825,8 @@ function accountSection() {
     } catch (e) { err.textContent = e.message || 'Something went wrong.'; }
   };
   const tabs = h('div', { class: 'seg' },
-    h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; meView(); } }, 'Create account'),
-    h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; meView(); } }, 'Log in'));
+    h('button', { class: 'opt', 'aria-pressed': String(mode === 'signup'), onclick: () => { ACCOUNT_MODE = 'signup'; go('#/account'); } }, 'Create account'),
+    h('button', { class: 'opt', 'aria-pressed': String(mode === 'login'), onclick: () => { ACCOUNT_MODE = 'login'; go('#/account'); } }, 'Log in'));
   const fields = mode === 'signup'
     ? [name, nick, ...academic.nodes, pass, h('p', { class: 'tiny muted' }, 'Your ID is generated automatically. Save it after registration; it is required to log in.')]
     : [loginId, loginPass];
