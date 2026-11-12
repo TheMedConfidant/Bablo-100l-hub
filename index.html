@@ -2340,7 +2340,9 @@ function sharedExamSchedulePanel() {
     h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')));
   panel.append(h('p',{class:'small muted'},'Loading shared schedule…'));
   fetchPublicExamSchedule().then(rows => {
-    const items = rows.slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
+    const todayKey=new Date(Date.now()+3600000).toISOString().slice(0,10);
+    const items = rows.filter(row=>!row.scheduled_date||row.scheduled_date>=todayKey)
+      .slice().sort((a,b) => (a.scheduled_date || '9999-12-31').localeCompare(b.scheduled_date || '9999-12-31'));
     panel.replaceChildren(
       h('div',{class:'row between wrapr'},h('div',null,h('h2',null,'Upcoming tests & exams'),h('p',{class:'tiny muted'},'Shared schedule · visible on every device')),h('a',{class:'btn sm ghost',href:'#/notifications'},'Notifications')),
       ...items.map(row => h('div',{class:'row between wrapr',style:{padding:'9px 0',borderBottom:'1px solid var(--line)'}},
