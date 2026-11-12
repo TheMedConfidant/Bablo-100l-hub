@@ -111,7 +111,7 @@ async function tab(name){
       const x=await call('hub_challenge_discover',{});
       const rows=x.challenges||[];
       const panel=h('section',{class:'cd-panel'},h('h2',null,'Open challenges'),h('p',{class:'muted'},'Join a public room and compete with another Bablo student.'));
-      panel.append(...(rows.length?rows.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Student'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions'),h('div',{class:'muted'},(QUICK_MODE_LABELS[m.mode]||m.mode)+' · '+Math.round((m.duration_seconds||300)/60)+' min')),h('button',{onclick:()=>accept(m.id)},'Join'))):[h('p',{class:'muted'},'No open public challenges right now. Create one and invite others.')] ));
+      panel.append(...(rows.length?rows.map(m=>h('div',{class:'cd-row'},h('div',null,h('b',null,m.creator_username||'Student'),h('div',{class:'muted'},(m.courses||[]).join(', ')+' · '+m.question_count+' questions'),h('div',{class:'muted'},(QUICK_MODE_LABELS[m.mode]||m.mode)+' · '+(m.player_count||0)+'/'+(m.max_players||2)+' players · '+Math.round((m.duration_seconds||300)/60)+' min')),h('button',{onclick:()=>accept(m.id)},'Join'))):[h('p',{class:'muted'},'No open public challenges right now. Create one and invite others.')] ));
       frame(h('div',null,shell(),panel));return;
     }
     if(name==='My Challenges'){
@@ -284,15 +284,16 @@ async function quickPlay(){
     if(!availableCourses.length)throw Error('There are not enough usable questions in your course bank to start Quick Play yet.');
     const found=await call('hub_challenge_discover',{});
     const availableSet=new Set(availableCourses);
-    const compatible=(found.challenges||[]).filter(room=>(room.courses||[]).some(course=>availableSet.has(String(course)))&&Number(room.question_count||0)>=5);
+    const compatible=(found.challenges||[]).filter(room=>(room.courses||[]).some(course=>availableSet.has(String(course)))&&Number(room.question_count||0)>=5&&Number(room.player_count||0)<Number(room.max_players||2));
     for(const candidate of compatible){
       try{
-        toast('Found an open room. Joining now…');
         await call('hub_challenge_accept',{p_match_id:candidate.id});
-        open(candidate.id);
+        toast('Found an open room. Joining now…');
+        await open(candidate.id);
         return;
       }catch(joinError){
-        console.info('[Quick Play] Room unavailable; checking the next room.',joinError);
+        if(/room is full|no longer accepting|not accepting players/i.test(String(joinError.message||joinError)))continue;
+        throw joinError;
       }
     }
     let selectedCourses=[availableCourses[Math.floor(Math.random()*availableCourses.length)]];
