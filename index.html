@@ -3782,7 +3782,7 @@ function accountSection() {
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const academic = academicProfileFields(DB.profile || { programme: '', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
   const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
@@ -3791,7 +3791,10 @@ function accountSection() {
     err.textContent = '';
     try {
       if (isUp) {
-        const r = await signUp(Object.assign({ name: name.value, nickname: nick.value, password: pass.value }, academic.read()));
+        const academicData = academic.read();
+        if (!academicData.programme) throw new Error('Select your programme to continue.');
+        if (academicData.programme === 'MBBS' && parseInt(academicData.level, 10) >= 200 && !academicData.bscPathway) throw new Error('Select your BSc option to continue.');
+        const r = await signUp(Object.assign({ name: name.value, nickname: nick.value, password: pass.value }, academicData));
         showNewId(r.uniqueId);
         if (!r.profileSaved) toast('Account created. Review and save academic details in your profile.');
       } else {
