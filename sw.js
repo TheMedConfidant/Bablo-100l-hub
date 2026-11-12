@@ -18,7 +18,7 @@ async function decorate(res){
  try{let html=await res.text();if(!html.includes('id="app"')||html.includes('bablo-startup-guard'))return new Response(html,{status:res.status,headers:res.headers});
  const guard=`<script id="bablo-storage-manager">(function(){
 function add(){
- if(!/^#\\/?settings(?:[/?]|$)/.test(location.hash||''))return;
+ if((location.hash||'').indexOf('#/settings')!==0&&(location.hash||'').indexOf('#settings')!==0)return;
  var root=document.getElementById('app');if(!root||root.querySelector('[data-bablo-storage-card]'))return;
  var card=document.createElement('section');card.className='panel stack';card.setAttribute('data-bablo-storage-card','1');
  var title=document.createElement('h2');title.textContent='Phone storage';
