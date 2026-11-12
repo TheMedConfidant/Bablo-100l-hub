@@ -4110,7 +4110,7 @@ function writtenQuestionsView(code) {
   if (!canAccessCourse(code) || code !== 'SOC101' || !P) { go('#/'); return; }
   mount(wrap(back('#/course/' + code, c ? c.label : 'Course'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Theory & lecture-note questions'), h('p', { class: 'muted small' }, P.writtenQuestions.length + ' original written questions. Attempt each before revealing its source answer.')),
-    ...P.writtenQuestions.map((q, i) => h('article', { class: 'panel stack' }, h('h3', null, (i + 1) + '. ' + q.question), h('span', { class: 'chip' }, q.kind), h('details', null, h('summary', null, 'Show source answer'), h('p', { class: 'note-paragraph' }, q.answer))))))));
+    ...P.writtenQuestions.map((q, i) => h('article', { class: 'panel stack' }, h('h3', null, (i + 1) + '. ' + q.question), h('span', { class: 'chip' }, q.kind), h('details', null, h('summary', null, 'Show source answer'), h('p', { class: 'note-paragraph' }, q.answer)))))));
 }
 function notesView(code, topicIdx) {
   const N = notesFor(code); const c = courseBy(code);
