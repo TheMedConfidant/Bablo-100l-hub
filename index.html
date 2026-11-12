@@ -2444,8 +2444,18 @@ function coursesCatalogueView(){
   return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Questions'):go('#/course/'+c.code)},
    h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
  });
- mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Choose a course to open its dashboard and learning resources.')),
- h('section',{class:'catalogue-grid'},...list)));
+ const semesterTabs=L200?h('div',{class:'seg','aria-label':'Select semester'},
+  ...[{id:'first',label:'First semester'},{id:'second',label:'Second semester'}].map(s=>
+   h('button',{class:'opt',type:'button','aria-pressed':String(HOME_SEM===s.id),onclick:()=>{HOME_SEM=s.id;coursesCatalogueView();}},s.label))):null;
+ const pendingSemester=L200&&HOME_SEM==='second'&&!list.length
+  ?h('section',{class:'panel stack'},h('h2',null,'Second semester is being prepared'),
+    h('p',{class:'muted'},'The course list will appear here after the current Bowen 200L registration or departmental timetable is verified.'),
+    h('p',{class:'tiny muted'},'We will not guess course codes or publish unverified subjects. Once confirmed, each course will receive its own notes, practicals, flashcards and question bank.'))
+  :null;
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),
+  h('h1',null,L200?'200 Level course catalogue':'Course catalogue'),
+  h('p',{class:'muted'},L200?'Choose a semester, then open a course and its learning resources.':'Choose a course to open its dashboard and learning resources.')),
+  semesterTabs,pendingSemester,list.length?h('section',{class:'catalogue-grid'},...list):null));
 }
 function timeHubView(){
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Time & Productivity'),h('p',{class:'muted'},'Plan your academic week and protect your study time.')),
