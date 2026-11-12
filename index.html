@@ -2295,6 +2295,7 @@ function openHubMenu(){
   panel.append(
     h('div',{class:'hub-menu-head'},h('div',null,h('strong',null,'Bablo Hub ™'),h('div',{class:'tiny muted'},DB.profile?DB.profile.name:'Student dashboard')),h('button',{class:'icon-btn',type:'button','aria-label':'Close menu',onclick:close},'✕')),
     group('COMPETITIONS',[link('Programme Cup','#/cup','🏆')]),
+    group('TOOLS',[link('Scientific Calculator','/calculator/','∑')]),
     group('LIBRARY',[link('Uploads & library','#/files','▤'),link('Send feedback','#/feedback','✉')]),
     group('ACCOUNT',[link('My profile','#/me','◉'),link('Settings','#/settings','⚙')]),
     group('ABOUT',[link('About Bablo Hub','#/about','ⓘ')]),
@@ -2486,6 +2487,7 @@ function courseView(code) {
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
       sectionTiles(c, total, us.length),
+      ['MTH101','PHY101','CHM101'].includes(code) ? h('button', { class: 'btn block', onclick: () => { window.location.href = '/calculator/?course=' + encodeURIComponent(code); } }, '∑ Open scientific calculator') : null,
       h('div', { class: 'stack' },
         h('button', { class: 'btn gold block', onclick: () => go('#/setup/' + code + '/exam') }, 'Premium Bowen exam'),
         h('div', { class: 'row' }, h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/practice') }, 'Practice'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/quiz') }, 'Timed quiz'), h('button', { class: 'btn grow', onclick: () => go('#/setup/' + code + '/mock') }, 'Mock test')),
