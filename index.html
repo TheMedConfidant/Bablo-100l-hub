@@ -1866,7 +1866,9 @@ async function signUp(f) {
   if (f.name.trim().length < 2) throw new Error('Enter your full name.');
   if (!f.nickname.trim()) throw new Error('Pick a nickname.');
   if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
-  if (!f.programme || f.programme.length < 2) throw new Error('Enter your programme.');
+  if (!f.programme || f.programme.length < 2) throw new Error('Select your programme.');
+  if (!f.programmeCategory) throw new Error('Select your academic group.');
+  if (f.programme.trim().toUpperCase() === 'MBBS' && parseInt(f.level, 10) >= 200 && !f.bscPathway) throw new Error('Select your BSc option (PIO, BCH or ANA).');
   if (!f.institution || f.institution.length < 2) throw new Error('Enter your institution.');
   const reg = await hubCall('hub_register', {
     p_unique_id: null, p_password: f.password, p_full_name: f.name,
@@ -3799,7 +3801,7 @@ function accountSection() {
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const academic = academicProfileFields({ institution: (DB.profile && DB.profile.institution) || 'Bowen University', level: (DB.profile && DB.profile.level) || '100L' });
   const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
