@@ -30,7 +30,7 @@ h1{font-size:clamp(1.45rem,5vw,2rem);margin:0}.lead{color:var(--muted);margin:3p
 @media(max-width:440px){main{padding:10px 8px}.calc{padding:8px}.keys{gap:5px}.key{min-height:45px;font-size:.83rem}.key small{font-size:.52rem}.tools{grid-template-columns:1fr}.screen{min-height:115px}}
 </style></head>
 <body><main>
-<header><div class="brand">BABLO <span>SCIENTIFIC</span></div><a class="back" href="/">← Hub</a></header>
+<header><div class="brand">BABLO <span>SCIENTIFIC</span></div><a class="back" id="hubBack" href="/">← Hub</a></header>
 <h1>Natural Display Calculator</h1><p class="lead">Textbook-style mathematics · scientific functions · D / R / G angle modes</p>
 <section class="calc">
  <div class="screen"><div class="screenbar"><span id="modeLabel">D  DEG</span><span id="shiftLabel">NORMAL</span><span id="memLabel"></span></div>
@@ -60,7 +60,7 @@ h1{font-size:clamp(1.45rem,5vw,2rem);margin:0}.lead{color:var(--muted);margin:3p
 </main>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id),field=$('formula');let angle='DEG',shift=false,alpha=false,ans=0,memory=0;
+const $=id=>document.getElementById(id),field=$('formula');let angle='DEG',shift=false,alpha=false,ans=0,memory=0;const returnCourse=new URLSearchParams(location.search).get('course');if(returnCourse&&/^(MTH101|PHY101|CHM101)$/.test(returnCourse)){$('hubBack').href='/#/course/'+returnCourse;$('hubBack').textContent='← '+returnCourse;}
 const rad=x=>angle==='DEG'?x*Math.PI/180:angle==='GRAD'?x*Math.PI/200:x;
 const fromRad=x=>angle==='DEG'?x*180/Math.PI:angle==='GRAD'?x*200/Math.PI:x;
 function scope(){return {pi:Math.PI,e:Math.E,Ans:ans,ans, sin:x=>Math.sin(rad(x)),cos:x=>Math.cos(rad(x)),tan:x=>Math.tan(rad(x)),asin:x=>fromRad(Math.asin(x)),acos:x=>fromRad(Math.acos(x)),atan:x=>fromRad(Math.atan(x)),arcsin:x=>fromRad(Math.asin(x)),arccos:x=>fromRad(Math.acos(x)),arctan:x=>fromRad(Math.atan(x)),sinh:x=>Math.sinh(x),cosh:x=>Math.cosh(x),tanh:x=>Math.tanh(x),arsinh:x=>Math.asinh(x),arcosh:x=>Math.acosh(x),artanh:x=>Math.atanh(x),asinh:x=>Math.asinh(x),acosh:x=>Math.acosh(x),atanh:x=>Math.atanh(x),nPr:(n,r)=>factorial(n)/factorial(n-r),nCr:(n,r)=>factorial(n)/(factorial(r)*factorial(n-r)),mem:memory};}
