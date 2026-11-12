@@ -1268,23 +1268,30 @@ const COURSES_200 = [
   { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
-const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
+const ACADEMIC_LEVELS = ['100L','200L','300L','400L'];
 function inferProgrammeCategory(programme) {
   return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
 }
 function academicProfileFields(profile) {
   const p = profile || {};
-  const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
+  const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Select or enter your programme' });
   const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
+  const initialCategory = p.programmeCategory || (p.programme ? inferProgrammeCategory(p.programme) : '');
   const category = h('select', null,
+    h('option', { value: '', selected: !initialCategory ? true : null }, 'Select academic group'),
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
-  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
-  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
-  const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
+  const pathway = h('select', null,
+    h('option', { value: '', selected: !p.bscPathway }, 'Select BSc option'),
+    ...[['PIO','PIO'],['BCH','BCH'],['ANA','ANA']].map(([value,label]) => h('option', { value, selected: p.bscPathway === value ? true : null }, label)));
+  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc option (MBBS students, 200L–400L)'), pathway);
+  const syncPathway = () => {
+    const eligible = programme.value.trim().toUpperCase() === 'MBBS' && ['200L','300L','400L'].includes(level.value);
+    pathwayField.hidden = !eligible;
+    if (!eligible) pathway.value = '';
+  };
   programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
@@ -2009,7 +2016,7 @@ const plural = (n, s) => n + ' ' + s + (n === 1 ? '' : 's');
 
 /* ---------- saved state (this device) ---------- */
 const KEY = 'bablo100l:v1';
-let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'glass', dev: '', soundAlerts: false };
+let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'midnight', dev: '', soundAlerts: false };
 try { Object.assign(DB, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* storage unavailable: stay in memory */ }
 if (!DB.dev) DB.dev = uid();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* ignore */ } if (typeof queuePush === 'function') queuePush(); }
@@ -2018,7 +2025,7 @@ function applyTheme() {
   const mode = DB.theme === 'system' ? (sysDark ? 'dark' : 'light') : DB.theme;
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
-  const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
+  const skin = (!DB.skin || DB.skin === 'glass' || DB.skin === 'green') ? 'midnight' : DB.skin;
   if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', 'gold'); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
@@ -4361,14 +4368,14 @@ function aboutView() {
   mount(wrap(back('#/','Home'),box));
 }
 function settingsView() {
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'midnight') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Settings'),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Appearance'),
       h('p', { class: 'tiny muted' }, 'Choose the Hub look that is easiest to read.'),
-      h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
+      h('div', { class: 'seg' }, sk('midnight', 'Midnight'), sk('charcoal', 'Charcoal'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'),
       h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' },
@@ -4900,4 +4907,29 @@ setTimeout(liveNotice, 1200);
  .dashboard-card-copy small{font-size:10px}
 }
 @media(min-width:760px){.dashboard-module-section .dashboard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Bablo Hub: solid, low-motion Midnight and Charcoal skins */
+:root[data-skin="midnight"]{
+  --page:linear-gradient(160deg,#080F1C 0%,#101B2B 58%,#0B1422 100%);
+  --surface:#172438;--line:#2A3A50;--ink:#F3F6FC;--ink2:#B7C4D6;
+  --bg:#0B1422;--brand:#D6A64D;--brand-ink:#17130A;--brand-soft:rgba(214,166,77,.16);
+  --glass-fill:#172438;--glass-edge:#2A3A50;--glass-shadow:0 8px 22px rgba(0,0,0,.22);
+}
+:root[data-skin="charcoal"]{
+  --page:linear-gradient(160deg,#101214 0%,#1B1F23 60%,#14181C 100%);
+  --surface:#252B31;--line:#3A424A;--ink:#F4F5F6;--ink2:#BBC2C9;
+  --bg:#171B1F;--brand:#D6A64D;--brand-ink:#17130A;--brand-soft:rgba(214,166,77,.16);
+  --glass-fill:#252B31;--glass-edge:#3A424A;--glass-shadow:0 8px 22px rgba(0,0,0,.24);
+}
+:root[data-skin="midnight"] .panel,:root[data-skin="midnight"] .tile,:root[data-skin="midnight"] .rows,:root[data-skin="midnight"] .nav,:root[data-skin="midnight"] .dock,:root[data-skin="midnight"] .modal,:root[data-skin="midnight"] .rev,:root[data-skin="midnight"] .qcard,
+:root[data-skin="charcoal"] .panel,:root[data-skin="charcoal"] .tile,:root[data-skin="charcoal"] .rows,:root[data-skin="charcoal"] .nav,:root[data-skin="charcoal"] .dock,:root[data-skin="charcoal"] .modal,:root[data-skin="charcoal"] .rev,:root[data-skin="charcoal"] .qcard{
+  background:var(--surface);border:1px solid var(--line);box-shadow:var(--glass-shadow);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+}
+:root[data-skin="midnight"] .hero,:root[data-skin="charcoal"] .hero{
+  background:linear-gradient(135deg,#26364C,#182638);border:1px solid var(--line);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+}
+:root[data-skin="midnight"],:root[data-skin="charcoal"]{color-scheme:dark}
+
 </style>
