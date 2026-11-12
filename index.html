@@ -4373,7 +4373,7 @@ function aboutView() {
   mount(wrap(back('#/','Home'),box));
 }
 function settingsView() {
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((!DB.skin || DB.skin === 'glass' || DB.skin === 'green' ? 'charcoal' : DB.skin) === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Settings'),
