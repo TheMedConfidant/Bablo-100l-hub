@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const legacyIdentityMigration = readFileSync(new URL('../supabase/migrations/20261113180000_backfill_legacy_bowen_100l_identity.sql', import.meta.url), 'utf8');
+const legacyIdentityMigration = readFileSync(new URL('../supabase/migrations/20261113152626_backfill_legacy_bowen_100l_identity.sql', import.meta.url), 'utf8');
 const start = html.indexOf('function filterExamScheduleForProfile(rows) {');
 const end = html.indexOf('\nasync function fetchPublicExamSchedule()', start);
 assert.ok(start >= 0 && end > start, 'profile schedule filter exists');
