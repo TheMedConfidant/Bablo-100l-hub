@@ -1323,10 +1323,14 @@ function academicProfileFields(profile, surface) {
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
   const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Choose/enter the BSc pathway' });
   const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway'), pathway);
-  const bscEligible = () => mode === 'profile'
-    && selectedInstitutionSlug() === 'bowen-university'
-    && programme.value.trim().toUpperCase() === 'MBBS'
-    && ['200L','300L','400L','500L','600L','700L'].includes(level.value);
+  const bscEligible = () => {
+    const used = Array.isArray(DB && DB.landingOptionsUsed) ? DB.landingOptionsUsed : [];
+    const landingOptionsComplete = ['signup','login','guest'].every(option => used.includes(option));
+    return mode === 'profile' && landingOptionsComplete
+      && selectedInstitutionSlug() === 'bowen-university'
+      && programme.value.trim().toUpperCase() === 'MBBS'
+      && ['200L','300L','400L','500L','600L','700L'].includes(level.value);
+  };
   const syncPathway = () => {
     const eligible = bscEligible();
     pathwayField.hidden = !eligible;
