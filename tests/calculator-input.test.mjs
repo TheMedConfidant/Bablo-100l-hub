@@ -26,8 +26,10 @@ test('typed trigonometry accepts natural and function notation', () => {
 });
 
 test('degree markers and natural radicals are normalized', () => {
-  assert.equal(normalizeExpression('sin 60°'), 'sin(60*pi/180)');
-  assert.equal(normalizeExpression('sin(60°)'), 'sin((60*pi/180))');
+  assert.equal(normalizeExpression('sin 60°'), 'sinDeg(60)');
+  assert.equal(normalizeExpression('sin(60°)'), 'sinDeg(60)');
+  assert.equal(normalizeExpression('sin 60° + cos 30°'), 'sinDeg(60) + cosDeg(30)');
+  assert.equal(normalizeExpression('tan(45°)'), 'tanDeg(45)');
   assert.equal(normalizeExpression('√81'), 'sqrt(81)');
   assert.equal(normalizeExpression('∛27'), 'cbrt(27)');
   assert.equal(normalizeExpression('2π'), '2*pi');
@@ -59,4 +61,6 @@ test('scientific calculator includes advanced workspaces', () => {
   assert.ok(script.includes('window.math.isComplex(result)'));
   assert.ok(script.includes('window.math.det(a)'));
   assert.ok(script.includes('Simpson'));
+  assert.ok(script.includes('sinDeg:x=>Math.sin(x*Math.PI/180)'));
+  assert.ok(script.includes('cosDeg:x=>Math.cos(x*Math.PI/180)'));
 });
