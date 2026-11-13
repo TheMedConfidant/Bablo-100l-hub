@@ -1154,21 +1154,11 @@ const COURSES = [
   { code: 'SOC101', label: 'SOC 101', title: 'Introduction to Sociology', color: '#9A6A45', units: 2 },
 ];
 
-/* Which courses each programme takes. Shared core for everyone; extras per programme.
-   MTH 101 is added for every programme except Doctor of Physiotherapy. It shows as Pending until its questions are loaded. */
-const CORE_COURSES = ['BIO', 'CHM', 'PHY', 'COS', 'GST111', 'GEL101', 'LIB101'];
+/* Programme maps are explicit, never inferred from a shared subject list.
+   Bowen CoHES MBBS 100L is the first mapped pilot. Other CoHES programmes remain
+   unavailable until their own official course lists and semester mappings are verified. */
 const PROGRAMME_COURSES = {
-  'MBBS': [...CORE_COURSES, 'AGR', 'MTH101'],
-  'Nursing': [...CORE_COURSES, 'MTH101', 'SOC101'],
-  'Nutrition and Dietetics': [...CORE_COURSES, 'MTH101'],
-  'Doctor of Physiotherapy (DPT)': [...CORE_COURSES],
-  'Physiology': [...CORE_COURSES, 'MTH101'],
-  'Anatomy': [...CORE_COURSES, 'MTH101'],
-  'Biochemistry': [...CORE_COURSES, 'MTH101'],
-  'Medical Laboratory Science': [...CORE_COURSES, 'MTH101', 'MLS101'],
-  'Public Health': [...CORE_COURSES],
-  'Other CoHES programme': [...CORE_COURSES, 'MTH101'],
-  [GUEST_PROGRAMME]: [...CORE_COURSES, 'MTH101']
+  'MBBS': ['BIO', 'CHM', 'PHY', 'COS', 'GST111', 'GEL101', 'LIB101', 'AGR', 'MTH101']
 };
 const coursesFor = programme => (PROGRAMME_COURSES[programme] || [])
   .map(code => COURSES.find(c => c.code === code))
