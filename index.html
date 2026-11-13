@@ -1288,8 +1288,10 @@ const COURSES_200 = [
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
 const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
-function inferProgrammeCategory(programme) {
-  return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
+function inferProgrammeCategory(programme, institution) {
+  const school = String(institution || '').trim().toLowerCase();
+  const isBowen = school === 'bowen university' || school === 'bowen' || school === 'bowen-university';
+  return isBowen && PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
 }
 function academicProfileFields(profile, surface) {
   const p = profile || {};
@@ -1340,9 +1342,9 @@ function academicProfileFields(profile, surface) {
 
   const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
   const suggestions = h('datalist', { id: 'bablo-programme-suggestions' });
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || '');
+  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || '', currentInstitution);
   const category = h('select', null,
-    h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
+    h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, currentEntry && currentEntry.slug === 'bowen-university' ? 'College of Health Sciences (COHES)' : 'Health sciences programme'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
   const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Choose/enter the BSc pathway' });
@@ -1385,7 +1387,7 @@ function academicProfileFields(profile, surface) {
     refreshProgrammeOptions();
   });
   otherInstitution.addEventListener('input', syncPathway);
-  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
+  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim(), selectedInstitution()); syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
   refreshUniversityDirectory();
