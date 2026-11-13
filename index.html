@@ -1439,6 +1439,8 @@ function academicProfileFields(profile, surface) {
     const nextInstitution = selectedInstitutionSlug();
     if (nextInstitution !== lastInstitution) {
       p.programme = '';
+      p.programmeCategory = nextInstitution === 'bowen-university' ? 'cohes' : 'other';
+      faculty.value = '';
       otherProgramme.value = '';
       lastInstitution = nextInstitution;
     }
@@ -2636,7 +2638,7 @@ function homeView() {
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
-  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME · '+(p.level||'100L')),h('h1',null,greet+', '+first+'.'),h('p',null,senior?'Your level-aware academic workspace. Build depth, practical competence and clinical reasoning.':'Confidence in Clarity. Keep learning, practising and progressing.'),
+  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME · '+(p.level||'100L')),h('h1',null,greet+', '+first+'.'),h('p',{class:'dashboard-academic-context'},academicContextLabel(p)),h('p',null,senior?'Your level-aware academic workspace. Build depth, practical competence and clinical reasoning.':'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,senior?'Advanced learning':'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,senior?'Connect & develop':'Connect & compete'),h('span',null,senior?'Academic collaboration':'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
