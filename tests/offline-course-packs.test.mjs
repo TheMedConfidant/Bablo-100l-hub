@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 
 const worker = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const manager = fs.readFileSync(new URL('../offline-course-manager.js', import.meta.url), 'utf8');
@@ -124,4 +125,79 @@ test('an interrupted cache copy cannot replace the previously active course pack
   assert.ok(worker.includes("if(active!==newCacheName)await caches.delete(newCacheName)"));
   assert.ok(worker.includes("Your previous offline pack was kept"));
   assert.ok(worker.includes("if(committed){reply({ok:true"));
+});
+
+
+function createWorkerHarness(fetchImpl) {
+  const stores = new Map();
+  class MockCache {
+    constructor() { this.entries = new Map(); }
+    key(input) { return typeof input === 'string' ? new URL(input, 'https://bablo.test').href : input.url; }
+    async put(request, response) { this.entries.set(this.key(request), response.clone()); }
+    async match(request) { const response = this.entries.get(this.key(request)); return response ? response.clone() : undefined; }
+    async keys() { return [...this.entries.keys()].map(url => new Request(url)); }
+    async delete(request) { return this.entries.delete(this.key(request)); }
+  }
+  const cacheStorage = {
+    async open(name) { if (!stores.has(name)) stores.set(name, new MockCache()); return stores.get(name); },
+    async has(name) { return stores.has(name); },
+    async delete(name) { return stores.delete(name); },
+    async keys() { return [...stores.keys()]; },
+    async match(request) { for (const cache of stores.values()) { const hit = await cache.match(request); if (hit) return hit; } }
+  };
+  const listeners = {};
+  const self = {
+    location: { href: 'https://bablo.test/index.html', origin: 'https://bablo.test' },
+    addEventListener(type, fn) { listeners[type] = fn; },
+    clients: { claim: async () => {} }
+  };
+  const context = {
+    self, caches: cacheStorage, navigator: {}, Request, Response, URL,
+    AbortController, fetch: fetchImpl, setTimeout, clearTimeout, console,
+    clients: { matchAll: async () => [], openWindow: async () => {} }
+  };
+  vm.runInNewContext(worker, context);
+  async function message(data) {
+    const replies = [];
+    let pending;
+    listeners.message({
+      data, ports: [{ postMessage(value) { replies.push(value); } }],
+      waitUntil(promise) { pending = promise; }
+    });
+    await pending;
+    return replies;
+  }
+  return { message, stores, cacheStorage };
+}
+
+test('worker behavior: failed refresh preserves the previous active pack', async () => {
+  let fail = false;
+  const harness = createWorkerHarness(async request => {
+    if (fail) throw new Error('simulated network loss');
+    return new Response('course material', { status: 200, headers: { 'content-length': '15' } });
+  });
+  const first = await harness.message({ type: 'BABLO_CACHE_COURSE', courseId: 'bio-101', resources: ['/bio-101/notes.js'] });
+  assert.equal(first.at(-1).ok, true);
+  const metadata = await harness.cacheStorage.open('bablo-course-pack-meta-v1');
+  const manifestRequest = new Request('https://bablo.test/__bablo_course_pack_meta__/bio-101');
+  const manifest = await metadata.match(manifestRequest);
+  const activeName = (await manifest.json()).cacheName;
+  assert.equal(await harness.cacheStorage.has(activeName), true);
+
+  fail = true;
+  const second = await harness.message({ type: 'BABLO_CACHE_COURSE', courseId: 'bio-101', resources: ['/bio-101/notes.js'] });
+  assert.equal(second.at(-1).ok, false);
+  const after = await (await metadata.match(manifestRequest)).json();
+  assert.equal(after.cacheName, activeName);
+  assert.equal(await harness.cacheStorage.has(activeName), true);
+});
+
+test('worker behavior: course removal leaves unrelated caches untouched', async () => {
+  const harness = createWorkerHarness(async () => new Response('material', { status: 200 }));
+  await harness.message({ type: 'BABLO_CACHE_COURSE', courseId: 'bio-101', resources: ['/bio-101/notes.js'] });
+  await harness.cacheStorage.open('unrelated-user-data-cache');
+  const removed = await harness.message({ type: 'BABLO_REMOVE_COURSE', courseId: 'bio-101' });
+  assert.equal(removed.at(-1).ok, true);
+  assert.equal(await harness.cacheStorage.has('unrelated-user-data-cache'), true);
+  assert.equal((await harness.cacheStorage.keys()).some(name => name.startsWith('bablo-course-pack-v1-bio-101')), false);
 });
