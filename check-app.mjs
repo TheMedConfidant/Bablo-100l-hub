@@ -79,6 +79,17 @@ if (html) {
   else fail("Study-data export is missing or includes sensitive account fields");
 }
 
+const offlinePackModule = read("offline-course-packs.js");
+if (/indexedDB\.open/.test(offlinePackModule) && /crypto\.subtle\.digest/.test(offlinePackModule)) pass("Offline course packs use IndexedDB and SHA-256 integrity checks");
+else fail("Offline course-pack storage or integrity verification missing");
+if (/status !== 'published'/.test(offlinePackModule) && /review\.academic !== true/.test(offlinePackModule) && /review\.source !== true/.test(offlinePackModule)) pass("Offline downloads require an explicitly published, reviewed manifest");
+else fail("Offline pack publication gate is incomplete");
+if (/MAX_PACK_BYTES = 40 \* 1024 \* 1024/.test(offlinePackModule) && /navigator\.storage\.estimate/.test(offlinePackModule)) pass("Offline packs have a size cap and storage estimate check");
+else fail("Offline pack storage safeguards missing");
+const packRegistry = JSON.parse(read("data/offline-course-packs.manifests.json"));
+if (Array.isArray(packRegistry.publishedManifests) && packRegistry.publishedManifests.length === 0) pass("No unreviewed course packs are exposed for download");
+else fail("Unreviewed course packs must not be published");
+
 const offlineSw = read("sw.js");
 if (/const VERSION='bablo-offline-v38-source-provenance'/.test(offlineSw) && /function save\(/.test(offlineSw)) pass("Service worker has versioned offline shell caching");
 else fail("Versioned offline shell cache missing");

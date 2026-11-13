@@ -38,7 +38,7 @@
   function validateManifest(m) {
     if (!m || m.schemaVersion !== 1 || m.status !== 'published' || m.institution !== 'Bowen University — College of Health Sciences (CoHES)' ||
         !/^[A-Z0-9-]{2,20}$/.test(String(m.courseCode || '')) || !Array.isArray(m.assets) || !m.assets.length ||
-        !m.review || m.review.academic === true && m.review.source === true && m.review.approvedBy) {
+        !m.review || m.review.academic !== true || m.review.source !== true || !m.review.approvedBy) {
       throw new Error('This course pack has not passed the required publication checks.');
     }
     let total = 0;
@@ -108,10 +108,19 @@
     const installed = document.createElement('div'); installed.className = 'stack';
     card.append(heading, intro, status, installed); root.appendChild(card);
     try {
-      const [catalogue, packs, space] = await Promise.all([loadCatalogue(), list(), estimate()]);
-      const ready = Array.isArray(catalogue.publishedManifests) ? catalogue.publishedManifests : [];
+      const [catalogue, publication, packs, space] = await Promise.all([loadCatalogue(), fetch('./data/offline-course-packs.manifests.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('Pack publication register is unavailable.'); return r.json(); }), list(), estimate()]);
+      const ready = Array.isArray(publication.publishedManifests) ? publication.publishedManifests : [];
       status.textContent = (space.supported ? 'Estimated browser storage used: ' + ((space.usage/1048576).toFixed(1)) + ' MB. ' : '') +
         (ready.length ? ready.length + ' reviewed pack(s) available.' : 'No course pack is approved for offline download yet. Existing study data is not affected.');
+      ready.forEach(manifest => {
+        try { validateManifest(manifest); } catch (_) { return; }
+        const row = document.createElement('div'); row.className = 'panel';
+        const name = document.createElement('strong'); name.textContent = manifest.courseCode + ' · ' + manifest.title;
+        const detail = document.createElement('p'); detail.className = 'tiny muted'; detail.textContent = 'Verified pack · ' + ((manifest.assets.reduce((n,a)=>n+a.bytes,0))/1048576).toFixed(1) + ' MB';
+        const button = document.createElement('button'); button.className = 'btn primary'; button.textContent = 'Download for offline use';
+        button.onclick = async () => { button.disabled = true; button.textContent = 'Verifying and saving…'; try { await download(manifest); detail.textContent = 'Downloaded and verified on this device.'; button.textContent = 'Downloaded'; } catch(e) { detail.textContent = e.message; button.disabled = false; button.textContent = 'Try download again'; } };
+        row.append(name, detail, button); installed.appendChild(row);
+      });
       if (packs.length) {
         const label = document.createElement('h3'); label.textContent = 'Downloaded on this device'; installed.appendChild(label);
         packs.forEach(pack => {
