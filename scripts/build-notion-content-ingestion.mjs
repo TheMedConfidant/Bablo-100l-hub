@@ -83,6 +83,7 @@ const addResource = (item, context = {}) => {
     },
     provenance: {
       institution: originInstitution,
+      college: source.college || item.college || context.college || null,
       programme: source.programme || item.programmeCode || context.programme || null,
       level: source.level || item.academicLevel || context.academicLevel || null,
       semester: source.semester || item.semester || context.semester || null,
@@ -189,6 +190,7 @@ for (const dataset of contentPilot.datasets || []) {
       },
       provenance: {
         institution: dataset.institution || parent.institution || null,
+        college: dataset.college || parent.college || null,
         programme: dataset.programme || parent.programme || null,
         level: dataset.level || parent.level || null,
         semester: dataset.semester || parent.semester || null,
