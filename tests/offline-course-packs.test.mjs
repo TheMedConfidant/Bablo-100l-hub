@@ -102,3 +102,9 @@ test('every declared offline course asset exists in the repository', () => {
     assert.ok(fs.existsSync(new URL('../' + asset, import.meta.url)), 'missing offline asset: ' + asset);
   }
 });
+
+test('Settings cache cleanup includes removable course packs and abandoned staging caches', () => {
+  const cleanup = worker.slice(worker.indexOf("Clear Bablo offline cache"), worker.indexOf("})();</script><script id=\"bablo-startup-guard\""));
+  assert.match(cleanup, /bablo-course-pack-v1-/);
+  assert.match(cleanup, /bablo-course-pack-stage-/);
+});
