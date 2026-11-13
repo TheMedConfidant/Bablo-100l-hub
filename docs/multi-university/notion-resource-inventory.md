@@ -88,3 +88,8 @@ Only mark a resource `shared_foundational` when it can be used independently of 
 ## Implementation boundary
 
 This document is a source inventory and test contract. The PR contains a separate seed migration for 36 resource catalogue records, all unpublished and rights-pending with no curriculum mappings. The migration is not applied to Supabase; no resource is currently student-visible from this seed. The resource engine PR must connect these mappings to the existing app before any production rollout.
+
+
+## 200L viewer integration
+
+The Bowen 200L course map bundle is staged at `data/bowen-200l-course-maps.json`. The 200L dashboard now exposes three discipline lanes only to Bowen MBBS 200L: Anatomy, Physiology and Biochemistry. The Anatomy lane is connected to the imported Elbow & Forearm pack (notes, flashcards, MCQs, vignettes and reference glossary). Physiology and Biochemistry open their imported course maps; their question/flashcard rows remain queued for extraction. Exact official course codes and semester placement remain separate from the verified discipline/topic content.
