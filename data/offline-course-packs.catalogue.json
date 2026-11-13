@@ -8,7 +8,7 @@
     "primaryInstitutions": [
       "Bowen University — College of Health Sciences (CoHES)"
     ],
-    "institutionEligibility": "Show only universities with at least one Health Sciences or Medical Sciences programme.",
+    "institutionEligibility": "Bowen University College of Health Sciences (CoHES) is the only supported student institution. External institutions may be retained only as internal source provenance for adapted materials.",
     "hierarchy": [
       "institution",
       "programme",
@@ -26,18 +26,6 @@
         "evidence": "Official College of Health Sciences page lists Anatomy, Doctor of Physiotherapy, Medical Laboratory Science, Medicine and Surgery, Nursing Science, Nutrition and Dietetics, Physiology and Public Health.",
         "source": "https://bowen.edu.ng/cohes/",
         "checkedOn": "2026-11-13"
-      },
-      "Federal University of Technology, Akure (FUTA)": {
-        "confirmed": true,
-        "evidence": "Official School of Health and Health Technology page confirms the health school; official Biomedical Technology department page identifies its B.Tech programme and allied-health remit.",
-        "sources": [
-          "https://shht.futa.edu.ng/home",
-          "https://bmt.futa.edu.ng/"
-        ],
-        "checkedOn": "2026-11-13"
-      },
-      "futureUniversities": {
-        "rule": "Do not display an institution unless an official institutional source confirms at least one Health Sciences or Medical Sciences college, school, department or degree programme. A general Biology, Chemistry or Physics course alone does not qualify."
       }
     },
     "studentAudience": "Bowen University College of Health Sciences (CoHES) students only. External institutions may appear solely in internal sourceInstitution provenance for adapted materials and must not be surfaced as supported student institutions."
