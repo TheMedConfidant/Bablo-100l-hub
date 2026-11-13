@@ -170,6 +170,25 @@
         }
       ],
       "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-200l-anatomy-shared-pilot.json",
+      "resources": 5,
+      "contentChars": 32112,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-200l-course-maps.json",
+      "resources": 6,
+      "contentChars": 47479,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
     }
-  ]
+  ],
+  "sourceAuthority": "User confirms all Notion-built materials are verified."
 }
