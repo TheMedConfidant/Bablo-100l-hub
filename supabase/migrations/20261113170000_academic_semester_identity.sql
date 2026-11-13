@@ -49,7 +49,7 @@ declare
   account_id text;
   result json;
 begin
-  if p_academic_semester not in ('first','second','summer','year-round') then
+  if p_academic_semester is null or p_academic_semester not in ('first','second','summer','year-round') then
     return json_build_object('ok',false,'error','Choose a valid academic semester.');
   end if;
 
@@ -93,7 +93,7 @@ as $function$
 declare
   result json;
 begin
-  if p_academic_semester not in ('first','second','summer','year-round') then
+  if p_academic_semester is null or p_academic_semester not in ('first','second','summer','year-round') then
     return json_build_object('ok',false,'error','Choose a valid academic semester.');
   end if;
 
