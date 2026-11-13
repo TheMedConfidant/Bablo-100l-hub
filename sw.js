@@ -66,7 +66,20 @@ self.addEventListener('message',event=>{
    if(!id)throw new Error('A valid course ID is required');
    const cacheName=prefix+id;
    if(msg.type==='BABLO_REMOVE_COURSE'){
-    await caches.delete(cacheName);reply({ok:true,courseId:id,removed:true});return;
+    const removed=await caches.open(cacheName),removedKeys=await removed.keys();
+    await caches.delete(cacheName);
+    // Remove stale runtime-cache duplicates too, but preserve shell files and
+    // any resource still owned by another downloaded course.
+    const runtime=await caches.open(VERSION);
+    const protectedUrls=new Set(SHELL.map(p=>new URL(p,self.location.href).href));
+    const otherNames=(await caches.keys()).filter(n=>n.startsWith(prefix));
+    for(const request of removedKeys){
+     if(protectedUrls.has(request.url))continue;
+     let retained=false;
+     for(const name of otherNames){const pack=await caches.open(name);if(await pack.match(request,{ignoreSearch:true})){retained=true;break;}}
+     if(!retained)await runtime.delete(request,{ignoreSearch:true});
+    }
+    reply({ok:true,courseId:id,removed:true});return;
    }
    const paths=Array.isArray(msg.resources)?msg.resources:[];
    if(!paths.length)throw new Error('No course resources were supplied');
@@ -75,8 +88,8 @@ self.addEventListener('message',event=>{
    const urls=unique.map(p=>new URL(p,self.location.href));
    if(urls.some(u=>u.origin!==self.location.origin||!/^https?:$/.test(u.protocol)))throw new Error('Course packs can only include files hosted by Bablo Hub');
    if(navigator.storage&&navigator.storage.estimate){
-    const estimate=await navigator.storage.estimate();
-    if(estimate.quota&&estimate.usage/estimate.quota>0.9)throw new Error('Phone storage is nearly full. Free some space before downloading this course.');
+    try{const estimate=await navigator.storage.estimate();if(estimate.quota&&estimate.usage/estimate.quota>0.9)throw new Error('Phone storage is nearly full. Free some space before downloading this course.');}
+    catch(error){if(error&&/nearly full/.test(error.message||''))throw error;}
    }
    const cache=await caches.open(cacheName);let completed=0,failed=[];
    for(const url of urls){
