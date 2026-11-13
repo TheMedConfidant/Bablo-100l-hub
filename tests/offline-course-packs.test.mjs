@@ -116,9 +116,12 @@ test('course-pack refresh stages a complete immutable cache before atomically sw
   assert.ok(worker.includes("await next.put(request,response)"));
   assert.ok(worker.includes("await meta.put(metaKey"));
   assert.ok(worker.includes("const previous=await activeCourseCache(id)"));
+  assert.ok(worker.includes("committed=true;"));
+  assert.ok(worker.includes("await caches.delete(previous).catch(()=>{})"));
 });
 
 test('an interrupted cache copy cannot replace the previously active course pack', () => {
   assert.ok(worker.includes("if(active!==newCacheName)await caches.delete(newCacheName)"));
   assert.ok(worker.includes("Your previous offline pack was kept"));
+  assert.ok(worker.includes("if(committed){reply({ok:true"));
 });
