@@ -51,7 +51,9 @@
   remove.onclick=async()=>{
    remove.disabled=true;try{await removeCourse(id);status.textContent='Offline course removed. Your account and study progress are unchanged.';button.disabled=false;button.textContent='Save course offline';progress.hidden=true;remove.hidden=true;}catch(e){status.textContent=e.message;remove.disabled=false}
   };
-  wrap.append(title,status,progress,button,remove);host.appendChild(wrap);return wrap;
+  wrap.append(title,status,progress,button,remove);host.appendChild(wrap);
+  listCourses().then(saved=>{if(saved.includes(id)){status.textContent='This course is already saved on this phone.';button.textContent='Course saved offline';remove.hidden=false;}}).catch(()=>{});
+  return wrap;
  }
  root.BabloOffline=Object.freeze({saveCourse,removeCourse,listCourses,attachCourseButton});
 })(typeof window!=='undefined'?window:globalThis);
