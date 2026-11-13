@@ -45,14 +45,14 @@ The FUTA BIO 101 hub explicitly states that its outline is based on the official
 | Bowen 100L demo / content library | https://app.notion.com/p/3d71834fbdba81f7a69ed0c6396bea31 | Bowen 100L demonstration hierarchy | Bowen-only |
 | Bowen 200L verified curriculum/build map | https://app.notion.com/p/3ca1834fbdba8109954ed40cae3f52db | Bowen MBBS 200L Anatomy, Physiology and Biochemistry lanes; course-code caution and curriculum map | `institution_exclusive` Bowen; map exact course codes from current course registration/handbook |
 | 200L Physiology master map | https://app.notion.com/p/3cc1834fbdba8152b941cac564a47e90 | 200L physiology topic/subtopic hierarchy, ECG, cardiovascular, respiratory, renal, GI, endocrine, neurophysiology and practical/data interpretation | Bowen 200L pending exact course/semester link; do not expose to other institutions by default |
-| Elbow & Forearm anatomy notes | https://app.notion.com/p/4161834fbdba81fb9245e2f5193d69f1 | 200L Anatomy notes, clinical applications and learning outcomes | Shared 200L Anatomy candidate; map to each target university's outline before surfacing |
+| Elbow & Forearm anatomy notes | https://app.notion.com/p/4161834fbdba81fb9245e2f5193d69f1 | 200L Anatomy notes, clinical applications and learning outcomes | Bowen-owned 200L Anatomy source; map to each target university's outline before any shared reuse |
 | Elbow & Forearm flashcards | https://app.notion.com/p/4161834fbdba81d8aaf7cd19f4a5ce6a | Theory, image and scenario Anki-style cards | Shared 200L Anatomy candidate; map to each target university's outline before surfacing |
 
 ### Shared-resource candidates
 
 The broader content library contains foundational 100L–200L material and subject resources (including biology, chemistry, physics, computing, physiology, anatomy and biochemistry). A subject label alone does not make a resource institution-neutral.
 
-The current pilot export includes 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total), plus five 200L Anatomy resources (notes, flashcards, quiz, vignettes and reference glossary) and six Physiology/Biochemistry course-map or architecture pages. These are staged as source-aware JSON assets, not yet live-published resources. The 200L Anatomy pack is a shared-foundational candidate: its source note says it follows standard atlas order and should be reordered to Bowen's lecture sequence once the Bowen outline is confirmed. Preserve its origin and require explicit target mapping for every institution.
+The current pilot export includes 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total), plus five 200L Anatomy resources (notes, flashcards, quiz, vignettes and reference glossary) and six Physiology/Biochemistry course-map or architecture pages. These are staged as source-aware JSON assets, not yet live-published resources. The 200L Anatomy pack is Bowen-owned source material: its source note says it follows standard atlas order and should be reordered to Bowen's lecture sequence once the Bowen outline is confirmed. Preserve its origin and require explicit target mapping for every institution.
 
 For each candidate, retain:
 - original Notion page/database URL;
