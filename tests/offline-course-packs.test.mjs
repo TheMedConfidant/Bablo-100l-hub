@@ -68,3 +68,11 @@ test('200L download controls use the removable course-pack manager without dupli
   assert.match(app, /courseId:'bowen-200l-'\+String\(c\.code\)/);
   assert.doesNotMatch(app, /offlineCoursePanel\('200l-'/);
 });
+
+test('removing a course also removes unshared runtime duplicates but preserves shared files', () => {
+  const handler = worker.slice(worker.indexOf("if(msg.type==='BABLO_REMOVE_COURSE')"), worker.indexOf("const paths="));
+  assert.match(handler, /removedKeys=await removed\.keys\(\)/);
+  assert.match(handler, /protectedUrls\.has\(request\.url\)/);
+  assert.match(handler, /otherNames/);
+  assert.match(handler, /runtime\.delete\(request/);
+});
