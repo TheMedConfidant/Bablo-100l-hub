@@ -201,3 +201,29 @@ test('worker behavior: course removal leaves unrelated caches untouched', async 
   assert.equal(await harness.cacheStorage.has('unrelated-user-data-cache'), true);
   assert.equal((await harness.cacheStorage.keys()).some(name => name.startsWith('bablo-course-pack-v1-bio-101')), false);
 });
+
+
+test('worker behavior: removing a short course ID cannot remove a longer prefixed ID', async () => {
+  const harness = createWorkerHarness(async request => new Response(request.url, { status: 200 }));
+  await harness.message({ type: 'BABLO_CACHE_COURSE', courseId: 'bio', resources: ['/bio/notes.js'] });
+  await harness.message({ type: 'BABLO_CACHE_COURSE', courseId: 'bio-chem', resources: ['/bio-chem/notes.js'] });
+  const removed = await harness.message({ type: 'BABLO_REMOVE_COURSE', courseId: 'bio' });
+  assert.equal(removed.at(-1).ok, true);
+  const listed = await harness.message({ type: 'BABLO_LIST_COURSES' });
+  assert.deepEqual(Array.from(listed.at(-1).courses), ['bio-chem']);
+});
+
+test('worker behavior: cross-origin course resources are rejected before any fetch', async () => {
+  let fetchCount = 0;
+  const harness = createWorkerHarness(async () => {
+    fetchCount++;
+    return new Response('should not fetch', { status: 200 });
+  });
+  const result = await harness.message({
+    type: 'BABLO_CACHE_COURSE',
+    courseId: 'bio-101',
+    resources: ['https://example.org/private.js']
+  });
+  assert.equal(result.at(-1).ok, false);
+  assert.equal(fetchCount, 0);
+});
