@@ -42,7 +42,7 @@
   const policy=resource.reusePolicy;
   if(policy!=='institution-only'&&policy!=='shared-after-review')return false;
   if(policy==='institution-only'&&slug(resource.ownerInstitutionSlug||resource.ownerInstitution)!==id.institution)return false;
-  if(policy==='shared-after-review'&&resource.ownerInstitutionSlug&&slug(resource.ownerInstitutionSlug)!==id.institution&&resource.ownerInstitutionSlug!==null)return false;
+  // Shared resources may retain an originating institution; exact verified target mapping is required below.
   return Array.isArray(resource.mappings)&&resource.mappings.some(m=>mappingMatches(m,id));
  }
  function filterResources(resources,studentIdentity){
