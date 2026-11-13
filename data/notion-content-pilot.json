@@ -773,7 +773,6 @@
       "key": "bowen-cohes-bio101-mcqs",
       "institution": "Bowen University",
       "institutionSlug": "bowen-university",
-      "programme": "CoHES",
       "level": "100L",
       "courseCode": "BIO 101",
       "semester": null,
@@ -781,7 +780,7 @@
       "sourceNotionPage": "https://app.notion.com/p/3e91834fbdba8124be25c4d749158c67",
       "sourceNotionDataSource": "collection://5498e07b-bd81-45d7-ade4-dea59969d535",
       "itemCount": 180,
-      "mappingStatus": "institution-and-programme-identified-semester-mapping-pending",
+      "mappingStatus": "college-identified-programme-semester-mapping-pending",
       "items": [
         {
           "id": "BIO-B-MCQ-026",
@@ -3843,7 +3842,8 @@
           "pareto": "high",
           "sourceUrl": "https://app.notion.com/3eb1834fbdba81ffa047e525f7678210"
         }
-      ]
+      ],
+      "college": "College of Health Sciences (CoHES)"
     }
   ]
 }
