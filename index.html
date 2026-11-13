@@ -5106,4 +5106,31 @@ setTimeout(liveNotice, 1200);
  .dashboard-card-copy small{font-size:10px}
 }
 @media(min-width:760px){.dashboard-module-section .dashboard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Mobile navigation and dashboard fit: preserve tap targets and safe-area clearance. */
+#nav{padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));}
+.nav .in{min-height:54px;}
+.nav a,.nav-menu-button{min-height:54px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+.nav a span,.nav-menu-button span:last-child{white-space:nowrap;}
+.dashboard-card{min-width:0;overflow:hidden;}
+.dashboard-card-copy{overflow-wrap:anywhere;}
+.dashboard-card-arrow{flex:0 0 auto;}
+@media(max-width:380px){
+ #nav{padding-left:8px;padding-right:8px;}
+ .nav .in{gap:3px;}
+ .nav a,.nav-menu-button{font-size:.68rem;min-height:54px;padding:6px 2px;}
+ .nav a svg{width:21px;height:21px;}
+ .dashboard-section-head{align-items:flex-start;}
+ .dashboard-section-head span{max-width:44%;line-height:1.35;}
+}
+@media(max-width:340px){
+ .dashboard-grid{grid-template-columns:1fr;}
+ .dashboard-card{min-height:82px;padding:12px;}
+ .dashboard-card-icon{width:40px;height:40px;flex-basis:40px;}
+ .dashboard-card-copy b{font-size:13px;}
+ .dashboard-card-copy small{font-size:11px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .dashboard-card{transition:none;}
+}
 </style>
