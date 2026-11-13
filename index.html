@@ -1441,6 +1441,7 @@ function academicProfileFields(profile, surface) {
       p.programme = '';
       p.programmeCategory = nextInstitution === 'bowen-university' ? 'cohes' : 'other';
       faculty.value = '';
+      programme.value = '';
       otherProgramme.value = '';
       lastInstitution = nextInstitution;
     }
@@ -1456,6 +1457,7 @@ function academicProfileFields(profile, surface) {
   });
   faculty.addEventListener('change', () => {
     p.programme = '';
+    programme.value = '';
     otherProgramme.value = '';
     buildProgrammeOptions([]);
     refreshProgrammeOptions();
