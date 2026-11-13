@@ -73,7 +73,7 @@ self.addEventListener('message',event=>{
    if(!id)throw new Error('A valid course ID is required');
    const stageName='bablo-course-pack-stage-'+id,meta=await caches.open(COURSE_META),metaKey=courseMetaRequest(id);
    if(msg.type==='BABLO_REMOVE_COURSE'){
-    const names=(await caches.keys()).filter(n=>n===COURSE_PREFIX+id||n.startsWith(COURSE_PREFIX+id+'-'));
+    const names=(await caches.keys()).filter(n=>n===COURSE_PREFIX+id||n.startsWith(COURSE_PREFIX+id+'--'));
     const removedKeys=[];
     for(const name of names){const cache=await caches.open(name);removedKeys.push(...await cache.keys());await caches.delete(name)}
     await caches.delete(stageName);await meta.delete(metaKey);
@@ -102,7 +102,7 @@ self.addEventListener('message',event=>{
    if(failed.length){await caches.delete(stageName);reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. Your previous offline pack was kept; retry when connected.'});return}
    // Build a brand-new immutable cache. The currently active manifest remains
    // untouched until every staged response has been copied successfully.
-   newCacheName=COURSE_PREFIX+id+'-'+Date.now();const next=await caches.open(newCacheName);
+   newCacheName=COURSE_PREFIX+id+'--'+Date.now();const next=await caches.open(newCacheName);
    for(const request of await staging.keys()){const response=await staging.match(request);if(!response)throw new Error('A staged course file could not be read');await next.put(request,response)}
    if((await next.keys()).length!==urls.length)throw new Error('The new course pack did not pass its file-count check');
    const previous=await activeCourseCache(id);
