@@ -1,0 +1,52 @@
+name: IndexNow public-page updates
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'discover.html'
+      - 'institutions.html'
+      - 'features.html'
+      - 'about.html'
+      - 'calculator/**'
+      - 'sitemap.xml'
+      - 'robots.txt'
+      - 'bablohub-2026-indexnow-7c4d91e2a6b8f305.txt'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  notify-search-engines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Submit changed public URLs to IndexNow
+        shell: bash
+        env:
+          INDEXNOW_KEY: bablohub-2026-indexnow-7c4d91e2a6b8f305
+          SITE_HOST: bablo-100l-hub.vercel.app
+        run: |
+          set -euo pipefail
+          before="${{ github.event.before || '' }}"
+          if [[ -z "$before" || "$before" =~ ^0+$ ]]; then
+            changed="$(git ls-tree -r --name-only HEAD)"
+          else
+            changed="$(git diff --name-only "$before" "${{ github.sha }}")"
+          fi
+          urls=()
+          while IFS= read -r path; do
+            case "$path" in
+              index.html) urls+=("https://$SITE_HOST/") ;;
+              discover.html) urls+=("https://$SITE_HOST/discover") ;;
+              institutions.html) urls+=("https://$SITE_HOST/institutions") ;;
+              features.html) urls+=("https://$SITE_HOST/features") ;;
+              about.html) urls+=("https://$SITE_HOST/about") ;;
+              calculator/*) urls+=("https://$SITE_HOST/calculator/") ;;
+            esac
+          done <<< "$changed"
+          if (( ${#urls[@]} == 0 )); then
+            echo "No public URLs changed; skipping IndexNow."
+            exit 0
+          fi
+          payload="$(printf '%s\n' "${urls[@]}" | sort -u | jq -R . | jq -s --arg host "$SITE_HOST" --arg key "$INDEXNOW_KEY" --arg keyLocation "https://$SITE_HOST/$INDEXNOW_KEY.txt" '{host:$host,key:$key,keyLocation:$keyLocation,urlList:.}')"
+          curl --fail-with-body --silent --show-error -X POST 'https://api.indexnow.org/indexnow' -H 'Content-Type: application/json; charset=utf-8' --data "$payload"
