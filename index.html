@@ -2883,15 +2883,7 @@ function meView() {
           meView();
         } catch (e) { save(); status.textContent = e.message || 'Could not sync your academic details. Your local profile is preserved.'; }
       } }, 'Save profile')),
-    signed ? h('section', { class: 'panel stack' },
-      h('h2', null, 'Account & security'),
-      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, 'Account status'), h('small', { class: 'muted', style: { display: 'block' } }, 'Your sign-in identity is separate from your public username.')), h('span', { class: 'chip ok' }, 'Signed in')),
-      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, 'Chess / public username'), h('small', { class: 'muted', style: { display: 'block' } }, 'Used for player discovery and challenges.')), h('b', null, username)),
-      h('p', { class: 'tiny muted' }, 'Your Bablo ID is your account identifier. Keep it private; share your username when other students need to find you.'),
-      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out')) : h('section', { class: 'panel stack' },
-      h('h2', null, 'Create a permanent account'),
-      h('p', { class: 'small muted' }, 'A guest profile is saved on this device. Register to keep your identity and eligible progress connected across devices.'),
-      h('a', { class: 'btn primary block', href: '#/settings' }, 'Create account / Log in'))
+    accountSection()
   )));
 }
 
@@ -3865,7 +3857,7 @@ function accountSection() {
       h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'),
       h('p', null, h('b', null, 'Your ID: '), DB.profile.uid),
       h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'),
-      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
+      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
@@ -4490,9 +4482,9 @@ function settingsView() {
         h('span', null, h('b', null, 'Sound effects'), h('small', { class: 'muted' }, 'Optional sounds for timers and activity.')),
         h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off'))),
     h('section', { class: 'stack' },
-      h('h2', null, 'Account'),
+      h('h2', null, 'App installation'),
       installCard(),
-      accountSection()),
+      h('a', { class: 'btn ghost block', href: '#/me' }, 'Open profile & account')),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Data on this device'),
       h('p', { class: 'small muted' }, 'Erase your local profile, quiz history and saved preferences from this device. This does not delete a server account.'),
