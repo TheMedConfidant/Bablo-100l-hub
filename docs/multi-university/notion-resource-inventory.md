@@ -30,7 +30,7 @@ The user's confirmation is that the Notion study materials have been verified. T
 
 | Resource | Notion source | Existing scope / contents | Initial classification |
 |---|---|---|---|
-| BIO 101 course hub | https://app.notion.com/p/3ca1834fbdba8167a959cce677f5249e | Explicitly identified in the page as the FUTA 100L BIO 101 course; official FUTA outline; 8 topics; notes marked 8/8 complete; 32 flashcards (4/topic) | `curriculum_mapped` to FUTA BIO 101, 100L; verify semester field from course record before production mapping |
+| BIO 101 course hub | https://app.notion.com/p/3ca1834fbdba8167a959cce677f5249e | Explicitly identified in the page as the FUTA 100L BIO 101 course; official FUTA outline; 8 topics; notes marked 8/8 complete; 75 flashcards confirmed by live Notion database query (the older 32-card progress note is stale) | `curriculum_mapped` to FUTA BIO 101, 100L; verify semester field from course record before production mapping |
 | BIO 101 notes index | https://app.notion.com/p/3ca1834fbdba81f89219d57507c99235 | Eight topic pages: characteristics/classification; cell structure; reproduction; heredity/evolution; ecology; non-vascular plants; vascular plants; flowering plants | Child resources of FUTA BIO 101 |
 | BIO 101 flashcards index | https://app.notion.com/p/3ca1834fbdba81588f35d7ae7b8b5e6a | Linked flashcard database | Child resource set of FUTA BIO 101 |
 | BIO 101 MCQ index | https://app.notion.com/p/3ca1834fbdba81a29502f17b342aa3e4 | Index page is currently blank; do not infer an MCQ bank exists from this page | `pending_mapping` / empty |
@@ -45,12 +45,14 @@ The FUTA BIO 101 hub explicitly states that its outline is based on the official
 | Bowen 100L demo / content library | https://app.notion.com/p/3d71834fbdba81f7a69ed0c6396bea31 | Bowen 100L demonstration hierarchy | Bowen-only |
 | Bowen 200L verified curriculum/build map | https://app.notion.com/p/3ca1834fbdba8109954ed40cae3f52db | Bowen MBBS 200L Anatomy, Physiology and Biochemistry lanes; course-code caution and curriculum map | `institution_exclusive` Bowen; map exact course codes from current course registration/handbook |
 | 200L Physiology master map | https://app.notion.com/p/3cc1834fbdba8152b941cac564a47e90 | 200L physiology topic/subtopic hierarchy, ECG, cardiovascular, respiratory, renal, GI, endocrine, neurophysiology and practical/data interpretation | Bowen 200L pending exact course/semester link; do not expose to other institutions by default |
-| Elbow & Forearm anatomy notes | https://app.notion.com/p/4161834fbdba81fb9245e2f5193d69f1 | 200L Anatomy notes, clinical applications and learning outcomes | Bowen 200L candidate; exact lecture-sequence mapping required |
-| Elbow & Forearm flashcards | https://app.notion.com/p/4161834fbdba81d8aaf7cd19f4a5ce6a | Theory, image and scenario Anki-style cards | Bowen 200L candidate; exact course/topic mapping required |
+| Elbow & Forearm anatomy notes | https://app.notion.com/p/4161834fbdba81fb9245e2f5193d69f1 | 200L Anatomy notes, clinical applications and learning outcomes | Shared 200L Anatomy candidate; map to each target university's outline before surfacing |
+| Elbow & Forearm flashcards | https://app.notion.com/p/4161834fbdba81d8aaf7cd19f4a5ce6a | Theory, image and scenario Anki-style cards | Shared 200L Anatomy candidate; map to each target university's outline before surfacing |
 
 ### Shared-resource candidates
 
 The broader content library contains foundational 100L–200L material and subject resources (including biology, chemistry, physics, computing, physiology, anatomy and biochemistry). A subject label alone does not make a resource institution-neutral.
+
+The current pilot export includes 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total), plus five 200L Anatomy resources (notes, flashcards, quiz, vignettes and reference glossary) and six Physiology/Biochemistry course-map or architecture pages. These are staged as source-aware JSON assets, not yet live-published resources. The 200L Anatomy pack is a shared-foundational candidate: its source note says it follows standard atlas order and should be reordered to Bowen's lecture sequence once the Bowen outline is confirmed. Preserve its origin and require explicit target mapping for every institution.
 
 For each candidate, retain:
 - original Notion page/database URL;
