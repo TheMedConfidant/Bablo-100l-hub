@@ -18,7 +18,7 @@
   const root=h('section',{class:'landing-shell landing-simple stack'},
    h('div',{class:'landing-brand landing-simple-brand'},
     h('img',{class:'landing-mark',src:'./icon-192.png',alt:'Bablo Hub logo',width:'48',height:'48'}),
-    h('div',{class:'landing-wordmark'},h('strong',null,'Bablo Hub'),h('span',null,'FOR BOWEN CoHES STUDENTS'))
+    h('div',{class:'landing-wordmark'},h('strong',null,'Bablo Hub'),h('span',null,'FOR CoHES STUDENTS'))
    ),
    h('div',{class:'landing-actions landing-simple-actions stack'},
     h('button',{class:'btn landing-primary block',onclick:()=>openAuth('signup')},'Create account'),
