@@ -1286,24 +1286,37 @@ const COURSES_200 = [
   { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
-const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
+const ACADEMIC_LEVELS = ['100L','200L','300L','400L'];
+const MBBS_BSC_PATHWAYS = [
+  { value: 'PIO', label: 'Physiology (PIO)' },
+  { value: 'BCH', label: 'Biochemistry (BCH)' },
+  { value: 'ANA', label: 'Anatomy (ANA)' }
+];
 function inferProgrammeCategory(programme) {
   return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
 }
 function academicProfileFields(profile) {
   const p = profile || {};
-  const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
+  const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Select or enter your programme', required: true });
   const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
   const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
-  const category = h('select', null,
+  const initialCategory = p.programmeCategory || (p.programme ? inferProgrammeCategory(p.programme) : '');
+  const category = h('select', { required: true },
+    h('option', { value: '', selected: !initialCategory }, 'Select academic group'),
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
-  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
+  const pathway = h('select', null,
+    h('option', { value: '', selected: !p.bscPathway }, 'Select BSc option'),
+    ...MBBS_BSC_PATHWAYS.map(x => h('option', { value: x.value, selected: p.bscPathway === x.value ? true : null }, x.label)));
   const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
-  const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
-  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
+  const syncPathway = () => {
+    const eligible = programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200;
+    pathwayField.hidden = !eligible;
+    pathway.required = eligible;
+    if (!eligible) pathway.value = '';
+  };
+  programme.addEventListener('input', () => { category.value = programme.value.trim() ? inferProgrammeCategory(programme.value.trim()) : ''; syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
   return {
@@ -1316,7 +1329,7 @@ function academicProfileFields(profile) {
       programmeCategory: category.value,
       institution: institution.value.trim(),
       level: level.value,
-      bscPathway: pathway.value.trim()
+      bscPathway: pathway.value
     })
   };
 }
@@ -2034,7 +2047,7 @@ const plural = (n, s) => n + ' ' + s + (n === 1 ? '' : 's');
 
 /* ---------- saved state (this device) ---------- */
 const KEY = 'bablo100l:v1';
-let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'glass', dev: '', soundAlerts: false };
+let DB = { profile: null, history: [], missed: {}, ubest: {}, gpa: {}, prev: { c: '', u: '' }, theme: 'system', skin: 'charcoal', dev: '', soundAlerts: false };
 try { Object.assign(DB, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* storage unavailable: stay in memory */ }
 if (!DB.dev) DB.dev = uid();
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* ignore */ } if (typeof queuePush === 'function') queuePush(); }
@@ -2043,7 +2056,7 @@ function applyTheme() {
   const mode = DB.theme === 'system' ? (sysDark ? 'dark' : 'light') : DB.theme;
   if (DB.theme === 'system') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', DB.theme);
   document.documentElement.setAttribute('data-mode', mode);
-  const skin = (DB.skin === 'green' || !DB.skin) ? 'glass' : DB.skin;
+  const skin = (!DB.skin || DB.skin === 'green' || DB.skin === 'glass') ? 'charcoal' : DB.skin;
   if (skin === 'gold') { document.documentElement.setAttribute('data-skin', 'glass'); document.documentElement.setAttribute('data-tint', 'gold'); }
   else { document.documentElement.setAttribute('data-skin', skin); document.documentElement.removeAttribute('data-tint'); }
 }
@@ -4465,14 +4478,14 @@ function aboutView() {
   mount(wrap(back('#/','Home'),box));
 }
 function settingsView() {
-  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
+  const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((!DB.skin || DB.skin === 'glass' || DB.skin === 'green' ? 'charcoal' : DB.skin) === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
   mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
     h('h1', null, 'Settings'),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Appearance'),
       h('p', { class: 'tiny muted' }, 'Choose the Hub look that is easiest to read.'),
-      h('div', { class: 'seg' }, sk('glass', 'Glass'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
+      h('div', { class: 'seg' }, sk('charcoal', 'Midnight / Charcoal'), sk('pink', 'Pink'), sk('purple', 'Purple'), sk('gold', 'Gold'), sk('classic', 'Classic')),
       h('h2', null, 'Light or dark'),
       h('div', { class: 'seg' }, th('system', 'Match my phone'), th('light', 'Light'), th('dark', 'Dark'))),
     h('section', { class: 'panel stack' },
@@ -5004,4 +5017,12 @@ setTimeout(liveNotice, 1200);
  .dashboard-card-copy small{font-size:10px}
 }
 @media(min-width:760px){.dashboard-module-section .dashboard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Midnight / Charcoal: solid, low-glare surfaces with no costly backdrop blur. */
+:root[data-skin="charcoal"]{--page:radial-gradient(900px 480px at 12% -12%,rgba(70,91,120,.22),transparent 62%),linear-gradient(160deg,#090D13,#111823 58%,#0B1119);--surface:#171F2A;--surface2:#222D3A;--line:#303C4B;--ink:#F2F5F9;--ink2:#B2BECC;--bg:#0B1017;--brand:#D6AD70;--brand-ink:#20180D;--brand-soft:rgba(214,173,112,.14)}
+:root[data-skin="charcoal"] body{background:var(--page);background-attachment:fixed;min-height:100%}
+:root[data-skin="charcoal"] .panel,:root[data-skin="charcoal"] .tile,:root[data-skin="charcoal"] .rows,:root[data-skin="charcoal"] .nav,:root[data-skin="charcoal"] .dock,:root[data-skin="charcoal"] .modal,:root[data-skin="charcoal"] .rev,:root[data-skin="charcoal"] .qcard{background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.22)}
+:root[data-skin="charcoal"] .hero{background:linear-gradient(135deg,#263548,#192633);border:1px solid #3B4A5B;box-shadow:0 10px 28px rgba(0,0,0,.2)}
+:root[data-skin="charcoal"] .chess-board{border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.28)}
+:root[data-skin="charcoal"]{--sq-light:#D9D4C9;--sq-dark:#586577}
 </style>
