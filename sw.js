@@ -60,7 +60,7 @@ self.addEventListener('message',event=>{
  if(!port||!['BABLO_CACHE_COURSE','BABLO_REMOVE_COURSE','BABLO_LIST_COURSES'].includes(msg.type))return;
  const reply=data=>{try{port.postMessage(data)}catch(_){}};
  event.waitUntil((async()=>{
-  let newCacheName=null;
+  let newCacheName=null,committed=false;
   try{
    if(msg.type==='BABLO_LIST_COURSES'){
     const meta=await caches.open(COURSE_META),keys=await meta.keys(),courses=[];
@@ -107,12 +107,15 @@ self.addEventListener('message',event=>{
    if((await next.keys()).length!==urls.length)throw new Error('The new course pack did not pass its file-count check');
    const previous=await activeCourseCache(id);
    await meta.put(metaKey,new Response(JSON.stringify({courseId:id,cacheName:newCacheName,updatedAt:Date.now(),files:urls.length}),{headers:{'Content-Type':'application/json'}}));
-   await caches.delete(stageName);
-   if(previous&&previous!==newCacheName)await caches.delete(previous);
-   // Remove any obsolete legacy cache for this course after the pointer commit.
-   await caches.delete(COURSE_PREFIX+id);
+   committed=true;
+   // Cleanup is best-effort after the active pointer has switched. A cleanup
+   // failure must never report a failed download when the new pack is usable.
+   await caches.delete(stageName).catch(()=>{});
+   if(previous&&previous!==newCacheName)await caches.delete(previous).catch(()=>{});
+   await caches.delete(COURSE_PREFIX+id).catch(()=>{});
    reply({ok:true,courseId:id,completed,total:urls.length,failed:0});
   }catch(error){
+   if(committed){reply({ok:true,courseId:String(msg.courseId||''),completed:0,total:0,failed:0,warning:'Course saved. Some temporary cache cleanup may finish later.'});return}
    if(newCacheName){const active=await activeCourseCache(String(msg.courseId||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-|-$/g,'').slice(0,64)).catch(()=>null);if(active!==newCacheName)await caches.delete(newCacheName).catch(()=>{})}
    await caches.delete('bablo-course-pack-stage-'+String(msg.courseId||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-|-$/g,'').slice(0,64)).catch(()=>{});
    reply({ok:false,message:String(error&&error.message||error)+' Your previous offline pack was kept.'});
