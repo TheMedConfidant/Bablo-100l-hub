@@ -166,10 +166,11 @@
         "https://app.notion.com/p/3ca1834fbdba816eb477cf98bc21d90a"
       ],
       "resourceProgress": {
-        "notes": "8/8 topics complete",
-        "flashcards": "32 cards recorded",
-        "mcqs": "not started",
-        "pastPapers": "not started"
+        "notes": "8/8 topic note pages present",
+        "flashcards": "32 cards recorded in the course tracker; underlying data-source rows could not be audited",
+        "mcqs": "linked page is blank",
+        "pastPapers": "linked page is blank",
+        "audit": "Topic coverage present; MCQ and past-paper resources are absent from the linked pages"
       },
       "qualityFlags": [
         "Notion course page explicitly identifies the official FUTA course outline and its eight topics.",
@@ -291,15 +292,18 @@
         "https://app.notion.com/p/bc122d7dd17c405fa206c584f4a29"
       ],
       "resourceProgress": {
-        "notes": "7/7 topics complete",
-        "flashcards": "expansion in progress",
-        "mcqs": "not started",
-        "pastPapers": "not started"
+        "notes": "7/7 topic note pages present",
+        "flashcards": "131 rows; 131 unique Card IDs; 131 unique prompts; no blank Front/Back/Topic fields",
+        "mcqs": "111 rows; 111 unique Card IDs; no blank Question, A–D options, Correct Answer or Explanation fields",
+        "pastPapers": "7 topic-specific theory-paper pages linked",
+        "audit": "Structural completeness and duplicate-prompt checks passed; academic answer/content validation remains pending"
       },
       "qualityFlags": [
         "Bowen's 100L demo explicitly says CHM101 is adapted from FUTA; preserve FUTA as the source institution and do not label it Bowen-native.",
         "Confirm the exact FUTA degree programme, department and semester against the original course outline.",
-        "Notion course page is unverified; notes and derivative resources need independent academic review."
+        "Notion course page is unverified; notes and derivative resources need independent academic review.",
+        "Notion data-source audit: 131 flashcards and 111 MCQs; no missing required fields or duplicate IDs/prompts detected in the audited tables.",
+        "All 7 CHM101 topic-note pages and 7 theory-paper links exist; their Notion verification status remains unverified."
       ],
       "sourceInstitution": "Federal University of Technology, Akure (FUTA)",
       "adaptedForInstitution": "Bowen University",
@@ -402,17 +406,19 @@
         "https://app.notion.com/p/3c41834fbdba81408bf5c6256b0beeb8"
       ],
       "resourceProgress": {
-        "notes": "starting",
-        "flashcards": "not started",
-        "mcqs": "not started",
-        "pastPapers": "not started"
+        "notes": "6/6 topic note pages present",
+        "flashcards": "54 rows recorded in tracker/data-source",
+        "mcqs": "database page exists but course tracker says not started; row count not audited",
+        "pastPapers": "11 linked pages; Heat Transfer and Simple Harmonic Motion each appear twice by title",
+        "audit": "Topic coverage present; institution and duplicate-title paper status require follow-up"
       },
       "qualityFlags": [
         "This is the PHY101 page under the general 100L library, distinct from Bowen's PHY101 page linked from the Bowen 100L demo.",
         "FUTA institution attribution is provisional from the 100L library hierarchy; confirm the original Drive folder and official course outline before public display.",
         "The six-section topic structure is supported by past-question mapping; bonus topics remain outside the core list.",
         "Exact degree programme, department and semester remain unconfirmed.",
-        "Do not display under FUTA until the original Drive folder or official FUTA course outline confirms the source institution. Bowen has a separate PHY101 pilot page with a different course identity."
+        "Do not display under FUTA until the original Drive folder or official FUTA course outline confirms the source institution. Bowen has a separate PHY101 pilot page with a different course identity.",
+        "The past-paper index contains two separate Heat Transfer pages and two separate Simple Harmonic Motion pages; compare their contents before treating them as duplicates or publishing both."
       ],
       "sourceInstitution": "Unconfirmed",
       "candidateInstitution": "FUTA (unconfirmed; original Drive folder not yet checked)"
@@ -640,6 +646,9 @@
     "CHM102 Note 8 has garbled source-PDF extraction and requires reaction-by-reaction PDF review. Stereochemistry answer keys need independent review.",
     "Full offline packs remain not_bundled until content/assets are extracted, validated, hashed and tested locally.",
     "FUTA-origin BIO101 and CHM101 are tracked separately from Bowen adaptations. The BIO101 MCQ page is currently blank.",
-    "The general 100L PHY101 resource map is not institution-verified; keep it unassigned until the original source folder is checked."
+    "The general 100L PHY101 resource map is not institution-verified; keep it unassigned until the original source folder is checked.",
+    "FUTA BIO101's linked MCQ and Past Papers pages are blank despite notes being 8/8 and 32 flashcards being recorded; do not advertise these missing resource types as available.",
+    "The general 100L PHY101 notes cover six topics and have 54 flashcards recorded; its past-paper index contains two repeated topic titles that need content comparison.",
+    "CHM101 structural checks passed for 131 flashcards and 111 MCQs (unique IDs/prompts and required fields present); this is not equivalent to scientific/answer-key validation."
   ]
 }
