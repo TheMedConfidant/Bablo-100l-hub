@@ -189,6 +189,7 @@ on conflict (slug) do update set
   offers_health_sciences = excluded.offers_health_sciences,
   directory_status = excluded.directory_status,
   official_url = excluded.official_url,
+  verification_note = excluded.verification_note,
   updated_at = now();
 
 -- Enforce the narrow BSc pathway exception: Bowen MBBS students in 200L+ only.
@@ -323,9 +324,8 @@ create policy "Verified resource mappings are readable"
 
 grant select on public.hub_academic_institutions to anon, authenticated;
 grant select on public.hub_academic_programmes to anon, authenticated;
-grant select on public.hub_academic_courses to anon, authenticated;
-grant select on public.hub_academic_resources to anon, authenticated;
-grant select on public.hub_academic_resource_mappings to anon, authenticated;
+-- Course and resource rows are exposed only through the exact-match resource RPC.
+-- Direct table reads would bypass the app's selected academic identity filter.
 
 create or replace function public.hub_list_health_institutions()
 returns table (slug text, name text)
@@ -377,7 +377,7 @@ returns table (
 )
 language sql
 stable
-security invoker
+security definer
 set search_path = public
 as $$
   select r.resource_key, r.title, r.resource_type,
