@@ -27,7 +27,7 @@
   });
  }
  function validIdentity(id){
-  return !!(id&&id.institution&&id.programme&&LEVELS.includes(id.level)&&(!id.semester||SEMESTERS.includes(id.semester)));
+  return !!(id&&id.institution&&id.programme&&LEVELS.includes(id.level)&&SEMESTERS.includes(id.semester));
  }
  function isBscPathwayEligible(input){
   const p=input||{};
@@ -41,7 +41,7 @@
   return slug(mapping.institutionSlug||mapping.institution||'')===id.institution
    &&norm(mapping.programmeCode||mapping.programme||'')===id.programme
    &&String(mapping.academicLevel||mapping.level||'')===id.level
-   &&(!id.semester||norm(mapping.semester)===id.semester)
+   &&norm(mapping.semester)===id.semester
    &&mapping.status==='verified'
    &&!!mapping.verifiedAt;
  }
