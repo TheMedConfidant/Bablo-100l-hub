@@ -170,6 +170,16 @@ function createWorkerHarness(fetchImpl) {
   return { message, stores, cacheStorage };
 }
 
+test('course listing uses supported CacheStorage APIs and returns active manifest packs', async () => {
+  assert.doesNotMatch(worker, /caches\\.has\\(/);
+  assert.match(worker, /\\(await caches\\.keys\\(\\)\\)\\.includes\\(data\\.cacheName\\)/);
+  const harness = createWorkerHarness(async () => new Response('material', { status: 200 }));
+  const saved = await harness.message({ type: 'BABLO_CACHE_COURSE', courseId: 'bio-101', resources: ['/bio-101/notes.js'] });
+  assert.equal(saved.at(-1).ok, true);
+  const listed = await harness.message({ type: 'BABLO_LIST_COURSES' });
+  assert.deepEqual(Array.from(listed.at(-1).courses), ['bio-101']);
+});
+
 test('worker behavior: failed refresh preserves the previous active pack', async () => {
   let fail = false;
   const harness = createWorkerHarness(async request => {
