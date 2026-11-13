@@ -42,6 +42,8 @@ jobs:
               features.html) urls+=("https://$SITE_HOST/features") ;;
               about.html) urls+=("https://$SITE_HOST/about") ;;
               calculator/*) urls+=("https://$SITE_HOST/calculator/") ;;
+              sitemap.xml|robots.txt|bablohub-2026-indexnow-7c4d91e2a6b8f305.txt)
+                urls+=("https://$SITE_HOST/" "https://$SITE_HOST/discover" "https://$SITE_HOST/institutions" "https://$SITE_HOST/features" "https://$SITE_HOST/about" "https://$SITE_HOST/calculator/") ;;
             esac
           done <<< "$changed"
           if (( ${#urls[@]} == 0 )); then
