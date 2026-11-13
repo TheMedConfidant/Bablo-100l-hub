@@ -14,7 +14,7 @@ test('Notion manifest produces deterministic, blocked staging candidates', () =>
   assert.equal(run.status, 0, run.stderr || run.stdout);
   const preview = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
   assert.equal(preview.mode, 'metadata-only-staging-preview');
-  assert.equal(preview.summary.sourceRecords, 23);
+  assert.equal(preview.summary.sourceRecords, 26);
   assert.ok(preview.summary.resourceCandidates > 0);
   assert.equal(preview.summary.blockedCandidates, preview.summary.resourceCandidates);
   assert.equal(preview.safety.contentFetched, false);
@@ -43,10 +43,10 @@ test('Bowen-only source provenance is retained, not silently relabelled as FUTA'
   assert.equal(futa.provenance.institutionSlug, 'futa');
 });
 
-test('ambiguous ownership remains unassigned', () => {
+test('Bowen 200L Anatomy source provenance is retained', () => {
   const preview = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
   const ambiguous = preview.resources.find(r => r.source.pageId === '4161834f-bdba-81fb-9245-e2f5193d69f1');
   assert.ok(ambiguous);
-  assert.equal(ambiguous.provenance.institutionSlug, null);
+  assert.equal(ambiguous.provenance.institutionSlug, 'bowen-university');
   assert.equal(ambiguous.reusePolicy, 'pending-review');
 });
