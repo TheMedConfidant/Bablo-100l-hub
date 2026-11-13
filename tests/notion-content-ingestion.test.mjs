@@ -78,13 +78,9 @@ test('institution provenance and shared-reuse intent remain separate', () => {
   assert.equal(physiology.provenance.course, 'Physiology');
   assert.equal(biochemistry.provenance.course, 'Biochemistry');
   assert.equal(physiology.reuseIntent, 'candidate-shared-non-bowen');
-  const cohESBio = find('3e91834fbdba8124be25c4d749158c67');
-  assert.ok(cohESBio);
-  assert.equal(cohESBio.provenance.institution, 'Bowen University');
-  assert.equal(cohESBio.provenance.college, 'College of Health Sciences (CoHES)');
-  assert.equal(cohESBio.provenance.programme, null);
   const cohESRows = preview.rows.filter(r => r.datasetKey === 'bowen-cohes-bio101-mcqs');
   assert.equal(cohESRows.length, 180);
+  assert.ok(cohESRows.every(r => r.provenance.institution === 'Bowen University'));
   assert.ok(cohESRows.every(r => r.provenance.college === 'College of Health Sciences (CoHES)'));
   assert.ok(cohESRows.every(r => r.provenance.programme === null));
   const bowenMap = find('3ca1834fbdba8109954ed40cae3f52db');
