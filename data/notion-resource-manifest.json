@@ -734,31 +734,6 @@
       ],
       "status": "staged-not-yet-loaded-into-live-app",
       "mappingStatus": "Bowen-200L-discipline-known-official-course-code-and-semester-not-yet-mapped"
-    },
-    {
-      "path": "data/notion-futa-bio101-notes.json",
-      "resources": 8,
-      "contentChars": 46375,
-      "institution": "FUTA",
-      "status": "staged-not-yet-loaded-into-live-app"
-    },
-    {
-      "path": "data/notion-100l-physics-chemistry-shared-pilot.json",
-      "resources": 13,
-      "contentChars": 51953,
-      "sharedUseExcludes": [
-        "Bowen University"
-      ],
-      "status": "staged-not-yet-loaded-into-live-app"
-    },
-    {
-      "path": "data/notion-200l-physiology-biochemistry-topics.json",
-      "resources": 2,
-      "contentChars": 26503,
-      "sharedUseExcludes": [
-        "Bowen University"
-      ],
-      "status": "staged-not-yet-loaded-into-live-app"
     }
   ],
   "sourceAuthority": "User confirms all Notion-built materials are verified.",
