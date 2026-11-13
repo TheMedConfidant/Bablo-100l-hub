@@ -1,5 +1,5 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v36-futa-source-audit-landing-polish';
+const VERSION='bablo-offline-v37-futa-chm108-landing';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./mls101-data.js','./SOC101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./gst111-source-bank.js','./challenge-arena.js','./wifi-challenge.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./chm-practicals-native.js','./agr-101-food-security.html','./gst103-study-hub.html','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html','./landing-premium.js','./landing-premium.css','./data/offline-course-packs.catalogue.json'];
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
