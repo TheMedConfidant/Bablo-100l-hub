@@ -188,6 +188,15 @@
         "bowen-university"
       ],
       "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-200l-physiology-biochemistry-topics.json",
+      "resources": 2,
+      "contentChars": 26503,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
     }
   ],
   "sourceAuthority": "User confirms all Notion-built materials are verified."
