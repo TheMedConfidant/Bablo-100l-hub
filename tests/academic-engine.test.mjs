@@ -9,6 +9,7 @@ const base={published:true,qualityStatus:'approved',rightsStatus:'cleared',reuse
 test('normalizes academic identity',()=>assert.deepEqual(E.identity(student),{institution:'futa',programme:'bio',level:'100L',semester:'first'}));
 test('shows explicitly shared, reviewed resource for exact target mapping',()=>assert.equal(E.resourceVisible(base,E.identity(student)),true));
 test('does not leak a Bowen-only resource into FUTA',()=>assert.equal(E.resourceVisible({...base,reusePolicy:'institution-only',ownerInstitutionSlug:'bowen-university'},E.identity(student)),false));
+test('allows shared resource with Bowen provenance when explicitly mapped to FUTA',()=>assert.equal(E.resourceVisible({...base,ownerInstitutionSlug:'bowen-university'},E.identity(student)),true));
 test('does not show unverified or unmapped resources',()=>{
  assert.equal(E.resourceVisible({...base,mappings:[{...mapping,status:'candidate'}]},E.identity(student)),false);
  assert.equal(E.resourceVisible({...base,mappings:[]},E.identity(student)),false);
