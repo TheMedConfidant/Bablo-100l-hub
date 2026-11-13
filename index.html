@@ -2418,7 +2418,7 @@ function homeView() {
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
-  dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
+  dashboardCard('Laboratory','PHY, CHM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  const communityCards=[
@@ -2460,7 +2460,7 @@ function arcadeHubView(){
  h('section',{class:'dashboard-grid'},
  dashboardCard('Bablo Chess','Play Dr ECG or challenge another player','♟','#/chess'),
  dashboardCard('Chess learning','Learn tactics, openings and principles','♞','#/chess-learn/basics'),
- h('div',{class:'dashboard-card','aria-disabled':'true',style:{'--card-accent':'#D6A82B',opacity:'0.78'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},'🐄'),h('span',{class:'dashboard-card-copy'},h('b',null,'Cow Dash'),h('small',null,'COMING SOON · Speed-based learning game')),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'◷'))
+ h('div',{class:'dashboard-card','aria-disabled':'true',style:{'--card-accent':'#D6A82B',opacity:'0.78'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},'🐄'),h('span',{class:'dashboard-card-copy'},h('b',null,'Bablo Rush'),h('small',null,'COMING SOON · Speed-based learning game')),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'◷'))
  )));
 }
 /* hospital-style monitor: a grid, a trace that sweeps left to right, and a bright head at the leading edge */
@@ -4452,7 +4452,7 @@ function aboutView() {
   const panel=h('section',{class:'panel stack'});
   panel.append(h('h2',null,APP.name),h('p',{class:'muted'},'Version '+APP.version));
   ABOUT_TEXT.forEach(t=>panel.append(h('p',null,t)));
-  panel.append(h('p',{class:'tiny muted'},'TheMedConfidant 🩺 · Confidence in Clarity · © Bababola Moses Bolawaife'));
+  panel.append(h('p',{class:'tiny muted'},'TheMedConfidant 🩺 · Confidence in Clarity · © Babalola Moses Boluwatife'));
   box.append(panel);
   mount(wrap(back('#/','Home'),box));
 }
