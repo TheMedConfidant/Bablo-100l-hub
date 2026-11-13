@@ -635,6 +635,78 @@
         "The stereochemistry quiz and all generated answer keys require independent academic review before publication.",
         "The current Notion source pages are marked unverified; catalogue presence is not equivalent to academic approval."
       ]
+    },
+    {
+      "institution": "Bowen University",
+      "sourceInstitution": "Bowen University (CHM 108 lab manual)",
+      "programme": "CoHES",
+      "level": "100L",
+      "semester": "Second Semester",
+      "code": "CHM 108",
+      "title": "Qualitative Organic Analysis",
+      "curriculumSource": "https://app.notion.com/p/4171834fbdba818484dae78a8cce7efe",
+      "catalogueState": "draft_pack_source_present_review_required",
+      "topics": [
+        {
+          "id": "chm108-organic-classes-solubility",
+          "title": "Organic compound classes and solubility screening",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba818484dae78a8cce7efe"
+          ],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz"
+          ],
+          "reviewState": "lecturer_check_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm108-qualitative-analysis",
+          "title": "Qualitative analysis concepts and interpretation",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba818484dae78a8cce7efe"
+          ],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "scenarios"
+          ],
+          "reviewState": "lecturer_check_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm108-functional-group-tests",
+          "title": "Functional-group identification and result interpretation",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba818484dae78a8cce7efe"
+          ],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "essays"
+          ],
+          "reviewState": "lecturer_check_required",
+          "offlineState": "not_bundled"
+        }
+      ],
+      "sourcePages": [
+        "https://app.notion.com/p/4171834fbdba818484dae78a8cce7efe"
+      ],
+      "resourceProgress": {
+        "notes": "draft full pack present",
+        "flashcards": "28 embedded in pack",
+        "quiz": "20 embedded in pack",
+        "essays": "3 essay/scenario items",
+        "verification": "explicit lecturer/practical-sheet cross-check requested"
+      },
+      "qualityFlags": [
+        "The page explicitly identifies Bowen CHM108, 100L second semester, and its source as the CHM108 lab manual.",
+        "The Notion page is marked unverified and explicitly requests checks against lecturer notes and practical sheets.",
+        "Contains hazardous laboratory operations. Do not publish operational handling steps to student-facing content; require faculty-supervised laboratory safety review and keep student content conceptual/safety-focused."
+      ]
     }
   ],
   "qualityFlags": [
@@ -649,6 +721,7 @@
     "The general 100L PHY101 resource map is not institution-verified; keep it unassigned until the original source folder is checked.",
     "FUTA BIO101's linked MCQ and Past Papers pages are blank despite notes being 8/8 and 32 flashcards being recorded; do not advertise these missing resource types as available.",
     "The general 100L PHY101 notes cover six topics and have 54 flashcards recorded; its past-paper index contains two repeated topic titles that need content comparison.",
-    "CHM101 structural checks passed for 131 flashcards and 111 MCQs (unique IDs/prompts and required fields present); this is not equivalent to scientific/answer-key validation."
+    "CHM101 structural checks passed for 131 flashcards and 111 MCQs (unique IDs/prompts and required fields present); this is not equivalent to scientific/answer-key validation.",
+    "Bowen CHM108 is a distinct 100L second-semester practical course; it must not be merged into CHM102 or the FUTA-origin CHM101 pack."
   ]
 }
