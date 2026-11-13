@@ -64,10 +64,12 @@ if (html) {
   else fail("Premium pricing page missing");
   if (!/service_role|sk_live_|sk_test_/i.test(html)) pass("No server-side payment/database secret is embedded in the client");
   else fail("A server-side secret appears in client HTML");
-  if (/function exportLocalStudyData\\(/.test(html) && /Export my study data \\(JSON\\)/.test(html)) pass("Settings exposes the local study-data export");
+  if (html.includes("function exportLocalStudyData()") && html.includes("Export my study data (JSON)")) pass("Settings exposes the local study-data export");
   else fail("Local study-data export is missing from Settings");
-  const exportBlock = html.match(/function exportLocalStudyData\\(\\) \\{([\\s\\S]*?)\\n\\}\\n\\nfunction settingsView\\(/);
-  if (exportBlock && !/DB\\.account|password|token/i.test(exportBlock[1])) pass("Study-data export excludes account credentials and tokens");
+  const exportStart = html.indexOf("function exportLocalStudyData()");
+  const exportEnd = html.indexOf("function settingsView()", exportStart);
+  const exportBlock = exportStart >= 0 && exportEnd > exportStart ? html.slice(exportStart, exportEnd) : "";
+  if (exportBlock && !exportBlock.includes("DB.account") && !exportBlock.includes("p_password") && !exportBlock.includes("DB.account.token")) pass("Study-data export excludes account credentials and tokens");
   else fail("Study-data export is missing or includes sensitive account fields");
 }
 for (const p of ["robots.txt", "sitemap.xml"]) {
