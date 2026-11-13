@@ -94,7 +94,8 @@ self.addEventListener('message',event=>{
     completed++;reply({progress:true,courseId:id,completed,total:urls.length,failed:failed.length});
    }
    if(failed.length){
-    reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. Retry the course download when connected.'});return;
+    await caches.delete(cacheName);
+    reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. The incomplete pack was cleared; retry when connected.'});return;
    }
    reply({ok:true,courseId:id,completed,total:urls.length,failed:0});
   }catch(error){reply({ok:false,message:String(error&&error.message||error)})}
