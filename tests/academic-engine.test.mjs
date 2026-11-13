@@ -61,6 +61,7 @@ test('app requires a semester and persists it through the v2 profile RPCs',()=>{
 
 test('static course access requires an exact semester mapping',()=>{
  assert.equal(E.courseSemesterMatches({semester:'first'},student),true);
+ assert.equal(E.courseSemesterMatches({semester:'first'},{institution:'FUTA',programme:'BIO',level:'100L',academicSemester:'first'}),true);
  assert.equal(E.courseSemesterMatches({semester:'second'},student),false);
  assert.equal(E.courseSemesterMatches({semester:null},student),false);
  assert.equal(E.courseSemesterMatches({semester:'first'},{institution:'FUTA',programme:'BIO',level:'100L'}),false);
