@@ -6,8 +6,7 @@
   "status": "catalogue_seed",
   "rules": {
     "primaryInstitutions": [
-      "Bowen University",
-      "Federal University of Technology, Akure (FUTA)"
+      "Bowen University — College of Health Sciences (CoHES)"
     ],
     "institutionEligibility": "Show only universities with at least one Health Sciences or Medical Sciences programme.",
     "hierarchy": [
@@ -40,11 +39,12 @@
       "futureUniversities": {
         "rule": "Do not display an institution unless an official institutional source confirms at least one Health Sciences or Medical Sciences college, school, department or degree programme. A general Biology, Chemistry or Physics course alone does not qualify."
       }
-    }
+    },
+    "studentAudience": "Bowen University College of Health Sciences (CoHES) students only. External institutions may appear solely in internal sourceInstitution provenance for adapted materials and must not be surfaced as supported student institutions."
   },
   "courses": [
     {
-      "institution": "Federal University of Technology, Akure (FUTA)",
+      "institution": "Bowen University",
       "programme": "Not yet mapped to a specific FUTA degree programme",
       "level": "100L",
       "semester": "Not confirmed",
@@ -184,7 +184,7 @@
       "adaptationStatus": "FUTA-origin material adapted for Bowen; keep source and target curriculum identities separate."
     },
     {
-      "institution": "Federal University of Technology, Akure (FUTA)",
+      "institution": "Bowen University",
       "programme": "Not yet mapped to a specific FUTA degree programme",
       "level": "100L",
       "semester": "Not confirmed",
