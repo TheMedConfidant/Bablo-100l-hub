@@ -1140,15 +1140,15 @@ const LB = { url: 'https://labgqqovggulrsmxzraj.supabase.co', key: 'sb_publishab
 /* subj = course code used in the question bank. pending:true shows the course as "Pending".
    units = default credit units for the GPA lab (editable by the student). */
 const COURSES = [
-  { code: 'BIO', label: 'BIO 101', title: 'Biology', color: '#1E9E6A', units: 3 },
-  { code: 'CHM', label: 'CHM 101', title: 'Chemistry', color: '#7B5BD6', units: 3 },
-  { code: 'PHY', label: 'PHY 101', title: 'Physics', color: '#2F6FDB', units: 3 },
-  { code: 'COS', label: 'COS 101', title: 'Computing', color: '#0E9AA7', units: 2 },
-  { code: 'AGR', label: 'AGR 101', title: 'Agriculture', color: '#B7791F', units: 2 },
-  { code: 'GST111', label: 'GST 111', title: 'Communication in English', color: '#8896A8', units: 2 },
-  { code: 'GEL101', label: 'BUI-GEL 101', title: 'General Education (GEL)', color: '#8896A8', units: 2 },
-  { code: 'LIB101', label: 'BUI-LIB 101', title: 'Library', color: '#64748B', units: 2 },
-  { code: 'MTH101', label: 'MTH 101', title: 'Elementary Mathematics I', color: '#C2410C', units: 3 },
+  { code: 'BIO', label: 'BIO 101', title: 'Biology', color: '#1E9E6A', units: 3, semester: 'first' },
+  { code: 'CHM', label: 'CHM 101', title: 'Chemistry', color: '#7B5BD6', units: 3, semester: 'first' },
+  { code: 'PHY', label: 'PHY 101', title: 'Physics', color: '#2F6FDB', units: 3, semester: 'first' },
+  { code: 'COS', label: 'COS 101', title: 'Computing', color: '#0E9AA7', units: 2, semester: 'first' },
+  { code: 'AGR', label: 'AGR 101', title: 'Agriculture', color: '#B7791F', units: 2, semester: 'first' },
+  { code: 'GST111', label: 'GST 111', title: 'Communication in English', color: '#8896A8', units: 2, semester: 'first' },
+  { code: 'GEL101', label: 'BUI-GEL 101', title: 'General Education (GEL)', color: '#8896A8', units: 2, semester: 'first' },
+  { code: 'LIB101', label: 'BUI-LIB 101', title: 'Library', color: '#64748B', units: 2, semester: 'first' },
+  { code: 'MTH101', label: 'MTH 101', title: 'Elementary Mathematics I', color: '#C2410C', units: 3, semester: 'first' },
   { code: 'MLS101', label: 'MLS 101', title: 'Medical Laboratory Science', color: '#0F766E', units: 2 },
   { code: 'SOC101', label: 'SOC 101', title: 'Introduction to Sociology', color: '#9A6A45', units: 2 },
 ];
@@ -1169,7 +1169,10 @@ const PROGRAMME_COURSES = {
   'Other CoHES programme': [...CORE_COURSES, 'MTH101'],
   [GUEST_PROGRAMME]: [...CORE_COURSES, 'MTH101']
 };
-const coursesFor = programme => (PROGRAMME_COURSES[programme] || []).map(code => COURSES.find(c => c.code === code)).filter(Boolean);
+const coursesFor = programme => (PROGRAMME_COURSES[programme] || [])
+  .map(code => COURSES.find(c => c.code === code))
+  .filter(c => c && window.BabloAcademicEngine
+    && window.BabloAcademicEngine.courseSemesterMatches(c, DB.profile || {}));
 function canAccessCourse(code) {
   const p = DB.profile;
   if (!p) return false;
@@ -1179,7 +1182,7 @@ function canAccessCourse(code) {
   const levelNumber = parseInt(p.level || '100L', 10) || 100;
   const programme = String(p.programme || '').trim().toUpperCase();
   if (levelNumber === 100) return coursesFor(p.programme).some(c => c.code === code);
-  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200.some(c => c.code === code);
+  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200.some(c => c.code === code && window.BabloAcademicEngine && window.BabloAcademicEngine.courseSemesterMatches(c, p) && c.semesterVerified === true);
   return false;
 }
 
@@ -1280,9 +1283,9 @@ const TIMETABLE_100_1 = [
 const TIMETABLE_NOTE = 'Course representatives for AGR 101 should meet the lecturer, as AGR 101 clashes with BUI-GEL 101 and GST 111.';
 /* 200 level courses. Each stays Pending until its questions, notes, practicals and labs are loaded. */
 const COURSES_200 = [
-  { code: 'ANATOMY', label: 'Anatomy', title: 'Gross anatomy, embryology, histology and practical/dissection', color: '#B45309', units: 3, semester: 'year-round', pending200: true },
-  { code: 'PHYSIOLOGY', label: 'Physiology', title: 'Systems physiology, practicals, graphs and integrated mechanisms', color: '#0E7490', units: 3, semester: 'year-round', pending200: true },
-  { code: 'BIOCHEMISTRY', label: 'Biochemistry', title: 'Molecular biochemistry, metabolism, pathways and clinical correlations', color: '#7C3AED', units: 3, semester: 'year-round', pending200: true }
+  { code: 'ANATOMY', label: 'Anatomy', title: 'Gross anatomy, embryology, histology and practical/dissection', color: '#B45309', units: 3, pending200: true, semesterVerified: false },
+  { code: 'PHYSIOLOGY', label: 'Physiology', title: 'Systems physiology, practicals, graphs and integrated mechanisms', color: '#0E7490', units: 3, pending200: true, semesterVerified: false },
+  { code: 'BIOCHEMISTRY', label: 'Biochemistry', title: 'Molecular biochemistry, metabolism, pathways and clinical correlations', color: '#7C3AED', units: 3, pending200: true, semesterVerified: false }
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
 const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
