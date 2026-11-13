@@ -10,10 +10,9 @@
 A professional, calm academic workspace. Keep the interface functional and fast rather than decorative. Use solid charcoal surfaces, restrained warm-gold emphasis, clear typography, strong contrast, and minimal motion. Avoid heavy glass effects and excessive gradients.
 
 Primary institutional focus:
-- Bowen University — College of Health Sciences (CoHES)
-- Federal University of Technology, Akure (FUTA)
+- Bowen University — College of Health Sciences (CoHES) only.
 
-Future university listings must be limited to institutions with at least one officially evidenced Health Sciences or Medical Sciences programme.
+Bablo Hub is built for Bowen CoHES students. Do not present FUTA or other universities as supported institutions in the landing page, onboarding, institution picker, dashboards or course navigation. Where a Bowen resource is adapted from an external source (including FUTA-origin material), retain that institution only in internal source-provenance metadata; it is not a supported student institution.
 
 ## Figma structure
 
@@ -70,17 +69,17 @@ Radius tokens: card 18, control 12.
 7. Keep Practical/Laboratory work separate from individual course navigation where the current product model requires it.
 8. Show offline status and distinguish locally available content from content that still requires a network.
 9. Never show guessed programme mappings or unverified course provenance as confirmed.
-10. Preserve existing app icon and Bablo Hub™ naming.
+10. Preserve the existing original app icon (`icon-192.png` / `icon-512.png`) and Bablo Hub™ naming.
 
 ## Landing and onboarding content
 
 - Primary message: “Make every study session count.”
 - Explain structured course resources, active recall, CBT practice and practical learning.
-- Clearly present Bowen CoHES and FUTA as the starting institutions.
+- Clearly identify Bowen University College of Health Sciences (CoHES) as the sole student audience.
 - Primary CTA: Create account.
 - Secondary CTA: Explore as guest.
 - Separate Log in from Create account and keep a clear route back to the welcome screen.
-- Institution and programme selection must be data-backed, not free-text assumptions.
+- Programme and course selection must use verified Bowen CoHES mappings. Preserve external source institution names only in provenance metadata, never as supported student institutions.
 
 ## Dashboard information architecture
 
