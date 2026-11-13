@@ -314,6 +314,326 @@
       "course": "Anatomy",
       "resourceType": "reference",
       "notes": "OpenStax CC BY glossary plus 10 objective questions; preserve attribution and source notes."
+    },
+    {
+      "id": "3d11834f-bdba-81fa-9ff5-e6c2f8ca8c93",
+      "url": "https://app.notion.com/p/3d11834fbdba81fa9ff5e6c2f8ca8c93",
+      "title": "FUTA BIO 101 — Characteristics of Life & Classification",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-817b-82c4-c40db1c55c96",
+      "url": "https://app.notion.com/p/3d21834fbdba817b82c4c40db1c55c96",
+      "title": "FUTA BIO 101 — Cell Structure & Organelles",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-816a-affd-d3e07cd7e76b",
+      "url": "https://app.notion.com/p/3d21834fbdba816aaffdd3e07cd7e76b",
+      "title": "FUTA BIO 101 — Reproduction",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81de-a70f-c1e1a367647b",
+      "url": "https://app.notion.com/p/3d21834fbdba81dea70fc1e1a367647b",
+      "title": "FUTA BIO 101 — Heredity & Evolution",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81a1-95cc-f5abad0f41a5",
+      "url": "https://app.notion.com/p/3d21834fbdba81a195ccf5abad0f41a5",
+      "title": "FUTA BIO 101 — Ecology & Habitats",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81e6-8e9d-c2b131540699",
+      "url": "https://app.notion.com/p/3d21834fbdba81e68e9dc2b131540699",
+      "title": "FUTA BIO 101 — Non-Vascular Plants",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81c7-9765-c0ab94b8a6ef",
+      "url": "https://app.notion.com/p/3d21834fbdba81c79765c0ab94b8a6ef",
+      "title": "FUTA BIO 101 — Vascular Plants",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-8179-81dd-f0d3ba11b13a",
+      "url": "https://app.notion.com/p/3d21834fbdba817981ddf0d3ba11b13a",
+      "title": "FUTA BIO 101 — Flowering Plants",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3c11834f-bdba-8136-b014-ce9446c8f18b",
+      "url": "https://app.notion.com/p/3c11834fbdba8136b014ce9446c8f18b",
+      "title": "CHM 101 — Atomic Theory",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-8196-9ff5-d0c9a3c34ca2",
+      "url": "https://app.notion.com/p/3c11834fbdba81969ff5d0c9a3c34ca2",
+      "title": "CHM 101 — Thermochemistry",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-8139-9d3b-fb7a77230933",
+      "url": "https://app.notion.com/p/3c11834fbdba81399d3bfb7a77230933",
+      "title": "CHM 101 — Chemical Kinetics",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-81c8-a2d0-fce5636254ba",
+      "url": "https://app.notion.com/p/3c11834fbdba81c8a2d0fce5636254ba",
+      "title": "CHM 101 — Chemical Equilibria",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-81b6-a6cb-d39f3d0e239e",
+      "url": "https://app.notion.com/p/3c11834fbdba81b6a6cbd39f3d0e239e",
+      "title": "CHM 101 — Electrochemistry",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-8171-8223-f0530174cdf5",
+      "url": "https://app.notion.com/p/3c11834fbdba81718223f0530174cdf5",
+      "title": "CHM 101 — Radiochemistry",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-810b-b183-dba1e6a27664",
+      "url": "https://app.notion.com/p/3c11834fbdba810bb183dba1e6a27664",
+      "title": "CHM 101 — Solutions & Solubility",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-8114-9853-edcf8eaffdb7",
+      "url": "https://app.notion.com/p/3c41834fbdba81149853edcf8eaffdb7",
+      "title": "PHY 101 — Dimensional Analysis",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-819e-aec4-cd266660f88b",
+      "url": "https://app.notion.com/p/3c41834fbdba819eaec4cd266660f88b",
+      "title": "PHY 101 — Vector Analysis",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-81f9-957c-ddb7113a52bc",
+      "url": "https://app.notion.com/p/3c41834fbdba81f9957cddb7113a52bc",
+      "title": "PHY 101 — Kinematics",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-818e-a6b0-cfc288c52571",
+      "url": "https://app.notion.com/p/3c41834fbdba818ea6b0cfc288c52571",
+      "title": "PHY 101 — Projectile Motion",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-81e1-bbc3-d655d0434dff",
+      "url": "https://app.notion.com/p/3c41834fbdba81e1bbc3d655d0434dff",
+      "title": "PHY 101 — Circular Motion",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-8110-8ad1-ed0eda9188ca",
+      "url": "https://app.notion.com/p/3c41834fbdba81108ad1ed0eda9188ca",
+      "title": "PHY 101 — Laws of Mechanics",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3d11834f-bdba-81ba-b400-ec6071d8df08",
+      "url": "https://app.notion.com/p/3d11834fbdba81bab400ec6071d8df08",
+      "title": "200L Physiology — Cardiac Muscle & Electrical Activity",
+      "level": "200L",
+      "course": "Physiology",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified 200L topic note; staged for owner-authorized reuse outside Bowen, with original source context preserved. Destination course/semester mapping and rights review remain pending."
+    },
+    {
+      "id": "3da1834f-bdba-81ce-b2f8-e898fe7e525b",
+      "url": "https://app.notion.com/p/3da1834fbdba81ceb2f8e898fe7e525b",
+      "title": "200L Biochemistry — Enzyme Structure, Active Sites & Specificity",
+      "level": "200L",
+      "course": "Biochemistry",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified 200L topic note; staged for owner-authorized reuse outside Bowen, with original source context preserved. Destination course/semester mapping and rights review remain pending."
+    },
+    {
+      "id": "3ca1834f-bdba-8111-9c40-d56f55b8b295",
+      "url": "https://app.notion.com/p/3ca1834fbdba81119c40d56f55b8b295",
+      "title": "200L Physiology course index",
+      "level": "200L",
+      "course": "Physiology",
+      "types": [
+        "course-index"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified course map/index. Preserve original context; shared reuse outside Bowen requires target course mapping."
+    },
+    {
+      "id": "3d11834f-bdba-81fc-891e-db436903031f",
+      "url": "https://app.notion.com/p/3d11834fbdba81fc891edb436903031f",
+      "title": "200L Biochemistry notes index",
+      "level": "200L",
+      "course": "Biochemistry",
+      "types": [
+        "course-index"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified course map/index. Preserve original context; shared reuse outside Bowen requires target course mapping."
+    },
+    {
+      "id": "3ca1834f-bdba-8170-a032-d1301c919134",
+      "url": "https://app.notion.com/p/3ca1834fbdba8170a032d1301c919134",
+      "title": "200L strategic architecture and resource map",
+      "level": "200L",
+      "course": "200L",
+      "types": [
+        "course-index"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified course map/index. Preserve original context; shared reuse outside Bowen requires target course mapping."
     }
   ],
   "exports": [
@@ -414,6 +734,31 @@
       ],
       "status": "staged-not-yet-loaded-into-live-app",
       "mappingStatus": "Bowen-200L-discipline-known-official-course-code-and-semester-not-yet-mapped"
+    },
+    {
+      "path": "data/notion-futa-bio101-notes.json",
+      "resources": 8,
+      "contentChars": 46375,
+      "institution": "FUTA",
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-100l-physics-chemistry-shared-pilot.json",
+      "resources": 13,
+      "contentChars": 51953,
+      "sharedUseExcludes": [
+        "Bowen University"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-200l-physiology-biochemistry-topics.json",
+      "resources": 2,
+      "contentChars": 26503,
+      "sharedUseExcludes": [
+        "Bowen University"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
     }
   ],
   "sourceAuthority": "User confirms all Notion-built materials are verified.",
