@@ -28,3 +28,20 @@ test('BSc selector is limited to Bowen MBBS 200L+',()=>{
 });
 
 test('allows course-wide filtering when semester is not selected',()=>{const noSemester={institution:'FUTA',programme:'BIO',level:'100L'};assert.equal(E.resourceVisible(base,E.identity(noSemester)),true);assert.equal(E.validIdentity(E.identity(noSemester)),true);});
+
+test('loads a staged Notion resource by bundle index',async()=>{
+ const original=globalThis.fetch;
+ globalThis.fetch=async()=>({ok:true,json:async()=>({resources:[{title:'one'},{title:'two'}]})});
+ try{
+  const item=await E.loadResourceContent({resource_key:'shared-test',content_reference:'./data/test.json',metadata:{resource_index:1}});
+  assert.equal(item.title,'two');
+ }finally{globalThis.fetch=original;}
+});
+test('loads a dataset from the combined pilot bundle',async()=>{
+ const original=globalThis.fetch;
+ globalThis.fetch=async()=>({ok:true,json:async()=>({datasets:[{key:'futa-bio101-flashcards',itemCount:75}]})});
+ try{
+  const item=await E.loadResourceContent({resource_key:'futa-100l-bio101-flashcards',content_reference:'./data/pilot.json',metadata:{resource_index:null}});
+  assert.equal(item.itemCount,75);
+ }finally{globalThis.fetch=original;}
+});
