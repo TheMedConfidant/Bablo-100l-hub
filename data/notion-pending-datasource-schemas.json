@@ -1,0 +1,1128 @@
+{
+  "schemaVersion": 1,
+  "fetchedAt": "2026-11-13",
+  "purpose": "schema snapshots for queued Notion exports; no database rows were queried or copied",
+  "dataSources": [
+    {
+      "title": "BIO 101 (Bowen) Flashcards",
+      "dataSourceUrl": "collection://4cf49cc5-fd64-4d38-9d32-73d57a682de5",
+      "pageUrl": "https://app.notion.com/p/3b642068476542fba26175798067308f?pvs=204",
+      "sourcePageId": "3b642068-4765-42fb-a261-75798067308f",
+      "sourceMetadata": {
+        "institution": "Bowen University",
+        "programme": "MBBS",
+        "level": "100L",
+        "semester": null,
+        "course": "BIO 101"
+      },
+      "schema": {
+        "Back": {
+          "description": "",
+          "name": "Back",
+          "type": "text"
+        },
+        "Bloom": {
+          "description": "",
+          "name": "Bloom",
+          "options": [
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Remember",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/S1Z7QA/YzI4YWI5NWYtMDI0MC00N2ZmLWE0YzQtMGY5ZTIzZGViZGE3"
+            },
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Understand",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/S1Z7QA/ZDgwMzQ2OGEtZmQ4OC00OGQzLTk1YWEtYjEzZDJhMDY2MzRj"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Apply",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/S1Z7QA/NDNmYTYyNTktYmYyMC00NTE2LWIwYzUtY2UyYWNmY2M5YjIz"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Analyse",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/S1Z7QA/MDVkMDhjOTktZmQxZC00ODg3LWEyZDItMzEyMTJlNDFmYzkw"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Evaluate",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/S1Z7QA/NzhkY2IxMmItODBhYS00ZGU0LTk5NjctNjk0NTA2ZTk2YWYy"
+            }
+          ],
+          "type": "select"
+        },
+        "Card ID": {
+          "description": "",
+          "name": "Card ID",
+          "type": "text"
+        },
+        "Format": {
+          "description": "",
+          "name": "Format",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Definition",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/Y2VCSw/MmU0NzUwZDMtZDU3MS00YTdjLTlkZWYtYzFiNDE5ZWRmMTYz"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Fact",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/Y2VCSw/M2E2YTlkN2ItNDZhNy00ZjhjLWFmYzgtYzJlM2NlMGJhOWEy"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Comparison",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/Y2VCSw/MjZlY2M2NmUtNjAxZS00NmE2LWEzN2ItZmFiYzdlMmUyMDU5"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Method",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/Y2VCSw/NDIxYTcwNjktYjY5NS00ZjE2LWI3NGEtYTY3ZjMxYjY0YjJh"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Trap",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/Y2VCSw/NzVhZjI3MzItMDg3YS00NmMwLTkxMWYtYzdkOWUwNjZlYzgw"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "Application",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/Y2VCSw/NTk5ZGU5ZjItNWM5ZC00Y2YzLWE1MWUtZGYwMjVlYTRmZjY5"
+            }
+          ],
+          "type": "select"
+        },
+        "Front": {
+          "description": "",
+          "name": "Front",
+          "type": "title"
+        },
+        "Pareto": {
+          "description": "",
+          "name": "Pareto",
+          "options": [
+            {
+              "color": "red",
+              "description": "",
+              "name": "high",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/dmN8Og/Nzc4MDU3NzktOTZiMy00NGY1LTg5ZmQtN2EwNTE4ZTk4NGQy"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "medium",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/dmN8Og/ZDkxMDNkNjUtZTY4OS00ZDI1LWFkYjctMTI3MmU5MWI2NGM2"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "low",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/dmN8Og/MjgwYWQ3M2MtYzE1OC00ZmEwLTg3NTgtYmUzMzUwYzkyZWMw"
+            }
+          ],
+          "type": "select"
+        },
+        "Topic": {
+          "description": "",
+          "name": "Topic",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Characteristics & Classification",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/Y2Y4NzMwMzMtNzdiMC00YWQ1LWI5ZGYtY2QyYzk1YjhkODdm"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Cell Structure & Organization",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/MjgxYzRlZmYtMDYwMC00NWQ4LTg3ZTMtY2Y2Y2I5ZWZmNTZh"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "General Reproduction",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/OWVjNTQ0NTItZDcyOC00NWI5LThiOWUtNGEzNWVmM2NkNTM1"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Chromosome Genes & DNA",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/ZjgyZjdhNzktMzMyNi00Y2FhLWE2NzgtNzM3NGJiMDJlY2Uw"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Evolution & Inheritance",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/OTA4YmFjZDItZmYzNC00OTc0LWExZDItNTRjZWJlMmM1NWUx"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Elements of Ecology I",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/OTFlYTljOTctYzcwMi00ODBlLTg0MmMtZDQyOGJhYjIyOWI0"
+            },
+            {
+              "color": "brown",
+              "description": "",
+              "name": "Elements of Ecology II",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/ZWNhMDY0MWQtZTA5ZS00YTlmLTg4NTItODZjY2Y5NjZkODBj"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Interrelationships I",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/NDc2YTU2ZDAtMmE2MS00MTAxLWE3MTEtNjc1NTUxY2U5OWE0"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Interrelationships II",
+              "url": "collectionPropertyOption://4cf49cc5-fd64-4d38-9d32-73d57a682de5/X3d3bw/YzFlMmZlNWYtNGI0NS00Y2Q2LWI4YTktNmJlM2MxMzY3OWEz"
+            }
+          ],
+          "type": "select"
+        }
+      },
+      "sqliteTable": "CREATE TABLE IF NOT EXISTS \"collection://4cf49cc5-fd64-4d38-9d32-73d57a682de5\" (\n\turl TEXT UNIQUE,\n\tcreatedTime TEXT, -- ISO-8601 datetime string, automatically set. This is the canonical time for when the page was created.\n\t\"Bloom\" TEXT, -- one of [\"Remember\", \"Understand\", \"Apply\", \"Analyse\", \"Evaluate\"]\n\t\"Card ID\" TEXT,\n\t\"Back\" TEXT,\n\t\"Topic\" TEXT, -- one of [\"Characteristics & Classification\", \"Cell Structure & Organization\", \"General Reproduction\", \"Chromosome Genes & DNA\", \"Evolution & Inheritance\", \"Elements of Ecology I\", \"Elements of Ecology II\", \"Interrelationships I\", \"Interrelationships II\"]\n\t\"Format\" TEXT, -- one of [\"Definition\", \"Fact\", \"Comparison\", \"Method\", \"Trap\", \"Application\"]\n\t\"Pareto\" TEXT, -- one of [\"high\", \"medium\", \"low\"]\n\t\"Front\" TEXT\n)",
+      "exportState": "schema-fetched-content-rows-not-exported",
+      "publicationState": "blocked"
+    },
+    {
+      "title": "PHY 101 (Bowen) Flashcards",
+      "dataSourceUrl": "collection://a8b68bcd-7421-433e-a814-e92ccf66dd78",
+      "pageUrl": "https://app.notion.com/p/0eb333745d604efab8cdb10f91f11167?pvs=204",
+      "sourcePageId": "0eb33374-5d60-4efa-b8cd-b10f91f11167",
+      "sourceMetadata": {
+        "institution": "Bowen University",
+        "programme": "MBBS",
+        "level": "100L",
+        "semester": null,
+        "course": "PHY 101"
+      },
+      "schema": {
+        "Back": {
+          "description": "",
+          "name": "Back",
+          "type": "text"
+        },
+        "Bloom": {
+          "description": "",
+          "name": "Bloom",
+          "options": [
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Remember",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/PGhdSg/NWMyNWUwZjEtYTM0MS00OWQ5LTk5NTYtMTUyZmMyZWQ3ZmY2"
+            },
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Understand",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/PGhdSg/NGM3YzljYmQtMmNiZi00YzM0LWEzY2QtZTM4OTk5MjQ3NmVl"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Apply",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/PGhdSg/OTIyNGJiNDQtZTg1MC00MDhiLWI5YzctNjg5NmNlMDcwNzdi"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Analyse",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/PGhdSg/MzhiODlkNDUtYzEzNS00YjIxLTg4M2UtNzM1ZjY1ZWExYTAx"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Evaluate",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/PGhdSg/YjUzZjdjY2ItNjBhOS00Y2FiLWE4Y2QtY2Q2OWI5YmYwMGJl"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Create",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/PGhdSg/YzRjMWM2OTAtOTJkOS00ODZmLWIyYzItMDIyNjNmODgyMDgz"
+            }
+          ],
+          "type": "select"
+        },
+        "Card ID": {
+          "description": "",
+          "name": "Card ID",
+          "type": "text"
+        },
+        "Format": {
+          "description": "",
+          "name": "Format",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Definition",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/fW1PWw/ZmRlZGJhZGMtNmYzYi00NGUzLTkwZDMtNmZjMDE2NDFkZTM0"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Formula/Law",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/fW1PWw/YzM3MmI1NGUtNGY0Zi00ODQyLThhYTQtMzgzYTFjODlmMWEz"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Fact",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/fW1PWw/NjljNGM5MTgtZDg4Ni00NGZjLWJiMzItZDU2YTFmYmUwNmY3"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Comparison",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/fW1PWw/OWQyNGZkNTYtNjcwYS00YjgwLWEwN2EtNTRhMzNhY2NkOWM4"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Method",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/fW1PWw/MzA2Y2E5MjctZWZlOC00ZDk3LThkNjItZmY0NzBlNzFjZDM3"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Trap",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/fW1PWw/M2NjNzc0NDItMGJlOC00NmUyLWE2MmItMjNiY2UxOWZiNGUz"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "Application",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/fW1PWw/NGM3ZWJmMWMtYTRjNi00N2RiLThkYjgtM2FiMThhNGU4MTE5"
+            }
+          ],
+          "type": "select"
+        },
+        "Front": {
+          "description": "",
+          "name": "Front",
+          "type": "title"
+        },
+        "Pareto": {
+          "description": "",
+          "name": "Pareto",
+          "options": [
+            {
+              "color": "red",
+              "description": "",
+              "name": "high",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/XWJWWQ/NzlmZmY2YzUtODA0Zi00ZWRlLWI5MzMtZTIwN2I4N2VhNTkx"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "medium",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/XWJWWQ/NGJiNjI3MjktOTQ3ZC00MGI1LWIyZWQtNjAyNWEzYjFhZTMz"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "low",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/XWJWWQ/YmVmNjI1NjktOGY1Zi00ZTk2LTg5YmQtZmM1N2UzNmY2Njg5"
+            }
+          ],
+          "type": "select"
+        },
+        "Topic": {
+          "description": "",
+          "name": "Topic",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Vectors & Space-Time",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/MTM2ZjRiZjAtZWZhZi00NjY5LThkNGEtOGIxNDhhMWM5MTg2"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Newton's Laws of Motion",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/OTBlNTYzNjAtZmVlMC00ZDY0LWIwZDItNmZmODNkN2JkYjU1"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Friction",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/NTA3MjllNGUtNmE3Zi00ZDgwLTk3MWEtYTk4NzNhZTYxYTM1"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Circular Motion",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/MTIxY2QyNWMtNjIwYi00ODQ5LWE4MzctZDFmMTI1OGExNWM4"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Work Energy & Power",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/ODIzNjljMjItMGI2MS00NTBmLThmN2UtZGZmNGYzYmM5OTY5"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Centre of Mass",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/Y2EyZDkyMTUtMDI4NC00MzEyLThlNTQtNGNkZjE5MzYwZTQ4"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "Waves & Sound",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/ODUzYWIzZDAtOGMxYS00MGExLTk4NzctZWJhZDQ5NzlhOWMz"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Surface Tension & Thermal Expansion",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/NjFlN2MzNTEtNGU0NS00MTljLTk0YjUtYjNjNWYyMGNlNDg1"
+            },
+            {
+              "color": "brown",
+              "description": "",
+              "name": "Conservation Principles",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/MDNjMjA0MGQtNjIzMS00ODcyLTlkNDUtNTZjMTk0YWRmMzQ1"
+            },
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Space and Time",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/Zjk1ZGFlYjQtZGI1Mi00MjY3LTk4MWEtNjA5MDNlNmM4NTZk"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Units and Dimensions",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/OTFlNjhiNjgtMzAyZC00ZjJjLWIwYTgtNjk2MTA4NGZiMzMy"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Vectors and Scalars",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/ZTcyN2I3ZDEtYWEwNy00ZDFjLTkxNDUtZWJjMGNkY2NiYjg5"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Kinematics",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/Yjg3NjZkMDgtYjhiOS00NjQ5LTk4YWUtNmMzMTE4NDAyOWE2"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Newtonian Mechanics & Centre of Mass",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/ZTMxMGQ5N2EtZDBmOS00YWZhLWIyMDQtMGNkOGFlNjExN2Mz"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Newton's Laws & Equations of Motion",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/YTY5MzQzYTUtY2VmMC00ZmY0LWIzNGItNDgyOGQwNDM2NGNj"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "Circular Motion of Planets & Satellites",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/ZDkwNGNkNDctZGNjOS00YmUyLWExZjctMDBkYzJiZjViMWVk"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Gyroscopes and Precession",
+              "url": "collectionPropertyOption://a8b68bcd-7421-433e-a814-e92ccf66dd78/c3xfdA/ZDU1OGZmNTYtZTEyMy00ZTNiLWE5MzEtZmIzMTQ3NTg3YTRh"
+            }
+          ],
+          "type": "select"
+        }
+      },
+      "sqliteTable": "CREATE TABLE IF NOT EXISTS \"collection://a8b68bcd-7421-433e-a814-e92ccf66dd78\" (\n\turl TEXT UNIQUE,\n\tcreatedTime TEXT, -- ISO-8601 datetime string, automatically set. This is the canonical time for when the page was created.\n\t\"Bloom\" TEXT, -- one of [\"Remember\", \"Understand\", \"Apply\", \"Analyse\", \"Evaluate\", \"Create\"]\n\t\"Card ID\" TEXT,\n\t\"Back\" TEXT,\n\t\"Pareto\" TEXT, -- one of [\"high\", \"medium\", \"low\"]\n\t\"Topic\" TEXT, -- one of [\"Vectors & Space-Time\", \"Newton's Laws of Motion\", \"Friction\", \"Circular Motion\", \"Work Energy & Power\", \"Centre of Mass\", \"Waves & Sound\", \"Surface Tension & Thermal Expansion\", \"Conservation Principles\", \"Space and Time\", \"Units and Dimensions\", \"Vectors and Scalars\", \"Kinematics\", \"Newtonian Mechanics & Centre of Mass\", \"Newton's Laws & Equations of Motion\", \"Circular Motion of Planets & Satellites\", \"Gyroscopes and Precession\"]\n\t\"Format\" TEXT, -- one of [\"Definition\", \"Formula/Law\", \"Fact\", \"Comparison\", \"Method\", \"Trap\", \"Application\"]\n\t\"Front\" TEXT\n)",
+      "exportState": "schema-fetched-content-rows-not-exported",
+      "publicationState": "blocked"
+    },
+    {
+      "title": "COS 101 (Bowen) Flashcards",
+      "dataSourceUrl": "collection://89488c51-5281-49ea-9682-7573a26d2610",
+      "pageUrl": "https://app.notion.com/p/c373c5778524455f88bd58af6bb0a490?pvs=204",
+      "sourcePageId": "c373c577-8524-455f-88bd-58af6bb0a490",
+      "sourceMetadata": {
+        "institution": "Bowen University",
+        "programme": "MBBS",
+        "level": "100L",
+        "semester": null,
+        "course": "COS 101"
+      },
+      "schema": {
+        "Back": {
+          "description": "",
+          "name": "Back",
+          "type": "text"
+        },
+        "Bloom": {
+          "description": "",
+          "name": "Bloom",
+          "options": [
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Remember",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/aGVfTQ/YjRlMTU4ZWItYWRmZC00ODlhLTkxYzAtNmZmOTI0ZGIyNDU2"
+            },
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Understand",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/aGVfTQ/ODVhMjQ2OTItOTMwZi00Y2I5LWFlNDctMWRhZDk0MzRlMWFk"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Apply",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/aGVfTQ/ZjA1ZmE2MDAtODhmZS00ZmY1LWIyMjktOGRkNDA0NmQwZjE2"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Analyse",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/aGVfTQ/NmY4NjIzMWMtM2M0ZS00OTE2LTgwZmItYmU0NjFmMmFhODBm"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Evaluate",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/aGVfTQ/NTA0NDg3ZDktZDI4My00MjYyLTg1ZmEtYjY1ZGNmY2FlMGJh"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Create",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/aGVfTQ/MGIwNDk3NDMtMTI4ZC00YjZhLWE0NmEtNjI3ZmUwZTQ0YWE0"
+            }
+          ],
+          "type": "select"
+        },
+        "Card ID": {
+          "description": "",
+          "name": "Card ID",
+          "type": "text"
+        },
+        "Format": {
+          "description": "",
+          "name": "Format",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Definition",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/Xl9XcA/ZGEwMmRmMTItNTVlZS00NmUwLThlZjAtMDZmOWM5ZmM2ZTVj"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Fact",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/Xl9XcA/NTRjY2FlNTItZTMzMi00Yzg5LTlmMmItNmI4M2QyNmM3YjI1"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Comparison",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/Xl9XcA/ZTQ4ZGYzODktMTliYS00OTBkLWIyYzMtODIzYTI0Yjk3NzVk"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Method",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/Xl9XcA/OGJmODI0OWQtY2M1Ni00YTE4LWIwNzYtOTk5YTAyOGViZjcz"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Trap",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/Xl9XcA/YjJiNTA1NWMtN2UxOS00OGYxLTgzMGItNmViZWQ5Yzc1Zjkx"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "Application",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/Xl9XcA/YjVmYmY2ZTMtODJlZi00NjFiLThhZTgtZDU5NzAxMDNiOTNk"
+            }
+          ],
+          "type": "select"
+        },
+        "Front": {
+          "description": "",
+          "name": "Front",
+          "type": "title"
+        },
+        "Pareto": {
+          "description": "",
+          "name": "Pareto",
+          "options": [
+            {
+              "color": "red",
+              "description": "",
+              "name": "high",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/cERJfA/ODA1OTAyZWItYWRmOC00ZDA2LWJlNTctZDM3YzFiZjM0Nzhi"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "medium",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/cERJfA/NWZiODk5ZTAtODcyMS00YmVkLWJiNWYtZmZmNGM4MzViOGRi"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "low",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/cERJfA/M2I5N2MxOTMtNzJlOC00YmE5LTllYzItZTQwYTE1MWUwMWY4"
+            }
+          ],
+          "type": "select"
+        },
+        "Topic": {
+          "description": "",
+          "name": "Topic",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "History of Computing",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/NWE0ZjVkNGUtNDU0Yy00NzllLTllZjktYjEzOTM4ZDgzMTk4"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Basic Components",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/ZDc4YWY5NTMtMTZkOS00ZmNjLTg5MTMtMjZjZjgxM2JiZTlm"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "I/O Devices & Peripherals",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/MzlmYzVmYTctYTg3OS00MTFlLTg2NmYtMzgwOTY2OWEwMGY3"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Hardware Software & Humanware",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/MDFkOTBjMzAtOGY4ZC00ZTZkLWE3MTEtNzE5MjBjZGY5OTI5"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Computing Applications",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/ZDAxM2EzYTctM2FhMy00YWY2LWI2YzQtMDk1NmM3OWEzZjQ2"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Information Processing",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/YjMzMzMzMmUtNTQxZC00ZjdlLTgyNGUtOTQ5NDhmMWZmMDlk"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "The Internet",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/MDRlNGYzZjAtOTc4Zi00MGY0LTgzNGItMGQ4YjE2YTI4YWEw"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Computing Disciplines",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/NTIxYjljMzItNzdmMC00OTdiLWI1ZjQtOWJlZTNhYmU3N2M5"
+            },
+            {
+              "color": "brown",
+              "description": "",
+              "name": "Career Specialisations",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/NDZmNjgzYmItMGIxZC00ODNmLTg1NzAtNTI0N2Q4MjRlNTkz"
+            },
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Future of Computing",
+              "url": "collectionPropertyOption://89488c51-5281-49ea-9682-7573a26d2610/SD9-Rg/YTczNThjODQtYmE3OS00NDI3LTlkNTItNjQxMTZlNWM4Nzc3"
+            }
+          ],
+          "type": "select"
+        }
+      },
+      "sqliteTable": "CREATE TABLE IF NOT EXISTS \"collection://89488c51-5281-49ea-9682-7573a26d2610\" (\n\turl TEXT UNIQUE,\n\tcreatedTime TEXT, -- ISO-8601 datetime string, automatically set. This is the canonical time for when the page was created.\n\t\"Topic\" TEXT, -- one of [\"History of Computing\", \"Basic Components\", \"I/O Devices & Peripherals\", \"Hardware Software & Humanware\", \"Computing Applications\", \"Information Processing\", \"The Internet\", \"Computing Disciplines\", \"Career Specialisations\", \"Future of Computing\"]\n\t\"Back\" TEXT,\n\t\"Format\" TEXT, -- one of [\"Definition\", \"Fact\", \"Comparison\", \"Method\", \"Trap\", \"Application\"]\n\t\"Bloom\" TEXT, -- one of [\"Remember\", \"Understand\", \"Apply\", \"Analyse\", \"Evaluate\", \"Create\"]\n\t\"Pareto\" TEXT, -- one of [\"high\", \"medium\", \"low\"]\n\t\"Card ID\" TEXT,\n\t\"Front\" TEXT\n)",
+      "exportState": "schema-fetched-content-rows-not-exported",
+      "publicationState": "blocked"
+    },
+    {
+      "title": "CHM 101 MCQs",
+      "dataSourceUrl": "collection://ffe87778-d84d-4b61-ab56-4a89ca84d9ca",
+      "pageUrl": "https://app.notion.com/p/bc122d7dd17c405fa206c584346f4a29?pvs=204",
+      "sourcePageId": "bc122d7d-d17c-405f-a206-c584346f4a29",
+      "sourceMetadata": {
+        "institution": "Bowen University",
+        "programme": "MBBS",
+        "level": "100L",
+        "semester": null,
+        "course": "CHM 101"
+      },
+      "schema": {
+        "Bloom": {
+          "description": "",
+          "name": "Bloom",
+          "options": [
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Remember",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNXbw/MWY4MWEzMTEtYjc2NS00NjUyLTljZGQtNDUyOTJjOGExYjhi"
+            },
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Understand",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNXbw/YjdhNGEwOGMtMzBjMi00NDhhLWE2ZGItNTZlOGM0NWY2OTgz"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Apply",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNXbw/NzMzMWU1NGEtZDM1OS00YzE4LTk1MDAtYmQwYmIwOTZlMGVl"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Analyse",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNXbw/NWMyZjY3NGYtZDg2OS00MjM1LThmN2MtNmVhNmUzOWRkNmZh"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Evaluate",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNXbw/YTJhOTM0ODctNzNiNi00ZjE0LWFmNmEtMzYzYTJhZDdlOWI0"
+            }
+          ],
+          "type": "select"
+        },
+        "Card ID": {
+          "description": "",
+          "name": "Card ID",
+          "type": "text"
+        },
+        "Correct Answer": {
+          "description": "",
+          "name": "Correct Answer",
+          "options": [
+            {
+              "color": "green",
+              "description": "",
+              "name": "A",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XEFgaQ/M2FmN2Y0ZDQtZmViYy00ODg3LWI1NzItZTFmYzYzOGFkOWI0"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "B",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XEFgaQ/ZWUzMWRkZDAtM2MyOC00YzEyLTgyY2QtZWU4ZGVhMzI1ZjUz"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "C",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XEFgaQ/MmRhYzFmZTQtNzY2Yy00NGZhLTkyNzAtY2JiM2U1NjQ4ZDc2"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "D",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XEFgaQ/NzY4OTJmYjktODZjNi00OTY1LWFlMjktMDJjNmE4OTA3Mjk5"
+            }
+          ],
+          "type": "select"
+        },
+        "Difficulty": {
+          "description": "",
+          "name": "Difficulty",
+          "options": [
+            {
+              "color": "green",
+              "description": "",
+              "name": "Easy",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNVYA/ODdjNzgwOTUtY2E4ZC00YmNkLTkzNjgtZWUzZGU1ZTc5NDE5"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Medium",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNVYA/Mjk5NTRmMDktODU0ZS00YjE1LWE4ZWUtYjEzMGQ1NzViOTBi"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Hard",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/bFNVYA/MTNmMzMwNDAtNGI4Yy00Mzk2LWFhOGEtMDY1NmZhMmUxYWVj"
+            }
+          ],
+          "type": "select"
+        },
+        "Explanation": {
+          "description": "",
+          "name": "Explanation",
+          "type": "text"
+        },
+        "Option A": {
+          "description": "",
+          "name": "Option A",
+          "type": "text"
+        },
+        "Option B": {
+          "description": "",
+          "name": "Option B",
+          "type": "text"
+        },
+        "Option C": {
+          "description": "",
+          "name": "Option C",
+          "type": "text"
+        },
+        "Option D": {
+          "description": "",
+          "name": "Option D",
+          "type": "text"
+        },
+        "Pareto": {
+          "description": "",
+          "name": "Pareto",
+          "options": [
+            {
+              "color": "red",
+              "description": "",
+              "name": "high",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/RktxbA/OGJjMjUwMDItOGFiOS00ZWE4LWFjMDEtOGQ4ZmQ1OWVkZjlk"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "medium",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/RktxbA/MGY1OGYxODQtNTVjNy00MmIyLTk1YjItZWY2N2I0YWJiMjE5"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "low",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/RktxbA/YTNhNDFmNzAtMjUzYS00MTE2LTliNWQtM2FhNGJiMDFlNWZk"
+            }
+          ],
+          "type": "select"
+        },
+        "Question": {
+          "description": "",
+          "name": "Question",
+          "type": "title"
+        },
+        "Topic": {
+          "description": "",
+          "name": "Topic",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Atomic Theory",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XHBUbg/NDViYTg5MWUtZmI0Ni00ZDEyLWE1NmItNWMyODU3N2Y5YmU0"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Thermochemistry",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XHBUbg/YzExMjYwMTktYjI1NS00OWZiLWE4MTItMDA4NWQwMTJhYzk1"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Chemical Kinetics",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XHBUbg/ODZiN2NlZTQtYTc3Ny00MWM3LTlmYzEtMmIwYzQ2Yjk2YmVi"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Chemical Equilibria",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XHBUbg/NWI5ODY0OWEtZDYzMi00OGZhLWIwYmYtNDU3OGI5ZGFlYzU3"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Electrochemistry",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XHBUbg/MGVlMDgzYTktYjYwOC00ODQ3LTllZTMtMDk1ZWQwY2NhMzJj"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Radiochemistry",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XHBUbg/M2MwMTEzMmQtZDQ4Yy00ZjBjLWFlMDQtNmNmYjVkNDg4N2Uy"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "Solutions & Solubility",
+              "url": "collectionPropertyOption://ffe87778-d84d-4b61-ab56-4a89ca84d9ca/XHBUbg/NzI4MDE3YzQtNzI0Yi00NTJiLTg2NWMtMTQ5MzM2Y2Q4OGEx"
+            }
+          ],
+          "type": "select"
+        }
+      },
+      "sqliteTable": "CREATE TABLE IF NOT EXISTS \"collection://ffe87778-d84d-4b61-ab56-4a89ca84d9ca\" (\n\turl TEXT UNIQUE,\n\tcreatedTime TEXT, -- ISO-8601 datetime string, automatically set. This is the canonical time for when the page was created.\n\t\"Pareto\" TEXT, -- one of [\"high\", \"medium\", \"low\"]\n\t\"Option B\" TEXT,\n\t\"Option C\" TEXT,\n\t\"Option A\" TEXT,\n\t\"Correct Answer\" TEXT, -- one of [\"A\", \"B\", \"C\", \"D\"]\n\t\"Topic\" TEXT, -- one of [\"Atomic Theory\", \"Thermochemistry\", \"Chemical Kinetics\", \"Chemical Equilibria\", \"Electrochemistry\", \"Radiochemistry\", \"Solutions & Solubility\"]\n\t\"Explanation\" TEXT,\n\t\"Difficulty\" TEXT, -- one of [\"Easy\", \"Medium\", \"Hard\"]\n\t\"Bloom\" TEXT, -- one of [\"Remember\", \"Understand\", \"Apply\", \"Analyse\", \"Evaluate\"]\n\t\"Card ID\" TEXT,\n\t\"Option D\" TEXT,\n\t\"Question\" TEXT\n)",
+      "exportState": "schema-fetched-content-rows-not-exported",
+      "publicationState": "blocked"
+    },
+    {
+      "title": "PHY 101 MCQs",
+      "dataSourceUrl": "collection://2dab99e3-04bf-4429-9e59-7ac3b94f978c",
+      "pageUrl": "https://app.notion.com/p/f2f3ef9e8ffc487497eb35c73ac3e353?pvs=204",
+      "sourcePageId": "3c41834f-bdba-81bb-aa79-cac0a7b95bca",
+      "sourceMetadata": {
+        "institution": "Bowen University",
+        "programme": "MBBS",
+        "level": "100L",
+        "semester": null,
+        "course": "PHY 101"
+      },
+      "schema": {
+        "Bloom": {
+          "description": "",
+          "name": "Bloom",
+          "options": [
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Remember",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/b3xNTw/ZmU1MWRhZGYtOTU0OC00OTU5LWFmNzgtNmUwMjJhOGQzN2E5"
+            },
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Understand",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/b3xNTw/ZWEwYWI0MGMtZmUwYy00YjA0LWEyMjctN2EyMDM4YzA0OTIy"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Apply",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/b3xNTw/MWMzYzJmZTctODY3OS00MGEzLWIxNDYtYzgyZTY5ZDRiNjY2"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Analyse",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/b3xNTw/MGFiYzNlMGYtNGRiYS00NWM4LWJjZGQtOWY4ZmM1ZjlmYzBi"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Evaluate",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/b3xNTw/Y2ZmNGExYjgtZDZkOC00NzdkLThkMjYtOTM4NzAzZTI1YjQz"
+            }
+          ],
+          "type": "select"
+        },
+        "Card ID": {
+          "description": "",
+          "name": "Card ID",
+          "type": "text"
+        },
+        "Correct Answer": {
+          "description": "",
+          "name": "Correct Answer",
+          "options": [
+            {
+              "color": "green",
+              "description": "",
+              "name": "A",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/bVJTdQ/MzhkMTBmYzYtMmExMy00MTM5LWE1ZWEtZGE1MjY4NTNhMWMy"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "B",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/bVJTdQ/NmJkZTZhYzgtNGUxMi00ZWRmLTg1OWYtOWZmMWQ2ODg3MTc4"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "C",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/bVJTdQ/MTY3MDBiM2UtNmYwOC00ZmFlLWI3MDktZmJlNjQxOWE4MDUw"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "D",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/bVJTdQ/MTI1ZTk5YTktM2FjZi00ZDE1LWI1Y2YtNTg0M2IwMmU5Yjhh"
+            }
+          ],
+          "type": "select"
+        },
+        "Difficulty": {
+          "description": "",
+          "name": "Difficulty",
+          "options": [
+            {
+              "color": "green",
+              "description": "",
+              "name": "Easy",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/Zlp5fA/NGY2ZWJjMDktODdjZS00MTgwLWI1NzUtNzc4YWQ5ZDU1NGYx"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Medium",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/Zlp5fA/Y2E1ZDBkYjUtMjdlNy00YzMwLWI0YjktMjdiMjI4NWNkNGQ0"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Hard",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/Zlp5fA/YjY3MTQ0NGEtY2I1Yi00NGFjLTkzNTktMTY4ZDUwMTFmNzU4"
+            }
+          ],
+          "type": "select"
+        },
+        "Explanation": {
+          "description": "",
+          "name": "Explanation",
+          "type": "text"
+        },
+        "Option A": {
+          "description": "",
+          "name": "Option A",
+          "type": "text"
+        },
+        "Option B": {
+          "description": "",
+          "name": "Option B",
+          "type": "text"
+        },
+        "Option C": {
+          "description": "",
+          "name": "Option C",
+          "type": "text"
+        },
+        "Option D": {
+          "description": "",
+          "name": "Option D",
+          "type": "text"
+        },
+        "Pareto": {
+          "description": "",
+          "name": "Pareto",
+          "options": [
+            {
+              "color": "red",
+              "description": "",
+              "name": "high",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/bUZ8Tg/YWIzYjVjNzgtNjMxMi00NWMxLTllNWMtMGVlZjA1NGY3Y2Yx"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "medium",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/bUZ8Tg/Yzg4MGE2NGEtMjIwYi00NzQ4LWFmYzctYWRhNWQ1Njc5ZjI1"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "low",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/bUZ8Tg/OTFjMjJjNzUtZGQ1NS00MzQyLTg2ZTQtOTcwODY1NzI4ZDQx"
+            }
+          ],
+          "type": "select"
+        },
+        "Question": {
+          "description": "",
+          "name": "Question",
+          "type": "title"
+        },
+        "Topic": {
+          "description": "",
+          "name": "Topic",
+          "options": [
+            {
+              "color": "blue",
+              "description": "",
+              "name": "Dimensional Analysis",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/ODNmZjZlMDQtNzFhMC00MzMyLWE5MjgtYTgzOGNmN2Q2Y2Zi"
+            },
+            {
+              "color": "orange",
+              "description": "",
+              "name": "Vector Analysis",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/MDQ5YmFjOGYtODU0NS00N2VhLTgxZGEtNWVjNjQ3NjI2OTU2"
+            },
+            {
+              "color": "green",
+              "description": "",
+              "name": "Kinematics",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/OTZiMTQwYjUtNTk3Ny00YmI3LTg4YzYtOWMwYjZhYTU3MDYw"
+            },
+            {
+              "color": "purple",
+              "description": "",
+              "name": "Projectile Motion",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/OTI1MjZiNTYtMTcxMy00YjA4LWE1ZWMtNTY3NWMyNDc0ODAz"
+            },
+            {
+              "color": "yellow",
+              "description": "",
+              "name": "Circular Motion",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/NDU3OWI4ZWQtZDkwNy00N2RkLThjNWMtOTdlMzgyMzg5MTU4"
+            },
+            {
+              "color": "red",
+              "description": "",
+              "name": "Laws of Mechanics",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/MTUzMGYwMWItMDQwZS00ZWEyLThmMzctYjdiN2NiNjJjZDA1"
+            },
+            {
+              "color": "pink",
+              "description": "",
+              "name": "Gravitation",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/YWJhNjVjOWItZWVjMy00ODRjLWFkN2MtMzhlMDZlNWYzYzU4"
+            },
+            {
+              "color": "brown",
+              "description": "",
+              "name": "Heat Transfer",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/NTEyMGRmZTgtYzY2OC00NTNkLWI2MDYtYjlhYTg4ZGVkMTEw"
+            },
+            {
+              "color": "gray",
+              "description": "",
+              "name": "Simple Harmonic Motion",
+              "url": "collectionPropertyOption://2dab99e3-04bf-4429-9e59-7ac3b94f978c/cVZIag/NDBhZmI5NDktYjgyZS00MWI4LTk3YmMtZTlhMDQ3ZGI4NDhm"
+            }
+          ],
+          "type": "select"
+        }
+      },
+      "sqliteTable": "CREATE TABLE IF NOT EXISTS \"collection://2dab99e3-04bf-4429-9e59-7ac3b94f978c\" (\n\turl TEXT UNIQUE,\n\tcreatedTime TEXT, -- ISO-8601 datetime string, automatically set. This is the canonical time for when the page was created.\n\t\"Option D\" TEXT,\n\t\"Option B\" TEXT,\n\t\"Explanation\" TEXT,\n\t\"Option C\" TEXT,\n\t\"Option A\" TEXT,\n\t\"Difficulty\" TEXT, -- one of [\"Easy\", \"Medium\", \"Hard\"]\n\t\"Pareto\" TEXT, -- one of [\"high\", \"medium\", \"low\"]\n\t\"Card ID\" TEXT,\n\t\"Correct Answer\" TEXT, -- one of [\"A\", \"B\", \"C\", \"D\"]\n\t\"Bloom\" TEXT, -- one of [\"Remember\", \"Understand\", \"Apply\", \"Analyse\", \"Evaluate\"]\n\t\"Topic\" TEXT, -- one of [\"Dimensional Analysis\", \"Vector Analysis\", \"Kinematics\", \"Projectile Motion\", \"Circular Motion\", \"Laws of Mechanics\", \"Gravitation\", \"Heat Transfer\", \"Simple Harmonic Motion\"]\n\t\"Question\" TEXT\n)",
+      "exportState": "schema-fetched-content-rows-not-exported",
+      "publicationState": "blocked"
+    }
+  ]
+}
