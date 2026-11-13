@@ -33,7 +33,7 @@ function add(){
  button.onclick=async function(){
   if(!confirm('Clear only Bablo Hub offline cache files? Your account and study progress will be kept. Some content will need internet to load again.'))return;
   button.disabled=true;button.textContent='Clearing…';
-  try{var names=await caches.keys();await Promise.all(names.filter(function(n){return n.indexOf('bablo-offline-')===0||n.indexOf('bablo-shell-')===0||n.indexOf('bablo-course-pack-v1-')===0||n.indexOf('bablo-course-pack-stage-')===0;}).map(function(n){return caches.delete(n);}));
+  try{var names=await caches.keys();await Promise.all(names.filter(function(n){return n.indexOf('bablo-offline-')===0||n.indexOf('bablo-shell-')===0||n.indexOf('bablo-course-pack-v1-')===0||n.indexOf('bablo-course-pack-stage-')===0||n==='bablo-course-pack-meta-v1';}).map(function(n){return caches.delete(n);}));
    usage.textContent='Bablo offline cache cleared. Your study data was kept.';button.textContent='Cache cleared';setTimeout(function(){location.reload()},900);
   }catch(e){usage.textContent='Could not clear the offline cache in this browser. Use Android app/browser storage settings.';button.disabled=false;button.textContent='Try again';}
  };
@@ -113,7 +113,8 @@ self.addEventListener('message',event=>{
    await caches.delete(COURSE_PREFIX+id);
    reply({ok:true,courseId:id,completed,total:urls.length,failed:0});
   }catch(error){
-   if(newCacheName)await caches.delete(newCacheName).catch(()=>{});
+   if(newCacheName){const active=await activeCourseCache(String(msg.courseId||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-|-$/g,'').slice(0,64)).catch(()=>null);if(active!==newCacheName)await caches.delete(newCacheName).catch(()=>{})}
+   await caches.delete('bablo-course-pack-stage-'+String(msg.courseId||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-|-$/g,'').slice(0,64)).catch(()=>{});
    reply({ok:false,message:String(error&&error.message||error)+' Your previous offline pack was kept.'});
   }
  })());
