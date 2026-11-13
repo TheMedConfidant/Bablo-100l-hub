@@ -3846,14 +3846,11 @@ function accountSection() {
     ensureChessIdentity();
     const usernameInput=h('input',{type:'text',maxlength:'20',placeholder:'your_username',value:DB.profile.username||'',autocapitalize:'none',autocomplete:'off',spellcheck:'false'});
     const usernameError=h('p',{class:'small',style:{color:'var(--bad)'},role:'alert'});
-    return h('section', { class: 'panel stack' }, h('h2', null, 'Your account'),
-      h('p', null, h('b', null, 'Chess username: '), h('span', { style: { color: 'var(--brand)', fontWeight: '800' } }, DB.profile.username ? '@'+DB.profile.username : 'Loading…')),
-      h('label',{class:'field'},h('span',null,'Change username'),usernameInput),
-      h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Friends use this to find and challenge you.'),
+    return h('section', { class: 'panel stack' }, h('h2', null, 'Account & security'),
+      h('label',{class:'field'},h('span',null,'Public username'),usernameInput),
+      h('p',{class:'tiny muted'},'Use 3–20 lowercase letters, numbers or underscores. Other students can use this username to find and challenge you. Your Bablo ID is shown above.'),
       usernameError,
       h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'),
-      h('p', null, h('b', null, 'Your ID: '), DB.profile.uid),
-      h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'),
       h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
