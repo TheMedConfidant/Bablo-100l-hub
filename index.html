@@ -2630,15 +2630,21 @@ function offlineResourcesForCourse(code) {
     GST111:['./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./gst111-source-bank.js'],
     AGR:['./agr-101-food-security.html'], AGR101:['./agr-101-food-security.html'], MLS101:['./mls101-data.js']
   };
-  return [...new Set(common.concat(byCourse[String(code||'').toUpperCase()]||[]))];
+  const extras=byCourse[String(code||'').toUpperCase()]||[];
+  return extras.length?[...new Set(common.concat(extras))]:[];
 }
 function offlineCoursePanel(code, resources) {
   const host=h('div',{class:'offline-course-host'});
+  const pack=resources||offlineResourcesForCourse(code);
+  if(!pack.length){
+    host.appendChild(h('section',{class:'panel stack'},h('h3',null,'Offline study'),h('p',{class:'muted small'},'A verified offline pack is not available for this course yet. Its materials are not marked as downloaded.')));
+    return host;
+  }
   const attach=()=>{
     if(!window.BabloOffline||typeof window.BabloOffline.attachCourseButton!=='function')return false;
     try{
       host.replaceChildren();
-      window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:resources||offlineResourcesForCourse(code)});
+      window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:pack});
       return true;
     }catch(e){host.replaceChildren(h('p',{class:'muted small'},e.message||'Offline download is not available yet.'));return true;}
   };
