@@ -46,7 +46,7 @@ values
 insert into public.hub_academic_resources
   (resource_key,title,resource_type,owner_institution_id,reuse_policy,rights_status,quality_status,content_reference,source_title,source_url,provenance,metadata,is_published)
 select
-  s.resource_key,s.title,s.resource_type,i.id,s.reuse_policy,'cleared','approved',
+  s.resource_key,s.title,s.resource_type,i.id,s.reuse_policy,'pending','approved',
   s.content_reference,s.source_title,s.source_url,s.provenance,s.metadata,false
 from seed s
 left join public.hub_academic_institutions i on i.slug=s.owner_slug
@@ -56,7 +56,7 @@ on conflict (resource_key) do update set
   resource_type=excluded.resource_type,
   owner_institution_id=excluded.owner_institution_id,
   reuse_policy=excluded.reuse_policy,
-  rights_status=excluded.rights_status,
+  rights_status='pending',
   quality_status=excluded.quality_status,
   content_reference=excluded.content_reference,
   source_title=excluded.source_title,
@@ -85,6 +85,13 @@ begin
       and owner_institution_id is null
   ) then
     raise exception 'A staged institution-owned Notion resource has no institution owner';
+  end if;
+
+  if exists (
+    select 1 from public.hub_academic_resources
+    where resource_key in ('futa-100l-bio101-flashcards','bowen-cohes-100l-bio101-mcqs','futa-100l-bio101-note-01','futa-100l-bio101-note-02','futa-100l-bio101-note-03','futa-100l-bio101-note-04','futa-100l-bio101-note-05','futa-100l-bio101-note-06','futa-100l-bio101-note-07','futa-100l-bio101-note-08','shared-100l-chm101-topic-01','shared-100l-chm101-topic-02','shared-100l-chm101-topic-03','shared-100l-chm101-topic-04','shared-100l-chm101-topic-05','shared-100l-chm101-topic-06','shared-100l-chm101-topic-07','shared-100l-phy101-topic-08','shared-100l-phy101-topic-09','shared-100l-phy101-topic-10','shared-100l-phy101-topic-11','shared-100l-phy101-topic-12','shared-100l-phy101-topic-13','shared-200l-anatomy-elbow-forearm-notes','shared-200l-anatomy-elbow-forearm-flashcards','shared-200l-anatomy-elbow-forearm-quiz','shared-200l-anatomy-elbow-forearm-vignettes','shared-200l-anatomy-elbow-forearm-reference','shared-200l-map-1','shared-200l-map-2','shared-200l-map-3','shared-200l-map-4','shared-200l-map-5','shared-200l-map-6','shared-200l-physiology-topic-1','shared-200l-biochemistry-topic-2') and rights_status <> 'pending'
+  ) then
+    raise exception 'Staged Notion resources must remain pending rights review';
   end if;
 
   if exists (
