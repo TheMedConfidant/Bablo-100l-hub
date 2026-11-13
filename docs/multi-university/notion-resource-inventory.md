@@ -52,7 +52,7 @@ The FUTA BIO 101 hub explicitly states that its outline is based on the official
 
 The broader content library contains foundational 100L–200L material and subject resources (including biology, chemistry, physics, computing, physiology, anatomy and biochemistry). A subject label alone does not make a resource institution-neutral.
 
-The current pilot export includes 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total), plus five 200L Anatomy resources (notes, flashcards, quiz, vignettes and reference glossary) and six Physiology/Biochemistry course-map or architecture pages. These are staged as source-aware JSON assets, not yet live-published resources. The 200L Anatomy pack is Bowen-owned source material: its source note says it follows standard atlas order and should be reordered to Bowen's lecture sequence once the Bowen outline is confirmed. Preserve its origin and require explicit target mapping for every institution.
+The staged content now includes 75 FUTA BIO 101 flashcards, 180 Bowen CoHES BIO 101 MCQs, eight canonical FUTA BIO 101 topic notes, 13 shared 100L Physics/Chemistry topic notes, five 200L Anatomy resources, six 200L Physiology/Biochemistry course-map/index documents, and two 200L Physiology/Biochemistry topic notes. These are source-aware JSON assets, not yet live-published resources. The 200L Anatomy pack preserves its Bowen source context; per the owner's direction it is a shared-use candidate for non-Bowen institutions, but every target course/semester mapping must be explicit. The 100L Physics/Chemistry topic notes are general Content Library material and are also candidates for non-Bowen reuse.
 
 For each candidate, retain:
 - original Notion page/database URL;
@@ -67,7 +67,7 @@ Only mark a resource `shared_foundational` when it can be used independently of 
 
 ## Pilot flow and acceptance tests
 
-1. Select FUTA → programme → 100L → semester → BIO 101. Show FUTA BIO 101 notes and its 32 flashcards; show an honest empty state for MCQs until a bank is available.
+1. Select FUTA → programme → 100L → semester → BIO 101. Show FUTA BIO 101 notes and its 75 flashcards; show an honest empty state for MCQs until a bank is available.
 2. Select Bowen → CoHES → 100L → matching semester → BIO 101. Show the Bowen BIO 101 material, not the FUTA BIO 101 hub.
 3. Switch from Bowen 100L to Bowen MBBS 200L. The 100L course/resource list must disappear; show only mapped 200L resources.
 4. Select another institution with no mapped resources. Show “Resources are being prepared”; do not show Bowen or FUTA resources as substitutes.
@@ -87,4 +87,4 @@ Only mark a resource `shared_foundational` when it can be used independently of 
 
 ## Implementation boundary
 
-This document is a source inventory and test contract. It does not apply Supabase migrations, seed database rows, alter user profiles, or publish resources. The resource engine PR must connect these mappings to the existing app before any production rollout.
+This document is a source inventory and test contract. The PR contains a separate seed migration for 36 resource catalogue records, all unpublished and rights-pending with no curriculum mappings. The migration is not applied to Supabase; no resource is currently student-visible from this seed. The resource engine PR must connect these mappings to the existing app before any production rollout.
