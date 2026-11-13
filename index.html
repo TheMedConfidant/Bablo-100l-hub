@@ -2634,10 +2634,19 @@ function offlineResourcesForCourse(code) {
 }
 function offlineCoursePanel(code, resources) {
   const host=h('div',{class:'offline-course-host'});
-  if(window.BabloOffline&&typeof window.BabloOffline.attachCourseButton==='function'){
-    try{window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:resources||offlineResourcesForCourse(code)});}
-    catch(e){host.appendChild(h('p',{class:'muted small'},e.message||'Offline download is not available yet.'));}
-  } else host.appendChild(h('section',{class:'panel stack'},h('h3',null,'Study offline'),h('p',{class:'muted small'},'Reload Bablo Hub after connecting to activate offline downloads.')));
+  const attach=()=>{
+    if(!window.BabloOffline||typeof window.BabloOffline.attachCourseButton!=='function')return false;
+    try{
+      host.replaceChildren();
+      window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:resources||offlineResourcesForCourse(code)});
+      return true;
+    }catch(e){host.replaceChildren(h('p',{class:'muted small'},e.message||'Offline download is not available yet.'));return true;}
+  };
+  if(!attach()){
+    host.appendChild(h('section',{class:'panel stack'},h('h3',null,'Study offline'),h('p',{class:'muted small'},'Preparing offline downloads…')));
+    let attempts=0;
+    const timer=setInterval(()=>{attempts++;if(attach()||attempts>=100)clearInterval(timer);},50);
+  }
   return host;
 }
 /* ---------- course page ---------- */
