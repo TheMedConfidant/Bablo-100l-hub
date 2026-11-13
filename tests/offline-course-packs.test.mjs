@@ -15,7 +15,7 @@ test('service worker supports independent save, remove and list operations', () 
     assert.ok(worker.includes(type), 'missing worker message: ' + type);
   }
   assert.match(worker, /bablo-course-pack-v1-/);
-  assert.match(worker, /await caches\.delete\(cacheName\)/);
+  assert.match(worker, /await caches\.delete\(name\)/);
 });
 
 test('course downloads reject cross-origin resources and oversized packs', () => {
@@ -35,7 +35,7 @@ test('client exposes course save, remove, list and UI attachment methods', () =>
 
 test('course removal does not clear account or study-progress stores', () => {
   const removeHandler = worker.slice(worker.indexOf("if(msg.type==='BABLO_REMOVE_COURSE')"), worker.indexOf("const paths="));
-  assert.match(removeHandler, /caches\.delete\(cacheName\)/);
+  assert.match(removeHandler, /caches\.delete\(name\)/);
   assert.doesNotMatch(removeHandler, /localStorage|indexedDB|sessionStorage/);
 });
 
@@ -109,9 +109,16 @@ test('Settings cache cleanup includes removable course packs and abandoned stagi
   assert.match(cleanup, /bablo-course-pack-stage-/);
 });
 
-test('course-pack refresh fetches current resources into staging before replacing the active pack', () => {
-  assert.match(worker, /const response=await timedFetch\(request,20000,'reload'\)/);
-  assert.match(worker, /await staging\.put\(request,response\.clone\(\)\)/);
-  assert.match(worker, /const requested=new Set\(urls\.map\(url=>url\.href\)\)/);
-  assert.match(worker, /await cache\.delete\(oldRequest\)/);
+test('course-pack refresh stages a complete immutable cache before atomically switching its manifest', () => {
+  assert.match(worker, /const response=await timedFetch\\(request,20000,'reload'\\)/);
+  assert.match(worker, /await staging\\.put\\(request,response\\.clone\\(\\)\\)/);
+  assert.match(worker, /newCacheName=COURSE_PREFIX\\+id\\+.*Date\\.now\\(\\)/);
+  assert.match(worker, /await next\\.put\\(request,response\\)/);
+  assert.match(worker, /await meta\\.put\\(metaKey/);
+  assert.match(worker, /const previous=await activeCourseCache\\(id\\)/);
+});
+
+test('an interrupted cache copy cannot replace the previously active course pack', () => {
+  assert.match(worker, /if\\(active!==newCacheName\\)await caches\\.delete\\(newCacheName\\)/);
+  assert.match(worker, /Your previous offline pack was kept/);
 });
