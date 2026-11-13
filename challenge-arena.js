@@ -10,8 +10,9 @@ try{
 function frame(node){style();const root=h('div',{id:'challenge-dashboard',class:'challenge-arena-root'});const isHome=!!(node&&node.classList&&node.classList.contains('challenge-home'));if(!isHome){root.append(h('div',{class:'cd-screen-nav'},h('button',{class:'secondary cd-back',onclick:()=>{clearInterval(CA.timer);dashboard()}},'← Back to Arena'),h('span',{class:'cd-nav-label'},'CHALLENGE ARENA')))}root.append(node);mount(wrap(root));}
 function cleanText(value){return String(value??'').replaceAll('\\n',' ').replaceAll('/n',' ').replaceAll('\\r',' ').replaceAll('\\t',' ').replaceAll('\r',' ').replaceAll('\n',' ').replace(/\s{2,}/g,' ').trim();}
 async function call(fn,args={}){if(!DB||!DB.account||!DB.account.token)throw Error('Log in to use Challenge Arena.');let last;for(let attempt=0;attempt<3;attempt++){try{return await hubCall(fn,{p_token:DB.account.token,...args})}catch(e){last=e;const m=String(e&&e.message||e);console.warn('[Challenge Arena RPC]',fn,'attempt',attempt+1,m);if(!/failed to fetch|network|timeout|502|503|504|temporar/i.test(m)||attempt===2)throw e;await new Promise(r=>setTimeout(r,350*Math.pow(2,attempt)));}}throw last;}
-function courses(){return [...new Set((window.__BANK__||[]).map(q=>String(q.c||'').trim()).filter(Boolean))].sort();}
-function questions(){return (window.__BANK__||[]).filter(q=>q&&q.q&&Array.isArray(q.o)&&q.o.length>1&&q.a!==undefined);}
+function courseAllowed(code){try{return typeof window.canAccessCourse==='function'&&window.canAccessCourse(String(code||'').trim())}catch(_){return false}}
+function questions(){return (window.__BANK__||[]).filter(q=>q&&q.q&&Array.isArray(q.o)&&q.o.length>1&&q.a!==undefined&&courseAllowed(q.c));}
+function courses(){return [...new Set(questions().map(q=>String(q.c||'').trim()).filter(Boolean))].sort();}
 
 function style(){if($('#cd-style'))return;let s=document.createElement('style');s.id='cd-style';s.textContent=`
 #challenge-dashboard{width:100%;max-width:1120px;margin:0 auto;padding:12px 0 76px;color:#f7f5ef;--cd-ink:#f7f5ef;--cd-muted:#b9c1ce;--cd-gold:#e5bd62;--cd-line:rgba(255,255,255,.12);--cd-panel:rgba(20,31,49,.88);--cd-panel2:rgba(27,41,62,.92);--cd-accent:#e5bd62}
