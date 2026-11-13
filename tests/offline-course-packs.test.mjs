@@ -61,3 +61,10 @@ test('Settings exposes offline course pack management', () => {
   assert.match(app, /offlineDownloadsPanel\(\),/);
   assert.match(app, /removeCourse\(id\)/);
 });
+
+test('200L download controls use the removable course-pack manager without duplicate panels', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(app, /courseId:'bowen-200l-anatomy',resources:/);
+  assert.match(app, /courseId:'bowen-200l-'\+String\(c\.code\)/);
+  assert.doesNotMatch(app, /offlineCoursePanel\('200l-'/);
+});
