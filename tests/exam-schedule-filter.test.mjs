@@ -7,7 +7,7 @@ const start = html.indexOf('function filterExamScheduleForProfile(rows) {');
 const end = html.indexOf('\nasync function fetchPublicExamSchedule()', start);
 assert.ok(start >= 0 && end > start, 'profile schedule filter exists');
 const filterSource = html.slice(start, end);
-const filterFor = (profile, rows) => new Function('DB', filterSource + '; return filterExamScheduleForProfile(rows);')({ profile })(rows);
+const filterFor = (profile, rows) => new Function('DB', 'rows', filterSource + '; return filterExamScheduleForProfile(rows);')({ profile }, rows);
 const schedule = [
   { id: 'phy-100', institution_slug: 'bowen-university', academic_level: '100L', programme: null },
   { id: 'agr-mbbs', institution_slug: 'bowen-university', academic_level: '100L', programme: 'MBBS' },
