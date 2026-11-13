@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Normalize already-exported Notion content pilots into one reviewable,
- * source-aware staging feed. This never maps, clears rights, seeds, or publishes.
+ * Normalize exported Notion content into a source-aware staging feed.
+ * This never maps, clears rights, seeds Supabase, or publishes resources.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,8 +15,9 @@ const sourceById = new Map((manifest.sources || []).map(s => [String(s.id).repla
 const resources = [];
 const rows = [];
 const errors = [];
-const seenResourceKeys = new Set();
+const seenResourceKeys = new Map();
 const seenRowKeys = new Set();
+let duplicatePageExportsSkipped = 0;
 const normalizeId = value => String(value || '').replace(/-/g, '').toLowerCase();
 const pageIdFromUrl = value => {
   try {
@@ -29,11 +30,17 @@ const pageIdFromUrl = value => {
     return normalizeId(candidate);
   } catch { return null; }
 };
-const required = (value) => typeof value === 'string' && value.trim().length > 0;
-const addResource = (item, context) => {
-  const pageId = normalizeId(item.notionPageId || pageIdFromUrl(item.notionUrl));
-  if (!pageId || !required(item.notionUrl) || !required(item.title) || !required(item.content)) {
+const required = value => typeof value === 'string' && value.trim().length > 0;
+const addResource = (item, context = {}) => {
+  const pageUrl = item.notionUrl || item.sourceUrl || context.sourceUrl || null;
+  const pageId = normalizeId(item.notionPageId || item.pageId || pageIdFromUrl(pageUrl));
+  if (!pageId || !required(pageUrl) || !required(item.title) && !required(context.title) ||
+      !required(item.content)) {
     errors.push('A page resource is missing a valid Notion page ID, URL, title, or content.');
+    return;
+  }
+  if (pageIdFromUrl(pageUrl) !== pageId) {
+    errors.push('Page ID does not match its source URL: ' + pageId);
     return;
   }
   const source = sourceById.get(pageId);
@@ -41,30 +48,44 @@ const addResource = (item, context) => {
     errors.push('Page resource is not represented in the source manifest: ' + pageId);
     return;
   }
-  const key = 'notion:' + pageId + ':' + String(item.resourceType || '').toLowerCase();
-  if (seenResourceKeys.has(key)) { errors.push('Duplicate page resource key: ' + key); return; }
-  seenResourceKeys.add(key);
-  const originInstitution = source.institution || item.institution || null;
+  const resourceType = item.resourceType || item.kind || source.resourceType ||
+    (Array.isArray(source.types) ? source.types[0] : null);
+  if (!required(resourceType)) {
+    errors.push('Resource type is missing for source page: ' + pageId);
+    return;
+  }
+  const key = 'notion:' + pageId + ':' + String(resourceType).toLowerCase();
+  if (seenResourceKeys.has(key)) {
+    const previous = seenResourceKeys.get(key);
+    if (previous.content === item.content && previous.pageUrl === pageUrl) {
+      duplicatePageExportsSkipped += 1;
+      return;
+    }
+    errors.push('Conflicting duplicate page export: ' + key);
+    return;
+  }
+  seenResourceKeys.set(key, { content: item.content, pageUrl });
+  const originInstitution = source.institution || item.institution || context.institution || null;
   const explicitSharedPilot = context.reuseIntent === 'candidate-shared-non-bowen';
   resources.push({
     resourceKey: key,
-    title: item.title,
-    resourceType: item.resourceType,
+    title: item.title || context.title || source.title,
+    resourceType,
     contentFormat: item.contentFormat || 'notion-markdown',
     content: item.content,
-    topic: item.topic || null,
+    topic: item.topic || context.topic || null,
     source: {
       provider: 'notion',
-      pageId: pageId,
-      pageUrl: item.notionUrl,
+      pageId,
+      pageUrl,
       sourceContainerPage: context.containerPage || null,
       dataSource: source.dataSource || null
     },
     provenance: {
       institution: originInstitution,
-      programme: source.programme || item.programmeCode || null,
+      programme: source.programme || item.programmeCode || context.programme || null,
       level: source.level || item.academicLevel || context.academicLevel || null,
-      semester: source.semester || item.semester || null,
+      semester: source.semester || item.semester || context.semester || null,
       course: source.course || item.course || item.courseCode || context.course || null,
       originalTitle: source.title
     },
@@ -82,15 +103,22 @@ const addResource = (item, context) => {
 const pagePacks = [
   { file: 'notion-100l-physics-chemistry-shared-pilot.json', reuseIntent: 'candidate-shared-non-bowen' },
   { file: 'notion-200l-anatomy-shared-pilot.json', reuseIntent: 'candidate-shared-non-bowen' },
-  { file: 'notion-futa-bio101-notes.json', reuseIntent: 'institution-exclusive' }
+  { file: 'notion-200l-course-maps.json', reuseIntent: 'candidate-shared-non-bowen' },
+  { file: 'notion-200l-physiology-biochemistry-topics.json', reuseIntent: 'candidate-shared-non-bowen' },
+  { file: 'notion-futa-bio101-notes.json', reuseIntent: 'institution-exclusive' },
+  { file: 'bowen-200l-course-maps.json', reuseIntent: 'institution-exclusive' }
 ];
 for (const pack of pagePacks) {
   const data = read(pack.file);
+  const identity = data.academicIdentity || {};
   for (const item of data.resources || []) {
     addResource(item, {
       reuseIntent: pack.reuseIntent,
-      academicLevel: data.academicLevel,
-      course: data.course
+      academicLevel: data.academicLevel || identity.level,
+      course: data.course || identity.course,
+      programme: identity.programme,
+      institution: identity.institution,
+      topic: data.topic
     });
   }
 }
@@ -195,6 +223,7 @@ const report = {
   summary: {
     manifestSources: manifest.sources.length,
     pageResources: resources.length,
+    duplicatePageExportsSkipped,
     databaseRows: rows.length,
     rowsByType: rows.reduce((a, r) => (a[r.resourceType] = (a[r.resourceType] || 0) + 1, a), {}),
     pageResourcesByType: resources.reduce((a, r) => (a[r.resourceType] = (a[r.resourceType] || 0) + 1, a), {}),
@@ -204,5 +233,6 @@ const report = {
   rows
 };
 fs.writeFileSync(outputPath, JSON.stringify(report, null, 2) + '\n');
-console.log('Validated ' + resources.length + ' page resources and ' + rows.length + ' database rows.');
+console.log('Validated ' + resources.length + ' page resources, skipped ' + duplicatePageExportsSkipped +
+  ' identical duplicate exports, and validated ' + rows.length + ' database rows.');
 console.log('All ' + report.summary.blockedRecords + ' records remain blocked pending rights review and explicit curriculum mapping.');
