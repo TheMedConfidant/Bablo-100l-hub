@@ -1,7 +1,7 @@
 {
   "name": "Bablo Hub",
-  "short_name": "Bablo",
-  "description": "Practice, quizzes, the Programme Cup and chess for Bowen CoHES students.",
+  "short_name": "Bablo Hub",
+  "description": "An institution-aware academic workspace for structured study, active recall, CBT practice and practical learning.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,17 +9,7 @@
   "background_color": "#0B0E13",
   "theme_color": "#0B0E13",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
