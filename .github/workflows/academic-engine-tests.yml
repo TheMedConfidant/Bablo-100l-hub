@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'calculator/**'
       - 'academic-engine.js'
       - 'university-directory.js'
       - 'landing-premium.js'
@@ -38,7 +39,7 @@ jobs:
       - name: Build metadata-only ingestion preview
         run: node scripts/build-notion-ingestion-preview.mjs
       - name: Run academic and ingestion safeguards
-        run: node --test tests/academic-engine.test.mjs tests/notion-ingestion-preview.test.mjs
+        run: node --test tests/academic-engine.test.mjs tests/notion-ingestion-preview.test.mjs tests/calculator-input.test.mjs
       - name: Build typed Notion content ingestion preview
         run: node scripts/build-notion-content-ingestion.mjs
       - name: Run ingestion contract tests
