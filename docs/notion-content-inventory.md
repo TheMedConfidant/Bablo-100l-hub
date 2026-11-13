@@ -8,7 +8,7 @@
 
 The workspace already contains much more than a small 100L sample. Search surfaced separate 100L course packs and substantial 200L course structures across Anatomy, Physiology and Biochemistry, including detailed topic pages, flashcards, MCQ databases, clinical vignettes, practical resources, past-paper sections and course maps.
 
-A first content tranche has now been exported to `data/notion-content-pilot.json`: 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total). The multi-university profile selector now has 69 source-backed Nigerian university entries, with more nursing-only and allied-health universities to be added from regulator lists. This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
+A first content tranche has now been exported to `data/notion-content-pilot.json`: 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total). A second shared-use tranche is staged in `data/notion-200l-anatomy-shared-pilot.json` (five 200L Anatomy resources: notes, flashcards, quiz, vignettes and reference glossary) and `data/notion-200l-course-maps.json` (six Physiology/Biochemistry course-map and architecture pages). These 200L shared-use candidates explicitly exclude Bowen and remain unpublished until mapped to target universities. The multi-university profile selector now has 69 source-backed Nigerian university entries, with more nursing-only and allied-health universities to be added from regulator lists. This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
 
 ## Critical separation discovered: same course code does not mean same course
 
@@ -26,10 +26,17 @@ These must remain separate. A course code match is not sufficient evidence of eq
 | FUTA BIO 101 | FUTA, 100L, BIO 101 | Notes, flashcards, MCQs, past-paper index | Preserve as FUTA-specific. The page records 8/8 notes and 32 flashcards; MCQs/past papers were not yet built at the last recorded update. |
 | Bowen CoHES BIO 101 | Bowen, CoHES, 100L, BIO 101 | Notes index, flashcards, MCQ database, past papers | Separate Bowen resource set; never merge with FUTA BIO 101. |
 | Bowen 100L Demo | Bowen MBBS, 100L, first semester | Course catalogue and question-style rules | Use to preserve Bowen's distinct course and exam style. |
-| 200L Anatomy | 200L Anatomy | Notes, flashcards, quizzes, scenarios/vignettes, course index, practical/dissection, resources | Use as a rich 200L test pack. Keep target university mapping explicit. |
-| 200L Physiology | 200L Physiology | Master course map, notes, flashcards, MCQs, past papers, vignettes | Use its normalised topic/subtopic hierarchy and rich system-based content. |
-| 200L Biochemistry | 200L Biochemistry | Notes, flashcards, MCQs, past papers, practicals/calculations, research/resources | Use the existing course architecture and pathway-based topic structure. |
+| 200L Anatomy | 200L Anatomy | Notes, flashcards, quizzes, scenarios/vignettes, course index, practical/dissection, resources | Five Elbow & Forearm resources are staged for shared reuse outside Bowen; target university mapping remains explicit. |
+| 200L Physiology | 200L Physiology | Master course map, notes, flashcards, MCQs, past papers, vignettes | Master course map and index staged as shared-use candidates outside Bowen; topic hierarchy preserved. |
+| 200L Biochemistry | 200L Biochemistry | Notes, flashcards, MCQs, past papers, practicals/calculations, research/resources | Course hub, notes index and architecture staged as shared-use candidates outside Bowen. |
 | Med School Workspace | Mixed personal academic workspace | MedNotes and related databases | Inventory database rows before importing; do not assume all rows are app-ready course resources. |
+
+## Shared 200L pilot exports
+
+- `data/notion-200l-anatomy-shared-pilot.json` — five user-confirmed verified Elbow & Forearm resources; shared reuse excludes Bowen until target mappings are explicitly created.
+- `data/notion-200l-course-maps.json` — six Physiology/Biochemistry master maps, course indexes and architecture pages; shared reuse excludes Bowen.
+
+These are staged source exports, not yet loaded into the live application. No university receives these resources until a verified mapping exists for its programme, level, semester and course.
 
 ## Source links
 
