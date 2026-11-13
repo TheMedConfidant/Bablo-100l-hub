@@ -108,7 +108,7 @@ test('Bowen 100L course access is programme-specific and does not inherit a gene
  const programmeMap=mapMatch[0];
  assert.match(programmeMap,/const PROGRAMME_COURSES = \{\s*'MBBS': \[/);
  assert.doesNotMatch(programmeMap,/'Nursing'\s*:/);
- assert.match(app,/Other CoHES programmes remain unavailable until their own official course lists/);
+ assert.match(app,/Other CoHES programmes remain\s+unavailable until their own official course lists/);
 });
 
 test('the public landing page is loaded and identifies the first mapped academic track',()=>{
