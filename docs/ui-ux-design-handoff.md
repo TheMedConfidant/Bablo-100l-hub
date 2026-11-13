@@ -117,6 +117,7 @@ The current app is a plain HTML/CSS/JavaScript project with a large inline appli
 
 - Figma frames and component structures were created and metadata was fetched for the main landing and dashboard frames.
 - Screenshots were generated for desktop/mobile landing and dashboards.
-- A Figma Starter plan tool-call limit was reached during further refinement; this did not alter the existing app.
-- No application code was changed by this design handoff.
-- No build, merge, or deployment is claimed.
+- A Figma Starter plan tool-call limit was reached during further refinement. The Figma canvas still needs its old FUTA copy replaced with CoHES-only messaging when editing access is available.
+- Landing implementation now uses the original `icon-192.png`, names Bowen University College of Health Sciences (CoHES) as the sole student audience, and removes the FUTA audience claim.
+- The offline course catalogue now treats Bowen CoHES as the only supported student institution while retaining FUTA only as internal source provenance for adapted BIO 101 and CHM 101 resources. Unassigned PHY 101 remains unpublished pending source verification.
+- Landing and catalogue changes are committed on `p1-offline-course-packs`; no production deployment or successful runtime/browser test is claimed.
