@@ -45,5 +45,58 @@ window.addEventListener('hashchange',add);new MutationObserver(add).observe(docu
 self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(VERSION);await Promise.all(SHELL.map(async p=>{try{const r=await timedFetch(p, p==='./'||p==='./index.html'?10000:5000);if(r.ok){const v=(p==='./'||p==='index.html'||p==='./index.html')?await decorate(r):r;await c.put(p,v)}}catch(_){}}));await self.skipWaiting()})()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
 self.addEventListener('fetch',e=>{const q=e.request,u=new URL(q.url);if(q.method!=='GET'||u.origin!==self.location.origin)return;const vendor=vendorURL(u);if(vendor){e.respondWith((async()=>{const cached=await matchAny(q);if(cached)return cached;try{const r=await timedFetch(vendor,15000);if(r.ok)await save(q,r);return r}catch(_){return new Response('Calculator libraries have not been cached yet. Connect once and reload the calculator.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})());return}const mathsAsset=/\/(?:mts-maths-topics|mts-maths-induction-extra)\.js$/.test(u.pathname);if(mathsAsset){e.respondWith((async()=>{try{const fresh=await timedFetch(q,15000,'reload');if(fresh.ok){await save(q,fresh);return fresh}const cached=await matchAny(q);if(cached)return cached;return fresh}catch(_){const cached=await matchAny(q);return cached||new Response('Maths content is temporarily unavailable. Reconnect and reload.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})());return}const nav=q.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname==='/';if(nav){e.respondWith((async()=>{const cached=await matchAny(q)||await matchAny('./index.html')||await matchAny('./');if(cached){e.waitUntil((async()=>{try{const fresh=await timedFetch(q,10000,'reload');if(fresh.ok){const v=await decorate(fresh);await save('./index.html',v);await save('./',v);await save(q,v)}}catch(_){}})());return decorate(cached)}try{const fresh=await timedFetch(q,12000,'reload');if(fresh.ok){const v=await decorate(fresh);await save('./index.html',v);await save('./',v);await save(q,v);return v}return fresh}catch(_){return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font:16px system-ui;background:#0a1020;color:white;padding:24px"><h2>Bablo Hub</h2><p>This device has not cached the app yet. Connect briefly, then reopen Bablo Hub to enable offline startup.</p><button onclick="location.reload()">Try again</button></body>',{status:200,headers:{'Content-Type':'text/html; charset=utf-8'}})}})());return}e.respondWith((async()=>{const old=await matchAny(q);if(old){e.waitUntil(timedFetch(q,6000).then(r=>save(q,r)).catch(()=>{}));return old}try{const r=await timedFetch(q,10000);if(r.ok)await save(q,r);return r}catch(_){return new Response('This resource has not been cached yet.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})())});
+
+// Selective, user-requested course packs. Each course has its own cache so it can
+// be removed independently without touching account data or other course packs.
+self.addEventListener('message',event=>{
+ const msg=event.data||{},port=event.ports&&event.ports[0];
+ if(!port||!['BABLO_CACHE_COURSE','BABLO_REMOVE_COURSE','BABLO_LIST_COURSES'].includes(msg.type))return;
+ const reply=data=>{try{port.postMessage(data)}catch(_){}};
+ event.waitUntil((async()=>{
+  try{
+   const prefix='bablo-course-pack-v1-';
+   if(msg.type==='BABLO_LIST_COURSES'){
+    const names=(await caches.keys()).filter(n=>n.startsWith(prefix));
+    reply({ok:true,courses:names.map(n=>n.slice(prefix.length))});return;
+   }
+   const id=String(msg.courseId||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-|-$/g,'').slice(0,64);
+   if(!id)throw new Error('A valid course ID is required');
+   const cacheName=prefix+id;
+   if(msg.type==='BABLO_REMOVE_COURSE'){
+    await caches.delete(cacheName);reply({ok:true,courseId:id,removed:true});return;
+   }
+   const paths=Array.isArray(msg.resources)?msg.resources:[];
+   if(!paths.length)throw new Error('No course resources were supplied');
+   if(paths.length>250)throw new Error('A course pack cannot contain more than 250 files');
+   const unique=[...new Set(paths.map(p=>String(p||'')))];
+   const urls=unique.map(p=>new URL(p,self.location.href));
+   if(urls.some(u=>u.origin!==self.location.origin||!/^https?:$/.test(u.protocol)))throw new Error('Course packs can only include files hosted by Bablo Hub');
+   if(navigator.storage&&navigator.storage.estimate){
+    const estimate=await navigator.storage.estimate();
+    if(estimate.quota&&estimate.usage/estimate.quota>0.9)throw new Error('Phone storage is nearly full. Free some space before downloading this course.');
+   }
+   const cache=await caches.open(cacheName);let completed=0,failed=[];
+   for(const url of urls){
+    try{
+     const request=new Request(url.href,{method:'GET',credentials:'same-origin'});
+     const existing=await cache.match(request);
+     if(!existing){
+      const response=await timedFetch(request,20000,'reload');
+      if(!response.ok||response.type==='opaque')throw new Error('HTTP '+response.status);
+      const length=Number(response.headers.get('content-length')||0);
+      if(length>25*1024*1024)throw new Error('File exceeds 25 MB safety limit');
+      await cache.put(request,response.clone());
+     }
+    }catch(error){failed.push({url:url.pathname,error:String(error&&error.message||error)})}
+    completed++;reply({progress:true,courseId:id,completed,total:urls.length,failed:failed.length});
+   }
+   if(failed.length){
+    reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. Retry the course download when connected.'});return;
+   }
+   reply({ok:true,courseId:id,completed,total:urls.length,failed:0});
+  }catch(error){reply({ok:false,message:String(error&&error.message||error)})}
+ })());
+});
+
 self.addEventListener('push',e=>{let d={title:'Bablo Hub',body:'',url:'./'};try{d=Object.assign(d,e.data.json())}catch(_){}e.waitUntil(self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'./'}}))});
 self.addEventListener('notificationclick',e=>{e.notification.close();const t=e.notification.data&&e.notification.data.url||'./';e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(a=>{for(let i=0;i<a.length;i++)if('focus'in a[i])return a[i].focus();return clients.openWindow(t)}))});
