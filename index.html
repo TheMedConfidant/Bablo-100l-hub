@@ -2463,13 +2463,22 @@ function homeView() {
  });
 }
 function coursesCatalogueView(){
- const p=DB.profile,L200=p&&p.level==='200L';
- const list=homeCourses().filter(c=>canAccessCourse(c.code)).map(c=>{const ok=isAvail(c),n=ok?BYC[c.code].length:0;
-  return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Questions'):go('#/course/'+c.code)},
-   h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
- });
- mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Choose a course to open its dashboard and learning resources.')),
- h('section',{class:'catalogue-grid'},...list)));
+ const courses=homeCourses().filter(c=>canAccessCourse(c.code));
+ const search=h('input',{type:'search',class:'course-search',placeholder:'Search course name or code…','aria-label':'Search courses',autocomplete:'off',spellcheck:'false'});
+ const grid=h('section',{class:'catalogue-grid','aria-live':'polite'});
+ const render=(query='')=>{
+  const q=query.trim().toLowerCase();
+  const matches=courses.filter(c=>(c.label+' '+c.code+' '+c.title).toLowerCase().includes(q));
+  const cards=matches.map(c=>{const ok=isAvail(c),n=ok?BYC[c.code].length:0;
+   return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Questions'):go('#/course/'+c.code)},
+    h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
+  });
+  grid.replaceChildren(...(cards.length?cards:[h('p',{class:'panel muted course-empty'},q?'No matching course. Try another name or code.':'No courses are currently assigned to this programme.')]));
+ };
+ search.addEventListener('input',()=>render(search.value));
+ render();
+ mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Find a course by name or code, then open its learning resources.')),
+ h('label',{class:'course-search-wrap'},h('span',{class:'tiny muted'},'FIND A COURSE'),search),grid));
 }
 function timeHubView(){
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Time & Productivity'),h('p',{class:'muted'},'Plan your academic week and protect your study time.')),
@@ -5133,4 +5142,10 @@ setTimeout(liveNotice, 1200);
 @media(prefers-reduced-motion:reduce){
  .dashboard-card{transition:none;}
 }
+
+/* Course catalogue search */
+.course-search-wrap{display:grid;gap:6px;margin:0 0 16px}
+.course-search{width:100%;min-height:48px;padding:11px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink);font:inherit}
+.course-search:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.course-empty{grid-column:1/-1;padding:18px;text-align:center;line-height:1.5}
 </style>
