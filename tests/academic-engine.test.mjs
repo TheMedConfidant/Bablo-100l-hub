@@ -63,7 +63,7 @@ test('resource RPC rejects missing semester instead of returning every semester'
  const fs=require('node:fs');
  const sql=fs.readFileSync(new URL('../supabase/migrations/20261113143000_multi_university_resource_engine.sql',import.meta.url),'utf8');
  const rpc=sql.slice(sql.indexOf('create or replace function public.hub_list_academic_resources'),sql.indexOf('revoke all on function public.hub_list_health_institutions'));
- assert.ok(rpc.includes('  p_semester text\\n)'));
+ assert.ok(rpc.includes('  p_semester text'));
  assert.ok(rpc.includes("and p_semester in ('first','second','summer','year-round')"));
  assert.ok(rpc.includes('and c.semester = p_semester'));
  assert.equal(rpc.includes('p_semester is null'),false);
