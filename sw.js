@@ -95,14 +95,11 @@ self.addEventListener('message',event=>{
    for(const url of urls){
     try{
      const request=new Request(url.href,{method:'GET',credentials:'same-origin'});
-     const existing=await cache.match(request);
-     if(!existing){
-      const response=await timedFetch(request,20000,'reload');
-      if(!response.ok||response.type==='opaque')throw new Error('HTTP '+response.status);
-      const length=Number(response.headers.get('content-length')||0);
-      if(length>25*1024*1024)throw new Error('File exceeds 25 MB safety limit');
-      await staging.put(request,response.clone());
-     }
+     const response=await timedFetch(request,20000,'reload');
+     if(!response.ok||response.type==='opaque')throw new Error('HTTP '+response.status);
+     const length=Number(response.headers.get('content-length')||0);
+     if(length>25*1024*1024)throw new Error('File exceeds 25 MB safety limit');
+     await staging.put(request,response.clone());
     }catch(error){failed.push({url:url.pathname,error:String(error&&error.message||error)})}
     completed++;reply({progress:true,courseId:id,completed,total:urls.length,failed:failed.length});
    }
@@ -110,6 +107,8 @@ self.addEventListener('message',event=>{
     await caches.delete(stageName);
     reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. Your previous offline pack was kept; retry when connected.'});return;
    }
+   const requested=new Set(urls.map(url=>url.href));
+   for(const oldRequest of await cache.keys()){if(!requested.has(oldRequest.url))await cache.delete(oldRequest);}
    for(const request of await staging.keys()){const response=await staging.match(request);if(response)await cache.put(request,response);}
    await caches.delete(stageName);
    reply({ok:true,courseId:id,completed,total:urls.length,failed:0});
