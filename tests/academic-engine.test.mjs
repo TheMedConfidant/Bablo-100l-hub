@@ -27,7 +27,7 @@ test('BSc selector is limited to Bowen MBBS 200L+',()=>{
  assert.equal(E.isBscPathwayEligible({institution:'Bowen University',programme:'BSc Anatomy',level:'200L'}),false);
 });
 
-test('allows course-wide filtering when semester is not selected',()=>{const noSemester={institution:'FUTA',programme:'BIO',level:'100L'};assert.equal(E.resourceVisible(base,E.identity(noSemester)),true);assert.equal(E.validIdentity(E.identity(noSemester)),true);});
+test('fails closed when semester is missing or invalid',()=>{const noSemester={institution:'FUTA',programme:'BIO',level:'100L'};assert.equal(E.resourceVisible(base,E.identity(noSemester)),false);assert.equal(E.validIdentity(E.identity(noSemester)),false);const invalidSemester={...student,semester:'third'};assert.equal(E.filterResources([base],invalidSemester).length,0);});
 
 test('loads a staged Notion resource by bundle index',async()=>{
  const original=globalThis.fetch;
