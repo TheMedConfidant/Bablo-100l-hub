@@ -74,7 +74,7 @@ test('200L download controls use the removable course-pack manager without dupli
 
 test('removing a course also removes unshared runtime duplicates but preserves shared files', () => {
   const handler = worker.slice(worker.indexOf("if(msg.type==='BABLO_REMOVE_COURSE')"), worker.indexOf("const paths="));
-  assert.match(handler, /removedKeys=await removed\.keys\(\)/);
+  assert.match(handler, /removedKeys\.push\(\.\.\.await cache\.keys\(\)\)/);
   assert.match(handler, /protectedUrls\.has\(request\.url\)/);
   assert.match(handler, /otherNames/);
   assert.match(handler, /runtime\.delete\(request/);
@@ -110,7 +110,7 @@ test('Settings cache cleanup includes removable course packs and abandoned stagi
 });
 
 test('course-pack refresh stages a complete immutable cache before atomically switching its manifest', () => {
-  assert.ok(worker.includes("const response=await timedFetch(request,20000,'reload')"));
+  assert.ok(worker.includes("response=await timedFetch(request,20000,'reload')"));
   assert.ok(worker.includes("await staging.put(request,response.clone())"));
   assert.ok(worker.includes("newCacheName=COURSE_PREFIX+id+'--'+Date.now()"));
   assert.ok(worker.includes("await next.put(request,response)"));
