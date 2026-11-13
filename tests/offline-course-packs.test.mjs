@@ -38,3 +38,19 @@ test('course removal does not clear account or study-progress stores', () => {
   assert.match(removeHandler, /caches\.delete\(cacheName\)/);
   assert.doesNotMatch(removeHandler, /localStorage|indexedDB|sessionStorage/);
 });
+
+test('course pages expose course-specific offline packs', async () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(app, /offlineCoursePanel\(code\)/);
+  assert.match(app, /offlineResourcesForCourse/);
+  assert.match(app, /phy101-data\.js/);
+  assert.match(app, /cos101plus-extracted\.js/);
+  assert.match(app, /gst111-source-bank\.js/);
+  assert.match(app, /data\/200l-anatomy-elbow-forearm\.json/);
+  assert.match(app, /data\/bowen-200l-course-maps\.json/);
+});
+
+test('course-pack responses are not copied into the general runtime cache', () => {
+  assert.match(worker, /bablo-course-pack-v1-/);
+  assert.match(worker, /if\(await pack\.match\(req,\{ignoreSearch:true\}\)\)return/);
+});
