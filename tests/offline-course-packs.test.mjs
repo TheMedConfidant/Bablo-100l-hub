@@ -86,3 +86,19 @@ test('failed course-pack refresh preserves the previously saved pack', () => {
   assert.match(worker, /Your previous offline pack was kept/);
   assert.match(worker, /for\(const request of await staging\.keys\(\)\)/);
 });
+
+test('every declared offline course asset exists in the repository', () => {
+  const assets = [
+    'SOC101-data.js', 'phy101-data.js',
+    'mts-maths-topics.js', 'mts-maths-induction-extra.js',
+    'thermochemistry-data.js', 'chm-practicals-native.js',
+    'cos-101-plus-bank.js', 'cos101plus-extracted.js',
+    'gst111-curated-pack.js', 'gst111-native-bank.js',
+    'gst111-native-resources.js', 'gst111-source-bank.js',
+    'agr-101-food-security.html', 'mls101-data.js',
+    'data/200l-anatomy-elbow-forearm.json', 'data/bowen-200l-course-maps.json'
+  ];
+  for (const asset of assets) {
+    assert.ok(fs.existsSync(new URL('../' + asset, import.meta.url)), 'missing offline asset: ' + asset);
+  }
+});
