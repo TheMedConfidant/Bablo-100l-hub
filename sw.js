@@ -1,5 +1,5 @@
 /* Bablo Hub offline support + startup error reporting. */
-const VERSION='bablo-offline-v38-calculator-assets';
+const VERSION='bablo-offline-v39-semester-profile';
 const SHELL=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./landing-premium.js','./landing-premium.css','./academic-engine.js','./university-directory.js'];
 const OPTIONAL_OFFLINE=['./mls101-data.js','./SOC101-data.js','./phy101-data.js','./mts-maths-topics.js','./mts-maths-induction-extra.js','./thermochemistry-data.js','./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./gst111-source-bank.js','./challenge-arena.js','./wifi-challenge.js','./cos-101-plus-bank.js','./cos101plus-extracted.js','./chm-practicals-native.js','./agr-101-food-security.html','./gst103-study-hub.html','./practicals/','./practicals/index.html','./practicals/chm107-practicals.html','./practicals/phy107-practical.html'];
 function timedFetch(req,ms,cacheMode){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(req,{signal:c.signal,cache:cacheMode||'default'}).finally(()=>clearTimeout(t));}
