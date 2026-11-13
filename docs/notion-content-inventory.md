@@ -8,7 +8,7 @@
 
 The workspace already contains much more than a small 100L sample. Search surfaced separate 100L course packs and substantial 200L course structures across Anatomy, Physiology and Biochemistry, including detailed topic pages, flashcards, MCQ databases, clinical vignettes, practical resources, past-paper sections and course maps.
 
-A first content tranche has now been exported to `data/notion-content-pilot.json`: 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total). A second shared-use tranche is staged in `data/notion-200l-anatomy-shared-pilot.json` (five 200L Anatomy resources: notes, flashcards, quiz, vignettes and reference glossary) and `data/notion-200l-course-maps.json` (six Physiology/Biochemistry course-map and architecture pages). These 200L shared-use candidates explicitly exclude Bowen and remain unpublished until mapped to target universities. The multi-university profile selector now has 69 source-backed Nigerian university entries, with more nursing-only and allied-health universities to be added from regulator lists. This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
+A first content tranche has now been exported to `data/notion-content-pilot.json`: 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total). A second shared-use tranche is staged in `data/notion-200l-anatomy-shared-pilot.json` (five 200L Anatomy resources: notes, flashcards, quiz, vignettes and reference glossary), `data/notion-200l-course-maps.json` (six Physiology/Biochemistry course-map and architecture pages), and `data/notion-200l-physiology-biochemistry-topics.json` (two detailed topic notes: cardiac muscle/electrical activity and enzyme structure/active sites). These 200L shared-use candidates explicitly exclude Bowen and remain unpublished until mapped to target universities. The multi-university profile selector now has 69 source-backed Nigerian university entries, with more nursing-only and allied-health universities to be added from regulator lists. This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
 
 ## Critical separation discovered: same course code does not mean same course
 
@@ -35,6 +35,7 @@ These must remain separate. A course code match is not sufficient evidence of eq
 
 - `data/notion-200l-anatomy-shared-pilot.json` — five user-confirmed verified Elbow & Forearm resources; shared reuse excludes Bowen until target mappings are explicitly created.
 - `data/notion-200l-course-maps.json` — six Physiology/Biochemistry master maps, course indexes and architecture pages; shared reuse excludes Bowen.
+- `data/notion-200l-physiology-biochemistry-topics.json` — two detailed 200L topic notes for Physiology and Biochemistry, staged for non-Bowen shared use.
 
 These are staged source exports, not yet loaded into the live application. No university receives these resources until a verified mapping exists for its programme, level, semester and course.
 
