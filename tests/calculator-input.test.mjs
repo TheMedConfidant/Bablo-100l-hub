@@ -50,3 +50,13 @@ test('calculator libraries are routed through the offline cache', () => {
   assert.ok(serviceWorker.includes("cdn.jsdelivr.net/npm/mathjs@14.8.1/lib/browser/math.js"));
   assert.ok(serviceWorker.includes("unpkg.com/mathlive@0.104.2/dist/"));
 });
+
+test('scientific calculator includes advanced workspaces', () => {
+  for (const id of ['table', 'baseN', 'matrices', 'calculus']) {
+    assert.ok(html.includes('data-tab="' + id + '"'));
+    assert.ok(html.includes('id="' + id + '"'));
+  }
+  assert.ok(script.includes('window.math.isComplex(result)'));
+  assert.ok(script.includes('window.math.det(a)'));
+  assert.ok(script.includes('Simpson'));
+});
