@@ -67,7 +67,7 @@ self.addEventListener('message',event=>{
    const cacheName=prefix+id;
    if(msg.type==='BABLO_REMOVE_COURSE'){
     const removed=await caches.open(cacheName),removedKeys=await removed.keys();
-    await caches.delete(cacheName);
+    await caches.delete(cacheName);await caches.delete('bablo-course-pack-stage-'+id);
     // Remove stale runtime-cache duplicates too, but preserve shell files and
     // any resource still owned by another downloaded course.
     const runtime=await caches.open(VERSION);
@@ -91,7 +91,7 @@ self.addEventListener('message',event=>{
     try{const estimate=await navigator.storage.estimate();if(estimate.quota&&estimate.usage/estimate.quota>0.9)throw new Error('Phone storage is nearly full. Free some space before downloading this course.');}
     catch(error){if(error&&/nearly full/.test(error.message||''))throw error;}
    }
-   const cache=await caches.open(cacheName);let completed=0,failed=[];
+   const cache=await caches.open(cacheName);const stageName='bablo-course-pack-stage-'+id;await caches.delete(stageName);const staging=await caches.open(stageName);let completed=0,failed=[];
    for(const url of urls){
     try{
      const request=new Request(url.href,{method:'GET',credentials:'same-origin'});
@@ -101,15 +101,17 @@ self.addEventListener('message',event=>{
       if(!response.ok||response.type==='opaque')throw new Error('HTTP '+response.status);
       const length=Number(response.headers.get('content-length')||0);
       if(length>25*1024*1024)throw new Error('File exceeds 25 MB safety limit');
-      await cache.put(request,response.clone());
+      await staging.put(request,response.clone());
      }
     }catch(error){failed.push({url:url.pathname,error:String(error&&error.message||error)})}
     completed++;reply({progress:true,courseId:id,completed,total:urls.length,failed:failed.length});
    }
    if(failed.length){
-    await caches.delete(cacheName);
-    reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. The incomplete pack was cleared; retry when connected.'});return;
+    await caches.delete(stageName);
+    reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. Your previous offline pack was kept; retry when connected.'});return;
    }
+   for(const request of await staging.keys()){const response=await staging.match(request);if(response)await cache.put(request,response);}
+   await caches.delete(stageName);
    reply({ok:true,courseId:id,completed,total:urls.length,failed:0});
   }catch(error){reply({ok:false,message:String(error&&error.message||error)})}
  })());
