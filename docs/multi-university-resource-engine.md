@@ -25,7 +25,7 @@ No cross-institution, cross-programme, cross-level or cross-semester fallback is
 
 ## Directory
 
-The database-backed directory is designed to grow without hardcoding the university list into the app. This first migration seeds Bowen University and FUTA as the two pilot environments. It is **not yet an exhaustive national directory**. Additional universities and their health-science programme options should be added only after confirming current official offerings.
+The database-backed directory is designed to grow without hardcoding the university list into the app. The first directory tranche contains **69 Nigerian universities**: the 66 institutions in the MDCN 2025 medical-schools register plus FUTA, Achievers University and the Federal University of Health Sciences, Ila-Orangun, each supported by an official institutional source. This is a substantial starter directory, **not yet exhaustive of every university offering nursing-only or allied-health programmes**. The bundled selector has an offline copy and refreshes from the database directory when the migration is applied. A student can request an institution not yet listed; that selection does not unlock resources until the institution and programme are verified.
 
 Programme options are separate per institution. A university being present in the institution dropdown does not imply every programme is available there.
 
@@ -60,9 +60,10 @@ Notion references:
 
 ## Profile rule
 
-The BSc pathway field is a narrow exception:
-- Bowen University + MBBS + 200L or above: eligible to see/select it in Profile.
+The BSc pathway field is a narrow exception. It is hidden during registration and guest onboarding, and appears only in Profile after the user has used all three distinct landing actions (Create account, Log in, Explore as a guest):
+- Bowen University + MBBS + 200L or above: eligible to see/select it in Profile after the three-action landing gate.
 - Everyone else: hidden and stored as null.
+- The profile save flow requires a selection only when the gate and eligibility conditions are met.
 - This is not a general university or programme selector.
 
 The migration adds database constraints and narrows both authenticated and guest profile-save RPCs to this rule. The frontend visibility condition still needs to be integrated and tested against every institution/programme/level combination.
@@ -93,8 +94,12 @@ The resource RPC returns only published, rights-cleared, quality-approved resour
 
 ## Current limits
 
-- The directory currently contains only the two pilot institutions, not every eligible Nigerian university.
-- No FUTA resource is published by this migration.
+- The directory currently contains 69 source-backed starter entries, but is not yet exhaustive of all Nigerian universities with nursing-only and allied-health programmes.
+- The first Notion pilot export contains 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total), staged in `data/notion-content-pilot.json`; it is not yet loaded into the live app.
+- FUTA BIO 101 still needs exact programme and semester mapping before it can be student-visible.
+- No FUTA resource is published by the migration.
 - Existing static course banks are not yet filtered by this database engine.
+- The profile UI now has a searchable university selector, dynamic directory refresh with bundled offline fallback, and no Bowen default for new accounts.
+- The BSc selector is profile-only, gated by three distinct landing actions, and restricted to Bowen MBBS 200L+.
 - The migration has been committed to a preview branch but has not been run against Supabase.
 - No browser acceptance tests or production deployment have been completed.
