@@ -9,9 +9,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bablo Hub">
-<title>Bablo Hub™ | Bowen University Student Learning &amp; CBT Platform</title>
-<meta name="description" content="Bablo Hub™ by TheMedConfidant brings Bowen University students course notes, flashcards, question banks, CBT practice, quizzes and practical resources. Confidence in Clarity. Clarity in Faith.">
-<meta name="keywords" content="Bablo Hub, Bablo Hub™, TMC: Bablo Hub, Bablo 100L Hub, Bowen University quiz platform, Bowen University past questions, Bowen student study resources, CBT practice, CoHES">
+<title>Bablo Hub™ | University Health Sciences Learning Platform</title>
+<meta name="description" content="Bablo Hub™ by TheMedConfidant is a university-aware health sciences learning platform for verified course notes, flashcards, question banks, CBT practice, quizzes and practical resources.">
+<meta name="keywords" content="Bablo Hub, Bablo Hub™, TMC: Bablo Hub, university health sciences learning platform, medical school study resources, CBT practice, notes, flashcards, question banks">
 <link rel="canonical" href="https://bablo-100l-hub.vercel.app/">
 <meta property="og:site_name" content="Bablo Hub™">\n<meta property="og:title" content="Bablo Hub™ | Confidence in Clarity. Clarity in Faith.">
 <meta property="og:description" content="A student learning and CBT platform with notes, flashcards, question banks, quizzes and practical resources for Bowen University students.">
@@ -19,7 +19,7 @@
 <meta property="og:url" content="https://bablo-100l-hub.vercel.app/">
 <meta name="twitter:card" content="summary">
 <meta name="google-site-verification" content="Ln-9NJ0wySyKh7FuZ_yzNBpEkXljCV_gtM4j79hV0GY" />
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalApplication","name":"Bablo Hub™","alternateName":["Bablo Hub","TMC: Bablo Hub","Bablo 100L Hub"],"url":"https://bablo-100l-hub.vercel.app/","description":"A student learning and CBT platform offering course notes, flashcards, question banks, quizzes and practical resources for Bowen University students. Confidence in Clarity. Clarity in Faith.","applicationCategory":"EducationalApplication","operatingSystem":"Web, Android, iOS","inLanguage":"en","audience":{"@type":"EducationalAudience","educationalRole":"student","audienceType":"Bowen University students"},"publisher":{"@type":"Organization","name":"TheMedConfidant"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalApplication","name":"Bablo Hub™","alternateName":["Bablo Hub","TMC: Bablo Hub","Bablo 100L Hub"],"url":"https://bablo-100l-hub.vercel.app/","description":"A university-aware health sciences learning platform offering verified course notes, flashcards, question banks, quizzes and practical resources.","applicationCategory":"EducationalApplication","operatingSystem":"Web, Android, iOS","inLanguage":"en","audience":{"@type":"EducationalAudience","educationalRole":"student","audienceType":"University health sciences students"},"publisher":{"@type":"Organization","name":"TheMedConfidant"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1173,13 +1173,14 @@ const coursesFor = programme => (PROGRAMME_COURSES[programme] || CORE_COURSES).m
 function canAccessCourse(code) {
   const p = DB.profile;
   if (!p) return false;
+  const institution = String(p.institution || '').trim().toLowerCase();
+  const isBowen = institution === 'bowen university' || institution === 'bowen' || institution === 'bowen-university';
+  if (!isBowen) return false;
   const levelNumber = parseInt(p.level || '100L', 10) || 100;
-  const category = p.programmeCategory || inferProgrammeCategory(p.programme);
-  const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
-  const BowenCohes = category === 'cohes' && institution.includes('bowen');
-  if (levelNumber === 200 && BowenCohes) return COURSES_200.some(c => c.code === code);
-  if (levelNumber >= 200 && !BowenCohes) return CORE_COURSES.includes(code);
-  return coursesFor(p.programme).some(c => c.code === code);
+  const programme = String(p.programme || '').trim().toUpperCase();
+  if (levelNumber === 100) return coursesFor(p.programme).some(c => c.code === code);
+  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200.some(c => c.code === code);
+  return false;
 }
 
 /* ---------- Programme Cup ---------- */
@@ -2068,14 +2069,16 @@ let HOME_SEM = 'first';
 const homeCourses = () => {
   const p = DB.profile || {};
   const levelNumber = parseInt(p.level || '100L', 10) || 100;
-  const category = p.programmeCategory || inferProgrammeCategory(p.programme);
-  const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
-  const BowenCohes = category === 'cohes' && institution.includes('bowen');
-  if (levelNumber === 200 && BowenCohes) {
+  const institution = String(p.institution || '').trim().toLowerCase();
+  const isBowen = institution === 'bowen university' || institution === 'bowen' || institution === 'bowen-university';
+  const programme = String(p.programme || '').trim().toUpperCase();
+  // Legacy embedded banks are Bowen-only. Never use them as a fallback for another institution.
+  if (!isBowen) return [];
+  if (levelNumber === 100) return coursesFor(p.programme);
+  if (levelNumber === 200 && programme === 'MBBS') {
     return COURSES_200.filter(c => c.semester === HOME_SEM).map(c => Object.assign({}, c, { pending200: true }));
   }
-  if (levelNumber >= 200 && !BowenCohes) return coursesFor(p.programme).filter(c => CORE_COURSES.includes(c.code));
-  return coursesFor(p.programme);
+  return [];
 };
 function open200(code, tab) { course200View.tab = tab; go('#/course/' + code); }
 
@@ -2537,7 +2540,7 @@ function coursesCatalogueView(){
    h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
  });
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Choose a course to open its dashboard and learning resources.')),
- h('section',{class:'catalogue-grid'},...list)));
+ list.length ? h('section',{class:'catalogue-grid'},...list) : h('section',{class:'panel stack'},h('span',{class:'chip gold'},'Catalogue setup'),h('h2',null,'No verified courses mapped yet'),h('p',{class:'muted'},'Your university, programme and level are saved. Course materials will appear when their verified curriculum mappings are added. Bablo Hub will not substitute another university’s content.'))));
 }
 function timeHubView(){
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Time & Productivity'),h('p',{class:'muted'},'Plan your academic week and protect your study time.')),
@@ -4120,6 +4123,10 @@ function planTimer() {
 }
 function planTimetable() {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const p = DB.profile || {};
+  const institution = String(p.institution || '').trim().toLowerCase();
+  const isBowen100 = (institution === 'bowen university' || institution === 'bowen' || institution === 'bowen-university') && String(p.level || '100L') === '100L';
+  if (!isBowen100) return h('section',{class:'panel stack'},h('h2',null,'No timetable mapped yet'),h('p',{class:'muted small'},'A university- and level-specific timetable will appear when its verified schedule is added. Bowen 100L timetable data is not reused here.'));
   const mine = coursesFor(DB.profile.programme).map(c => c.code);
   const edits = DB.ttEdits || {};
   const rows = TIMETABLE_100_1.map((x, i) => Object.assign({ key: x.day + '|' + x.code }, x)).filter(x => mine.includes(ttCourse(x.code)));
