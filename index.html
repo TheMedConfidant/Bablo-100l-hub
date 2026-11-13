@@ -2223,6 +2223,7 @@ function route() {
     else if (v === 'about') aboutView();
     else if (v === 'bonus' && seg[1]) bonusView(seg[1]);
     else if (v === 'lab' && !seg[1]) labHubView();
+    else if (v === 'lab' && seg[1]) advancedLabModuleView(seg[1]);
     else if (v === 'lab' && seg[1] === 'phy107') embeddedPhyLabView();
     else if (v === 'lab' && seg[1] === 'chm107') embeddedChmLabView();
     else if (v === 'practicals' && seg[1] && seg[2]) practicalView(seg[1], seg[2]);
@@ -2414,27 +2415,29 @@ function premiumPricingView() {
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+ const level=parseInt(p.level||'100L',10)||100, senior=level>=200;
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
-  dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
+  dashboardCard(senior?'Specialist Laboratory':'Laboratory',senior?'Microbiology, pathology, histology and advanced biomedical work':'PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  const communityCards=[
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
-  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
-  dashboardCard('Arcade','Chess, strategy and games','🎮','#/arcade','#D6A82B')
+  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B')
  ];
+ if(!senior) communityCards.push(dashboardCard('Arcade','Chess, strategy and games','🎮','#/arcade','#D6A82B'));
+ else communityCards.push(dashboardCard('Academic Workspace','Research tools and specialist learning','🔬','#/lab','#53B6A5'));
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
-  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
+  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME · '+(p.level||'100L')),h('h1',null,greet+', '+first+'.'),h('p',null,senior?'Your level-aware academic workspace. Build depth, practical competence and clinical reasoning.':'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,senior?'Advanced learning':'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,senior?'Connect & develop':'Connect & compete'),h('span',null,senior?'Academic collaboration':'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
  ));
 }
@@ -4640,6 +4643,27 @@ function loadAlertForm(pass, container) {
 const PRACTICAL_FREE_UNTIL = Date.parse('2026-10-29T23:59:59+01:00'); // bonus week: practicals free for everyone
 function practicalsFor(code) { return (window.__PRACTICALS__ || {})[code] || null; }
 function labHubView() {
+  const p=DB.profile||{},level=parseInt(p.level||'100L',10)||100,senior=level>=200;
+  if(senior){
+    const modules=[
+      ['MIC','Medical Microbiology','Bacteriology, virology, mycology, parasitology and antimicrobial concepts','🦠','#0F8B68'],
+      ['PAT','Pathology','General pathology, systemic pathology and clinicopathological correlation','🔬','#B7791F'],
+      ['HIS','Histology & Tissue Sciences','Tissue architecture, slide atlas, staining concepts and microscopic identification','🧫','#8D83D8'],
+      ['HMT','Haematology','Blood cell morphology, haematological indices and laboratory interpretation','🩸','#B84C5A'],
+      ['CCL','Clinical Chemistry','Biochemical assays, reference intervals and interpretation principles','⚗️','#2F6FDB'],
+      ['ANA','Anatomy & Structural Sciences','Gross anatomy, regional relationships and anatomical imaging','🫀','#0E9AA7']
+    ];
+    mount(wrap(back('#/','Dashboard'),h('div',{class:'stack-l'},
+      h('div',{class:'dashboard-page-head'},h('span',{class:'chip gold'},'LEVEL '+level+' · ADVANCED TRACK'),h('h1',null,'Specialist Laboratory'),h('p',{class:'muted'},'A higher-level workspace organised around biomedical disciplines, specimen-based learning and laboratory interpretation.')),
+      h('section',{class:'panel stack'},h('h2',null,'Laboratory divisions'),h('p',{class:'small muted'},'Each division is a dedicated workspace. Content packs will be added as they are verified; no simulated results or unverified reference ranges are presented as clinical data.')),
+      h('section',{class:'dashboard-grid'},...modules.map(([code,name,detail,icon,color])=>h('a',{class:'dashboard-card',href:'#/lab/'+code.toLowerCase(),style:{'--card-accent':color}},
+        h('span',{class:'dashboard-card-icon','aria-hidden':'true'},icon),
+        h('span',{class:'dashboard-card-copy'},h('b',null,name),h('small',null,detail),h('small',{class:'muted'},'Open workspace')),
+        h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'›')))),
+      h('section',{class:'panel stack'},h('h2',null,'Laboratory record'),h('p',{class:'small muted'},'The planned record will keep practical objectives, specimen or slide notes, methods, observations, interpretation and references together. Personal learning records will remain separate from patient-identifiable information.'))
+    )));
+    return;
+  }
   const subjects = [
     { code: 'PHY', name: 'Physics', detail: 'PHY 107 · Interactive experiments', color: '#2F6FDB', href: '#/practicals/PHY', state: 'Open practicals' },
     { code: 'CHM', name: 'Chemistry', detail: 'CHM 107 · Practical procedures', color: '#B7791F', href: '#/practicals/CHM', state: 'Open in app' },
@@ -4652,6 +4676,24 @@ function labHubView() {
       h('span', { class: 'dashboard-card-icon', 'aria-hidden': 'true' }, x.code === 'PHY' ? '⚡' : x.code === 'CHM' ? '⚗️' : x.code === 'BIO' ? '🧬' : '💻'),
       h('span', { class: 'dashboard-card-copy' }, h('b', null, x.code + ' · ' + x.name), h('small', null, x.detail), h('small', { class: 'muted' }, x.state)),
       h('span', { class: 'dashboard-card-arrow', 'aria-hidden': 'true' }, '›'))))
+  )));
+}
+function advancedLabModuleView(code) {
+  const map={
+    mic:['Medical Microbiology','Bacteriology, virology, mycology and parasitology','Organism profiles · specimen concepts · diagnostic principles · antimicrobial interpretation'],
+    pat:['Pathology','General and systemic pathology','Morphological patterns · disease mechanisms · clinicopathological correlation'],
+    his:['Histology & Tissue Sciences','Normal tissue architecture and microscopic identification','Tissue atlas · staining principles · slide annotations · structure-function links'],
+    hmt:['Haematology','Blood cells and laboratory haematology','Cell morphology · indices · haemostasis concepts · interpretation'],
+    ccl:['Clinical Chemistry','Biochemical testing and interpretation','Analyte concepts · assay principles · reference interval literacy · clinical correlation'],
+    ana:['Anatomy & Structural Sciences','Regional anatomy and structural relationships','Anatomical atlas · cross-sections · imaging orientation · applied anatomy']
+  };
+  const item=map[String(code||'').toLowerCase()];
+  if(!item){labHubView();return;}
+  mount(wrap(back('#/lab','Specialist Laboratory'),h('div',{class:'stack-l'},
+    h('div',{class:'dashboard-page-head'},h('span',{class:'chip gold'},'SPECIALIST WORKSPACE'),h('h1',null,item[0]),h('p',{class:'muted'},item[1])),
+    h('section',{class:'panel stack'},h('h2',null,'Workspace structure'),h('p',{class:'small'},item[2])),
+    h('section',{class:'panel stack'},h('h2',null,'Learning record'),h('p',{class:'small muted'},'This workspace is being populated with reviewed course-aligned material. No diagnostic advice, patient data or fabricated laboratory results are stored here.')),
+    h('section',{class:'panel stack'},h('h2',null,'Planned tools'),h('div',{class:'row between wrapr'},h('span',null,'Reference atlas and annotated images'),h('span',{class:'chip gold'},'In development')),h('div',{class:'row between wrapr'},h('span',null,'Methods and principles library'),h('span',{class:'chip gold'},'In development')),h('div',{class:'row between wrapr'},h('span',null,'Observation and interpretation notebook'),h('span',{class:'chip gold'},'In development')))
   )));
 }
 async function integratedPracticalDocument(kind) {
