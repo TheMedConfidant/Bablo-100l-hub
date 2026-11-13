@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "project": "Bablo Hub",
+  "phase": "P1 — Offline Course Packs",
+  "generatedAt": "2026-11-13",
+  "status": "catalogue_seed",
+  "rules": {
+    "primaryInstitutions": [
+      "Bowen University",
+      "Federal University of Technology, Akure (FUTA)"
+    ],
+    "institutionEligibility": "Show only universities with at least one Health Sciences or Medical Sciences programme.",
+    "hierarchy": [
+      "institution",
+      "programme",
+      "level",
+      "semester",
+      "course",
+      "topic",
+      "resource"
+    ],
+    "offlinePolicy": "A pack is marked downloadable only after its complete content, assets, metadata and integrity hash are bundled and verified locally.",
+    "publishingPolicy": "Keep source provenance and review status. Never silently publish unverified AI-generated material."
+  },
+  "courses": [
+    {
+      "institution": "Bowen University",
+      "programme": "CoHES",
+      "level": "100L",
+      "semester": "Second Semester",
+      "code": "CHM 102",
+      "title": "Organic Chemistry / Electronic Structure",
+      "curriculumSource": "https://app.notion.com/p/4171834fbdba81bc8b22e1739a006f45",
+      "catalogueState": "mapped",
+      "topics": [
+        {
+          "id": "chm102-electronic-structure",
+          "title": "Electronic Structure: General Introduction to Organic Chemistry",
+          "group": "Atomic and electronic structure",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba812f90f7c1176ea5ed67"
+          ],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "essays",
+            "scenarios",
+            "references"
+          ],
+          "reviewState": "source_pack_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-quantum-numbers",
+          "title": "Quantum Numbers for Atoms",
+          "group": "Atomic and electronic structure",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba81fc956cc5d30578846d"
+          ],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "essays",
+            "references"
+          ],
+          "reviewState": "source_pack_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-hybridization",
+          "title": "Hybridization",
+          "group": "Atomic and electronic structure",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba81a1b0cdc4cee8af12c3"
+          ],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "essays",
+            "references"
+          ],
+          "reviewState": "source_pack_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-stereochemistry",
+          "title": "Stereochemistry",
+          "group": "Bonding, shape and stereochemistry",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba81479775d4bcc7752c7f",
+            "https://app.notion.com/p/4171834fbdba81f4a3bec1a37177efd3"
+          ],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "essays",
+            "references"
+          ],
+          "reviewState": "quiz_present_notes_and_key_require_review",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-fullerenes",
+          "title": "Fullerenes as an Allotrope of Carbon",
+          "group": "Bonding, shape and stereochemistry",
+          "role": "enrichment_only",
+          "sourcePages": [],
+          "resourceLayers": [
+            "reading",
+            "references"
+          ],
+          "reviewState": "source_pdf_not_yet_linked",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-organic-reactions",
+          "title": "Introduction to Organic Reactions and Mechanisms",
+          "group": "Reactions and mechanisms",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "visuals",
+            "flashcards",
+            "quiz",
+            "scenarios",
+            "references"
+          ],
+          "reviewState": "source_pdf_not_yet_linked",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-functional-groups",
+          "title": "Functional Groups",
+          "group": "Functional groups and hydrocarbons",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "visuals",
+            "flashcards",
+            "quiz",
+            "scenarios",
+            "references"
+          ],
+          "reviewState": "source_folder_not_yet_linked",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-note-8",
+          "title": "Alkanes, Alkenes, Alkyl Halides and Alcohols",
+          "group": "Functional groups and hydrocarbons",
+          "sourcePages": [
+            "https://app.notion.com/p/4171834fbdba814da407e27e5542ef03"
+          ],
+          "resourceLayers": [
+            "flashcards",
+            "quiz",
+            "essays",
+            "scenarios",
+            "verification_notes"
+          ],
+          "reviewState": "explicit_pdf_crosscheck_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-carboxylic-acids",
+          "title": "Carboxylic Acids 1",
+          "group": "Functional groups and hydrocarbons",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "essays",
+            "references"
+          ],
+          "reviewState": "source_pdf_not_yet_linked",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-acid-derivatives",
+          "title": "Acid Derivatives",
+          "group": "Functional groups and hydrocarbons",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "essays",
+            "references"
+          ],
+          "reviewState": "source_pdf_not_yet_linked",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-purification-analysis",
+          "title": "Purification and Qualitative / Quantitative Analysis",
+          "group": "Separation and analysis",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "procedures",
+            "tables",
+            "calculations",
+            "flashcards",
+            "quiz",
+            "references"
+          ],
+          "reviewState": "source_pdf_not_yet_linked",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "chm102-main-group-elements",
+          "title": "Chemistry of Main Group Elements",
+          "group": "Inorganic link",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "quiz",
+            "references"
+          ],
+          "reviewState": "source_pdf_not_yet_linked",
+          "offlineState": "not_bundled"
+        }
+      ],
+      "qualityFlags": [
+        "CHM 102 course map identifies an explicitly unverified source folder; exclude it from core packs until checked against lecturer material.",
+        "Note 8 page explicitly says its PDF text was partly garbled and requires reaction-by-reaction cross-checking.",
+        "The stereochemistry quiz and all generated answer keys require independent academic review before publication.",
+        "The current Notion source pages are marked unverified; catalogue presence is not equivalent to academic approval."
+      ]
+    }
+  ]
+}
