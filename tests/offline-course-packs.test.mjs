@@ -110,15 +110,15 @@ test('Settings cache cleanup includes removable course packs and abandoned stagi
 });
 
 test('course-pack refresh stages a complete immutable cache before atomically switching its manifest', () => {
-  assert.match(worker, /const response=await timedFetch\\(request,20000,'reload'\\)/);
-  assert.match(worker, /await staging\\.put\\(request,response\\.clone\\(\\)\\)/);
-  assert.match(worker, /newCacheName=COURSE_PREFIX\\+id\\+.*Date\\.now\\(\\)/);
-  assert.match(worker, /await next\\.put\\(request,response\\)/);
-  assert.match(worker, /await meta\\.put\\(metaKey/);
-  assert.match(worker, /const previous=await activeCourseCache\\(id\\)/);
+  assert.ok(worker.includes("const response=await timedFetch(request,20000,'reload')"));
+  assert.ok(worker.includes("await staging.put(request,response.clone())"));
+  assert.ok(worker.includes("newCacheName=COURSE_PREFIX+id+'-'+Date.now()"));
+  assert.ok(worker.includes("await next.put(request,response)"));
+  assert.ok(worker.includes("await meta.put(metaKey"));
+  assert.ok(worker.includes("const previous=await activeCourseCache(id)"));
 });
 
 test('an interrupted cache copy cannot replace the previously active course pack', () => {
-  assert.match(worker, /if\\(active!==newCacheName\\)await caches\\.delete\\(newCacheName\\)/);
-  assert.match(worker, /Your previous offline pack was kept/);
+  assert.ok(worker.includes("if(active!==newCacheName)await caches.delete(newCacheName)"));
+  assert.ok(worker.includes("Your previous offline pack was kept"));
 });
