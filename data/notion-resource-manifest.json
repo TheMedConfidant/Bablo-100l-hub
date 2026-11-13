@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-13",
+  "authority": "User confirmed that the Notion materials built for Bablo Hub are verified. The source pages' old Notion verification badges are stale metadata and must not override this explicit confirmation.",
+  "ingestionPolicy": "Preserve each Notion source ID and URL. Do not flatten same-code courses across universities. Shared reuse requires an explicit target institution/programme/level/semester/course mapping. Never infer equivalence from a matching course code or topic title.",
+  "sources": [
+    {
+      "id": "3ca1834f-bdba-8167-a959-cce677f5249e",
+      "url": "https://app.notion.com/p/3ca1834fbdba8167a959cce677f5249e",
+      "title": "FUTA BIO 101",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes",
+        "flashcards",
+        "MCQs",
+        "past-papers"
+      ],
+      "notes": "8-topic official FUTA course outline; 8/8 notes complete; 32 flashcards. Parent page states MCQs and past papers not started at last edit. Distinct from Bowen BIO 101."
+    },
+    {
+      "id": "3ca1834f-bdba-81f8-9219-d57507c99235",
+      "url": "https://app.notion.com/p/3ca1834fbdba81f89219d57507c99235",
+      "title": "FUTA BIO 101 Notes index",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "notes": "Contains topic pages for the eight BIO 101 outline areas."
+    },
+    {
+      "id": "3ca1834f-bdba-8158-8f35-d7ae7b8b5e6a",
+      "url": "https://app.notion.com/p/3ca1834fbdba81588f35d7ae7b8b5e6a",
+      "title": "FUTA BIO 101 Flashcards index",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "flashcards"
+      ],
+      "notes": "Links the BIO 101 flashcard database."
+    },
+    {
+      "id": "3e91834f-bdba-8124-be25-c4d749158c67",
+      "url": "https://app.notion.com/p/3e91834fbdba8124be25c4d749158c67",
+      "title": "Bowen CoHES BIO 101",
+      "institution": "Bowen University",
+      "programme": "CoHES",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes",
+        "flashcards",
+        "MCQs",
+        "past-papers"
+      ],
+      "notes": "Separate nine-topic Bowen CoHES course, with its own source and assessment structure. Do not merge with FUTA BIO 101."
+    },
+    {
+      "id": "3d71834f-bdba-81f7-a69e-d0c6396bea31",
+      "url": "https://app.notion.com/p/3d71834fbdba81f7a69ed0c6396bea31",
+      "title": "Bowen 100L Demo",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "semester": "first",
+      "types": [
+        "course-catalogue"
+      ],
+      "notes": "Defines Bowen MBBS 100L course pattern and question style; references PHY101, COS101 and BIO101. Source points to Drive for full course materials."
+    },
+    {
+      "id": "3ca1834f-bdba-81da-89a7-f8607c3fecfe",
+      "url": "https://app.notion.com/p/3ca1834fbdba81da89a7f8607c3fecfe",
+      "title": "200L course architecture",
+      "institution": "Bowen University",
+      "level": "200L",
+      "types": [
+        "architecture"
+      ],
+      "notes": "Three course lanes: Anatomy, Physiology, Biochemistry. Resource layers include notes, flashcards, MCQs, past papers, vignettes, practicals, research and revision."
+    },
+    {
+      "id": "3cc1834f-bdba-8152-b941-cac564a47e90",
+      "url": "https://app.notion.com/p/3cc1834fbdba8152b941cac564a47e90",
+      "title": "200L Physiology master course map",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Physiology",
+      "types": [
+        "curriculum-map"
+      ],
+      "notes": "Normalised topic/subtopic hierarchy; includes cardiovascular physiology and ECG among broad system topics."
+    },
+    {
+      "id": "3d11834f-bdba-8132-8612-dc2d9aebb3fb",
+      "url": "https://app.notion.com/p/3d11834fbdba81328612dc2d9aebb3fb",
+      "title": "200L Anatomy course hub",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Anatomy",
+      "types": [
+        "course-index"
+      ],
+      "notes": "Study, practise, apply, resources and review sections."
+    },
+    {
+      "id": "3d11834f-bdba-81d7-942a-c264892957ac",
+      "url": "https://app.notion.com/p/3d11834fbdba81d7942ac264892957ac",
+      "title": "200L Biochemistry course hub",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Biochemistry",
+      "types": [
+        "course-index"
+      ],
+      "notes": "Study, practise, apply, resources and review sections."
+    },
+    {
+      "id": "4161834f-bdba-81fb-9245-e2f5193d69f1",
+      "url": "https://app.notion.com/p/4161834fbdba81fb9245e2f5193d69f1",
+      "title": "Elbow & Forearm full notes",
+      "institution": "Unconfirmed target mapping",
+      "level": "200L",
+      "course": "Anatomy",
+      "types": [
+        "notes"
+      ],
+      "notes": "Full structured notes; source page says reorder to Bowen lecture sequence once outline confirmed. Content quality is user-confirmed; target curriculum mapping remains separate."
+    },
+    {
+      "id": "4161834f-bdba-81d8-aaf7-cd19f4a5ce6a",
+      "url": "https://app.notion.com/p/4161834fbdba81d8aaf7cd19f4a5ce6a",
+      "title": "Elbow & Forearm flashcards",
+      "institution": "Unconfirmed target mapping",
+      "level": "200L",
+      "course": "Anatomy",
+      "types": [
+        "flashcards"
+      ],
+      "notes": "Theory, image and scenario flashcards with Anki rating model. Target curriculum mapping remains separate."
+    },
+    {
+      "id": "a55df9d5-aed2-4afc-8649-2751543ec07d",
+      "url": "https://app.notion.com/p/a55df9d5aed24afc86492751543ec07d",
+      "title": "Med School Workspace",
+      "institution": "Mixed/personal study workspace",
+      "level": "100L+",
+      "types": [
+        "workspace-index"
+      ],
+      "notes": "Contains MedNotes and related databases; requires database-level inventory to extract course/resource metadata."
+    }
+  ]
+}
