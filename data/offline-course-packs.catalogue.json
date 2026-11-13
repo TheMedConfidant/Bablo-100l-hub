@@ -20,7 +20,27 @@
       "resource"
     ],
     "offlinePolicy": "A pack is marked downloadable only after its complete content, assets, metadata and integrity hash are bundled and verified locally.",
-    "publishingPolicy": "Keep source provenance and review status. Never silently publish unverified AI-generated material."
+    "publishingPolicy": "Keep source provenance and review status. Never silently publish unverified AI-generated material.",
+    "institutionEligibilityEvidence": {
+      "Bowen University": {
+        "confirmed": true,
+        "evidence": "Official College of Health Sciences page lists Anatomy, Doctor of Physiotherapy, Medical Laboratory Science, Medicine and Surgery, Nursing Science, Nutrition and Dietetics, Physiology and Public Health.",
+        "source": "https://bowen.edu.ng/cohes/",
+        "checkedOn": "2026-11-13"
+      },
+      "Federal University of Technology, Akure (FUTA)": {
+        "confirmed": true,
+        "evidence": "Official School of Health and Health Technology page confirms the health school; official Biomedical Technology department page identifies its B.Tech programme and allied-health remit.",
+        "sources": [
+          "https://shht.futa.edu.ng/home",
+          "https://bmt.futa.edu.ng/"
+        ],
+        "checkedOn": "2026-11-13"
+      },
+      "futureUniversities": {
+        "rule": "Do not display an institution unless an official institutional source confirms at least one Health Sciences or Medical Sciences college, school, department or degree programme. A general Biology, Chemistry or Physics course alone does not qualify."
+      }
+    }
   },
   "courses": [
     {
@@ -516,7 +536,9 @@
           "title": "Alkanes, Alkenes, Alkyl Halides and Alcohols",
           "group": "Functional groups and hydrocarbons",
           "sourcePages": [
-            "https://app.notion.com/p/4171834fbdba814da407e27e5542ef03"
+            "https://app.notion.com/p/4171834fbdba81d88918c0fe0566855a",
+            "https://app.notion.com/p/4171834fbdba814da407e27e5542ef03",
+            "https://app.notion.com/p/4171834fbdba814ab764f18ffcbf4725"
           ],
           "resourceLayers": [
             "flashcards",
