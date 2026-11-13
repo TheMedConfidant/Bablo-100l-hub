@@ -39,6 +39,12 @@ test('math input disables mobile spelling correction', () => {
   assert.ok(html.includes('autocorrect="off"'));
   assert.ok(html.includes('autocapitalize="off"'));
   assert.ok(html.includes('spellcheck="false"'));
+  assert.ok(html.includes('smart-mode="true"'));
+  assert.ok(html.includes('data-insert="\\\\sec("'));
+  assert.ok(html.includes('data-insert="\\\\csc("'));
+  assert.ok(html.includes('data-insert="\\\\cot("'));
+  assert.ok(html.includes('data-insert="floor("'));
+  assert.ok(html.includes('data-insert="ceil("'));
 });
 
 test('calculator libraries are routed through the offline cache', () => {
