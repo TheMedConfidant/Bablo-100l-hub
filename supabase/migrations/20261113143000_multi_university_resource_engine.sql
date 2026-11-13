@@ -79,7 +79,7 @@ create table if not exists public.hub_academic_resources (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (
-    (reuse_policy = 'shared-after-review' and owner_institution_id is null)
+    reuse_policy = 'shared-after-review'
     or (reuse_policy = 'institution-only' and owner_institution_id is not null)
   )
 );
@@ -109,7 +109,7 @@ create index if not exists hub_academic_courses_lookup_idx
 create index if not exists hub_academic_resources_publish_idx
   on public.hub_academic_resources (is_published, quality_status, rights_status, reuse_policy);
 create index if not exists hub_academic_resource_mappings_lookup_idx
-  on public.hub_academic_resource_mappings (institution_id, programme_id, academic_level, semester, mapping_status);
+  on public.hub_academic_resource_mappings (course_id, mapping_status, verified_at, resource_id);
 
 -- Initial directory entries only. Programme offerings are added after source verification.
 insert into public.hub_academic_institutions
@@ -401,7 +401,7 @@ as $$
     and r.quality_status = 'approved'
     and r.rights_status = 'cleared'
     and (
-      (r.reuse_policy = 'shared-after-review' and r.owner_institution_id is null)
+      (r.reuse_policy = 'shared-after-review')
       or
       (r.reuse_policy = 'institution-only' and r.owner_institution_id = i.id)
     )
