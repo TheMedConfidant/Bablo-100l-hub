@@ -31,7 +31,8 @@ create table if not exists public.hub_academic_programmes (
   verification_note text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (institution_id, programme_code)
+  unique (institution_id, programme_code),
+  unique (id, institution_id)
 );
 
 create table if not exists public.hub_academic_courses (
@@ -50,7 +51,9 @@ create table if not exists public.hub_academic_courses (
   verification_note text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (institution_id, programme_id, academic_level, semester, course_code)
+  unique (institution_id, programme_id, academic_level, semester, course_code),
+  foreign key (programme_id, institution_id)
+    references public.hub_academic_programmes(id, institution_id) on delete restrict
 );
 
 create table if not exists public.hub_academic_resources (
