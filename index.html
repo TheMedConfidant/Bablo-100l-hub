@@ -2449,6 +2449,7 @@ function homeView() {
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
+  programmeCupReminderCard(),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
@@ -3790,6 +3791,54 @@ function nextWindows(now, count) {
   const from = Math.max(now, seasonStart), to = seasonEnd;
   return Core.windowsIn(from, to, EVENT_WINDOWS).filter(w => w.end > now).slice(0, count);
 }
+function shareProgrammeCupQualifiers() {
+  const url = location.origin + location.pathname + '#/cup';
+  const text = 'Bablo Hub Programme Cup qualifiers are coming up! Saturday 1:00–5:00 pm WAT. Open the Cup page for qualifier details and the leaderboard.';
+  if (navigator.share) {
+    navigator.share({ title: 'Bablo Hub · Programme Cup Qualifiers', text, url })
+      .catch(e => { if (!e || e.name !== 'AbortError') copyQualifierLink(url); });
+    return;
+  }
+  copyQualifierLink(url);
+}
+async function copyQualifierLink(url) {
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(url);
+      toast('Programme Cup link copied. Share it with your classmates.');
+      return;
+    }
+  } catch (e) {}
+  const field = h('input', { value: url, readonly: true, 'aria-label': 'Programme Cup sharing link' });
+  modal(h('div', { class: 'stack' },
+    h('h2', null, 'Share Programme Cup'),
+    h('p', { class: 'small muted' }, 'Copy this link and send it to your classmates.'),
+    field,
+    h('button', { class: 'btn primary block', onclick: () => { field.select(); try { document.execCommand('copy'); toast('Link copied.'); } catch (e) { toast('Select and copy the link.'); } } }, 'Copy link')
+  ));
+  setTimeout(() => { field.focus(); field.select(); }, 0);
+}
+function programmeCupReminderCard() {
+  const now = Date.now();
+  const next = nextWindows(now, 1)[0];
+  if (!next || (next.start > now && next.start - now > 48 * 60 * 60 * 1000)) return null;
+  const live = now >= next.start && now < next.end;
+  const date = new Date(next.start);
+  const dateLabel = new Intl.DateTimeFormat('en-NG', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Africa/Lagos' }).format(date);
+  const timeLabel = new Intl.DateTimeFormat('en-NG', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' }).format(date) + '–' +
+    new Intl.DateTimeFormat('en-NG', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' }).format(new Date(next.end)) + ' WAT';
+  return h('section', { class: 'panel stack', style: { border: '1px solid var(--gold)', background: 'var(--gold-soft)' } },
+    h('div', { class: 'row between wrapr' }, h('span', { class: 'chip gold' }, live ? 'LIVE NOW' : 'UP NEXT'), h('span', { class: 'tiny muted' }, 'Programme Cup')),
+    h('h2', null, live ? 'Qualifiers are live' : 'Programme Cup qualifiers'),
+    h('p', { class: 'small muted' }, dateLabel + ' · ' + timeLabel),
+    h('p', { class: 'small' }, live ? 'The qualification window is open. Join now.' : 'Get ready and share the invitation with your classmates.'),
+    h('div', { class: 'row wrapr' },
+      h('a', { class: 'btn gold', href: '#/qualify' }, 'Open qualifiers'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: shareProgrammeCupQualifiers }, 'Share link')
+    )
+  );
+}
+
 function cupView() {
   if (CUP_ON_HOLD) return holdPage('Programme Cup', true);
   const now = Date.now(), seasonStart = Date.parse(SEASON.start), seasonEnd = seasonStart + SEASON.weeks * 7 * 864e5;
@@ -3799,6 +3848,7 @@ function cupView() {
   const standings = h('section', { class: 'panel stack' }, h('h2', null, SEASON.name + ' overall'), h('p', { class: 'muted' }, 'Loading standings\u2026'));
   mount(wrap(back('#/board', 'Leaderboard'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Programme Cup'), h('p', { class: 'muted' }, 'Every programme takes part. Your best ranked score in each course counts. The programme score is the average of its top ' + CUP.topN + ' players, so one person cannot carry a whole programme.')),
+    programmeCupReminderCard(),
     h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label + ' ' + String(w.from).padStart(2, '0') + ':00 to ' + String(w.to).padStart(2, '0') + ':00').join(' \u2022 ') + '. Repeats every week.'), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
     standings, pollCard(), h('div', { id: 'qualSlot' }))));
   qualifiersCard().then(card => { const slot = document.getElementById('qualSlot'); if (slot) slot.replaceChildren(card); });
