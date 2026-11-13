@@ -482,7 +482,7 @@ create or replace function public.hub_list_academic_resources(
   p_institution_slug text,
   p_programme_code text,
   p_academic_level text,
-  p_semester text
+  p_semester text default null
 )
 returns table (
   resource_key text,
@@ -512,7 +512,7 @@ as $$
     and p.programme_code = upper(trim(p_programme_code))
     and p.directory_status = 'active'
     and c.academic_level = p_academic_level
-    and c.semester = p_semester
+    and (p_semester is null or c.semester = p_semester)
     and c.curriculum_status = 'verified'
     and m.mapping_status = 'verified'
     and m.verified_at is not null
