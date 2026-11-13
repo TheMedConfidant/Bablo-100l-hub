@@ -153,6 +153,132 @@
         "workspace-index"
       ],
       "notes": "Contains MedNotes and related databases; requires database-level inventory to extract course/resource metadata."
+    },
+    {
+      "id": "3b642068-4765-42fb-a261-75798067308f",
+      "url": "https://app.notion.com/p/3b642068476542fba26175798067308f",
+      "title": "BIO 101 (Bowen) Flashcards",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "BIO 101",
+      "resourceType": "flashcards",
+      "dataSource": "collection://4cf49cc5-fd64-4d38-9d32-73d57a682de5",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "0eb33374-5d60-4efa-b8cd-b10f91f11167",
+      "url": "https://app.notion.com/p/0eb333745d604efab8cdb10f91f11167",
+      "title": "PHY 101 (Bowen) Flashcards",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "PHY 101",
+      "resourceType": "flashcards",
+      "dataSource": "collection://a8b68bcd-7421-433e-a814-e92ccf66dd78",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "c373c577-8524-455f-88bd-58af6bb0a490",
+      "url": "https://app.notion.com/p/c373c5778524455f88bd58af6bb0a490",
+      "title": "COS 101 (Bowen) Flashcards",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "COS 101",
+      "resourceType": "flashcards",
+      "dataSource": "collection://89488c51-5281-49ea-9682-7573a26d2610",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "bc122d7d-d17c-405f-a206-c584346f4a29",
+      "url": "https://app.notion.com/p/bc122d7dd17c405fa206c584346f4a29",
+      "title": "CHM 101 MCQs",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "CHM 101",
+      "resourceType": "questions",
+      "dataSource": "collection://ffe87778-d84d-4b61-ab56-4a89ca84d9ca",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "3c41834f-bdba-81bb-aa79-cac0a7b95bca",
+      "url": "https://app.notion.com/p/3c41834fbdba81bbaa79cac0a7b95bca",
+      "title": "PHY 101 MCQs",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "PHY 101",
+      "resourceType": "questions",
+      "dataSource": "collection://2dab99e3-04bf-4429-9e59-7ac3b94f978c",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "3ca1834f-bdba-81a8-bd2a-d45e9a70946f",
+      "url": "https://app.notion.com/p/3ca1834fbdba81a8bd2ad45e9a70946f",
+      "title": "200L Physiology Flashcards index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Physiology",
+      "resourceType": "flashcards-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3ca1834f-bdba-814e-8966-d2fd515a5d01",
+      "url": "https://app.notion.com/p/3ca1834fbdba814e8966d2fd515a5d01",
+      "title": "200L Physiology MCQs index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Physiology",
+      "resourceType": "questions-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-81bb-8a20-d969ddc4d071",
+      "url": "https://app.notion.com/p/3d11834fbdba81bb8a20d969ddc4d071",
+      "title": "200L Anatomy Flashcards index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "flashcards-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-817e-8178-f6952068011d",
+      "url": "https://app.notion.com/p/3d11834fbdba817e8178f6952068011d",
+      "title": "200L Anatomy MCQs index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "questions-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-81fc-99fc-d3a5dc9e7609",
+      "url": "https://app.notion.com/p/3d11834fbdba81fc99fcd3a5dc9e7609",
+      "title": "200L Biochemistry Flashcards index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Biochemistry",
+      "resourceType": "flashcards-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-81f1-b9d8-d4b405695541",
+      "url": "https://app.notion.com/p/3d11834fbdba81f1b9d8d4b405695541",
+      "title": "200L Biochemistry MCQs index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Biochemistry",
+      "resourceType": "questions-index",
+      "exportStatus": "indexed-not-row-exported"
     }
   ],
   "exports": [
@@ -199,5 +325,38 @@
       "status": "staged-not-yet-loaded-into-live-app"
     }
   ],
-  "sourceAuthority": "User confirms all Notion-built materials are verified."
+  "sourceAuthority": "User confirms all Notion-built materials are verified.",
+  "queuedExport": {
+    "reason": "Notion Query Data Source allowance reached its temporary limit on 2026-11-13; do not retry until the allowance resets. Database pages and data-source IDs have been indexed so export can resume without rediscovery.",
+    "pending": [
+      {
+        "title": "BIO 101 (Bowen) Flashcards",
+        "dataSource": "collection://4cf49cc5-fd64-4d38-9d32-73d57a682de5"
+      },
+      {
+        "title": "PHY 101 (Bowen) Flashcards",
+        "dataSource": "collection://a8b68bcd-7421-433e-a814-e92ccf66dd78"
+      },
+      {
+        "title": "COS 101 (Bowen) Flashcards",
+        "dataSource": "collection://89488c51-5281-49ea-9682-7573a26d2610"
+      },
+      {
+        "title": "CHM 101 MCQs",
+        "dataSource": "collection://ffe87778-d84d-4b61-ab56-4a89ca84d9ca"
+      },
+      {
+        "title": "PHY 101 MCQs",
+        "dataSource": "collection://2dab99e3-04bf-4429-9e59-7ac3b94f978c"
+      }
+    ],
+    "indexedPages": [
+      "200L Physiology Flashcards index",
+      "200L Physiology MCQs index",
+      "200L Anatomy Flashcards index",
+      "200L Anatomy MCQs index",
+      "200L Biochemistry Flashcards index",
+      "200L Biochemistry MCQs index"
+    ]
+  }
 }
