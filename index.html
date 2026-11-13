@@ -2632,10 +2632,10 @@ function offlineResourcesForCourse(code) {
   };
   return [...new Set(common.concat(byCourse[String(code||'').toUpperCase()]||[]))];
 }
-function offlineCoursePanel(code) {
+function offlineCoursePanel(code, resources) {
   const host=h('div',{class:'offline-course-host'});
   if(window.BabloOffline&&typeof window.BabloOffline.attachCourseButton==='function'){
-    try{window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:offlineResourcesForCourse(code)});}
+    try{window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:resources||offlineResourcesForCourse(code)});}
     catch(e){host.appendChild(h('p',{class:'muted small'},e.message||'Offline download is not available yet.'));}
   } else host.appendChild(h('section',{class:'panel stack'},h('h3',null,'Study offline'),h('p',{class:'muted small'},'Reload Bablo Hub after connecting to activate offline downloads.')));
   return host;
@@ -4377,7 +4377,11 @@ function course200View(c) {
       else if(cur==='Notes')content=renderStudyMarkdown(map?.content||'');
       else content=h('p',{class:'muted'},'This resource layer is indexed in Notion. Its content is queued for extraction; no placeholder questions or cards are generated.');
     }
-    body.replaceChildren(content||h('p',{class:'muted'},'No content is available in this section yet.'));
+    if(cur==='Overview'){
+      const pack=c.code==='ANATOMY'?['./','./index.html','./data/200l-anatomy-elbow-forearm.json']:['./','./index.html','./data/bowen-200l-course-maps.json'];
+      const panel=offlineCoursePanel('200l-'+c.code,pack);
+      body.replaceChildren(h('div',{class:'stack'},content||h('p',{class:'muted'},'No content is available in this section yet.'),panel));
+    } else body.replaceChildren(content||h('p',{class:'muted'},'No content is available in this section yet.'));
   }catch(e){body.replaceChildren(h('h2',null,'Study pack unavailable'),h('p',{class:'muted'},e.message||'Connect briefly to download this resource, then it will be available offline.'));}})();
 }
 /* admin-only preview of 200L on this device; students stay on their level until an admin approves a move */
