@@ -24,6 +24,369 @@
   },
   "courses": [
     {
+      "institution": "Federal University of Technology, Akure (FUTA)",
+      "programme": "100L undergraduate science foundation (degree programme pending verification)",
+      "level": "100L",
+      "semester": "Not confirmed",
+      "code": "BIO 101",
+      "title": "Biology",
+      "curriculumSource": "https://app.notion.com/p/3ca1834fbdba8167a959cce677f5249e",
+      "catalogueState": "source_mapped_institution_confirmed_programme_and_semester_pending",
+      "topics": [
+        {
+          "id": "futa-bio101-characteristics-classification",
+          "title": "Characteristics of Life & Classification",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-bio101-cell-structure",
+          "title": "Cell Structure & Organelles",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-bio101-reproduction",
+          "title": "Reproduction",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-bio101-heredity-evolution",
+          "title": "Heredity & Evolution",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-bio101-ecology-habitats",
+          "title": "Ecology & Habitats",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-bio101-nonvascular-plants",
+          "title": "Non-Vascular Plants (Viruses, Bacteria, Algae, Fungi)",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-bio101-vascular-plants",
+          "title": "Vascular Plants (Bryophytes, Pteridophytes)",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-bio101-flowering-plants",
+          "title": "Flowering Plants",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        }
+      ],
+      "sourcePages": [
+        "https://app.notion.com/p/3ca1834fbdba8167a959cce677f5249e",
+        "https://app.notion.com/p/3ca1834fbdba81a29502f17b342aa3e4",
+        "https://app.notion.com/p/3ca1834fbdba81588f35d7ae7b8b5e6a",
+        "https://app.notion.com/p/3ca1834fbdba816eb477cf98bc21d90a"
+      ],
+      "resourceProgress": {
+        "notes": "8/8 topics complete",
+        "flashcards": "32 cards recorded",
+        "mcqs": "not started",
+        "pastPapers": "not started"
+      },
+      "qualityFlags": [
+        "Notion course page explicitly identifies the official FUTA course outline and its eight topics.",
+        "The page and all resources are marked unverified; content needs academic review.",
+        "Exact degree programme, department and semester are not confirmed; do not invent them.",
+        "Topic-level page IDs have not yet been reconciled, so only verified parent resource pages are linked."
+      ]
+    },
+    {
+      "institution": "Federal University of Technology, Akure (FUTA)",
+      "programme": "100L undergraduate science foundation (degree programme pending verification)",
+      "level": "100L",
+      "semester": "Not confirmed",
+      "code": "CHM 101",
+      "title": "Chemistry",
+      "curriculumSource": "https://app.notion.com/p/3c11834fbdba81b48bcfd9c9f8e58ae1",
+      "catalogueState": "FUTA_origin_confirmed_by_Bowen_adaptation_cross_reference",
+      "topics": [
+        {
+          "id": "futa-chm101-atomic-theory",
+          "title": "Atomic Theory",
+          "sourcePages": "https://app.notion.com/p/3c11834fbdba8136b014ce9446c8f18b",
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-chm101-thermochemistry",
+          "title": "Thermochemistry",
+          "sourcePages": "https://app.notion.com/p/3c11834fbdba81969ff5d0c9a3c34ca2",
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-chm101-chemical-kinetics",
+          "title": "Chemical Kinetics",
+          "sourcePages": "https://app.notion.com/p/3c11834fbdba81399d3bfb7a77230933",
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-chm101-chemical-equilibria",
+          "title": "Chemical Equilibria",
+          "sourcePages": "https://app.notion.com/p/3c11834fbdba81c8a2d0fce5636254ba",
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-chm101-electrochemistry",
+          "title": "Electrochemistry",
+          "sourcePages": "https://app.notion.com/p/3c11834fbdba81b6a6cbd39f3d0e239e",
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-chm101-radiochemistry",
+          "title": "Radiochemistry",
+          "sourcePages": "https://app.notion.com/p/3c11834fbdba81718223f0530174cdf5",
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-chm101-solutions-solubility",
+          "title": "Solutions & Solubility",
+          "sourcePages": "https://app.notion.com/p/3c11834fbdba810bb183dba1e6a27664",
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "source_content_present_review_required",
+          "offlineState": "not_bundled"
+        }
+      ],
+      "sourcePages": [
+        "https://app.notion.com/p/3c11834fbdba81b48bcfd9c9f8e58ae1",
+        "https://app.notion.com/p/3c11834fbdba810b86bcf5d153638f31",
+        "https://app.notion.com/p/3c11834fbdba81508736ccc1fa01a2a5",
+        "https://app.notion.com/p/bc122d7dd17c405fa206c584f4a29"
+      ],
+      "resourceProgress": {
+        "notes": "7/7 topics complete",
+        "flashcards": "expansion in progress",
+        "mcqs": "not started",
+        "pastPapers": "not started"
+      },
+      "qualityFlags": [
+        "Bowen's 100L demo explicitly says CHM101 is adapted from FUTA; preserve FUTA as the source institution and do not label it Bowen-native.",
+        "Confirm the exact FUTA degree programme, department and semester against the original course outline.",
+        "Notion course page is unverified; notes and derivative resources need independent academic review."
+      ]
+    },
+    {
+      "institution": "Federal University of Technology, Akure (FUTA)",
+      "programme": "100L undergraduate science foundation (degree programme pending verification)",
+      "level": "100L",
+      "semester": "Not confirmed",
+      "code": "PHY 101",
+      "title": "Physics",
+      "curriculumSource": "https://app.notion.com/p/3c41834fbdba81b8a6fbea6a88fbea9f",
+      "catalogueState": "source_mapped_from_100L_library_hierarchy_programme_pending",
+      "topics": [
+        {
+          "id": "futa-phy101-dimensional-analysis",
+          "title": "Dimensional Analysis",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "topic_map_and_past_question_structure_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-phy101-vector-analysis",
+          "title": "Vector Analysis",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "topic_map_and_past_question_structure_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-phy101-kinematics",
+          "title": "Kinematics",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "topic_map_and_past_question_structure_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-phy101-projectile-motion",
+          "title": "Projectile Motion",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "topic_map_and_past_question_structure_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-phy101-circular-motion",
+          "title": "Circular Motion",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "topic_map_and_past_question_structure_present_review_required",
+          "offlineState": "not_bundled"
+        },
+        {
+          "id": "futa-phy101-laws-mechanics",
+          "title": "Laws of Mechanics",
+          "sourcePages": [],
+          "resourceLayers": [
+            "notes",
+            "flashcards",
+            "mcqs",
+            "past_papers"
+          ],
+          "reviewState": "topic_map_and_past_question_structure_present_review_required",
+          "offlineState": "not_bundled"
+        }
+      ],
+      "sourcePages": [
+        "https://app.notion.com/p/3c41834fbdba81b8a6fbea6a88fbea9f",
+        "https://app.notion.com/p/3c41834fbdba81439815c09f8c2079f5",
+        "https://app.notion.com/p/3c41834fbdba8156be19cf49dcf1e8c5",
+        "https://app.notion.com/p/3c41834fbdba81bbaa79cac0a7b95bca",
+        "https://app.notion.com/p/3c41834fbdba81408bf5c6256b0beeb8"
+      ],
+      "resourceProgress": {
+        "notes": "starting",
+        "flashcards": "not started",
+        "mcqs": "not started",
+        "pastPapers": "not started"
+      },
+      "qualityFlags": [
+        "This is the PHY101 page under the general 100L library, distinct from Bowen's PHY101 page linked from the Bowen 100L demo.",
+        "FUTA institution attribution is provisional from the 100L library hierarchy; confirm the original Drive folder and official course outline before public display.",
+        "The six-section topic structure is supported by past-question mapping; bonus topics remain outside the core list.",
+        "Exact degree programme, department and semester remain unconfirmed."
+      ]
+    },
+    {
       "institution": "Bowen University",
       "programme": "CoHES",
       "level": "100L",
@@ -234,5 +597,15 @@
         "The current Notion source pages are marked unverified; catalogue presence is not equivalent to academic approval."
       ]
     }
+  ],
+  "qualityFlags": [
+    "FUTA-origin 100L resources are now separated from Bowen-native curriculum. Do not merge course codes or question styles across institutions.",
+    "FUTA BIO101 is directly identified as FUTA in its course page; it records 8/8 notes and 32 flashcards, while MCQs and past papers are not started.",
+    "FUTA CHM101 is identified as FUTA-origin by the Bowen 100L demo, which explicitly calls CHM101 adapted from FUTA; retain that provenance.",
+    "FUTA PHY101 is the separate PHY101 page under the 100L library hierarchy, not the Bowen PHY101 page linked from the Bowen 100L demo. Its institution attribution still requires source-folder confirmation.",
+    "FUTA degree programme, department and semester are not yet verified. Do not publish guessed programme labels.",
+    "All Notion course pages fetched for this audit report verification.state=unverified. A mapped resource is not an academically approved resource.",
+    "CHM102 Note 8 has garbled source-PDF extraction and requires reaction-by-reaction PDF review. Stereochemistry answer keys need independent review.",
+    "Full offline packs remain not_bundled until content/assets are extracted, validated, hashed and tested locally."
   ]
 }
