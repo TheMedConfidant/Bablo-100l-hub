@@ -323,6 +323,22 @@
         "bowen-university"
       ],
       "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-futa-bio101-notes.json",
+      "resources": 8,
+      "contentChars": 46375,
+      "institutionSlug": "futa",
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-100l-physics-chemistry-shared-pilot.json",
+      "resources": 13,
+      "contentChars": 51953,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
     }
   ],
   "sourceAuthority": "User confirms all Notion-built materials are verified.",
