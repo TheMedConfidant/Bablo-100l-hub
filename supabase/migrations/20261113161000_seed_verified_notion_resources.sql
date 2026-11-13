@@ -68,7 +68,16 @@ on conflict (resource_key) do update set
 
 -- Fail loudly if an institution-owned resource could not resolve its owner.
 do $$
+declare staged_count integer;
 begin
+  select count(*) into staged_count
+  from public.hub_academic_resources
+  where resource_key in ('futa-100l-bio101-flashcards','bowen-cohes-100l-bio101-mcqs','futa-100l-bio101-note-01','futa-100l-bio101-note-02','futa-100l-bio101-note-03','futa-100l-bio101-note-04','futa-100l-bio101-note-05','futa-100l-bio101-note-06','futa-100l-bio101-note-07','futa-100l-bio101-note-08','shared-100l-chm101-topic-01','shared-100l-chm101-topic-02','shared-100l-chm101-topic-03','shared-100l-chm101-topic-04','shared-100l-chm101-topic-05','shared-100l-chm101-topic-06','shared-100l-chm101-topic-07','shared-100l-phy101-topic-08','shared-100l-phy101-topic-09','shared-100l-phy101-topic-10','shared-100l-phy101-topic-11','shared-100l-phy101-topic-12','shared-100l-phy101-topic-13','shared-200l-anatomy-elbow-forearm-notes','shared-200l-anatomy-elbow-forearm-flashcards','shared-200l-anatomy-elbow-forearm-quiz','shared-200l-anatomy-elbow-forearm-vignettes','shared-200l-anatomy-elbow-forearm-reference','shared-200l-map-1','shared-200l-map-2','shared-200l-map-3','shared-200l-map-4','shared-200l-map-5','shared-200l-map-6','shared-200l-physiology-topic-1','shared-200l-biochemistry-topic-2');
+
+  if staged_count <> 36 then
+    raise exception 'Expected 36 staged Notion resources, found %', staged_count;
+  end if;
+
   if exists (
     select 1 from public.hub_academic_resources
     where resource_key in ('futa-100l-bio101-flashcards','bowen-cohes-100l-bio101-mcqs','futa-100l-bio101-note-01','futa-100l-bio101-note-02','futa-100l-bio101-note-03','futa-100l-bio101-note-04','futa-100l-bio101-note-05','futa-100l-bio101-note-06','futa-100l-bio101-note-07','futa-100l-bio101-note-08','shared-100l-chm101-topic-01','shared-100l-chm101-topic-02','shared-100l-chm101-topic-03','shared-100l-chm101-topic-04','shared-100l-chm101-topic-05','shared-100l-chm101-topic-06','shared-100l-chm101-topic-07','shared-100l-phy101-topic-08','shared-100l-phy101-topic-09','shared-100l-phy101-topic-10','shared-100l-phy101-topic-11','shared-100l-phy101-topic-12','shared-100l-phy101-topic-13','shared-200l-anatomy-elbow-forearm-notes','shared-200l-anatomy-elbow-forearm-flashcards','shared-200l-anatomy-elbow-forearm-quiz','shared-200l-anatomy-elbow-forearm-vignettes','shared-200l-anatomy-elbow-forearm-reference','shared-200l-map-1','shared-200l-map-2','shared-200l-map-3','shared-200l-map-4','shared-200l-map-5','shared-200l-map-6','shared-200l-physiology-topic-1','shared-200l-biochemistry-topic-2')
@@ -76,6 +85,22 @@ begin
       and owner_institution_id is null
   ) then
     raise exception 'A staged institution-owned Notion resource has no institution owner';
+  end if;
+
+  if exists (
+    select 1
+    from public.hub_academic_resource_mappings m
+    join public.hub_academic_resources r on r.id=m.resource_id
+    where r.resource_key in ('futa-100l-bio101-flashcards','bowen-cohes-100l-bio101-mcqs','futa-100l-bio101-note-01','futa-100l-bio101-note-02','futa-100l-bio101-note-03','futa-100l-bio101-note-04','futa-100l-bio101-note-05','futa-100l-bio101-note-06','futa-100l-bio101-note-07','futa-100l-bio101-note-08','shared-100l-chm101-topic-01','shared-100l-chm101-topic-02','shared-100l-chm101-topic-03','shared-100l-chm101-topic-04','shared-100l-chm101-topic-05','shared-100l-chm101-topic-06','shared-100l-chm101-topic-07','shared-100l-phy101-topic-08','shared-100l-phy101-topic-09','shared-100l-phy101-topic-10','shared-100l-phy101-topic-11','shared-100l-phy101-topic-12','shared-100l-phy101-topic-13','shared-200l-anatomy-elbow-forearm-notes','shared-200l-anatomy-elbow-forearm-flashcards','shared-200l-anatomy-elbow-forearm-quiz','shared-200l-anatomy-elbow-forearm-vignettes','shared-200l-anatomy-elbow-forearm-reference','shared-200l-map-1','shared-200l-map-2','shared-200l-map-3','shared-200l-map-4','shared-200l-map-5','shared-200l-map-6','shared-200l-physiology-topic-1','shared-200l-biochemistry-topic-2')
+  ) then
+    raise exception 'Staged Notion resources must remain unmapped until curriculum verification';
+  end if;
+
+  if exists (
+    select 1 from public.hub_academic_resources
+    where resource_key in ('futa-100l-bio101-flashcards','bowen-cohes-100l-bio101-mcqs','futa-100l-bio101-note-01','futa-100l-bio101-note-02','futa-100l-bio101-note-03','futa-100l-bio101-note-04','futa-100l-bio101-note-05','futa-100l-bio101-note-06','futa-100l-bio101-note-07','futa-100l-bio101-note-08','shared-100l-chm101-topic-01','shared-100l-chm101-topic-02','shared-100l-chm101-topic-03','shared-100l-chm101-topic-04','shared-100l-chm101-topic-05','shared-100l-chm101-topic-06','shared-100l-chm101-topic-07','shared-100l-phy101-topic-08','shared-100l-phy101-topic-09','shared-100l-phy101-topic-10','shared-100l-phy101-topic-11','shared-100l-phy101-topic-12','shared-100l-phy101-topic-13','shared-200l-anatomy-elbow-forearm-notes','shared-200l-anatomy-elbow-forearm-flashcards','shared-200l-anatomy-elbow-forearm-quiz','shared-200l-anatomy-elbow-forearm-vignettes','shared-200l-anatomy-elbow-forearm-reference','shared-200l-map-1','shared-200l-map-2','shared-200l-map-3','shared-200l-map-4','shared-200l-map-5','shared-200l-map-6','shared-200l-physiology-topic-1','shared-200l-biochemistry-topic-2') and is_published=true
+  ) then
+    raise exception 'Staged Notion resources must remain unpublished';
   end if;
 end $$;
 
