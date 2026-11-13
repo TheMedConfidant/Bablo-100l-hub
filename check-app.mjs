@@ -78,6 +78,13 @@ if (html) {
   if (exportBlock && !exportBlock.includes("DB.account") && !exportBlock.includes("p_password") && !exportBlock.includes("DB.account.token")) pass("Study-data export excludes account credentials and tokens");
   else fail("Study-data export is missing or includes sensitive account fields");
 }
+
+const offlineSw = read("sw.js");
+if (/const VERSION='bablo-offline-v38-source-provenance'/.test(offlineSw) && /function save\(/.test(offlineSw)) pass("Service worker has versioned offline shell caching");
+else fail("Versioned offline shell cache missing");
+if (/navigator\.onLine/.test(html) || /navigator\.connection/.test(html)) pass("Dashboard/app exposes connection-state handling");
+else fail("Connection-state handling is not yet implemented");
+
 for (const p of ["robots.txt", "sitemap.xml"]) {
   try {
     const s = read(p);
