@@ -722,6 +722,25 @@
     "FUTA BIO101's linked MCQ and Past Papers pages are blank despite notes being 8/8 and 32 flashcards being recorded; do not advertise these missing resource types as available.",
     "The general 100L PHY101 notes cover six topics and have 54 flashcards recorded; its past-paper index contains two repeated topic titles that need content comparison.",
     "CHM101 structural checks passed for 131 flashcards and 111 MCQs (unique IDs/prompts and required fields present); this is not equivalent to scientific/answer-key validation.",
-    "Bowen CHM108 is a distinct 100L second-semester practical course; it must not be merged into CHM102 or the FUTA-origin CHM101 pack."
+    "Bowen CHM108 is a distinct 100L second-semester practical course; it must not be merged into CHM102 or the FUTA-origin CHM101 pack.",
+    "The 200L Physiology master map describes a Bowen-first build using other Nigerian universities as comparison/triangulation sources. Keep those external materials tagged as references, never as Bowen-native curriculum, until each source is independently verified."
+  ],
+  "referencePools": [
+    {
+      "targetInstitution": "Bowen University",
+      "level": "200L",
+      "discipline": "Physiology",
+      "sourcePage": "https://app.notion.com/p/3cc1834fbdba8152b941cac564a47e90",
+      "sourceInstitutionsMentioned": [
+        "Bayero University",
+        "University of Medical Sciences Ondo",
+        "Federal University Oye-Ekiti",
+        "Olabisi Onabanjo University",
+        "State University of Medical and Applied Sciences"
+      ],
+      "purpose": "External curriculum and assessment triangulation for Bowen-first physiology development, not proof that the listed institutions' resources are Bowen curriculum.",
+      "sourcePageVerification": "unverified",
+      "publicationState": "reference_only_pending_official_source_audit"
+    }
   ]
 }
