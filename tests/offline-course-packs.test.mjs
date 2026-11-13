@@ -79,3 +79,10 @@ test('removing a course also removes unshared runtime duplicates but preserves s
   assert.match(handler, /otherNames/);
   assert.match(handler, /runtime\.delete\(request/);
 });
+
+test('failed course-pack refresh preserves the previously saved pack', () => {
+  assert.match(worker, /bablo-course-pack-stage-/);
+  assert.match(worker, /await caches\.delete\(stageName\)/);
+  assert.match(worker, /Your previous offline pack was kept/);
+  assert.match(worker, /for\(const request of await staging\.keys\(\)\)/);
+});
