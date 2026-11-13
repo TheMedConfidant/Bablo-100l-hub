@@ -10,7 +10,7 @@
 .modal:has(.landing-shell){width:min(100%,560px);max-width:560px;padding:clamp(18px,4vw,28px);background:radial-gradient(ellipse at 92% 0%,rgba(216,182,106,.10),transparent 42%),#11161E;border:1px solid #35404D;border-radius:26px;box-shadow:0 24px 80px rgba(0,0,0,.52)}
 .landing-shell{width:100%;display:flex;gap:clamp(17px,3.4vw,24px);padding:8px 2px 4px;color:#F3F5F8}
 .landing-brand{display:flex;align-items:center;gap:13px;padding-bottom:18px;border-bottom:1px solid #303946}
-.landing-mark{width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:14px;background:#171C24 url('./icon-192.png') center/cover no-repeat;color:transparent;text-indent:-9999px;overflow:hidden;border:1px solid rgba(232,203,138,.38);box-shadow:0 5px 18px rgba(216,182,106,.16)}
+.landing-mark{width:48px;height:48px;flex:0 0 48px;display:block;object-fit:contain;border-radius:14px;background:#171C24;border:1px solid rgba(232,203,138,.38);box-shadow:0 5px 18px rgba(216,182,106,.16)}
 .landing-wordmark{display:grid;gap:3px}.landing-wordmark strong{font-size:19px;letter-spacing:-.45px}.landing-wordmark span{font-size:9px;letter-spacing:1.3px;color:#B6C0CC;font-weight:800}
 .landing-copy{gap:13px;padding:8px 0 2px}.landing-eyebrow{font-size:10px;letter-spacing:1.9px;color:#E2BE72;font-weight:900}.landing-copy h1{font-size:clamp(32px,7vw,46px);line-height:1.04;letter-spacing:-1.9px;margin:0;color:#F7F8FA;max-width:470px}.landing-copy p{font-size:14px;line-height:1.72;color:#BAC3CF;margin:0;max-width:445px}
 .landing-pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px}.landing-pill-row span{border:1px solid #3A4553;background:#1B222C;border-radius:999px;padding:7px 10px;color:#D2D8E0;font-size:9px;letter-spacing:.55px;font-weight:800}
