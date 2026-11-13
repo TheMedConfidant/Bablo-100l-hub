@@ -13,7 +13,7 @@
   const directory=Array.isArray(root.BABLO_UNIVERSITY_DIRECTORY)?root.BABLO_UNIVERSITY_DIRECTORY:[];
   const found=directory.find(entry=>[entry.slug,entry.name].concat(entry.aliases||[]).some(alias=>norm(alias)===raw));
   if(found)return found.slug;
-  if(raw==='futa')return 'futa';
+  if(raw==='futa'||raw==='federal university of technology akure')return 'futa';
   if(raw==='bowen')return 'bowen-university';
   return slug(value);
  }
