@@ -43,6 +43,7 @@ test('course pages expose course-specific offline packs', async () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(app, /offlineCoursePanel\(code\)/);
   assert.match(app, /offlineResourcesForCourse/);
+  assert.match(app, /A verified offline pack is not available for this course yet/);
   assert.match(app, /phy101-data\.js/);
   assert.match(app, /cos101plus-extracted\.js/);
   assert.match(app, /gst111-source-bank\.js/);
