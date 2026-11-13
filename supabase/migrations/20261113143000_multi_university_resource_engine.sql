@@ -202,11 +202,69 @@ revoke all on public.hub_academic_courses from public, anon, authenticated;
 revoke all on public.hub_academic_resources from public, anon, authenticated;
 revoke all on public.hub_academic_resource_mappings from public, anon, authenticated;
 
+-- The RPCs run as the caller (SECURITY INVOKER). RLS permits read access only
+-- to active directory entries and approved/published academic catalogue rows.
+create policy "Active health-science institutions are readable"
+  on public.hub_academic_institutions for select to anon, authenticated
+  using (directory_status = 'active' and offers_health_sciences = true);
+
+create policy "Active programmes are readable"
+  on public.hub_academic_programmes for select to anon, authenticated
+  using (
+    directory_status = 'active'
+    and exists (
+      select 1 from public.hub_academic_institutions i
+      where i.id = institution_id
+        and i.directory_status = 'active'
+        and i.offers_health_sciences = true
+    )
+  );
+
+create policy "Verified courses are readable"
+  on public.hub_academic_courses for select to anon, authenticated
+  using (
+    curriculum_status = 'verified'
+    and exists (
+      select 1
+      from public.hub_academic_programmes p
+      join public.hub_academic_institutions i on i.id = p.institution_id
+      where p.id = programme_id
+        and p.institution_id = institution_id
+        and p.directory_status = 'active'
+        and i.directory_status = 'active'
+    )
+  );
+
+create policy "Approved published resources are readable"
+  on public.hub_academic_resources for select to anon, authenticated
+  using (
+    is_published = true
+    and quality_status = 'approved'
+    and rights_status = 'cleared'
+  );
+
+create policy "Verified resource mappings are readable"
+  on public.hub_academic_resource_mappings for select to anon, authenticated
+  using (
+    mapping_status = 'verified'
+    and verified_at is not null
+    and exists (
+      select 1 from public.hub_academic_courses c
+      where c.id = course_id and c.curriculum_status = 'verified'
+    )
+  );
+
+grant select on public.hub_academic_institutions to anon, authenticated;
+grant select on public.hub_academic_programmes to anon, authenticated;
+grant select on public.hub_academic_courses to anon, authenticated;
+grant select on public.hub_academic_resources to anon, authenticated;
+grant select on public.hub_academic_resource_mappings to anon, authenticated;
+
 create or replace function public.hub_list_health_institutions()
 returns table (slug text, name text)
 language sql
 stable
-security definer
+security invoker
 set search_path = public
 as $$
   select i.slug, i.name
@@ -220,7 +278,7 @@ create or replace function public.hub_list_academic_programmes(p_institution_slu
 returns table (programme_code text, programme_name text, programme_group text)
 language sql
 stable
-security definer
+security invoker
 set search_path = public
 as $$
   select p.programme_code, p.programme_name, p.programme_group
@@ -252,7 +310,7 @@ returns table (
 )
 language sql
 stable
-security definer
+security invoker
 set search_path = public
 as $$
   select r.resource_key, r.title, r.resource_type,
