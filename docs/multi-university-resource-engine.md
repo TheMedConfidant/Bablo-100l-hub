@@ -98,8 +98,31 @@ The resource RPC returns only published, rights-cleared, quality-approved resour
 - The first Notion pilot export contains 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total), staged in `data/notion-content-pilot.json`; it is not yet loaded into the live app.
 - FUTA BIO 101 still needs exact programme and semester mapping before it can be student-visible.
 - No FUTA resource is published by the migration.
-- Existing static course banks are not yet filtered by this database engine.
-- The profile UI now has a searchable university selector, dynamic directory refresh with bundled offline fallback, and no Bowen default for new accounts.
+- Existing static course banks are not yet filtered by the database resource engine. A frontend course-access gate now scopes the course catalogue, course pages, notes, flashcards, CBT, 100L laboratory, Challenge Arena and local Wi-Fi challenge selection. This is not a substitute for resource-level provenance filtering.
+- The profile UI has separate University, Faculty / College, Programme, Level and Semester controls. Bowen exposes CoHES as a distinct faculty/college choice; unmapped programmes do not inherit another programme's courses.
 - The BSc selector is profile-only, gated by three distinct landing actions, and restricted to Bowen MBBS 200L+.
 - The migration has been committed to a preview branch but has not been run against Supabase.
-- No browser acceptance tests or production deployment have been completed.
+- The user has confirmed offline course packs work on an Android device. Browser acceptance of the new landing page and profile selectors remains outstanding; production has not been updated with these latest UI changes.
+
+
+## 2026-11-13 — 100L-first implementation update
+
+### Implemented in the preview branch
+
+- Full-screen public landing page with a product preview, connected-learning workflow, feature explanations and an explicit Bowen CoHES 100L focus.
+- Separate academic selectors for university, faculty/college and programme, followed by level and semester.
+- Academic identity is displayed on the dashboard, course catalogue and course overview.
+- Course access is gated by the selected programme. Challenge Arena and local Wi-Fi battles use the same course-access gate; the 100L laboratory only lists mapped practical subjects.
+- The current Bowen 100L frontend map is MBBS-only. Other CoHES programmes do not inherit a generic shared core until their own curriculum is verified.
+- No 200L expansion should begin until the 100L course and resource loop is complete.
+
+### Curriculum source checks
+
+- Bowen BIO 101 is explicitly labelled Bowen CoHES and has a nine-topic source outline: https://app.notion.com/p/3e91834fbdba8124be25c4d749158c67
+- Bowen PHY 101 has a corrected nine-topic mechanics syllabus sourced from Prof. Emetere's official module and supplementary notes: https://app.notion.com/p/3d71834fbdba818e937dc2623728efe8
+- Bowen COS 101 is labelled 100L CoHES and has ten theory chapters plus six lab exercises: https://app.notion.com/p/3e21834fbdba81258663e240c3427ec5
+- CHM 102 has a separate second-semester 100L Bowen course map: https://app.notion.com/p/4171834fbdba81bc8b22e1739a006f45
+- CHM 101 is described as a 100L guinea-pig course; its Notion page does not itself establish Bowen ownership. Its exact Bowen course/semester provenance must be checked before its resources are represented as institution-verified: https://app.notion.com/p/3c11834fbdba81b48bcfd9c9f8e58ae1
+- The curriculum expansion plan says MBBS, Anatomy, Physiology and Biochemistry are distinct tracks; shared course codes and semester sequences must not be assumed: https://app.notion.com/p/4131834fbdba8186ac42ff89578a2373
+
+The MBBS 100L pilot is the only current frontend programme map. Other CoHES programmes remain selectable as identities but receive no MBBS course materials by fallback. Before 100L is considered complete, verify the full MBBS course list for both semesters and complete each course's source review, notes, flashcards, QBank, practicals and downstream challenge/Cup/analytics/offline integration.

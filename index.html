@@ -22,6 +22,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalApplication","name":"Bablo Hub™","alternateName":["TMC: Bablo Hub"],"url":"https://bablo-hub.vercel.app/","description":"A university-aware health sciences learning platform offering verified course notes, flashcards, question banks, quizzes and practical resources.","applicationCategory":"EducationalApplication","operatingSystem":"Web, Android, iOS","inLanguage":"en","audience":{"@type":"EducationalAudience","educationalRole":"student","audienceType":"University health sciences students"},"publisher":{"@type":"Organization","name":"TheMedConfidant"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/landing-premium.css">
 <style>
 :root{--bg:#F1F5F9;--surface:#FFFFFF;--surface2:#E8EEF5;--ink:#0E1F3D;--ink2:#52627C;--line:#D5DEEA;--brand:#0B7A75;--brand-ink:#FFFFFF;--brand-soft:#D8F0EE;--gold:#946200;--gold-soft:#F2D48A;--ok:#16825D;--ok-soft:#D6F1E5;--bad:#C93B54;--bad-soft:#FADADF;--warn:#9A6B12;--focus:#2F6FDB;--shadow:0 1px 2px rgba(14,31,61,.08),0 8px 24px rgba(14,31,61,.06);--r:14px;--head:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;--body:'Instrument Sans','Segoe UI',system-ui,-apple-system,sans-serif}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1424;--surface:#111F36;--surface2:#182A47;--ink:#E8EEF8;--ink2:#9DB0CB;--line:#23375A;--brand:#2CC0B8;--brand-ink:#04211F;--brand-soft:#0F3A3E;--gold:#F0BD43;--gold-soft:#46330D;--ok:#3DD598;--ok-soft:#0F3A2B;--bad:#FF7088;--bad-soft:#401923;--warn:#E3B04B;--focus:#7AA7FF;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.25)}}
@@ -1153,21 +1154,11 @@ const COURSES = [
   { code: 'SOC101', label: 'SOC 101', title: 'Introduction to Sociology', color: '#9A6A45', units: 2 },
 ];
 
-/* Which courses each programme takes. Shared core for everyone; extras per programme.
-   MTH 101 is added for every programme except Doctor of Physiotherapy. It shows as Pending until its questions are loaded. */
-const CORE_COURSES = ['BIO', 'CHM', 'PHY', 'COS', 'GST111', 'GEL101', 'LIB101'];
+/* Programme maps are explicit, never inferred from a shared subject list.
+   Bowen CoHES MBBS 100L is the first mapped pilot. Other CoHES programmes remain
+   unavailable until their own official course lists and semester mappings are verified. */
 const PROGRAMME_COURSES = {
-  'MBBS': [...CORE_COURSES, 'AGR', 'MTH101'],
-  'Nursing': [...CORE_COURSES, 'MTH101', 'SOC101'],
-  'Nutrition and Dietetics': [...CORE_COURSES, 'MTH101'],
-  'Doctor of Physiotherapy (DPT)': [...CORE_COURSES],
-  'Physiology': [...CORE_COURSES, 'MTH101'],
-  'Anatomy': [...CORE_COURSES, 'MTH101'],
-  'Biochemistry': [...CORE_COURSES, 'MTH101'],
-  'Medical Laboratory Science': [...CORE_COURSES, 'MTH101', 'MLS101'],
-  'Public Health': [...CORE_COURSES],
-  'Other CoHES programme': [...CORE_COURSES, 'MTH101'],
-  [GUEST_PROGRAMME]: [...CORE_COURSES, 'MTH101']
+  'MBBS': ['BIO', 'CHM', 'PHY', 'COS', 'GST111', 'GEL101', 'LIB101', 'AGR', 'MTH101']
 };
 const coursesFor = programme => (PROGRAMME_COURSES[programme] || [])
   .map(code => COURSES.find(c => c.code === code))
@@ -1184,6 +1175,13 @@ function canAccessCourse(code) {
   if (levelNumber === 100) return coursesFor(p.programme).some(c => c.code === code);
   if (levelNumber === 200 && programme === 'MBBS') return COURSES_200.some(c => c.code === code && window.BabloAcademicEngine && window.BabloAcademicEngine.courseSemesterMatches(c, p) && c.semesterVerified === true);
   return false;
+}
+
+function academicContextLabel(profile) {
+  const p = profile || {};
+  const faculty = p.programmeCategory === 'cohes' ? 'College of Health Sciences (CoHES)' : 'Faculty / college';
+  const semester = ({ first:'First semester', second:'Second semester', summer:'Summer semester', 'year-round':'Year-round' })[p.academicSemester] || '';
+  return [p.institution, faculty, p.programme, p.level, semester].filter(Boolean).join(' · ');
 }
 
 /* ---------- Programme Cup ---------- */
@@ -1317,6 +1315,52 @@ function academicProfileFields(profile, surface) {
   };
   const selectedInstitutionSlug = () => institution.value && institution.value !== '__other__' ? institution.value : '';
   otherInstitutionField.hidden = institution.value !== '__other__';
+
+  const faculty = h('select', null);
+  const facultyField = h('label', { class: 'field' }, h('span', null, 'Faculty / College'), faculty);
+  const programme = h('select', null);
+  const otherProgramme = h('input', { type: 'text', value: '', maxlength: '80', placeholder: 'Enter your programme name' });
+  const otherProgrammeField = h('label', { class: 'field' }, h('span', null, 'Programme name'), otherProgramme);
+  const selectedProgramme = () => programme.value === '__other__' ? otherProgramme.value.trim() : programme.value;
+
+  const refreshFacultyOptions = () => {
+    const isBowen = selectedInstitutionSlug() === 'bowen-university';
+    const previous = faculty.value || p.programmeCategory || 'other';
+    faculty.replaceChildren(
+      ...(isBowen ? [h('option', { value: 'cohes' }, 'College of Health Sciences (CoHES)')] : []),
+      h('option', { value: 'other' }, isBowen ? 'Other faculty / college' : 'Faculty / college not yet mapped'));
+    faculty.value = isBowen && previous === 'cohes' ? 'cohes' : 'other';
+  };
+
+  const buildProgrammeOptions = (rows) => {
+    const slug = selectedInstitutionSlug();
+    const previous = selectedProgramme() || String(p.programme || '');
+    let names = [];
+    if (slug === 'bowen-university' && faculty.value === 'cohes') {
+      names = (Array.isArray(PROGRAMMES) ? PROGRAMMES : []).filter(name =>
+        name !== GUEST_PROGRAMME && name !== 'Other / not listed');
+    } else if (Array.isArray(rows)) {
+      names = rows.map(row => row.programme_name || row.programme_code || '').filter(Boolean);
+    }
+    names = Array.from(new Set(names.map(name => String(name).trim()).filter(Boolean)));
+    programme.replaceChildren(
+      h('option', { value: '', disabled: true }, 'Choose your programme'),
+      ...names.map(name => h('option', { value: name }, name)),
+      h('option', { value: '__other__' }, 'Programme not listed / request addition'));
+    const match = names.find(name => norm(name) === norm(previous));
+    if (match) {
+      programme.value = match;
+      otherProgramme.value = '';
+    } else if (previous) {
+      programme.value = '__other__';
+      otherProgramme.value = previous;
+    } else {
+      programme.value = '';
+      otherProgramme.value = '';
+    }
+    otherProgrammeField.hidden = programme.value !== '__other__';
+  };
+
   const refreshUniversityDirectory = async () => {
     if (!authConfigured()) return;
     try {
@@ -1328,25 +1372,20 @@ function academicProfileFields(profile, surface) {
       institution.replaceChildren(
         h('option', { value: '', disabled: true }, 'Choose your university'),
         ...directory.map(entry => h('option', { value: entry.slug }, entry.name)),
-        h('option', { value: '__other__' }, 'Other health-science university / request addition')
-      );
+        h('option', { value: '__other__' }, 'Other health-science university / request addition'));
       institution.value = directory.some(entry => entry.slug === selected) ? selected : (selected ? '__other__' : '');
       otherInstitutionField.hidden = institution.value !== '__other__';
-      if (institution.value === '__other__' && !otherInstitution.value && selected !== '__other__') {
-        const previous = oldDirectory.find(item => item.slug === selected);
-        if (previous) otherInstitution.value = previous.name;
-      }
-      syncPathway();
+      refreshFacultyOptions();
+      buildProgrammeOptions([]);
       refreshProgrammeOptions();
     } catch (e) { /* Keep the bundled directory available if the database is offline or migration is pending. */ }
   };
 
-  const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
-  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' });
   const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || '', currentInstitution);
-  const category = h('select', null,
-    h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, currentEntry && currentEntry.slug === 'bowen-university' ? 'College of Health Sciences (COHES)' : 'Health sciences programme'),
-    h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
+  refreshFacultyOptions();
+  if (selectedInstitutionSlug() === 'bowen-university' && initialCategory === 'cohes') faculty.value = 'cohes';
+  buildProgrammeOptions([]);
+
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
   const semester = h('select', null,
     h('option', { value: '', disabled: true, selected: !p.academicSemester ? true : null }, 'Choose your semester'),
@@ -1359,7 +1398,8 @@ function academicProfileFields(profile, surface) {
     const landingOptionsComplete = ['signup','login','guest'].every(option => used.includes(option));
     return mode === 'profile' && landingOptionsComplete
       && selectedInstitutionSlug() === 'bowen-university'
-      && programme.value.trim().toUpperCase() === 'MBBS'
+      && faculty.value === 'cohes'
+      && selectedProgramme().trim().toUpperCase() === 'MBBS'
       && ['200L','300L','400L','500L','600L','700L'].includes(level.value);
   };
   const syncPathway = () => {
@@ -1369,46 +1409,75 @@ function academicProfileFields(profile, surface) {
     pathway.required = eligible;
     if (!eligible) pathway.value = '';
   };
-  const refreshProgrammeOptions = async () => {
+  async function refreshProgrammeOptions() {
     const slug = selectedInstitutionSlug();
-    if (!slug || !authConfigured()) return;
-    try {
-      const rows = await hubCall('hub_list_academic_programmes', { p_institution_slug: slug });
-      if (Array.isArray(rows) && rows.length) {
-        suggestions.replaceChildren(...rows.map(row => h('option', { value: row.programme_name })));
-      }
-    } catch (e) { /* The directory RPC is added by the academic-engine migration; keep manual entry until it is available. */ }
-  };
+    if (!slug) return;
+    if (slug !== 'bowen-university' || faculty.value !== 'cohes') {
+      if (!authConfigured()) { buildProgrammeOptions([]); return; }
+      try {
+        const rows = await hubCall('hub_list_academic_programmes', { p_institution_slug: slug });
+        buildProgrammeOptions(Array.isArray(rows) ? rows : []);
+      } catch (e) { buildProgrammeOptions([]); }
+    } else {
+      buildProgrammeOptions([]);
+    }
+    syncPathway();
+  }
   let lastInstitution = selectedInstitutionSlug();
   institution.addEventListener('change', () => {
     otherInstitutionField.hidden = institution.value !== '__other__';
     const nextInstitution = selectedInstitutionSlug();
     if (nextInstitution !== lastInstitution) {
+      p.programme = '';
+      p.programmeCategory = nextInstitution === 'bowen-university' ? 'cohes' : 'other';
+      faculty.value = '';
       programme.value = '';
-      category.value = 'other';
+      otherProgramme.value = '';
       lastInstitution = nextInstitution;
     }
+    refreshFacultyOptions();
+    buildProgrammeOptions([]);
     syncPathway();
     refreshProgrammeOptions();
   });
-  otherInstitution.addEventListener('input', syncPathway);
-  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim(), selectedInstitution()); syncPathway(); });
+  otherInstitution.addEventListener('input', () => {
+    refreshFacultyOptions();
+    buildProgrammeOptions([]);
+    syncPathway();
+  });
+  faculty.addEventListener('change', () => {
+    p.programme = '';
+    programme.value = '';
+    otherProgramme.value = '';
+    buildProgrammeOptions([]);
+    refreshProgrammeOptions();
+    syncPathway();
+  });
+  programme.addEventListener('change', () => {
+    otherProgrammeField.hidden = programme.value !== '__other__';
+    syncPathway();
+  });
+  otherProgramme.addEventListener('input', syncPathway);
   level.addEventListener('change', syncPathway);
   syncPathway();
   refreshUniversityDirectory();
-  if (selectedInstitutionSlug()) refreshProgrammeOptions();
+  refreshProgrammeOptions();
+
   return {
     nodes: [
-      h('label', { class: 'field' }, h('span', null, 'Faculty / Programme'), programme), suggestions,
-      h('label', { class: 'field' }, h('span', null, 'Academic group'), category),
       h('label', { class: 'field' }, h('span', null, 'University'), institution),
       otherInstitutionField,
-      h('p', { class: 'tiny muted' }, 'The directory lists universities with documented health-science offerings. Programme and course access still depends on the verified catalogue for that institution.'),
-      h('label', { class: 'field' }, h('span', null, 'Current level'), level), semesterField, pathwayField
+      facultyField,
+      h('label', { class: 'field' }, h('span', null, 'Programme'), programme),
+      otherProgrammeField,
+      h('p', { class: 'tiny muted' }, 'Your selected university, faculty, programme, level and semester determine which verified academic resources Bablo Hub can show.'),
+      h('label', { class: 'field' }, h('span', null, 'Current level'), level),
+      semesterField,
+      pathwayField
     ],
     read: () => ({
-      programme: programme.value.trim(),
-      programmeCategory: category.value,
+      programme: selectedProgramme(),
+      programmeCategory: faculty.value,
       institution: selectedInstitution(),
       level: level.value,
       academicSemester: semester.value,
@@ -2544,10 +2613,11 @@ function homeView() {
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const level=parseInt(p.level||'100L',10)||100, senior=level>=200;
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
+ const practicalCourseLabels=coursesFor(p.programme).filter(c=>['PHY','CHM','BIO','COS'].includes(c.code)).map(c=>c.label);
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
-  dashboardCard(senior?'Specialist Laboratory':'Laboratory',senior?'Microbiology, pathology, histology and advanced biomedical work':'PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
+  dashboardCard(senior?'Specialist Laboratory':'Laboratory',senior?'Microbiology, pathology, histology and advanced biomedical work':(practicalCourseLabels.length?practicalCourseLabels.join(' · ')+' practicals':'Practical work from your mapped courses'),'🧪','#/lab','#53B6A5'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  const communityCards=[
@@ -2561,7 +2631,7 @@ function homeView() {
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
-  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME · '+(p.level||'100L')),h('h1',null,greet+', '+first+'.'),h('p',null,senior?'Your level-aware academic workspace. Build depth, practical competence and clinical reasoning.':'Confidence in Clarity. Keep learning, practising and progressing.'),
+  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME · '+(p.level||'100L')),h('h1',null,greet+', '+first+'.'),h('p',{class:'dashboard-academic-context'},academicContextLabel(p)),h('p',null,senior?'Your level-aware academic workspace. Build depth, practical competence and clinical reasoning.':'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,senior?'Advanced learning':'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,senior?'Connect & develop':'Connect & compete'),h('span',null,senior?'Academic collaboration':'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
@@ -2575,6 +2645,7 @@ function coursesCatalogueView(){
    h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
  });
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Choose a course to open its dashboard and learning resources.')),
+ h('section',{class:'academic-context-card'},h('span',{class:'academic-context-eyebrow'},'YOUR ACADEMIC CONTEXT'),h('strong',null,academicContextLabel(p)),h('p',{class:'muted small'},'Your course library, practice and progress are organised around this academic selection.')),
  list.length ? h('section',{class:'catalogue-grid'},...list) : h('section',{class:'panel stack'},h('span',{class:'chip gold'},'Catalogue setup'),h('h2',null,'No verified courses mapped yet'),h('p',{class:'muted'},'Your university, programme and level are saved. Course materials will appear when their verified curriculum mappings are added. Bablo Hub will not substitute another university’s content.'))));
 }
 function timeHubView(){
@@ -2617,6 +2688,44 @@ function brand() {
   return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
 }
 
+/* ---------- selective offline course downloads ---------- */
+function offlineResourcesForCourse(code) {
+  const common=['./','./index.html','./manifest.json'];
+  const byCourse={
+    SOC101:['./SOC101-data.js'], PHY:['./phy101-data.js'], PHY101:['./phy101-data.js'],
+    MTH101:['./mts-maths-topics.js','./mts-maths-induction-extra.js'],
+    CHM:['./thermochemistry-data.js','./chm-practicals-native.js'],
+    CHM101:['./thermochemistry-data.js','./chm-practicals-native.js'],
+    COS:['./cos-101-plus-bank.js','./cos101plus-extracted.js'],
+    COS101:['./cos-101-plus-bank.js','./cos101plus-extracted.js'],
+    GST111:['./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./gst111-source-bank.js'],
+    AGR:['./agr-101-food-security.html'], AGR101:['./agr-101-food-security.html'], MLS101:['./mls101-data.js']
+  };
+  const extras=byCourse[String(code||'').toUpperCase()]||[];
+  return [...new Set(common.concat(extras))];
+}
+function offlineCoursePanel(code, resources) {
+  const host=h('div',{class:'offline-course-host'});
+  const pack=resources||offlineResourcesForCourse(code);
+  if(!pack.length){
+    host.appendChild(h('section',{class:'panel stack'},h('h3',null,'Offline study'),h('p',{class:'muted small'},'A verified offline pack is not available for this course yet. Its materials are not marked as downloaded.')));
+    return host;
+  }
+  const attach=()=>{
+    if(!window.BabloOffline||typeof window.BabloOffline.attachCourseButton!=='function')return false;
+    try{
+      host.replaceChildren();
+      window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:pack});
+      return true;
+    }catch(e){host.replaceChildren(h('p',{class:'muted small'},e.message||'Offline download is not available yet.'));return true;}
+  };
+  if(!attach()){
+    host.appendChild(h('section',{class:'panel stack'},h('h3',null,'Study offline'),h('p',{class:'muted small'},'Preparing offline downloads…')));
+    let attempts=0;
+    const timer=setInterval(()=>{attempts++;if(attach()||attempts>=100)clearInterval(timer);},50);
+  }
+  return host;
+}
 /* ---------- course page ---------- */
 function courseView(code) {
   const c200 = COURSES_200.find(x => x.code === code);
@@ -2631,7 +2740,8 @@ function courseView(code) {
   });
   mount(wrap(back('#/courses', 'All courses'),
     h('div', { class: 'stack-l' },
-      h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
+      h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, academicContextLabel(DB.profile) + ' · ' + c.title + ' · ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
+      offlineCoursePanel(code),
       sectionTiles(c, total, us.length),
       ['MTH101','PHY101','CHM101'].includes(code) ? h('button', { class: 'btn block', onclick: () => { window.location.href = '/calculator/?course=' + encodeURIComponent(code); } }, '∑ Open scientific calculator') : null,
       h('div', { class: 'stack' },
@@ -4340,7 +4450,7 @@ function course200View(c) {
     if(c.code==='ANATOMY'){
       if(!B200_ANATOMY_CACHE)B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');
       const bundle=B200_ANATOMY_CACHE,note=bundle.resources.find(x=>x.kind==='notes'),ref=bundle.resources.find(x=>x.kind==='openstax-glossary');
-      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'),h('button',{class:'btn gold block',onclick:async()=>{try{B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');toast('Anatomy topic pack saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this pack.');}}},'Download topic pack for offline study'));
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'),offlineCoursePanel('200l-ANATOMY',['./','./index.html','./manifest.json','./data/200l-anatomy-elbow-forearm.json']));
       else if(cur==='Notes')content=renderStudyMarkdown(note?.content||'');
       else if(cur==='Flashcards')content=render200Flashcards(bundle);
       else if(cur==='Questions')content=render200Questions(bundle);
@@ -4349,7 +4459,7 @@ function course200View(c) {
     }else{
       if(!B200_MAP_CACHE)B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');
       const key=c.code==='PHYSIOLOGY'?'physiology-course-map':'biochemistry-course-hub',map=B200_MAP_CACHE.resources.find(x=>x.key===key);
-      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'),h('button',{class:'btn gold block',onclick:async()=>{try{B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');toast('Course map saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this map.');}}},'Save course map for offline study'));
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'),offlineCoursePanel('200l-'+c.code,['./','./index.html','./manifest.json','./data/bowen-200l-course-maps.json']));
       else if(cur==='Notes')content=renderStudyMarkdown(map?.content||'');
       else content=h('p',{class:'muted'},'This resource layer is indexed in Notion. Its content is queued for extraction; no placeholder questions or cards are generated.');
     }
@@ -4697,6 +4807,32 @@ function aboutView() {
   box.append(panel);
   mount(wrap(back('#/','Home'),box));
 }
+function offlineDownloadsPanel() {
+  const panel=h('section',{class:'panel stack'});
+  const list=h('div',{class:'stack'},h('p',{class:'small muted'},'Checking saved course packs…'));
+  panel.append(h('h2',null,'Offline downloads'),h('p',{class:'small muted'},'Manage course materials saved on this phone. Removing a pack does not erase your account, quiz history or study progress.'),list);
+  const render=async()=>{
+    if(!window.BabloOffline||typeof window.BabloOffline.listCourses!=='function'){
+      list.replaceChildren(h('p',{class:'small muted'},'Connect once and reopen Bablo Hub to manage offline course packs.'));return;
+    }
+    try{
+      const ids=await window.BabloOffline.listCourses();
+      if(!ids.length){list.replaceChildren(h('p',{class:'small muted'},'No course packs saved yet. Open a course and choose “Save course offline”.'));return;}
+      list.replaceChildren(...ids.map(id=>{
+        const label=id.replace(/^bowen-/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        const row=h('div',{class:'row between wrapr'},h('span',null,h('b',null,label),h('small',{class:'muted'},'Saved on this phone')),
+          h('button',{class:'btn sm ghost',onclick:async e=>{const b=e.currentTarget;b.disabled=true;try{await window.BabloOffline.removeCourse(id);toast(label+' removed from offline storage.');await render();}catch(err){toast(err.message||'Could not remove this pack.');b.disabled=false;}}},'Remove'));
+        return row;
+      }));
+    }catch(e){list.replaceChildren(h('p',{class:'small muted'},e.message||'Offline storage is unavailable in this browser.'));}
+  };
+  render();
+  if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(x=>{
+    const p=h('p',{class:'tiny muted'},'Estimated site storage: '+((Number(x.usage)||0)/1048576).toFixed(1)+' MB.');
+    panel.append(p);
+  }).catch(()=>{});
+  return panel;
+}
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
@@ -4719,6 +4855,7 @@ function settingsView() {
       h('div', { class: 'row between wrapr' },
         h('span', null, h('b', null, 'Sound effects'), h('small', { class: 'muted' }, 'Optional sounds for timers and activity.')),
         h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off'))),
+    offlineDownloadsPanel(),
     h('section', { class: 'stack' },
       h('h2', null, 'App installation'),
       installCard(),
@@ -4899,13 +5036,13 @@ function labHubView() {
     { code: 'CHM', name: 'Chemistry', detail: 'CHM 107 · Practical procedures', color: '#B7791F', href: '#/practicals/CHM', state: 'Open in app' },
     { code: 'BIO', name: 'Biology', detail: 'Biology practicals and specimen work', color: '#0F8B68', href: '#/practicals/BIO', state: practicalsFor('BIO') ? 'Open practicals' : 'Course practicals' },
     { code: 'COS', name: 'Computer Studies', detail: 'COS 101 · Computer laboratory', color: '#0E9AA7', href: '#/practicals/COS', state: practicalsFor('COS') ? 'Open practicals' : 'Course practicals' }
-  ];
+  ].filter(x=>canAccessCourse(x.code));
   mount(wrap(back('#/', 'Dashboard'), h('div', { class: 'stack-l' },
-    h('div', { class: 'dashboard-page-head' }, h('h1', null, 'Laboratory'), h('p', { class: 'muted' }, 'Choose a practical subject to open its laboratory resources.')),
-    h('section', { class: 'dashboard-grid' }, ...subjects.map(x => h('a', { class: 'dashboard-card', href: x.href, style: { '--card-accent': x.color } },
+    h('div', { class: 'dashboard-page-head' }, h('h1', null, 'Laboratory'), h('p', { class: 'muted' }, academicContextLabel(p) + ' · Choose a practical subject mapped to your current course set.')),
+    subjects.length ? h('section', { class: 'dashboard-grid' }, ...subjects.map(x => h('a', { class: 'dashboard-card', href: x.href, style: { '--card-accent': x.color } },
       h('span', { class: 'dashboard-card-icon', 'aria-hidden': 'true' }, x.code === 'PHY' ? '⚡' : x.code === 'CHM' ? '⚗️' : x.code === 'BIO' ? '🧬' : '💻'),
       h('span', { class: 'dashboard-card-copy' }, h('b', null, x.code + ' · ' + x.name), h('small', null, x.detail), h('small', { class: 'muted' }, x.state)),
-      h('span', { class: 'dashboard-card-arrow', 'aria-hidden': 'true' }, '›'))))
+      h('span', { class: 'dashboard-card-arrow', 'aria-hidden': 'true' }, '›')))) : h('section',{class:'panel stack'},h('h2',null,'No practicals mapped yet'),h('p',{class:'muted small'},'Practical work will appear here when it is mapped to your verified programme and semester.'))
   )));
 }
 function advancedLabNotebookView(code) {
@@ -5280,6 +5417,7 @@ setTimeout(liveNotice, 1200);
 <script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
 <script src="./university-directory.js" defer></script>
 <script src="./academic-engine.js" defer></script>
+<script src="./landing-premium.js" defer></script>
 </body>
 </html>
 

@@ -81,3 +81,42 @@ test('static course access requires an exact semester mapping',()=>{
  assert.match(app,/c\.semesterVerified === true/);
  assert.match(app,/document\.addEventListener\('DOMContentLoaded', \(\) => route\(\), \{ once: true \}\)/);
 });
+
+
+test('live Challenge Arena uses the same academic course access gate as the catalogue',()=>{
+ const fs=require('node:fs');
+ const challenge=fs.readFileSync(new URL('../challenge-arena.js',import.meta.url),'utf8');
+ assert.match(challenge,/function courseAllowed\(code\)/);
+ assert.match(challenge,/window\.canAccessCourse/);
+ assert.match(challenge,/function questions\(\)[\s\S]*courseAllowed\(q\.c\)/);
+ assert.match(challenge,/function courses\(\)[\s\S]*questions\(\)/);
+});
+
+test('local Wi-Fi battles only expose and select courses allowed by the academic profile',()=>{
+ const fs=require('node:fs');
+ const wifi=fs.readFileSync(new URL('../wifi-challenge.js',import.meta.url),'utf8');
+ assert.match(wifi,/filter\(c=>typeof window\.canAccessCourse==='function'&&window\.canAccessCourse\(c\)\)/);
+ assert.match(wifi,/window\.canAccessCourse\(q\.c\)/);
+});
+
+
+test('Bowen 100L course access is programme-specific and does not inherit a generic shared core',()=>{
+ const fs=require('node:fs');
+ const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const mapMatch=app.match(/const PROGRAMME_COURSES = \{([^}]+)\};/);
+ assert.ok(mapMatch);
+ const programmeMap=mapMatch[0];
+ assert.match(programmeMap,/const PROGRAMME_COURSES = \{\s*'MBBS': \[/);
+ assert.doesNotMatch(programmeMap,/'Nursing'\s*:/);
+ assert.match(app,/Other CoHES programmes remain\s+unavailable until their own official course lists/);
+});
+
+test('the public landing page is loaded and identifies the first mapped academic track',()=>{
+ const fs=require('node:fs');
+ const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const landing=fs.readFileSync(new URL('../landing-premium.js',import.meta.url),'utf8');
+ assert.match(app,/landing-premium\.css/);
+ assert.match(app,/landing-premium\.js/);
+ assert.match(landing,/mount\(wrap\(root\)\)/);
+ assert.match(landing,/Bowen University’s CoHES MBBS 100 Level track/);
+});

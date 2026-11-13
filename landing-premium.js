@@ -1,41 +1,82 @@
-/* Bablo Hub adaptive public landing + account entry. */
+/* Bablo Hub public landing and account entry. */
 (function(){
- if(window.__babloPremiumLandingInstalled)return;window.__babloPremiumLandingInstalled=true;
+ if(window.__babloPremiumLandingInstalled)return;
+ window.__babloPremiumLandingInstalled=true;
  const guestFlow=window.onboarding;
  function removeOverlay(){const old=document.querySelector('.overlay');if(old)old.remove();}
- function markLandingOption(option){try{if(typeof DB==='undefined')return;const used=Array.isArray(DB.landingOptionsUsed)?DB.landingOptionsUsed:[];if(!used.includes(option)){DB.landingOptionsUsed=used.concat(option);save();}}catch(_){}}
- function clearProgramme(root){if(!root)return;root.querySelectorAll('label.field').forEach(label=>{const title=label.querySelector('span');if(title&&title.textContent.trim().toLowerCase()==='programme'){const input=label.querySelector('input');if(input)input.value='';}});}
+ function markLandingOption(option){
+  try{
+   if(typeof DB==='undefined')return;
+   const used=Array.isArray(DB.landingOptionsUsed)?DB.landingOptionsUsed:[];
+   if(!used.includes(option)){DB.landingOptionsUsed=used.concat(option);save();}
+  }catch(_){}
+ }
  function openAuth(mode){
   markLandingOption(mode==='login'?'login':'signup');
   try{ACCOUNT_MODE=mode==='login'?'login':'signup';}catch(_){}
-  removeOverlay();const section=accountSection();if(ACCOUNT_MODE==='signup')clearProgramme(section);
-  const tabs=section.querySelectorAll('.seg .opt');if(tabs[0])tabs[0].onclick=()=>openAuth('signup');if(tabs[1])tabs[1].onclick=()=>openAuth('login');
-  const back=document.createElement('button');back.type='button';back.className='landing-back';back.textContent='← Back to welcome';back.onclick=()=>{removeOverlay();showLanding();};section.appendChild(back);modal(section,false);
+  removeOverlay();
+  const section=accountSection();
+  const back=document.createElement('button');
+  back.type='button';back.className='landing-back';back.textContent='← Back to Bablo Hub';
+  back.onclick=()=>{removeOverlay();showLanding();};
+  section.appendChild(back);
+  modal(section,false);
  }
  function openGuest(){
   markLandingOption('guest');
-  removeOverlay();if(typeof guestFlow==='function')guestFlow();
-  setTimeout(()=>{const panel=document.querySelector('.overlay .modal');if(!panel)return;clearProgramme(panel);if(!panel.querySelector('.landing-back')){const back=document.createElement('button');back.type='button';back.className='landing-back';back.textContent='← Back to welcome';back.onclick=()=>{removeOverlay();showLanding();};panel.appendChild(back);}},0);
+  removeOverlay();
+  if(typeof guestFlow==='function')guestFlow();
  }
  function showLanding(){
-  const root=h('section',{class:'landing-shell stack'},
-   h('header',{class:'landing-brand'},h('div',{class:'landing-mark','aria-hidden':'true'},'B'),h('div',{class:'landing-wordmark'},h('strong',null,'Bablo Hub'),h('span',null,'YOUR ACADEMIC WORKSPACE'))),
-   h('div',{class:'landing-copy stack'},
-    h('span',{class:'landing-eyebrow'},'BUILT AROUND YOUR JOURNEY'),
-    h('h1',null,'Your discipline. Your level. Your next move.'),
-    h('p',null,'A connected academic workspace that adapts to what you study and where you are in your programme — from structured learning to advanced practice.'),
-    h('div',{class:'landing-proof-grid'},
-     h('article',{class:'landing-proof'},h('span',{class:'landing-proof-icon','aria-hidden':'true'},'01'),h('strong',null,'Study with structure'),h('p',null,'Course materials organised around your programme and current level.')),
-     h('article',{class:'landing-proof'},h('span',{class:'landing-proof-icon','aria-hidden':'true'},'02'),h('strong',null,'Practise with purpose'),h('p',null,'Questions, revision tools and assessment experiences that fit your learning stage.')),
-     h('article',{class:'landing-proof'},h('span',{class:'landing-proof-icon','aria-hidden':'true'},'03'),h('strong',null,'Grow into your field'),h('p',null,'Your workspace evolves as your academic work becomes more specialised.')))),
-   h('div',{class:'landing-adaptive-note'},h('span',{class:'landing-adaptive-dot','aria-hidden':'true'}),h('p',null,'No one-size-fits-all dashboard. Your selected programme and level shape the experience you enter.')),
-   h('div',{class:'landing-actions stack'},h('button',{class:'btn landing-primary block',onclick:()=>openAuth('signup')},'Create your account','  →'),h('button',{class:'btn landing-secondary block',onclick:()=>openAuth('login')},'Log in'),h('button',{class:'landing-guest',onclick:openGuest},'Explore as a guest')),
-   h('p',{class:'landing-footnote'},'Sign in to keep your academic progress connected across devices. Guest access is available on this device.'));
-  modal(root,false);
+  const topbar=h('header',{class:'landing-topbar'},
+   h('a',{class:'landing-brand',href:'#/'},h('span',{class:'landing-mark'},'B'),h('span',{class:'landing-brand-copy'},h('strong',null,'Bablo Hub'),h('small',null,'THEMEDCONFIDANT'))),
+   h('nav',{class:'landing-nav','aria-label':'Landing page'},h('a',{href:'#landing-system'},'How it works'),h('a',{href:'#landing-cohes'},'For Bowen CoHES'),h('a',{href:'#landing-tools'},'Study tools')),
+   h('div',{class:'landing-top-actions'},h('button',{class:'landing-login',onclick:()=>openAuth('login')},'Log in'),h('button',{class:'landing-top-cta',onclick:()=>openAuth('signup')},'Get started →')));
+  const preview=h('div',{class:'landing-preview'},
+   h('div',{class:'landing-preview-head'},h('div',{class:'landing-preview-brand'},h('span',{class:'landing-preview-dot'},''),h('b',null,'Your study workspace')),h('span',{class:'landing-preview-level'},'100 LEVEL')),
+   h('div',{class:'landing-preview-welcome'},h('span',null,'ACADEMIC DASHBOARD'),h('strong',null,'Built around your courses.'),h('small',null,'Bowen University · CoHES')),
+   h('div',{class:'landing-preview-grid'},
+    h('div',{class:'landing-preview-course'},h('span',null,'BIO'),h('b',null,'Biology'),h('small',null,'Notes · QBank')),
+    h('div',{class:'landing-preview-course'},h('span',null,'CHM'),h('b',null,'Chemistry'),h('small',null,'Topics · Practice')),
+    h('div',{class:'landing-preview-course'},h('span',null,'PHY'),h('b',null,'Physics'),h('small',null,'Concepts · Problems')),
+    h('div',{class:'landing-preview-course'},h('span',null,'COS'),h('b',null,'Computing'),h('small',null,'Lessons · Questions'))),
+   h('div',{class:'landing-preview-offline'},h('span',{class:'landing-live-dot'},''),h('span',null,'Offline course packs'),h('b',null,'Ready to save')));
+  const hero=h('section',{class:'landing-hero'},
+   h('div',{class:'landing-hero-copy'},
+    h('span',{class:'landing-eyebrow'},'A MORE CONNECTED WAY TO STUDY'),
+    h('h1',null,'Your courses should power your entire academic experience.'),
+    h('p',null,'Bablo Hub brings course learning, revision, practical work and academic competition into one organised workspace — shaped by your university, programme, level and semester.'),
+    h('div',{class:'landing-hero-actions'},h('button',{class:'landing-primary',onclick:()=>openAuth('signup')},'Create your account',h('span',null,'→')),h('button',{class:'landing-quiet',onclick:openGuest},'Explore as a guest')),
+    h('div',{class:'landing-trust-line'},h('span',null,'CURRICULUM-LED'),h('i',null,'·'),h('span',null,'RESOURCE-DRIVEN'),h('i',null,'·'),h('span',null,'OFFLINE-READY'))),
+   preview);
+  const system=h('section',{class:'landing-system-section',id:'landing-system'},
+   h('div',{class:'landing-section-heading'},h('span',{class:'landing-eyebrow'},'ONE ACADEMIC SOURCE OF TRUTH'),h('h2',null,'One course. Every way to learn.'),h('p',null,'Your verified course resources should not stop at the course page. They should connect the entire platform.')),
+   h('div',{class:'landing-system-flow'},
+    h('article',{class:'landing-system-source'},h('span',null,'01 · THE FOUNDATION'),h('strong',null,'Course resources'),h('p',null,'Notes, source documents, questions, flashcards and practical materials — organised by topic.')),
+    h('div',{class:'landing-flow-arrow'},'→'),
+    h('div',{class:'landing-system-output-grid'},
+     h('article',null,h('b',null,'Learn'),h('small',null,'Notes & explanations')),
+     h('article',null,h('b',null,'Recall'),h('small',null,'Flashcards & review')),
+     h('article',null,h('b',null,'Practise'),h('small',null,'QBank & CBT')),
+     h('article',null,h('b',null,'Apply'),h('small',null,'Practicals & labs')),
+     h('article',null,h('b',null,'Compete'),h('small',null,'Challenges & Cup')),
+     h('article',null,h('b',null,'Improve'),h('small',null,'Progress & analytics')))));
+  const tools=h('section',{class:'landing-tools-section',id:'landing-tools'},
+   h('div',{class:'landing-section-heading'},h('span',{class:'landing-eyebrow'},'BUILT FOR ACTIVE LEARNING'),h('h2',null,'The tools belong together.'),h('p',null,'No scattered resources. No disconnected activities. A clear path from understanding to confident application.')),
+   h('div',{class:'landing-feature-grid'},
+    h('article',null,h('span',{class:'landing-feature-icon'},'01'),h('h3',null,'Structured course library'),h('p',null,'Open a course and find its topics, notes, questions, flashcards and related learning materials in one place.')),
+    h('article',null,h('span',{class:'landing-feature-icon'},'02'),h('h3',null,'Purposeful practice'),h('p',null,'Use topic practice, timed CBT-style sessions and review that explains why an answer is correct.')),
+    h('article',null,h('span',{class:'landing-feature-icon'},'03'),h('h3',null,'Practical understanding'),h('p',null,'Connect theory with procedures, observations, calculations, diagrams and interpretation.')),
+    h('article',null,h('span',{class:'landing-feature-icon'},'04'),h('h3',null,'Study beyond the network'),h('p',null,'Save supported course packs and keep learning when connectivity is unreliable.'))));
+  const cohes=h('section',{class:'landing-cohes-section',id:'landing-cohes'},
+   h('div',{class:'landing-cohes-copy'},h('span',{class:'landing-eyebrow'},'OUR FIRST DEEP BUILD'),h('h2',null,'Starting with Bowen CoHES 100 Level.'),h('p',null,'The first mapped pilot is Bowen University’s CoHES MBBS 100 Level track. Other CoHES programmes will receive their own verified course maps instead of inheriting MBBS courses. Your selected programme and semester will shape the course catalogue, practice, challenges and progress.'),h('div',{class:'landing-cohes-tags'},h('span',null,'Bowen University'),h('span',null,'CoHES'),h('span',null,'100 Level'))),
+   h('div',{class:'landing-cohes-card'},h('span',null,'THE STUDENT JOURNEY'),h('ol',null,h('li',null,'Choose your university'),h('li',null,'Select your faculty / college'),h('li',null,'Choose your programme'),h('li',null,'Set your level and semester'),h('li',null,'Enter a workspace shaped by your curriculum'))));
+  const finalCta=h('section',{class:'landing-final-cta'},h('span',{class:'landing-eyebrow'},'MAKE YOUR STUDY TIME COUNT'),h('h2',null,'Start with the courses you actually take.'),h('p',null,'Create an account to keep your academic identity and study progress connected.'),h('button',{class:'landing-primary',onclick:()=>openAuth('signup')},'Get started with Bablo Hub',h('span',null,'→')));
+  const footer=h('footer',{class:'landing-footer'},h('span',null,'Bablo Hub™'),h('span',null,'An academic workspace by TheMedConfidant'),h('a',{href:'#/about'},'About'));
+  const root=h('div',{class:'landing-page'},topbar,hero,system,tools,cohes,finalCta,footer);
+  mount(wrap(root));
+  window.scrollTo(0,0);
  }
- window.openLandingAuth=openAuth;window.onboarding=showLanding;
- document.addEventListener('DOMContentLoaded',function(){
-  try{if(typeof DB!=='undefined'){if(!DB.skin||DB.skin==='glass'||DB.skin==='green'){DB.skin='charcoal';save();}applyTheme();}}catch(e){console.warn('Bablo theme setup:',e);}
-  try{if(typeof DB!=='undefined'&&!DB.profile){removeOverlay();showLanding();}}catch(e){console.warn('Bablo landing setup:',e);}
- },{once:true});
+ window.openLandingAuth=openAuth;
+ window.onboarding=showLanding;
 })();
