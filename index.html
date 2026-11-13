@@ -2223,9 +2223,9 @@ function route() {
     else if (v === 'about') aboutView();
     else if (v === 'bonus' && seg[1]) bonusView(seg[1]);
     else if (v === 'lab' && !seg[1]) labHubView();
-    else if (v === 'lab' && seg[1]) advancedLabModuleView(seg[1]);
     else if (v === 'lab' && seg[1] === 'phy107') embeddedPhyLabView();
     else if (v === 'lab' && seg[1] === 'chm107') embeddedChmLabView();
+    else if (v === 'lab' && seg[1]) advancedLabModuleView(seg[1]);
     else if (v === 'practicals' && seg[1] && seg[2]) practicalView(seg[1], seg[2]);
     else if (v === 'practicals' && seg[1]) practicalsView(seg[1]);
     else if (v === 'qualify') qualifyView();
@@ -4679,6 +4679,7 @@ function labHubView() {
   )));
 }
 function advancedLabModuleView(code) {
+  if((parseInt((DB.profile||{}).level||'100L',10)||100)<200){labHubView();return;}
   const map={
     mic:['Medical Microbiology','Bacteriology, virology, mycology and parasitology','Organism profiles · specimen concepts · diagnostic principles · antimicrobial interpretation'],
     pat:['Pathology','General and systemic pathology','Morphological patterns · disease mechanisms · clinicopathological correlation'],
