@@ -14,17 +14,35 @@ test('existing Notion exports normalize into source-aware blocked records', () =
   });
   assert.equal(run.status, 0, run.stderr || run.stdout);
   const preview = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
-  const shared100 = read('notion-100l-physics-chemistry-shared-pilot.json');
-  const anatomy = read('notion-200l-anatomy-shared-pilot.json');
-  const futa = read('notion-futa-bio101-notes.json');
+  const manifest = read('notion-resource-manifest.json');
   const content = read('notion-content-pilot.json');
-  const expectedPages = shared100.resources.length + anatomy.resources.length + futa.resources.length;
+  const packNames = [
+    'notion-100l-physics-chemistry-shared-pilot.json',
+    'notion-200l-anatomy-shared-pilot.json',
+    'notion-200l-course-maps.json',
+    'notion-200l-physiology-biochemistry-topics.json',
+    'notion-futa-bio101-notes.json',
+    'bowen-200l-course-maps.json'
+  ];
+  const keys = new Set();
+  let rawPageExports = 0;
+  for (const name of packNames) {
+    const pack = read(name);
+    for (const item of pack.resources || []) {
+      rawPageExports += 1;
+      const id = String(item.notionPageId || item.pageId).replace(/-/g, '').toLowerCase();
+      const source = manifest.sources.find(s => s.id.replace(/-/g, '').toLowerCase() === id);
+      const type = item.resourceType || item.kind || source?.resourceType || source?.types?.[0];
+      keys.add(id + ':' + String(type).toLowerCase());
+    }
+  }
   const expectedRows = content.datasets.reduce((sum, dataset) => sum + dataset.items.length, 0);
 
   assert.equal(preview.mode, 'content-exported-staging-only');
-  assert.equal(preview.summary.pageResources, expectedPages);
+  assert.equal(preview.summary.pageResources, keys.size);
+  assert.equal(preview.summary.duplicatePageExportsSkipped, rawPageExports - keys.size);
   assert.equal(preview.summary.databaseRows, expectedRows);
-  assert.equal(preview.summary.blockedRecords, expectedPages + expectedRows);
+  assert.equal(preview.summary.blockedRecords, keys.size + expectedRows);
   assert.equal(preview.safety.contentFetched, true);
   assert.equal(preview.safety.rightsCleared, false);
   assert.equal(preview.safety.curriculumMappingsCreated, false);
@@ -38,27 +56,36 @@ test('existing Notion exports normalize into source-aware blocked records', () =
   }
 });
 
-test('institution provenance is retained across Bowen, FUTA and general-library exports', () => {
+test('institution provenance and shared-reuse intent remain separate', () => {
   const preview = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
-  const futaNote = preview.resources.find(r => r.source.pageId === '3d11834fbdba81fa9ff5e6c2f8ca8c93');
+  const find = id => preview.resources.find(r => r.source.pageId === id);
+  const futaNote = find('3d11834fbdba81fa9ff5e6c2f8ca8c93');
   assert.ok(futaNote);
   assert.equal(futaNote.provenance.institution, 'FUTA');
-  const anatomy = preview.resources.find(r => r.source.pageId === '4161834fbdba81fb9245e2f5193d69f1');
+  const anatomy = find('4161834fbdba81fb9245e2f5193d69f1');
   assert.ok(anatomy);
   assert.equal(anatomy.provenance.institution, 'Bowen University');
   assert.equal(anatomy.provenance.programme, 'MBBS');
   assert.equal(anatomy.reuseIntent, 'candidate-shared-non-bowen');
-  const generalChem = preview.resources.find(r => r.source.pageId === '3c11834fbdba8136b014ce9446c8f18b');
+  const generalChem = find('3c11834fbdba8136b014ce9446c8f18b');
   assert.ok(generalChem);
   assert.equal(generalChem.provenance.institution, null);
   assert.equal(generalChem.reuseIntent, 'candidate-shared-non-bowen');
-  const futaFlashcards = preview.rows.find(r => r.datasetKey === 'futa-bio101-flashcards');
-  const bowenQuestions = preview.rows.find(r => r.datasetKey === 'bowen-cohes-bio101-mcqs');
-  assert.ok(futaFlashcards);
-  assert.equal(futaFlashcards.provenance.institution, 'FUTA');
-  assert.ok(bowenQuestions);
-  assert.equal(bowenQuestions.provenance.institution, 'Bowen University');
-  assert.equal(bowenQuestions.provenance.programme, 'CoHES');
+  const physiology = find('3d11834fbdba81bab400ec6071d8df08');
+  const biochemistry = find('3da1834fbdba81ceb2f8e898fe7e525b');
+  assert.ok(physiology);
+  assert.ok(biochemistry);
+  assert.equal(physiology.provenance.course, 'Physiology');
+  assert.equal(biochemistry.provenance.course, 'Biochemistry');
+  assert.equal(physiology.reuseIntent, 'candidate-shared-non-bowen');
+  const bowenMap = find('3ca1834fbdba8109954ed40cae3f52db');
+  assert.ok(bowenMap);
+  assert.equal(bowenMap.provenance.institution, 'Bowen University');
+  assert.equal(bowenMap.provenance.programme, 'MBBS');
+  assert.equal(bowenMap.reuseIntent, 'source-institution-only-unless-approved');
+  const anatomyHub = find('3d11834fbdba81328612dc2d9aebb3fb');
+  assert.ok(anatomyHub);
+  assert.equal(anatomyHub.provenance.institution, 'Bowen University');
 });
 
 test('typed MCQ and flashcard records meet required data contracts', () => {
