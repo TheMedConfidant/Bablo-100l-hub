@@ -12,7 +12,7 @@ const errors = [];
 const warnings = [];
 const hasText = value => typeof value === 'string' && value.trim().length > 0;
 if (manifest.schemaVersion !== 1) errors.push('schemaVersion must be 1');
-if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(manifest.generatedAt || '')) errors.push('generatedAt must be YYYY-MM-DD');
+if (!/^\d{4}-\d{2}-\d{2}$/.test(manifest.generatedAt || '')) errors.push('generatedAt must be YYYY-MM-DD');
 if (!hasText(manifest.authority)) errors.push('authority statement is missing');
 if (!hasText(manifest.ingestionPolicy)) errors.push('ingestionPolicy is missing');
 if (!Array.isArray(manifest.sources)) errors.push('sources must be an array');
