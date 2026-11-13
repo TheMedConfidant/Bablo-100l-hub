@@ -24,7 +24,7 @@
  }
  window.openLandingAuth=openAuth;window.onboarding=showLanding;
  document.addEventListener('DOMContentLoaded',function(){
-  try{if(typeof DB!=='undefined'){DB.skin='charcoal';save();applyTheme();}}catch(e){console.warn('Bablo theme setup:',e);}
+  try{if(typeof DB!=='undefined'){if(!DB.skin||DB.skin==='glass'||DB.skin==='green'){DB.skin='charcoal';save();}applyTheme();}}catch(e){console.warn('Bablo theme setup:',e);}
   try{if(typeof DB!=='undefined'&&!DB.profile){removeOverlay();showLanding();}}catch(e){console.warn('Bablo landing setup:',e);}
  },{once:true});
 })();
