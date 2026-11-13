@@ -66,7 +66,7 @@ self.addEventListener('message',event=>{
     const meta=await caches.open(COURSE_META),keys=await meta.keys(),courses=[];
     for(const key of keys){const response=await meta.match(key);try{const data=await response.json();if(data.courseId&&data.cacheName&&await caches.has(data.cacheName))courses.push(data.courseId)}catch(_){}}
     // Include legacy single-cache packs until they are next refreshed or removed.
-    for(const name of await caches.keys()){if(name.startsWith(COURSE_PREFIX)&&!name.slice(COURSE_PREFIX.length).includes('-')){const id=name.slice(COURSE_PREFIX.length);if(!courses.includes(id))courses.push(id)}}
+    for(const name of await caches.keys()){if(name.startsWith(COURSE_PREFIX)&&!name.slice(COURSE_PREFIX.length).includes('--')){const id=name.slice(COURSE_PREFIX.length);if(!courses.includes(id))courses.push(id)}}
     reply({ok:true,courses});return;
    }
    const id=String(msg.courseId||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-|-$/g,'').slice(0,64);
