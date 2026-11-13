@@ -229,7 +229,7 @@ create policy "Verified courses are readable"
       from public.hub_academic_programmes p
       join public.hub_academic_institutions i on i.id = p.institution_id
       where p.id = programme_id
-        and p.institution_id = institution_id
+        and p.institution_id = hub_academic_courses.institution_id
         and p.directory_status = 'active'
         and i.directory_status = 'active'
     )
