@@ -64,6 +64,12 @@ if (html) {
   else fail("Premium pricing page missing");
   if (!/service_role|sk_live_|sk_test_/i.test(html)) pass("No server-side payment/database secret is embedded in the client");
   else fail("A server-side secret appears in client HTML");
+  if (html.includes("function programmeCupReminderCard()") && html.includes("programmeCupReminderCard(),")) pass("Programme Cup qualifier reminder appears on dashboard and Cup page");
+  else fail("Programme Cup qualifier reminder is missing from a required view");
+  if (html.includes("function shareProgrammeCupQualifiers()") && html.includes("navigator.share({ title: 'Bablo Hub · Programme Cup Qualifiers'")) pass("Programme Cup sharing uses the native share sheet");
+  else fail("Programme Cup share action is missing");
+  if (html.includes("function copyQualifierLink(url)") && html.includes("Copy link")) pass("Programme Cup sharing has a copy-link fallback");
+  else fail("Programme Cup copy-link fallback is missing");
   if (html.includes("function exportLocalStudyData()") && html.includes("Export my study data (JSON)")) pass("Settings exposes the local study-data export");
   else fail("Local study-data export is missing from Settings");
   const exportStart = html.indexOf("function exportLocalStudyData()");
