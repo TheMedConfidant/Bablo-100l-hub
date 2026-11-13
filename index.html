@@ -4046,16 +4046,39 @@ function programmesView() {
 /* ---------- calendar, tests, and Pomodoro timer ---------- */
 const PLAN_KEY = 'plan';
 const PLAN_DEFAULTS = [
-  { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.' },
-  { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.' },
-  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' }
+  { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.', scope: { institution: 'bowen-university', level: '100L', programme: 'MBBS' } },
+  { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.', scope: { institution: 'bowen-university', level: '100L' } },
+  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.', scope: { institution: 'bowen-university', level: '100L', programme: 'MBBS' } }
 ];
+const RETIRED_TEST_EVENT_IDS = new Set([
+  'gst-test','gst111-test','test-gst111-2026',
+  'mth-test','mth101-test','maths-test','test-mth101-2026',
+  'cos-test','cos101-test','test-cos101-2026'
+]);
+function planEventVisibleForProfile(ev) {
+  const scope = ev && ev.scope;
+  if (!scope) return true;
+  const profile = DB.profile || {};
+  const norm = value => String(value || '').trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (scope.institution && norm(profile.institution) !== norm(scope.institution)) return false;
+  if (scope.level && String(profile.level || '').trim() !== String(scope.level).trim()) return false;
+  if (scope.programme && norm(profile.programme) !== norm(scope.programme)) return false;
+  return true;
+}
 function planEvents() {
-  if (!DB.events || DB.eventsVersion !== 3) {
-    const own = (DB.events || []).filter(e => !PLAN_DEFAULTS.some(d => d.id === e.id) && e.id !== 'gst-test' && e.id !== 'lib-test' && e.id !== 'gel-ca-mbbs');
-    DB.events = PLAN_DEFAULTS.concat(own); DB.eventsVersion = 3; save();
+  const existing = Array.isArray(DB.events) ? DB.events : [];
+  const own = existing.filter(e =>
+    !PLAN_DEFAULTS.some(d => d.id === e.id) &&
+    !RETIRED_TEST_EVENT_IDS.has(String(e.id || '').trim().toLowerCase()) &&
+    e.id !== 'lib-test' && e.id !== 'gel-ca-mbbs'
+  );
+  const next = PLAN_DEFAULTS.concat(own);
+  if (DB.eventsVersion !== 4 || JSON.stringify(existing) !== JSON.stringify(next)) {
+    DB.events = next;
+    DB.eventsVersion = 4;
+    save();
   }
-  return DB.events;
+  return DB.events.filter(planEventVisibleForProfile);
 }
 function downloadIcs(ev) {
   const blob = new Blob([icsFor(ev)], { type: 'text/calendar' }); const a = document.createElement('a');
