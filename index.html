@@ -2631,7 +2631,7 @@ function offlineResourcesForCourse(code) {
     AGR:['./agr-101-food-security.html'], AGR101:['./agr-101-food-security.html'], MLS101:['./mls101-data.js']
   };
   const extras=byCourse[String(code||'').toUpperCase()]||[];
-  return extras.length?[...new Set(common.concat(extras))]:[];
+  return [...new Set(common.concat(extras))];
 }
 function offlineCoursePanel(code, resources) {
   const host=h('div',{class:'offline-course-host'});
@@ -4379,7 +4379,7 @@ function course200View(c) {
     if(c.code==='ANATOMY'){
       if(!B200_ANATOMY_CACHE)B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');
       const bundle=B200_ANATOMY_CACHE,note=bundle.resources.find(x=>x.kind==='notes'),ref=bundle.resources.find(x=>x.kind==='openstax-glossary');
-      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'),h('button',{class:'btn gold block',onclick:async()=>{try{await window.BabloOffline.saveCourse({courseId:'bowen-200l-anatomy',resources:['./','./index.html','./manifest.json','./data/200l-anatomy-elbow-forearm.json']});B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');toast('Anatomy topic pack saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this pack.');}}},'Download topic pack for offline study'));
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'),offlineCoursePanel('200l-ANATOMY',['./','./index.html','./manifest.json','./data/200l-anatomy-elbow-forearm.json']));
       else if(cur==='Notes')content=renderStudyMarkdown(note?.content||'');
       else if(cur==='Flashcards')content=render200Flashcards(bundle);
       else if(cur==='Questions')content=render200Questions(bundle);
@@ -4388,7 +4388,7 @@ function course200View(c) {
     }else{
       if(!B200_MAP_CACHE)B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');
       const key=c.code==='PHYSIOLOGY'?'physiology-course-map':'biochemistry-course-hub',map=B200_MAP_CACHE.resources.find(x=>x.key===key);
-      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'),h('button',{class:'btn gold block',onclick:async()=>{try{await window.BabloOffline.saveCourse({courseId:'bowen-200l-'+String(c.code).toLowerCase(),resources:['./','./index.html','./manifest.json','./data/bowen-200l-course-maps.json']});B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');toast('Course map saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this map.');}}},'Save course map for offline study'));
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'),offlineCoursePanel('200l-'+c.code,['./','./index.html','./manifest.json','./data/bowen-200l-course-maps.json']));
       else if(cur==='Notes')content=renderStudyMarkdown(map?.content||'');
       else content=h('p',{class:'muted'},'This resource layer is indexed in Notion. Its content is queued for extraction; no placeholder questions or cards are generated.');
     }
