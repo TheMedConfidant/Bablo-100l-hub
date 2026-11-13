@@ -634,6 +634,18 @@
       ],
       "exportStatus": "content-exported-review-required",
       "notes": "User-confirmed verified course map/index. Preserve original context; shared reuse outside Bowen requires target course mapping."
+    },
+    {
+      "id": "3ca1834f-bdba-8109-954e-d40cae3f52db",
+      "url": "https://app.notion.com/p/3ca1834fbdba8109954ed40cae3f52db",
+      "title": "Bowen 200L — Verified Curriculum & Build Map",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "types": [
+        "curriculum-map"
+      ],
+      "notes": "Owner-confirmed verified source map from the Bowen 200L MBBS workspace. Preserve Bowen source identity; destination mappings for other institutions remain separate."
     }
   ],
   "exports": [
