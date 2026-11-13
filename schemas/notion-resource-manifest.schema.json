@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bablo Hub Notion Resource Manifest",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "authority",
+    "ingestionPolicy",
+    "sources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date"
+    },
+    "authority": {
+      "type": "string",
+      "minLength": 20
+    },
+    "ingestionPolicy": {
+      "type": "string",
+      "minLength": 40
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "title"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://app\\.notion\\.com/"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 2
+          },
+          "institution": {
+            "type": "string"
+          },
+          "programme": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          },
+          "semester": {
+            "type": "string"
+          },
+          "course": {
+            "type": "string"
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "resourceType": {
+            "type": "string"
+          },
+          "dataSource": {
+            "type": "string",
+            "pattern": "^collection://"
+          },
+          "exportStatus": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "required": [
+              "types"
+            ]
+          },
+          {
+            "required": [
+              "resourceType"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
