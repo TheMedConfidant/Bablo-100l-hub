@@ -8,10 +8,19 @@
  const SURFACES=['dashboard','courses','notes','flashcards','questions','quizzes','practicals','past-papers','labs','search','recommendations','notifications'];
  const norm=v=>String(v==null?'':v).trim().toLowerCase();
  const slug=v=>norm(v).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ function resolveInstitutionSlug(value){
+  const raw=norm(value);
+  const directory=Array.isArray(root.BABLO_UNIVERSITY_DIRECTORY)?root.BABLO_UNIVERSITY_DIRECTORY:[];
+  const found=directory.find(entry=>[entry.slug,entry.name].concat(entry.aliases||[]).some(alias=>norm(alias)===raw));
+  if(found)return found.slug;
+  if(raw==='futa')return 'futa';
+  if(raw==='bowen')return 'bowen-university';
+  return slug(value);
+ }
  function identity(input){
   input=input||{};
   return Object.freeze({
-   institution:slug(input.institutionSlug||input.institution||''),
+   institution:input.institutionSlug?slug(input.institutionSlug):resolveInstitutionSlug(input.institution||''),
    programme:norm(input.programmeCode||input.programme||''),
    level:String(input.academicLevel||input.level||''),
    semester:norm(input.semester||'')
@@ -59,7 +68,7 @@
   const id=identity(studentIdentity);
   return filterResources(resources,studentIdentity).every(r=>r.mappings.some(m=>mappingMatches(m,id)));
  }
- const api={LEVELS,SEMESTERS,SURFACES,identity,validIdentity,isBscPathwayEligible,mappingMatches,resourceVisible,filterResources,groupBySurface,assertNoFallback};
+ const api={LEVELS,SEMESTERS,SURFACES,resolveInstitutionSlug,identity,validIdentity,isBscPathwayEligible,mappingMatches,resourceVisible,filterResources,groupBySurface,assertNoFallback};
  root.BabloAcademicEngine=Object.freeze(api);
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
