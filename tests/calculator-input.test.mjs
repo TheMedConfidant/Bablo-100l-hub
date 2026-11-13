@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('../calculator/index.html', import.meta.url), 'utf8');
+const serviceWorker = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const script = html.split('<script>').slice(1).map((block) => block.split('</script>')[0]).at(-1);
 assert.ok(script, 'calculator inline engine script exists');
 
@@ -36,4 +37,16 @@ test('math input disables mobile spelling correction', () => {
   assert.ok(html.includes('autocorrect="off"'));
   assert.ok(html.includes('autocapitalize="off"'));
   assert.ok(html.includes('spellcheck="false"'));
+});
+
+test('calculator libraries are routed through the offline cache', () => {
+  assert.ok(html.includes('./vendor/mathlive.min.js'));
+  assert.ok(html.includes('./vendor/mathjs.js'));
+  assert.ok(html.includes('./vendor/mathlive-static.css'));
+  assert.ok(html.includes("MathfieldElement.fontsDirectory"));
+  assert.ok(html.includes("MathfieldElement.soundsDirectory"));
+  assert.ok(serviceWorker.includes("bablo-offline-v38-calculator-assets"));
+  assert.ok(serviceWorker.includes("function vendorURL(u)"));
+  assert.ok(serviceWorker.includes("cdn.jsdelivr.net/npm/mathjs@14.8.1/lib/browser/math.js"));
+  assert.ok(serviceWorker.includes("unpkg.com/mathlive@0.104.2/dist/"));
 });
