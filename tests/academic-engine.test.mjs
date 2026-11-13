@@ -26,3 +26,5 @@ test('BSc selector is limited to Bowen MBBS 200L+',()=>{
  assert.equal(E.isBscPathwayEligible({institution:'Bowen University',programme:'MBBS',level:'100L'}),false);
  assert.equal(E.isBscPathwayEligible({institution:'Bowen University',programme:'BSc Anatomy',level:'200L'}),false);
 });
+
+test('allows course-wide filtering when semester is not selected',()=>{const noSemester={institution:'FUTA',programme:'BIO',level:'100L'};assert.equal(E.resourceVisible(base,E.identity(noSemester)),true);assert.equal(E.validIdentity(E.identity(noSemester)),true);});
