@@ -8,14 +8,14 @@
 
 The workspace already contains much more than a small 100L sample. Search surfaced separate 100L course packs and substantial 200L course structures across Anatomy, Physiology and Biochemistry, including detailed topic pages, flashcards, MCQ databases, clinical vignettes, practical resources, past-paper sections and course maps.
 
-This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
+A first content tranche has now been exported to `data/notion-content-pilot.json`: 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total). This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
 
 ## Critical separation discovered: same course code does not mean same course
 
 Two BIO 101 resources illustrate why academic identity must include the institution and programme:
 
-- **FUTA BIO 101:** an eight-topic outline, with eight topic notes and 32 flashcards recorded in its parent page.
-- **Bowen CoHES BIO 101:** a separate nine-topic course sourced from Bowen lecture material, with its own topic sequence and planned assessment structure.
+- **FUTA BIO 101:** an eight-topic outline, with eight topic notes and **75 flashcards in the live Notion database**. The parent page's older 32-card progress note is stale.
+- **Bowen CoHES BIO 101:** a separate nine-topic course sourced from Bowen lecture material, with its own topic sequence and **180 MCQ database records**.
 
 These must remain separate. A course code match is not sufficient evidence of equivalence.
 
@@ -63,5 +63,5 @@ The user's confirmation establishes that the content they created is verified. I
 2. Read database rows for notes, flashcards, MCQs, past papers, vignettes and practicals.
 3. Preserve source IDs, title, content, topic, type, level, programme and current university attribution.
 4. Build a resource manifest and detect duplicates without deleting or moving any Notion content.
-5. Create institution/course mappings. Preserve known distinctions such as FUTA BIO 101 versus Bowen CoHES BIO 101.
+5. Create institution/course mappings. Preserve known distinctions such as FUTA BIO 101 versus Bowen CoHES BIO 101. FUTA BIO 101 still needs programme and semester mapping before it can be served to students.
 6. Load the first pilot content into the Bablo Hub resource catalogue only after its source and target mapping are explicit.
