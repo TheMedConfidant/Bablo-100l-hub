@@ -243,6 +243,12 @@ begin
   fn := replace(fn,
     'when upper(trim(p_programme)) = ''MBBS''',
     'when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'') and upper(trim(p_programme)) = ''MBBS''');
+  fn := replace(fn,
+    '  pathway := case',
+    '  if upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'') and upper(trim(p_programme)) = ''MBBS'' and p_academic_level in (''200L'',''300L'',''400L'',''500L'',''600L'',''700L'') and coalesce(length(trim(p_bsc_pathway)),0) = 0 then return json_build_object(''ok'',false,''error'',''Select the BSc pathway for Bowen MBBS students in 200L and above.''); end if;' || E''\n'' || '  pathway := case');
+  if position('Select the BSc pathway for Bowen MBBS students' in fn) = 0 then
+    raise exception 'Could not require BSc pathway for eligible authenticated profile';
+  end if;
   if position('when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'')' in fn) = 0 then
     raise exception 'Could not enforce Bowen-only BSc pathway on authenticated profile RPC';
   end if;
