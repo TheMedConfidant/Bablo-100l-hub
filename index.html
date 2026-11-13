@@ -1290,34 +1290,94 @@ const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other
 function inferProgrammeCategory(programme) {
   return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
 }
-function academicProfileFields(profile) {
+function academicProfileFields(profile, surface) {
   const p = profile || {};
+  const mode = surface || 'signup';
+  const directory = Array.isArray(window.BABLO_UNIVERSITY_DIRECTORY) ? window.BABLO_UNIVERSITY_DIRECTORY : [
+    { slug: 'bowen-university', name: 'Bowen University', aliases: ['Bowen'] },
+    { slug: 'futa', name: 'Federal University of Technology, Akure', aliases: ['FUTA'] }
+  ];
+  const norm = value => String(value || '').trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
+  const currentInstitution = String(p.institution || '');
+  const currentEntry = directory.find(entry => [entry.name, entry.slug].concat(entry.aliases || []).some(alias => norm(alias) === norm(currentInstitution)));
+  const institution = h('select', null,
+    h('option', { value: '', disabled: true, selected: !currentEntry && !currentInstitution ? true : null }, 'Choose your university'),
+    ...directory.map(entry => h('option', { value: entry.slug, selected: currentEntry && currentEntry.slug === entry.slug ? true : null }, entry.name)),
+    h('option', { value: '__other__', selected: !currentEntry && currentInstitution ? true : null }, 'Other health-science university / request addition'));
+  const otherInstitution = h('input', { type: 'text', value: !currentEntry ? currentInstitution : '', maxlength: '100', placeholder: 'Enter your university name' });
+  const otherInstitutionField = h('label', { class: 'field' }, h('span', null, 'University name'), otherInstitution);
+  const selectedInstitution = () => {
+    if (institution.value === '__other__') return otherInstitution.value.trim();
+    const entry = directory.find(item => item.slug === institution.value);
+    return entry ? entry.name : '';
+  };
+  const selectedInstitutionSlug = () => institution.value && institution.value !== '__other__' ? institution.value : '';
+  otherInstitutionField.hidden = institution.value !== '__other__';
+
   const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
   const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
-  const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
   const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
   const category = h('select', null,
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
-  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
-  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
-  const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
+  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Choose/enter the BSc pathway' });
+  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway'), pathway);
+  const bscEligible = () => mode === 'profile'
+    && selectedInstitutionSlug() === 'bowen-university'
+    && programme.value.trim().toUpperCase() === 'MBBS'
+    && ['200L','300L','400L','500L','600L','700L'].includes(level.value);
+  const syncPathway = () => {
+    const eligible = bscEligible();
+    pathwayField.hidden = !eligible;
+    pathway.disabled = !eligible;
+    pathway.required = eligible;
+    if (!eligible) pathway.value = '';
+  };
+  const refreshProgrammeOptions = async () => {
+    const slug = selectedInstitutionSlug();
+    if (!slug || !authConfigured()) return;
+    try {
+      const rows = await hubCall('hub_list_academic_programmes', { p_institution_slug: slug });
+      if (Array.isArray(rows) && rows.length) {
+        suggestions.replaceChildren(...rows.map(row => h('option', { value: row.programme_name })));
+      }
+    } catch (e) { /* The directory RPC is added by the academic-engine migration; keep manual entry until it is available. */ }
+  };
+  let lastInstitution = selectedInstitutionSlug();
+  institution.addEventListener('change', () => {
+    otherInstitutionField.hidden = institution.value !== '__other__';
+    const nextInstitution = selectedInstitutionSlug();
+    if (nextInstitution !== lastInstitution) {
+      programme.value = '';
+      category.value = 'other';
+      lastInstitution = nextInstitution;
+    }
+    syncPathway();
+    refreshProgrammeOptions();
+  });
+  otherInstitution.addEventListener('input', syncPathway);
   programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
+  if (selectedInstitutionSlug()) refreshProgrammeOptions();
   return {
-    nodes: [h('label', { class: 'field' }, h('span', null, 'Programme'), programme), suggestions,
+    nodes: [
+      h('label', { class: 'field' }, h('span', null, 'Programme'), programme), suggestions,
       h('label', { class: 'field' }, h('span', null, 'Academic group'), category),
-      h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
-      h('label', { class: 'field' }, h('span', null, 'Current level'), level), pathwayField],
+      h('label', { class: 'field' }, h('span', null, 'University'), institution),
+      otherInstitutionField,
+      h('p', { class: 'tiny muted' }, 'The directory lists universities with documented health-science offerings. Programme and course access still depends on the verified catalogue for that institution.'),
+      h('label', { class: 'field' }, h('span', null, 'Current level'), level), pathwayField
+    ],
     read: () => ({
       programme: programme.value.trim(),
       programmeCategory: category.value,
-      institution: institution.value.trim(),
+      institution: selectedInstitution(),
       level: level.value,
-      bscPathway: pathway.value.trim()
-    })
+      bscPathway: bscEligible() ? pathway.value.trim() : ''
+    }),
+    isBscPathwayRequired: bscEligible
   };
 }
 
@@ -2249,7 +2309,7 @@ function route() {
 function onboarding() {
   const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
   const nick = h('input', { type: 'text', maxlength: '20', placeholder: 'Shown on the leaderboard' });
-  const academic = academicProfileFields({ programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const academic = academicProfileFields({ programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' }, 'signup');
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const sub = async () => {
     const n = name.value.trim();
@@ -2803,7 +2863,7 @@ function meView() {
   const account = DB.account || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
-  const academic = academicProfileFields(p);
+  const academic = academicProfileFields(p, 'profile');
   const faculty = h('input', { type: 'text', value: p.faculty || '', maxlength: '100', placeholder: 'e.g. College of Health Sciences' });
   const department = h('input', { type: 'text', value: p.department || '', maxlength: '100', placeholder: 'e.g. Medicine & Surgery' });
   const academicSession = h('input', { type: 'text', value: p.academicSession || '', maxlength: '30', placeholder: 'e.g. 2026/2027' });
@@ -2856,7 +2916,7 @@ function meView() {
         h('div', null, h('span', { class: 'tiny muted' }, 'Faculty'), h('b', { style: { display: 'block' } }, p.faculty || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Department'), h('b', { style: { display: 'block' } }, p.department || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Academic session'), h('b', { style: { display: 'block' } }, p.academicSession || 'Not provided')),
-        h('div', null, h('span', { class: 'tiny muted' }, 'BSc pathway'), h('b', { style: { display: 'block' } }, p.bscPathway || '—'))),
+        ...(academic.isBscPathwayRequired() ? [h('div', null, h('span', { class: 'tiny muted' }, 'BSc pathway'), h('b', { style: { display: 'block' } }, p.bscPathway || 'Not selected'))] : [])),
       h('p', { class: 'tiny muted' }, 'These details describe your academic profile; they are not proof of institutional enrolment.')),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Edit profile'),
@@ -2872,6 +2932,7 @@ function meView() {
         if (n.length < 2) { status.textContent = 'Enter your name.'; return; }
         const details = academic.read();
         if (details.programme.length < 2 || details.institution.length < 2) { status.textContent = 'Enter both your programme and institution.'; return; }
+        if (academic.isBscPathwayRequired() && !details.bscPathway) { status.textContent = 'Choose the BSc pathway for Bowen MBBS students in 200L and above.'; return; }
         DB.profile = Object.assign({}, DB.profile, {
           name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20),
           faculty: faculty.value.trim(), department: department.value.trim(),
@@ -3863,7 +3924,7 @@ function accountSection() {
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' }, 'signup');
   const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
