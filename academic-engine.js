@@ -36,6 +36,10 @@
   const level=String(p.academicLevel||p.level||'');
   return institution==='bowen-university'&&programme==='mbbs'&&LEVELS.indexOf(level)>=1&&LEVELS.indexOf(level)<=6;
  }
+ function courseSemesterMatches(course,studentIdentity){
+  const id=identity(studentIdentity);
+  return !!(course&&validIdentity(id)&&norm(course.semester)===id.semester);
+ }
  function mappingMatches(mapping,id){
   if(!mapping||!id)return false;
   return slug(mapping.institutionSlug||mapping.institution||'')===id.institution
@@ -91,7 +95,7 @@
   const id=identity(studentIdentity);
   return filterResources(resources,studentIdentity).every(r=>r.mappings.some(m=>mappingMatches(m,id)));
  }
- const api={LEVELS,SEMESTERS,SURFACES,resolveInstitutionSlug,identity,validIdentity,isBscPathwayEligible,mappingMatches,resourceVisible,filterResources,loadResourceContent,groupBySurface,assertNoFallback};
+ const api={LEVELS,SEMESTERS,SURFACES,resolveInstitutionSlug,identity,validIdentity,isBscPathwayEligible,courseSemesterMatches,mappingMatches,resourceVisible,filterResources,loadResourceContent,groupBySurface,assertNoFallback};
  root.BabloAcademicEngine=Object.freeze(api);
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
