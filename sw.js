@@ -7,6 +7,9 @@ function vendorURL(u){const prefix='/calculator/vendor/';if(!u.pathname.includes
 async function matchAny(req){const c=await caches.open(VERSION);return await c.match(req,{ignoreSearch:true})||await caches.match(req,{ignoreSearch:true});}
 async function save(req,res){
  if(!res||!res.ok||res.type==='opaque')return;
+ // Keep explicitly downloaded course files inside their removable course cache.
+ // Do not silently duplicate them into the general runtime cache.
+ try{const names=await caches.keys();for(const name of names){if(name.startsWith('bablo-course-pack-v1-')){const pack=await caches.open(name);if(await pack.match(req,{ignoreSearch:true}))return;}}}catch(_){}
  try{const c=await caches.open(VERSION);await c.put(req,res.clone());}
  catch(e){
   try{
