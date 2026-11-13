@@ -72,12 +72,13 @@ The migration adds database constraints and narrows both authenticated and guest
 `20261113143000_multi_university_resource_engine.sql` adds:
 - Health-science institution directory.
 - Institution-specific programme directory.
+- Institution-bound course catalogue (programme, level, semester, course code and verified curriculum status).
 - Resource provenance, ownership, reuse and review metadata.
 - Explicit institution/programme/level/semester/course mappings.
 - Read RPCs for the directory, programmes and approved resources.
 - Strict BSc pathway constraints and profile RPC guard.
 
-The resource RPC returns only published, rights-cleared, quality-approved resources with an exact verified mapping. Tables have RLS enabled and direct client access revoked.
+The resource RPC returns only published, rights-cleared, quality-approved resources with an exact verified mapping to a verified course record. The course record itself is bound by a composite foreign key to the same institution as its programme. Tables have RLS enabled and direct client access revoked.
 
 ## Implementation sequence
 
