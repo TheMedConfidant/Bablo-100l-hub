@@ -2621,14 +2621,14 @@ function brand() {
 function offlineResourcesForCourse(code) {
   const common=['./','./index.html','./manifest.json'];
   const byCourse={
-    SOC101:['./SOC101-data.js'], PHY101:['./phy101-data.js'],
+    SOC101:['./SOC101-data.js'], PHY:['./phy101-data.js'], PHY101:['./phy101-data.js'],
     MTH101:['./mts-maths-topics.js','./mts-maths-induction-extra.js'],
     CHM:['./thermochemistry-data.js','./chm-practicals-native.js'],
     CHM101:['./thermochemistry-data.js','./chm-practicals-native.js'],
     COS:['./cos-101-plus-bank.js','./cos101plus-extracted.js'],
     COS101:['./cos-101-plus-bank.js','./cos101plus-extracted.js'],
     GST111:['./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./gst111-source-bank.js'],
-    AGR101:['./agr-101-food-security.html'], MLS101:['./mls101-data.js']
+    AGR:['./agr-101-food-security.html'], AGR101:['./agr-101-food-security.html'], MLS101:['./mls101-data.js']
   };
   return [...new Set(common.concat(byCourse[String(code||'').toUpperCase()]||[]))];
 }
