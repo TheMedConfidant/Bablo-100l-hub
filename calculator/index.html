@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111923"><title>Bablo Hub™ | Natural Display Scientific Calculator</title><meta name="description" content="A natural-display scientific calculator for fractions, powers, roots, trigonometry, logarithms, equations and statistics."><link rel="canonical" href="https://bablo-hub.vercel.app/calculator/"><meta property="og:title" content="Bablo Hub™ Scientific Calculator"><meta property="og:description" content="Natural mathematical display and scientific calculation tools."><meta property="og:type" content="website">
-<script defer src="https://unpkg.com/mathlive@0.104.2"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/mathjs@14.8.1/lib/browser/math.js"></script>
+<link rel="stylesheet" href="./vendor/mathlive-static.css">
+<link rel="stylesheet" href="./vendor/mathlive-fonts.css">
+<script defer src="./vendor/mathlive.min.js"></script>
+<script defer src="./vendor/mathjs.js"></script>
 <style>
 :root{color-scheme:dark;--bg:#0d141d;--panel:#172331;--panel2:#202f40;--line:#34465a;--ink:#f4f3ee;--muted:#a9b6c5;--gold:#e3bd69;--gold2:#9e7d3c;--green:#73c9ad}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#65502a33,transparent 38%),var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif}
@@ -63,6 +65,7 @@ h1{font-size:clamp(1.45rem,5vw,2rem);margin:0}.lead{color:var(--muted);margin:3p
 </main>
 <script>
 (()=>{'use strict';
+window.addEventListener('DOMContentLoaded',()=>{if(window.MathfieldElement){MathfieldElement.fontsDirectory=new URL('./vendor/fonts/',location.href).href;MathfieldElement.soundsDirectory=new URL('./vendor/sounds/',location.href).href;}});
 const $=id=>document.getElementById(id),field=$('formula');let angle='DEG',shift=false,alpha=false,ans=0,memory=0,showFraction=false,alphaVars={};try{const savedAngle=localStorage.getItem('bablo-calc-angle');if(['DEG','RAD','GRAD'].includes(savedAngle))angle=savedAngle}catch(_){}try{alphaVars=JSON.parse(localStorage.getItem('bablo-calc-alpha-vars')||'{}')}catch(_){alphaVars={}};try{const savedMemory=Number(localStorage.getItem('bablo-calc-memory'));memory=Number.isFinite(savedMemory)?savedMemory:0}catch(_){memory=0}document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===angle));$('modeLabel').textContent=({DEG:'D  DEG',RAD:'R  RAD',GRAD:'G  GRAD'})[angle];const returnCourse=new URLSearchParams(location.search).get('course');if(returnCourse&&/^(MTH101|PHY101|CHM101)$/.test(returnCourse)){$('hubBack').href='/#/course/'+returnCourse;$('hubBack').textContent='← '+returnCourse;}
 const rad=x=>angle==='DEG'?x*Math.PI/180:angle==='GRAD'?x*Math.PI/200:x;
 const fromRad=x=>angle==='DEG'?x*180/Math.PI:angle==='GRAD'?x*200/Math.PI:x;
