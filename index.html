@@ -1179,7 +1179,7 @@ function canAccessCourse(code) {
   const levelNumber = parseInt(p.level || '100L', 10) || 100;
   const programme = String(p.programme || '').trim().toUpperCase();
   if (levelNumber === 100) return coursesFor(p.programme).some(c => c.code === code);
-  // The legacy 200L placeholders are not a verified course catalogue; deny access until mapped.
+  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200.some(c => c.code === code);
   return false;
 }
 
@@ -1280,11 +1280,9 @@ const TIMETABLE_100_1 = [
 const TIMETABLE_NOTE = 'Course representatives for AGR 101 should meet the lecturer, as AGR 101 clashes with BUI-GEL 101 and GST 111.';
 /* 200 level courses. Each stays Pending until its questions, notes, practicals and labs are loaded. */
 const COURSES_200 = [
-  { code: 'ANA211', label: 'ANA 211', title: 'Embryology', color: '#B45309', units: 2, semester: 'first' },
-  { code: 'ANAT', label: 'ANAT', title: 'Anatomy (code to confirm)', color: '#B45309', units: 2, semester: 'first' },
-  { code: 'PHS', label: 'PHS', title: 'Physiology (code to confirm)', color: '#0E7490', units: 2, semester: 'first' },
-  { code: 'BCH', label: 'BCH', title: 'Biochemistry (code to confirm)', color: '#7C3AED', units: 2, semester: 'first' },
-  { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
+  { code: 'ANATOMY', label: 'Anatomy', title: 'Gross anatomy, embryology, histology and practical/dissection', color: '#B45309', units: 3, semester: 'year-round', pending200: true },
+  { code: 'PHYSIOLOGY', label: 'Physiology', title: 'Systems physiology, practicals, graphs and integrated mechanisms', color: '#0E7490', units: 3, semester: 'year-round', pending200: true },
+  { code: 'BIOCHEMISTRY', label: 'Biochemistry', title: 'Molecular biochemistry, metabolism, pathways and clinical correlations', color: '#7C3AED', units: 3, semester: 'year-round', pending200: true }
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
 const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
@@ -2074,10 +2072,9 @@ const homeCourses = () => {
   const institution = String(p.institution || '').trim().toLowerCase();
   const isBowen = institution === 'bowen university' || institution === 'bowen' || institution === 'bowen-university';
   const programme = String(p.programme || '').trim().toUpperCase();
-  // Legacy embedded banks are Bowen-only. Never use them as a fallback for another institution.
   if (!isBowen) return [];
   if (levelNumber === 100) return coursesFor(p.programme);
-  // Upper-level course lists appear only after their institution-specific curriculum is mapped.
+  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200;
   return [];
 };
 function open200(code, tab) { course200View.tab = tab; go('#/course/' + code); }
@@ -4204,16 +4201,101 @@ function pollCard(P) {
 }
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
+let B200_ANATOMY_CACHE = null;
+let B200_MAP_CACHE = null;
+async function loadB200Bundle(path) {
+  const r = await fetch(path, { cache: 'force-cache' });
+  if (!r.ok) throw new Error('This study pack has not been downloaded on this device yet.');
+  return r.json();
+}
+function studyInline(text) {
+  const source = String(text || '').replace(/<b>/g,'**').replace(/<\/b>/g,'**').replace(/<strong>/g,'**').replace(/<\/strong>/g,'**').replace(/<i>/g,'*').replace(/<\/i>/g,'*').replace(/<em>/g,'*').replace(/<\/em>/g,'*').replace(/<code>|<\/code>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&');
+  const frag = document.createDocumentFragment();
+  source.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).forEach(part => {
+    if (part.startsWith('**') && part.endsWith('**')) frag.append(h('strong', null, part.slice(2,-2)));
+    else if (part.startsWith('*') && part.endsWith('*')) frag.append(h('em', null, part.slice(1,-1)));
+    else frag.append(document.createTextNode(part));
+  });
+  return frag;
+}
+function studyTableFromLines(lines) {
+  const cells = line => line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(x=>x.trim());
+  const headers = cells(lines[0]), table = h('table', { class: 'study-table' });
+  table.append(h('thead', null, h('tr', null, headers.map(x=>h('th', null, studyInline(x))))));
+  table.append(h('tbody', null, lines.slice(2).map(line=>{const row=cells(line);return h('tr',null,headers.map((_,i)=>h('td',null,studyInline(row[i]||''))));})));
+  return table;
+}
+function renderStudyMarkdown(markdown) {
+  const lines=String(markdown||'').replace(/<\/?p>/g,'').split(/\r?\n/),out=[];
+  let list=null;
+  const flush=()=>{if(list){out.push(list);list=null;}};
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i].trim();
+    if(!line){flush();continue;}
+    if(line.startsWith('|')&&i+1<lines.length&&/^\|?\s*:?-{3,}/.test(lines[i+1].trim())){
+      flush();const rows=[line,lines[++i].trim()];
+      while(i+1<lines.length&&lines[i+1].trim().startsWith('|'))rows.push(lines[++i].trim());
+      out.push(studyTableFromLines(rows));continue;
+    }
+    if(line.startsWith('### ')){flush();out.push(h('h3',null,studyInline(line.slice(4))));continue;}
+    if(line.startsWith('## ')){flush();out.push(h('h2',null,studyInline(line.slice(3))));continue;}
+    if(line.startsWith('# ')){flush();out.push(h('h2',null,studyInline(line.slice(2))));continue;}
+    const bullet=/^[-*]\s+(.+)$/.exec(line),number=/^\d+\.\s+(.+)$/.exec(line);
+    if(bullet||number){const type=bullet?'ul':'ol';if(!list||list.tagName.toLowerCase()!==type){flush();list=h(type,null);}list.append(h('li',null,studyInline((bullet||number)[1])));continue;}
+    flush();out.push(h('p',null,studyInline(line)));
+  }
+  flush();return h('div',{class:'study-markdown stack'},...out);
+}
+function render200Flashcards(bundle) {
+  const item=(bundle.resources||[]).find(x=>x.kind==='flashcards');
+  if(!item)return h('p',{class:'muted'},'Flashcards are indexed in Notion; card rows are awaiting extraction.');
+  const tables=item.tables||[],cards=[...(tables[0]?.rows||[]),...(tables[2]?.rows||[])],imageCount=(tables[1]?.rows||[]).length;
+  return h('div',{class:'stack'},h('p',{class:'small muted'},cards.length+' theory and scenario cards. Image cards are held until their original diagrams are attached.'),
+    ...cards.map((card,i)=>{const id=card['#']||String(i+1),key='B200-ELBOW-'+id;
+      const detail=h('details',{class:'panel stack'},h('summary',null,card.Front||card.Vignette||('Card '+id)),h('p',null,card.Back||card.Answer||''));
+      const rating=h('div',{class:'row wrapr'},...['Again','Hard','Good','Easy'].map(rate=>h('button',{class:'btn sm '+((DB.cardRatings||{})[key]===rate?'primary':''),onclick:()=>{DB.cardRatings=Object.assign({},DB.cardRatings||{},{[key]:rate});save();toast('Card rated '+rate.toLowerCase()+'.');}},rate)));
+      return h('article',{class:'stack'},detail,rating);
+    }),imageCount?h('p',{class:'tiny muted'},imageCount+' image cards are hidden until forearm_anterior.png and forearm_posterior.png are imported.'):null);
+}
+function render200Questions(bundle) {
+  const item=(bundle.resources||[]).find(x=>x.kind==='quiz'),rows=item?.tables?.[0]?.rows||[];
+  if(!rows.length)return h('p',{class:'muted'},'The course question-bank source is indexed; its rows will appear after extraction.');
+  return h('div',{class:'stack'},...rows.map((q,i)=>{const status=h('p',{class:'tiny muted',role:'status'},'Choose the single best answer.');
+    const options=['A','B','C','D'].map(letter=>h('button',{class:'btn block',onclick:()=>{const correct=String(q.Answer||'').trim().toUpperCase()===letter;status.textContent=(correct?'Correct. ':'Not quite. ')+'Answer: '+q.Answer+'. '+(q.Why||'');status.className='tiny '+(correct?'ok':'muted');}},letter+'. '+(q[letter]||'')));
+    return h('article',{class:'panel stack'},h('b',null,(i+1)+'. '+(q.Question||'')),...options,status);
+  }));
+}
+function render200Vignettes(bundle) {
+  const item=(bundle.resources||[]).find(x=>x.kind==='vignettes'),rows=item?.tables?.[0]?.rows||[];
+  if(!rows.length)return h('p',{class:'muted'},'No vignette rows have been imported for this topic yet.');
+  return h('div',{class:'stack'},...rows.map((v,i)=>h('details',{class:'panel stack'},h('summary',null,'Case '+(i+1)+': '+(v.Vignette||'')),h('p',null,v.Question||''),h('h3',null,'Answer'),h('p',null,v.Answer||''),h('p',{class:'small muted'},v.Reasoning||''))));
+}
 function course200View(c) {
-  const tabs = ['Questions', 'Notes', 'Flashcards'];
-  const cur = (course200View.tab || 'Questions');
-  const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
-    'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
-    h('span', { class: 'chip gold' }, 'Pending'));
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 200 Level \u2022 ' + (c.semester === 'first' ? 'First semester' : 'Second semester'))),
-    h('div', { class: 'seg' }, tabs.map(t => h('button', { class: 'opt', 'aria-pressed': String(cur === t), onclick: () => { course200View.tab = t; course200View(c); } }, t))),
-    body)));
+  const tabs=['Overview','Notes','Flashcards','Questions','Clinical Vignettes','References'],cur=course200View.tab||'Overview';
+  const body=h('div',{class:'panel stack'},h('p',{class:'muted'},'Loading the verified Bowen 200L study resources…'));
+  mount(wrap(back('#/courses','All courses'),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('span',{class:'chip gold'},'BOWEN MBBS · 200L'),h('h1',{style:{color:c.color}},c.label),h('p',{class:'muted'},c.title)),
+    h('div',{class:'seg'},tabs.map(t=>h('button',{class:'opt','aria-pressed':String(cur===t),onclick:()=>{course200View.tab=t;course200View(c);}},t))),body)));
+  (async()=>{try{
+    let content;
+    if(c.code==='ANATOMY'){
+      if(!B200_ANATOMY_CACHE)B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');
+      const bundle=B200_ANATOMY_CACHE,note=bundle.resources.find(x=>x.kind==='notes'),ref=bundle.resources.find(x=>x.kind==='openstax-glossary');
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'));
+      else if(cur==='Notes')content=renderStudyMarkdown(note?.content||'');
+      else if(cur==='Flashcards')content=render200Flashcards(bundle);
+      else if(cur==='Questions')content=render200Questions(bundle);
+      else if(cur==='Clinical Vignettes')content=render200Vignettes(bundle);
+      else if(cur==='References')content=ref?renderStudyMarkdown(ref.content):h('p',{class:'muted'},'Reference material is not available.');
+    }else{
+      if(!B200_MAP_CACHE)B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');
+      const key=c.code==='PHYSIOLOGY'?'physiology-course-map':'biochemistry-course-hub',map=B200_MAP_CACHE.resources.find(x=>x.key===key);
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'));
+      else if(cur==='Notes')content=renderStudyMarkdown(map?.content||'');
+      else content=h('p',{class:'muted'},'This resource layer is indexed in Notion. Its content is queued for extraction; no placeholder questions or cards are generated.');
+    }
+    body.replaceChildren(content||h('p',{class:'muted'},'No content is available in this section yet.'));
+  }catch(e){body.replaceChildren(h('h2',null,'Study pack unavailable'),h('p',{class:'muted'},e.message||'Connect briefly to download this resource, then it will be available offline.'));}})();
 }
 /* admin-only preview of 200L on this device; students stay on their level until an admin approves a move */
 function previewLevel200() { DB.profile = Object.assign({}, DB.profile, { level: '200L' }); save(); toast('Previewing 200L on this device.'); go('#/'); }
