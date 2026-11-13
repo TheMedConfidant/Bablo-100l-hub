@@ -1293,7 +1293,7 @@ function inferProgrammeCategory(programme) {
 function academicProfileFields(profile, surface) {
   const p = profile || {};
   const mode = surface || 'signup';
-  let directory = Array.isArray(window.BABLO_UNIVERSITY_DIRECTORY ? window.BABLO_UNIVERSITY_DIRECTORY : [
+  let directory = Array.isArray(window.BABLO_UNIVERSITY_DIRECTORY) ? window.BABLO_UNIVERSITY_DIRECTORY : [
     { slug: 'bowen-university', name: 'Bowen University', aliases: ['Bowen'] },
     { slug: 'futa', name: 'Federal University of Technology, Akure', aliases: ['FUTA'] }
   ];
