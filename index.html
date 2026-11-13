@@ -4281,7 +4281,7 @@ function course200View(c) {
     if(c.code==='ANATOMY'){
       if(!B200_ANATOMY_CACHE)B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');
       const bundle=B200_ANATOMY_CACHE,note=bundle.resources.find(x=>x.kind==='notes'),ref=bundle.resources.find(x=>x.kind==='openstax-glossary');
-      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'));
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'),h('button',{class:'btn gold block',onclick:async()=>{try{B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');toast('Anatomy topic pack saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this pack.');}}},'Download topic pack for offline study'));
       else if(cur==='Notes')content=renderStudyMarkdown(note?.content||'');
       else if(cur==='Flashcards')content=render200Flashcards(bundle);
       else if(cur==='Questions')content=render200Questions(bundle);
@@ -4290,7 +4290,7 @@ function course200View(c) {
     }else{
       if(!B200_MAP_CACHE)B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');
       const key=c.code==='PHYSIOLOGY'?'physiology-course-map':'biochemistry-course-hub',map=B200_MAP_CACHE.resources.find(x=>x.key===key);
-      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'));
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'),h('button',{class:'btn gold block',onclick:async()=>{try{B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');toast('Course map saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this map.');}}},'Save course map for offline study'));
       else if(cur==='Notes')content=renderStudyMarkdown(map?.content||'');
       else content=h('p',{class:'muted'},'This resource layer is indexed in Notion. Its content is queued for extraction; no placeholder questions or cards are generated.');
     }
