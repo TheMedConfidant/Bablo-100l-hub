@@ -1,0 +1,35 @@
+name: Academic engine checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'academic-engine.js'
+      - 'university-directory.js'
+      - 'landing-premium.js'
+      - 'sw.js'
+      - 'tests/**'
+      - 'scripts/check-inline-scripts.mjs'
+      - '.github/workflows/academic-engine-tests.yml'
+  push:
+    branches:
+      - main
+      - 'build/multi-university-resource-engine-*'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check academic-engine.js
+          node --check university-directory.js
+          node --check landing-premium.js
+          node --check sw.js
+          node scripts/check-inline-scripts.mjs
+      - name: Run academic isolation tests
+        run: node --test tests/academic-engine.test.mjs
