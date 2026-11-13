@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'landing-premium.js'
+      - 'landing-premium.css'
+      - 'academic-engine.js'
+      - 'university-directory.js'
+      - 'manifest.json'
       - 'discover.html'
       - 'institutions.html'
       - 'features.html'
@@ -36,7 +41,7 @@ jobs:
           urls=()
           while IFS= read -r path; do
             case "$path" in
-              index.html) urls+=("https://$SITE_HOST/") ;;
+              index.html|landing-premium.js|landing-premium.css|academic-engine.js|university-directory.js|manifest.json) urls+=("https://$SITE_HOST/") ;;
               discover.html) urls+=("https://$SITE_HOST/discover") ;;
               institutions.html) urls+=("https://$SITE_HOST/institutions") ;;
               features.html) urls+=("https://$SITE_HOST/features") ;;
