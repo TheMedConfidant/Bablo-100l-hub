@@ -1186,8 +1186,8 @@ function canAccessCourse(code) {
 /* ---------- Programme Cup ---------- */
 /* Event windows repeat every week. Times are Lagos time (UTC+1). day: 0 Sun .. 6 Sat. */
 const EVENT_WINDOWS = [
-  { day: 6, from: 1, to: 25, date: '2026-11-14', label: 'Saturday 14 November · all day' },
-  { day: 0, from: 1, to: 25, date: '2026-11-15', label: 'Sunday 15 November · all day' }
+  { day: 6, from: 0, to: 24, date: '2026-11-14', label: 'Saturday 14 November · all day' },
+  { day: 0, from: 0, to: 24, date: '2026-11-15', label: 'Sunday 15 November · all day' }
 ];
 const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 };
 /* Course weights. Equal weights mean no programme is favoured. Tune here if you decide on different weights. */
