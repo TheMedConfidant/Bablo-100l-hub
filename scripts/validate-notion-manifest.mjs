@@ -22,7 +22,8 @@ for (const [index, source] of (manifest.sources || []).entries()) {
   if (!hasText(source && source.id)) errors.push(label + ': missing source id');
   if (!hasText(source && source.title)) errors.push('source #' + (index + 1) + ': missing title');
   let validUrl = false;
-  try { validUrl = new URL(source && source.url).hostname === 'app.notion.com'; } catch {}
+  try { const parsed = new URL(source && source.url);
+    validUrl = parsed.protocol === 'https:' && parsed.hostname === 'app.notion.com' && parsed.pathname.startsWith('/p/'); } catch {}
   if (!validUrl) errors.push(label + ': source URL must be a Notion page URL');
   if (!(Array.isArray(source && source.types) && source.types.length) && !hasText(source && source.resourceType)) {
     errors.push(label + ': resource type metadata is missing');
