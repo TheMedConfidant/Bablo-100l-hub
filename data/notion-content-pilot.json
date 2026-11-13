@@ -780,7 +780,7 @@
       "resourceType": "questions",
       "sourceNotionPage": "https://app.notion.com/p/3e91834fbdba8124be25c4d749158c67",
       "sourceNotionDataSource": "collection://5498e07b-bd81-45d7-ade4-dea59969d535",
-      "itemCount": 100,
+      "itemCount": 180,
       "mappingStatus": "institution-and-programme-identified-semester-mapping-pending",
       "items": [
         {
@@ -2482,6 +2482,1366 @@
           "difficulty": "Hard",
           "pareto": "high",
           "sourceUrl": "https://app.notion.com/3eb1834fbdba81448934d2afb7dce1a0"
+        },
+        {
+          "id": "BIO-B-MCQ-178",
+          "question": "Which saprophytic fungus is commonly described as \"bread mould,\" growing on stale bread and carbohydrate-rich food?",
+          "options": {
+            "A": "Penicillium",
+            "B": "Yeast",
+            "C": "Mucor",
+            "D": "Rhizobium"
+          },
+          "correctAnswer": "C",
+          "explanation": "Mucor (bread mould) is a saprophyte commonly found growing on stale bread and carbohydrate-rich matter, reproducing both sexually and asexually.",
+          "topic": "Interrelationships I",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8148a627d305278b0fa3"
+        },
+        {
+          "id": "BIO-B-MCQ-175",
+          "question": "Which structural feature distinguishes saprophytic fungi from green plants?",
+          "options": {
+            "A": "They have true roots and leaves",
+            "B": "They reproduce by seeds",
+            "C": "They can photosynthesise",
+            "D": "They lack true leaves/roots/stem and reproduce by spores"
+          },
+          "correctAnswer": "D",
+          "explanation": "Saprophytes lack true leaves, roots and stems, and reproduce by spores rather than seeds, distinguishing them structurally from green plants.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81528dd9dfe30537b5c7"
+        },
+        {
+          "id": "BIO-B-MCQ-113",
+          "question": "Which of Mendel's laws states that the two alleles of a gene separate during gamete formation, so each gamete carries only one?",
+          "options": {
+            "A": "Law of Segregation",
+            "B": "Law of Dominance",
+            "C": "Law of Independent Assortment",
+            "D": "Law of Natural Selection"
+          },
+          "correctAnswer": "A",
+          "explanation": "Mendel's Law of Segregation states that the two alleles of a gene separate during gamete formation, so each gamete carries only one allele.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba815380addde00318dae5"
+        },
+        {
+          "id": "BIO-B-MCQ-112",
+          "question": "Who is known as the \"father of genetics\" for his work on garden pea inheritance?",
+          "options": {
+            "A": "Charles Darwin",
+            "B": "Jean-Baptiste Lamarck",
+            "C": "Rudolf Virchow",
+            "D": "Gregor Mendel"
+          },
+          "correctAnswer": "D",
+          "explanation": "Gregor Mendel, an Augustinian monk, is known as the \"father of genetics\" for his work on pea plant inheritance.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba815685d4fe08dcf0889e"
+        },
+        {
+          "id": "BIO-B-MCQ-095",
+          "question": "The ABO blood group gene in humans, which has three common allelic forms (A, B, O), is an example of:",
+          "options": {
+            "A": "Codominance",
+            "B": "Incomplete dominance",
+            "C": "Homozygosity",
+            "D": "Multiple alleles"
+          },
+          "correctAnswer": "D",
+          "explanation": "A gene with more than two allelic forms in a population, like the ABO blood group gene, exhibits multiple alleles.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Remember",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba815faa87d8923edd24a1"
+        },
+        {
+          "id": "BIO-B-MCQ-133",
+          "question": "Earthworms and dung beetles, which feed on small fragments of dead organic matter, are classified as:",
+          "options": {
+            "A": "Producers",
+            "B": "Detritivores",
+            "C": "Primary consumers only",
+            "D": "Decomposers only"
+          },
+          "correctAnswer": "B",
+          "explanation": "Detritivores such as earthworms and dung beetles feed on small fragments of dead organic matter (detritus).",
+          "topic": "Elements of Ecology I",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8163bd93cb6e028b4c11"
+        },
+        {
+          "id": "BIO-B-MCQ-082",
+          "question": "Ginger propagates naturally using which type of modified underground stem?",
+          "options": {
+            "A": "Bulb",
+            "B": "Runner",
+            "C": "Rhizome",
+            "D": "Sucker"
+          },
+          "correctAnswer": "C",
+          "explanation": "A rhizome is a thick horizontal underground stem, as seen in ginger, used for natural vegetative propagation.",
+          "topic": "General Reproduction",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8165b3c2fb7ad4e5473f"
+        },
+        {
+          "id": "BIO-B-MCQ-143",
+          "question": "The most complex, diverse, and stable community that an area's succession can ultimately reach is called the:",
+          "options": {
+            "A": "Pioneer community",
+            "B": "Seral stage",
+            "C": "Sere",
+            "D": "Climax community"
+          },
+          "correctAnswer": "D",
+          "explanation": "The climax community is the most complex, diverse, and productive stable community an area can support, such as a tropical rainforest.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Remember",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba816ba641df3434b2cf0e"
+        },
+        {
+          "id": "BIO-B-MCQ-077",
+          "question": "Which structure in a plant cell regulates osmotic pressure and stores cell sap?",
+          "options": {
+            "A": "Chloroplast",
+            "B": "Central vacuole (tonoplast)",
+            "C": "Cell wall",
+            "D": "Golgi apparatus"
+          },
+          "correctAnswer": "B",
+          "explanation": "The large central vacuole, bound by the tonoplast, regulates the plant cell's osmotic pressure and stores sap containing sugars, pigments and mineral salts.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8170b20ed2faa29b8007"
+        },
+        {
+          "id": "BIO-B-MCQ-171",
+          "question": "Among interference, exploitative, and apparent competition, which are classified as \"real\" competition?",
+          "options": {
+            "A": "All three are equally real",
+            "B": "Only apparent competition is real",
+            "C": "Interference is not real; the other two are",
+            "D": "Interference and exploitative are real; apparent competition is not"
+          },
+          "correctAnswer": "D",
+          "explanation": "Interference and exploitative competition are both considered \"real\" competition; apparent competition is not real competition since it works through a shared predator rather than a shared resource.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8171ba72f41b5b200abf"
+        },
+        {
+          "id": "BIO-B-MCQ-155",
+          "question": "After a population following a J-shaped growth curve experiences a crash, what typically happens next?",
+          "options": {
+            "A": "It goes extinct immediately",
+            "B": "It returns instantly to its pre-crash peak",
+            "C": "It stops reproducing permanently",
+            "D": "It fluctuates and settles at a new carrying capacity"
+          },
+          "correctAnswer": "D",
+          "explanation": "After a J-curve crash, a population typically fluctuates before settling at a new, often lower, carrying capacity determined by available resources.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Analyse",
+          "difficulty": "Hard",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8173a5a7fe874d20de8a"
+        },
+        {
+          "id": "BIO-B-MCQ-108",
+          "question": "The similar bone structure found in the forelimbs of humans, cats, and whales is evidence of evolution from which category?",
+          "options": {
+            "A": "Fossil record",
+            "B": "Biogeography",
+            "C": "Molecular biology",
+            "D": "Comparative anatomy (homologous structures)"
+          },
+          "correctAnswer": "D",
+          "explanation": "Homologous structures, such as the forelimbs of humans, cats and whales, share a similar underlying structure despite different functions, pointing to common ancestry.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Remember",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8179b759ede7baa1d8d3"
+        },
+        {
+          "id": "BIO-B-MCQ-105",
+          "question": "A small circular piece of DNA found in bacteria, separate from the main chromosome, is called a:",
+          "options": {
+            "A": "Chromatid",
+            "B": "Plasmid",
+            "C": "Centromere",
+            "D": "Chromomere"
+          },
+          "correctAnswer": "B",
+          "explanation": "A plasmid is a small, circular piece of DNA found in bacteria, separate from the main circular chromosome.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba817b8387f3469683005c"
+        },
+        {
+          "id": "BIO-B-MCQ-162",
+          "question": "Which best describes exploitative competition?",
+          "options": {
+            "A": "Direct physical contact between competitors",
+            "B": "A predator eating two different prey species",
+            "C": "One organism depleting a shared resource, indirectly limiting it for another",
+            "D": "Two species benefiting from the same food source equally"
+          },
+          "correctAnswer": "C",
+          "explanation": "Exploitative competition is indirect — one organism depletes a shared resource, leaving less available for the other, without direct contact.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba817cb247ff56b6502553"
+        },
+        {
+          "id": "BIO-B-MCQ-102",
+          "question": "The fact that several different codons can code for the same amino acid is referred to as:",
+          "options": {
+            "A": "Degeneracy",
+            "B": "Mutation",
+            "C": "Translation",
+            "D": "Replication"
+          },
+          "correctAnswer": "A",
+          "explanation": "The genetic code is degenerate, meaning several different codons can code for the same amino acid.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba817eb84cff477d01135b"
+        },
+        {
+          "id": "BIO-B-MCQ-087",
+          "question": "After fertilisation in a flowering plant, the  develops into a seed, while the  develops into the fruit.",
+          "options": {
+            "A": "Ovary; ovule",
+            "B": "Stigma; style",
+            "C": "Anther; filament",
+            "D": "Ovule; ovary"
+          },
+          "correctAnswer": "D",
+          "explanation": "After fertilisation, the ovule develops into a seed, while the ovary develops into the fruit surrounding it.",
+          "topic": "General Reproduction",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8185b862d7c49c0f49c1"
+        },
+        {
+          "id": "BIO-B-MCQ-100",
+          "question": "What is the structural difference between purine and pyrimidine bases?",
+          "options": {
+            "A": "Purines are single-ringed, pyrimidines double-ringed",
+            "B": "Both are single-ringed",
+            "C": "Purines are double-ringed, pyrimidines single-ringed",
+            "D": "Both are double-ringed"
+          },
+          "correctAnswer": "C",
+          "explanation": "Purines (adenine, guanine) have a double-ring structure; pyrimidines (cytosine, thymine/uracil) have a single-ring structure.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81869264f91efb10cf0f"
+        },
+        {
+          "id": "BIO-B-MCQ-164",
+          "question": "A turtle's hard shell, which physically blocks a predator's attack, is classified as a:",
+          "options": {
+            "A": "Mechanical defence",
+            "B": "Chemical defence",
+            "C": "Behavioural defence",
+            "D": "Physical camouflage"
+          },
+          "correctAnswer": "A",
+          "explanation": "A turtle's hard shell is a mechanical defence, physically blocking a predator's attack.",
+          "topic": "Interrelationships I",
+          "bloom": "Remember",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8188a41cef28de09fd4e"
+        },
+        {
+          "id": "BIO-B-MCQ-068",
+          "question": "When a white blood cell engulfs a bacterium, its lysosome fuses with the bacterium to form a structure called a:",
+          "options": {
+            "A": "Phagolysosome",
+            "B": "Peroxisome",
+            "C": "Acrosome",
+            "D": "Chloroplast"
+          },
+          "correctAnswer": "A",
+          "explanation": "White blood cells form a phagolysosome by fusing a lysosome with an engulfed pathogen, digesting it.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba818aa03de732f5c1fc63"
+        },
+        {
+          "id": "BIO-B-MCQ-161",
+          "question": "Two male deer physically locking horns to fight over territory is an example of:",
+          "options": {
+            "A": "Exploitative competition",
+            "B": "Interference competition",
+            "C": "Apparent competition",
+            "D": "Mutualism"
+          },
+          "correctAnswer": "B",
+          "explanation": "Interference competition involves direct contact or conflict between organisms fighting for a scarce resource, such as male deer locking horns.",
+          "topic": "Interrelationships I",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba818abea2d1e6376b97ed"
+        },
+        {
+          "id": "BIO-B-MCQ-106",
+          "question": "In what year did Charles Darwin publish \"On the Origin of Species\"?",
+          "options": {
+            "A": "1809",
+            "B": "1900",
+            "C": "1859",
+            "D": "1953"
+          },
+          "correctAnswer": "C",
+          "explanation": "Charles Darwin published \"On the Origin of Species\" in 1859, proposing evolution by natural selection.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba818c81b3e2eb92f78dbb"
+        },
+        {
+          "id": "BIO-B-MCQ-093",
+          "question": "Which structure protects the tips of a chromosome from sticking to other chromosome ends?",
+          "options": {
+            "A": "Telomere",
+            "B": "Centromere",
+            "C": "Chromomere",
+            "D": "Matrix"
+          },
+          "correctAnswer": "A",
+          "explanation": "Telomeres protect the ends of chromosomes; without them, chromosome ends would stick together or degrade.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba818daad4d5961a1579cc"
+        },
+        {
+          "id": "BIO-B-MCQ-085",
+          "question": "Tapeworms and earthworms both possess male and female reproductive organs in a single individual. Such organisms are called:",
+          "options": {
+            "A": "Ovoviviparous animals",
+            "B": "Hermaphrodites",
+            "C": "Oviparous animals",
+            "D": "Parthenogenetic animals"
+          },
+          "correctAnswer": "B",
+          "explanation": "Hermaphrodites possess both male and female reproductive organs in one individual, as seen in tapeworms and earthworms.",
+          "topic": "General Reproduction",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba818e8c1fd9d5d470a240"
+        },
+        {
+          "id": "BIO-B-MCQ-166",
+          "question": "Organisms that feed on dead and decaying organic matter, mostly fungi and some bacteria, are called:",
+          "options": {
+            "A": "Parasites",
+            "B": "Predators",
+            "C": "Saprophytes",
+            "D": "Mutualists"
+          },
+          "correctAnswer": "C",
+          "explanation": "Saprophytes are organisms, mostly fungi and some bacteria, that feed on dead and decaying organic matter.",
+          "topic": "Interrelationships I",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8192b247e8c17945f2df"
+        },
+        {
+          "id": "BIO-B-MCQ-173",
+          "question": "Why do many predators, such as wolves, have forward-facing eyes rather than side-facing eyes?",
+          "options": {
+            "A": "Wider field of view for spotting predators",
+            "B": "Better depth perception for judging distance to prey",
+            "C": "Improved night vision only",
+            "D": "Better peripheral vision to detect threats from all sides"
+          },
+          "correctAnswer": "B",
+          "explanation": "Forward-facing eyes, as seen in wolves, give predators better depth perception for judging distance to prey during a hunt.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81939f94da3bd32562c5"
+        },
+        {
+          "id": "BIO-B-MCQ-156",
+          "question": "The study of how a population's size changes over time is called:",
+          "options": {
+            "A": "Population dynamics",
+            "B": "Community ecology",
+            "C": "Biogeography",
+            "D": "Trophic ecology"
+          },
+          "correctAnswer": "A",
+          "explanation": "Population dynamics is the study of how a population's size changes over time, driven by natality, mortality, immigration and emigration.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba8193b9e6eff755eadcf4"
+        },
+        {
+          "id": "BIO-B-MCQ-144",
+          "question": "What is the key distinction between zonation and succession?",
+          "options": {
+            "A": "Zonation is spatial; succession is temporal",
+            "B": "Zonation is temporal; succession is spatial",
+            "C": "Both refer to the same process",
+            "D": "Zonation only occurs in aquatic biomes"
+          },
+          "correctAnswer": "A",
+          "explanation": "Zonation refers to the spatial arrangement of organisms into bands across an area (like up a mountain), while succession refers to the temporal change of a community over time.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Analyse",
+          "difficulty": "Hard",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81968a7ff0533e42eea8"
+        },
+        {
+          "id": "BIO-B-MCQ-169",
+          "question": "What is the general relationship between predator and prey population sizes over time?",
+          "options": {
+            "A": "Predator and prey populations are always unrelated",
+            "B": "A fall in prey numbers tends to lead to a decline in predator numbers",
+            "C": "Prey numbers have no effect on predator numbers",
+            "D": "Predator numbers only depend on climate, not prey"
+          },
+          "correctAnswer": "B",
+          "explanation": "Predator and prey populations are ecologically linked: a fall in prey numbers leads to increased competition among predators and often a predator decline, and vice versa.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81978566eb234e0a45ea"
+        },
+        {
+          "id": "BIO-B-MCQ-067",
+          "question": "Which organelle contains digestive enzymes used to break down worn-out organelles and engulfed pathogens?",
+          "options": {
+            "A": "Mitochondrion",
+            "B": "Golgi apparatus",
+            "C": "Lysosome",
+            "D": "Nucleolus"
+          },
+          "correctAnswer": "C",
+          "explanation": "Lysosomes contain digestive enzymes that break down unwanted material such as old organelles or engulfed pathogens.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba819f8d28c7bfa2af2947"
+        },
+        {
+          "id": "BIO-B-MCQ-137",
+          "question": "Which organisms break down dead organic matter, releasing nutrients back into the ecosystem for reuse?",
+          "options": {
+            "A": "Producers",
+            "B": "Primary consumers",
+            "C": "Secondary consumers",
+            "D": "Decomposers"
+          },
+          "correctAnswer": "D",
+          "explanation": "Decomposers such as bacteria and fungi break down dead organic matter, releasing nutrients back into the ecosystem for reuse.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a1ab95eeda6975a4ad"
+        },
+        {
+          "id": "BIO-B-MCQ-131",
+          "question": "The combined water loss from soil evaporation and plant transpiration is called:",
+          "options": {
+            "A": "Evapotranspiration",
+            "B": "Condensation",
+            "C": "Precipitation",
+            "D": "Sedimentation"
+          },
+          "correctAnswer": "A",
+          "explanation": "Evapotranspiration is the combined water loss from soil evaporation and plant transpiration; plant transpiration alone accounts for over 90% of water lost from land.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a39a29fdd2c05f8d3b"
+        },
+        {
+          "id": "BIO-B-MCQ-103",
+          "question": "Huntington's disease is an autosomal dominant disorder. Under what genotype condition will a person show the disease?",
+          "options": {
+            "A": "Only when homozygous recessive",
+            "B": "Never, regardless of genotype",
+            "C": "When at least one copy of the dominant mutant allele is present",
+            "D": "Only in females"
+          },
+          "correctAnswer": "C",
+          "explanation": "Huntington's disease is autosomal dominant — only one copy of the mutant allele is needed for the disease to appear.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Apply",
+          "difficulty": "Hard",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a3bce5d7dbdf7ab937"
+        },
+        {
+          "id": "BIO-B-MCQ-099",
+          "question": "Cystic fibrosis only appears in a child when both parents pass on the mutant allele. This inheritance pattern is:",
+          "options": {
+            "A": "Autosomal dominant, one copy needed",
+            "B": "X-linked dominant",
+            "C": "X-linked recessive",
+            "D": "Autosomal recessive, two copies needed"
+          },
+          "correctAnswer": "D",
+          "explanation": "Cystic fibrosis is an autosomal recessive disorder, requiring two copies of the mutant allele to be expressed.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a4b8dbcffddfa0cb42"
+        },
+        {
+          "id": "BIO-B-MCQ-121",
+          "question": "Which trophic level forms the base of a food chain, making its own food through photosynthesis?",
+          "options": {
+            "A": "Decomposers",
+            "B": "Producers",
+            "C": "Tertiary consumers",
+            "D": "Detritivores"
+          },
+          "correctAnswer": "B",
+          "explanation": "Producers, also called autotrophs, are organisms that make their own food, typically via photosynthesis, forming the base of the food chain.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a584f4dd3f6b6f14c5"
+        },
+        {
+          "id": "BIO-B-MCQ-151",
+          "question": "A forest biome found in humid tropical areas with a distinct dry season or monsoon is called:",
+          "options": {
+            "A": "Tropical rainforest",
+            "B": "Montane forest",
+            "C": "Taiga",
+            "D": "Tropical seasonal (moist deciduous) forest"
+          },
+          "correctAnswer": "D",
+          "explanation": "Tropical seasonal (moist deciduous) forest occurs in humid tropical regions with a distinct dry season or monsoon, as seen in West and East Africa.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a5bb66c978ed4bcfdf"
+        },
+        {
+          "id": "BIO-B-MCQ-149",
+          "question": "The largest geographic biotic unit, defined by climate and dominant vegetation type and containing many ecosystems, is called a:",
+          "options": {
+            "A": "Ecosystem",
+            "B": "Biome",
+            "C": "Habitat",
+            "D": "Community"
+          },
+          "correctAnswer": "B",
+          "explanation": "A biome is the largest geographic biotic unit, defined by similar climate and dominant vegetation, and typically contains many individual ecosystems.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Remember",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a79d21dd08483723c6"
+        },
+        {
+          "id": "BIO-B-MCQ-078",
+          "question": "Which scientist first observed and named cells after looking at thin slices of cork bark in 1665?",
+          "options": {
+            "A": "Watson",
+            "B": "Virchow",
+            "C": "Schwann",
+            "D": "Hooke"
+          },
+          "correctAnswer": "D",
+          "explanation": "Robert Hooke observed dead cork cells under a microscope in 1665 and named the empty compartments he saw \"cellae.\"",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a7bf02d88454b2c46f"
+        },
+        {
+          "id": "BIO-B-MCQ-129",
+          "question": "Why can a pyramid of biomass sometimes be inverted in aquatic ecosystems?",
+          "options": {
+            "A": "It is always upright, no exceptions",
+            "B": "It can be inverted in aquatic systems due to fast phytoplankton turnover",
+            "C": "It measures energy, not mass",
+            "D": "It cannot be constructed for aquatic ecosystems"
+          },
+          "correctAnswer": "B",
+          "explanation": "A pyramid of biomass can be inverted in aquatic ecosystems where phytoplankton have a very short lifespan but high turnover, producing more biomass than their standing crop suggests at any one moment.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a88714f1a889aa35cb"
+        },
+        {
+          "id": "BIO-B-MCQ-145",
+          "question": "The number of individuals of a species per unit area (e.g. 500 trees per hectare) is called:",
+          "options": {
+            "A": "Population size",
+            "B": "Population density",
+            "C": "Natality",
+            "D": "Survivorship"
+          },
+          "correctAnswer": "B",
+          "explanation": "Population density refers to the number of individuals per unit area or volume, such as trees per hectare.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81a98665c84d0f2cbbe4"
+        },
+        {
+          "id": "BIO-B-MCQ-159",
+          "question": "A complete sequence of communities from pioneer stage to climax, as seen in one ecological succession, is called a:",
+          "options": {
+            "A": "Climax",
+            "B": "Zonation",
+            "C": "Niche",
+            "D": "Sere"
+          },
+          "correctAnswer": "D",
+          "explanation": "A sere is one complete succession sequence, made up of individual seral stages from pioneer community to climax.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81aaabe6dd9e9a12e537"
+        },
+        {
+          "id": "BIO-B-MCQ-073",
+          "question": "Which structural feature explains why plant cells have a fixed shape while animal cells can change shape?",
+          "options": {
+            "A": "Mitochondria presence",
+            "B": "Nucleus presence",
+            "C": "Golgi apparatus presence",
+            "D": "Cell wall presence"
+          },
+          "correctAnswer": "D",
+          "explanation": "The cell wall is present in plant cells (cellulose) but absent in animal cells, which is why animal cells can change shape while plant cells have a fixed shape.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Analyse",
+          "difficulty": "Hard",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81aaae29c28f72da0b25"
+        },
+        {
+          "id": "BIO-B-MCQ-101",
+          "question": "Which codon signals the start of translation and codes for methionine?",
+          "options": {
+            "A": "UAA",
+            "B": "AUG",
+            "C": "UGA",
+            "D": "UAG"
+          },
+          "correctAnswer": "B",
+          "explanation": "AUG (coding for methionine) is the standard start codon that signals the beginning of translation.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81ab845cfe15c3b27e5f"
+        },
+        {
+          "id": "BIO-B-MCQ-127",
+          "question": "Ammonification (conversion of dead organic matter into ammonium) is mainly carried out by:",
+          "options": {
+            "A": "Saprophytic bacteria and fungi",
+            "B": "Nitrifying bacteria only",
+            "C": "Green plants",
+            "D": "Photosynthetic algae"
+          },
+          "correctAnswer": "A",
+          "explanation": "Ammonification is carried out by saprophytic bacteria and fungi, converting dead organic matter and waste into ammonium.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Remember",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81adbbdddaccea30a1b8"
+        },
+        {
+          "id": "BIO-B-MCQ-157",
+          "question": "Which biome is described as a tropical grassland with scattered trees and seasonal rainfall?",
+          "options": {
+            "A": "Tundra",
+            "B": "Savannah",
+            "C": "Taiga",
+            "D": "Temperate deciduous forest"
+          },
+          "correctAnswer": "B",
+          "explanation": "Savannah is a tropical grassland biome, distinct from temperate grasslands like steppe and prairie, characterised by scattered trees and seasonal rainfall.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81af80ecebebf48685bf"
+        },
+        {
+          "id": "BIO-B-MCQ-098",
+          "question": "Which segment of a gene is cut out during mRNA processing, never appearing in the mature protein-coding sequence?",
+          "options": {
+            "A": "Exon",
+            "B": "Intron",
+            "C": "Codon",
+            "D": "Locus"
+          },
+          "correctAnswer": "B",
+          "explanation": "Introns are non-coding segments removed during mRNA processing; exons are then spliced together to form the mature mRNA.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81afafa0c72eb77b7f19"
+        },
+        {
+          "id": "BIO-B-MCQ-089",
+          "question": "Birds lay fertilised eggs which develop outside the mother's body, nourished by yolk. This reproductive strategy is:",
+          "options": {
+            "A": "Viviparity",
+            "B": "Oviparity",
+            "C": "Ovoviviparity",
+            "D": "Budding"
+          },
+          "correctAnswer": "B",
+          "explanation": "In oviparity, fertilised eggs are laid outside the mother's body and the embryo is nourished by yolk within the egg, as in birds and most reptiles.",
+          "topic": "General Reproduction",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81b0a3a9ddbff0404068"
+        },
+        {
+          "id": "BIO-B-MCQ-180",
+          "question": "What is the main ecological importance of saprophytes within an ecosystem?",
+          "options": {
+            "A": "They recycle nutrients by breaking down dead matter for plant uptake",
+            "B": "They compete directly with plants for sunlight",
+            "C": "They produce oxygen through photosynthesis",
+            "D": "They have no ecological role beyond decomposition of bread"
+          },
+          "correctAnswer": "A",
+          "explanation": "Saprophytes play a vital ecological role in breaking down complex organic matter into simple substances plants can absorb, recycling nutrients back into the soil.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81b18a85d5be01d56fc2"
+        },
+        {
+          "id": "BIO-B-MCQ-132",
+          "question": "The upper surface of the underground zone of saturation, marking where the soil becomes fully saturated with water, is called the:",
+          "options": {
+            "A": "Zone of aeration",
+            "B": "Evapotranspiration zone",
+            "C": "Impermeable rock layer",
+            "D": "Water table"
+          },
+          "correctAnswer": "D",
+          "explanation": "The water table is the upper surface of the zone of saturation in the soil, below which the ground is saturated with water.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81b1a7aadb5bdb81844f"
+        },
+        {
+          "id": "BIO-B-MCQ-083",
+          "question": "Lawn grass spreads using an above-ground creeping stem called a:",
+          "options": {
+            "A": "Tuber",
+            "B": "Bulb",
+            "C": "Rhizome",
+            "D": "Runner"
+          },
+          "correctAnswer": "D",
+          "explanation": "A runner is a creeping stem that grows above ground, as seen in lawn grass, allowing it to spread and form new plants.",
+          "topic": "General Reproduction",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81b2a21bd000455c0f7e"
+        },
+        {
+          "id": "BIO-B-MCQ-094",
+          "question": "A chromosome with a diffuse centromere, where microtubules attach along its entire length, is called:",
+          "options": {
+            "A": "Monocentric",
+            "B": "Holocentric",
+            "C": "Acentric",
+            "D": "Dicentric"
+          },
+          "correctAnswer": "B",
+          "explanation": "A holocentric chromosome has a diffuse centromere with microtubules attaching along its entire length, as seen in Ascaris.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Apply",
+          "difficulty": "Hard",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81b3bca8c1c34fa6d64e"
+        },
+        {
+          "id": "BIO-B-MCQ-097",
+          "question": "Which part of a gene is a coding segment that is translated into amino acids?",
+          "options": {
+            "A": "Exon",
+            "B": "Intron",
+            "C": "Promoter",
+            "D": "Telomere"
+          },
+          "correctAnswer": "A",
+          "explanation": "Exons are the coding segments of a gene that remain after introns are spliced out and are translated into amino acids.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81b6996cc0d5258dcc35"
+        },
+        {
+          "id": "BIO-B-MCQ-146",
+          "question": "What is the difference between natality and mortality in population ecology?",
+          "options": {
+            "A": "Natality is death rate; mortality is birth rate",
+            "B": "Both refer to death rate",
+            "C": "Natality is birth rate; mortality is death rate",
+            "D": "Both refer to population density"
+          },
+          "correctAnswer": "C",
+          "explanation": "Natality refers to the birth rate within a population, while mortality refers to the death rate.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81bc8bf1d41f27b1715d"
+        },
+        {
+          "id": "BIO-B-MCQ-116",
+          "question": "A dihybrid cross RrYy x RrYy produces offspring in what classic phenotype ratio?",
+          "options": {
+            "A": "3 : 1",
+            "B": "1 : 2 : 1",
+            "C": "1 : 1 : 1 : 1",
+            "D": "9 : 3 : 3 : 1"
+          },
+          "correctAnswer": "D",
+          "explanation": "A dihybrid cross RrYy x RrYy gives the classic 9:3:3:1 phenotype ratio.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81bca200d908a38a8478"
+        },
+        {
+          "id": "BIO-B-MCQ-072",
+          "question": "Which model describes the structure of the cell membrane as a flexible layer with embedded proteins?",
+          "options": {
+            "A": "Fluid mosaic model",
+            "B": "Rigid lattice model",
+            "C": "Double helix model",
+            "D": "Endosymbiotic model"
+          },
+          "correctAnswer": "A",
+          "explanation": "The fluid mosaic model describes the cell membrane as a flexible bilayer with embedded proteins that can move, controlling selective permeability.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81bca7e1e5544411aece"
+        },
+        {
+          "id": "BIO-B-MCQ-158",
+          "question": "What is one key practical reason biome classification matters to ecologists?",
+          "options": {
+            "A": "They have no practical scientific use",
+            "B": "They are used only for naming plants",
+            "C": "They help compare ecosystems and monitor environmental/climate change",
+            "D": "They only apply to aquatic environments"
+          },
+          "correctAnswer": "C",
+          "explanation": "Biomes help scientists compare ecosystems, monitor environmental change, and estimate productivity, including assessing the effects of climate change.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81c386fce0755d169f64"
+        },
+        {
+          "id": "BIO-B-MCQ-075",
+          "question": "Why are viruses not classified within any of the five kingdoms?",
+          "options": {
+            "A": "They have 70S ribosomes only",
+            "B": "They have a cell wall but no membrane",
+            "C": "They lack cell structure entirely and are obligate parasites",
+            "D": "They are eukaryotic but unicellular"
+          },
+          "correctAnswer": "C",
+          "explanation": "Viruses have no cell structure (no membrane-bound cytoplasm, no ribosomes); they consist of DNA or RNA enclosed in a protein capsid and are obligate parasites.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81c3a889e047505f24b9"
+        },
+        {
+          "id": "BIO-B-MCQ-167",
+          "question": "How do saprophytic fungi like Mucor obtain nutrients from dead matter?",
+          "options": {
+            "A": "They ingest food internally like animals",
+            "B": "They photosynthesise their own food",
+            "C": "They absorb whole organic particles directly",
+            "D": "They secrete enzymes externally, then absorb the simplified products"
+          },
+          "correctAnswer": "D",
+          "explanation": "Saprophytic fungi use extracellular digestion — they secrete digestive enzymes onto the surrounding matter, then absorb the resulting simple molecules directly through the cell membrane.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81c79866f285dd6b0f26"
+        },
+        {
+          "id": "BIO-B-MCQ-115",
+          "question": "In a monohybrid cross Tt x Tt, what is the expected phenotype ratio of the offspring?",
+          "options": {
+            "A": "1 : 1",
+            "B": "3 : 1",
+            "C": "1 : 2 : 1",
+            "D": "9 : 3 : 3 : 1"
+          },
+          "correctAnswer": "B",
+          "explanation": "A cross between two heterozygotes (Tt x Tt) gives a genotype ratio of 1 TT : 2 Tt : 1 tt and a phenotype ratio of 3 tall : 1 dwarf.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81c98c85c3ae80acf911"
+        },
+        {
+          "id": "BIO-B-MCQ-110",
+          "question": "Lamarck's theory of evolution proposed which mechanism for how traits change across generations?",
+          "options": {
+            "A": "Natural selection of pre-existing variation",
+            "B": "Random genetic drift",
+            "C": "Inheritance of acquired characteristics through use and disuse",
+            "D": "Mutation as the sole driver of change"
+          },
+          "correctAnswer": "C",
+          "explanation": "Lamarck proposed that traits acquired through use during an organism's lifetime could be passed to offspring — a theory now rejected due to lack of genetic evidence.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81c9a598e53d1b29fc1d"
+        },
+        {
+          "id": "BIO-B-MCQ-153",
+          "question": "Which of these is classified as a coastal/marine aquatic biome, rather than a terrestrial one?",
+          "options": {
+            "A": "Taiga",
+            "B": "Mangrove swamp",
+            "C": "Alpine grassland",
+            "D": "Savannah"
+          },
+          "correctAnswer": "B",
+          "explanation": "Mangrove swamps are a coastal/marine aquatic biome, found in tropical and subtropical tidal zones.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Remember",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81cb9671ce1f42d80542"
+        },
+        {
+          "id": "BIO-B-MCQ-174",
+          "question": "An opossum playing dead when threatened by a predator is using which type of defence?",
+          "options": {
+            "A": "Mechanical defence",
+            "B": "Chemical defence",
+            "C": "Behavioural defence",
+            "D": "Physical camouflage"
+          },
+          "correctAnswer": "C",
+          "explanation": "An animal playing dead to avoid being attacked is using a behavioural defence strategy.",
+          "topic": "Interrelationships I",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81cc893be95d42422be1"
+        },
+        {
+          "id": "BIO-B-MCQ-076",
+          "question": "Which of these structures is found in animal cells but absent in plant cells?",
+          "options": {
+            "A": "Centrioles",
+            "B": "Mitochondria",
+            "C": "Ribosomes",
+            "D": "Cell membrane"
+          },
+          "correctAnswer": "A",
+          "explanation": "Centrioles are found in animal cells but are absent in plant cells.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81d08e23cba6f71dcb4d"
+        },
+        {
+          "id": "BIO-B-MCQ-079",
+          "question": "What was Rudolf Virchow's specific contribution to the cell theory in 1855?",
+          "options": {
+            "A": "All organisms are made of cells",
+            "B": "The cell is the basic unit of structure and function",
+            "C": "All cells arise from pre-existing cells",
+            "D": "Cells contain a nucleus"
+          },
+          "correctAnswer": "C",
+          "explanation": "Rudolf Virchow added the third point of the cell theory in 1855: that new cells arise only from pre-existing cells through division.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81d092d8d50330483dbf"
+        },
+        {
+          "id": "BIO-B-MCQ-066",
+          "question": "What is the key functional difference between rough and smooth endoplasmic reticulum?",
+          "options": {
+            "A": "Smooth ER has ribosomes, rough ER does not",
+            "B": "Rough ER has ribosomes and makes proteins; smooth ER lacks ribosomes and handles lipids",
+            "C": "Both have ribosomes and make lipids",
+            "D": "Neither has ribosomes"
+          },
+          "correctAnswer": "B",
+          "explanation": "Rough ER is studded with ribosomes and is the site of protein synthesis and folding; smooth ER lacks ribosomes and handles lipid metabolism.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81d09e9cf833e4ff37a2"
+        },
+        {
+          "id": "BIO-B-MCQ-176",
+          "question": "In ecological notation, competition between two species is best described as:",
+          "options": {
+            "A": "Mutually detrimental (−/−)",
+            "B": "Mutually beneficial (+/+)",
+            "C": "One benefits, one unaffected (+/0)",
+            "D": "One benefits, one harmed (+/−)"
+          },
+          "correctAnswer": "A",
+          "explanation": "Competition is best described as a mutually detrimental (−/−) interaction, where both parties are potentially harmed by sharing a scarce resource.",
+          "topic": "Interrelationships I",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81d492d0e5b651a06486"
+        },
+        {
+          "id": "BIO-B-MCQ-109",
+          "question": "The human appendix and coccyx are examples of:",
+          "options": {
+            "A": "Vestigial organs",
+            "B": "Homologous structures",
+            "C": "Analogous structures",
+            "D": "Fossils"
+          },
+          "correctAnswer": "A",
+          "explanation": "The human appendix, coccyx and wisdom teeth are vestigial organs — reduced structures that once served a function in ancestors.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81dc8db2c2a580e79149"
+        },
+        {
+          "id": "BIO-B-MCQ-141",
+          "question": "Which type of succession begins on bare rock or newly cooled lava, where no soil or life previously existed?",
+          "options": {
+            "A": "Secondary succession",
+            "B": "Zonation",
+            "C": "Primary succession",
+            "D": "Climax succession"
+          },
+          "correctAnswer": "C",
+          "explanation": "Primary succession begins on bare, lifeless ground such as bare rock or new lava, with no pre-existing soil or seed bank.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81e1a536d75202c184ce"
+        },
+        {
+          "id": "BIO-B-MCQ-148",
+          "question": "A population of algae grows exponentially then suddenly crashes when nutrients run out. This pattern best matches a:",
+          "options": {
+            "A": "J-shaped (boom-and-bust) curve",
+            "B": "S-shaped curve",
+            "C": "Logistic curve only",
+            "D": "Flat curve"
+          },
+          "correctAnswer": "A",
+          "explanation": "A J-shaped growth curve shows exponential growth followed by a sudden crash, often due to a density-independent limiting factor such as a sudden loss of resources or seasonal change.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81e28cffe140584df0ec"
+        },
+        {
+          "id": "BIO-B-MCQ-084",
+          "question": "Frogs typically reproduce by releasing eggs and sperm into water simultaneously. This is an example of:",
+          "options": {
+            "A": "External fertilisation",
+            "B": "Internal fertilisation",
+            "C": "Ovoviviparity",
+            "D": "Parthenogenesis"
+          },
+          "correctAnswer": "A",
+          "explanation": "External fertilisation occurs outside the female's body, often triggered by environmental cues such as water temperature, as seen in frogs and many fish (spawning).",
+          "topic": "General Reproduction",
+          "bloom": "Remember",
+          "difficulty": "Easy",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81e38ba2d0e69ae3ea03"
+        },
+        {
+          "id": "BIO-B-MCQ-150",
+          "question": "Which biome, located near the equator with heavy rainfall year-round, is known to be the most diverse and species-rich?",
+          "options": {
+            "A": "Tundra",
+            "B": "Temperate grassland",
+            "C": "Tropical rainforest",
+            "D": "Desert"
+          },
+          "correctAnswer": "C",
+          "explanation": "The tropical rainforest biome, found near the equator with heavy year-round rainfall, is the most diverse and species-rich of all biomes.",
+          "topic": "Elements of Ecology II",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81e4bcc4f2cd8da785d1"
+        },
+        {
+          "id": "BIO-B-MCQ-070",
+          "question": "What is the main function of microvilli in animal cells such as those lining the intestine?",
+          "options": {
+            "A": "Increase cell rigidity",
+            "B": "Increase surface area for absorption",
+            "C": "Store genetic material",
+            "D": "Produce ATP"
+          },
+          "correctAnswer": "B",
+          "explanation": "Microvilli are finger-like folds of the cell membrane that increase surface area for absorption, found in animal cells such as those of the gut lining and kidney tubule.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81e4bf89ca1625b97a6a"
+        },
+        {
+          "id": "BIO-B-MCQ-111",
+          "question": "Why is Lamarck's theory of inheritance of acquired characteristics rejected by modern biology?",
+          "options": {
+            "A": "It was proposed before Darwin's theory",
+            "B": "No evidence shows acquired traits alter the genes passed to offspring",
+            "C": "It focuses only on animals, not plants",
+            "D": "It does not mention giraffes"
+          },
+          "correctAnswer": "B",
+          "explanation": "Lamarckism is rejected because there is no evidence that traits acquired during an organism's life change the genes passed on to offspring; only genetic changes are heritable.",
+          "topic": "Evolution & Inheritance",
+          "bloom": "Evaluate",
+          "difficulty": "Hard",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81e5929aee6fa8fa3182"
+        },
+        {
+          "id": "BIO-B-MCQ-071",
+          "question": "Which organelle is primarily responsible for detoxifying poisons and breaking down fatty acids within a cell?",
+          "options": {
+            "A": "Ribosome",
+            "B": "Nucleolus",
+            "C": "Peroxisome",
+            "D": "Chromatin"
+          },
+          "correctAnswer": "C",
+          "explanation": "Peroxisomes oxidise fatty acids and amino acids and detoxify harmful substances within the cell.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Apply",
+          "difficulty": "Medium",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81eab642e51f97286527"
+        },
+        {
+          "id": "BIO-B-MCQ-091",
+          "question": "What distinguishes eukaryotic chromatin structure from prokaryotic DNA organisation?",
+          "options": {
+            "A": "Prokaryotic DNA is coiled with histones",
+            "B": "Eukaryotic chromatin is DNA coiled around histone proteins",
+            "C": "Prokaryotes have linear chromosomes",
+            "D": "Eukaryotes have circular chromosomes only"
+          },
+          "correctAnswer": "B",
+          "explanation": "Eukaryotic chromosomes are made of chromatin — DNA coiled around histone proteins — unlike prokaryotic DNA, which is not associated with histones.",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81eda92afc8937664e6c"
+        },
+        {
+          "id": "BIO-B-MCQ-096",
+          "question": "Which genotype below represents a heterozygous individual?",
+          "options": {
+            "A": "AA",
+            "B": "aa",
+            "C": "Aa",
+            "D": "None of the above"
+          },
+          "correctAnswer": "C",
+          "explanation": "A heterozygous genotype has two different alleles for a gene (e.g. Aa), while homozygous has two identical alleles (AA or aa).",
+          "topic": "Chromosome Genes & DNA",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81ef8795f21dd4de3a37"
+        },
+        {
+          "id": "BIO-B-MCQ-080",
+          "question": "Which two structures are found only in plant cells, never in animal cells?",
+          "options": {
+            "A": "Chloroplasts and plasmodesmata",
+            "B": "Mitochondria and ribosomes",
+            "C": "Golgi apparatus and nucleus",
+            "D": "Cell membrane and cytoplasm"
+          },
+          "correctAnswer": "A",
+          "explanation": "Chloroplasts and plasmodesmata (channels linking plant cells) are both unique to plant cells; neither appears in animal cells.",
+          "topic": "Cell Structure & Organization",
+          "bloom": "Apply",
+          "difficulty": "Hard",
+          "pareto": "medium",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81ef9d75c840a09d4c8d"
+        },
+        {
+          "id": "BIO-B-MCQ-086",
+          "question": "The transfer of pollen from the anther of one plant to the stigma of a different plant of the same species is called:",
+          "options": {
+            "A": "Self-pollination",
+            "B": "Fertilisation",
+            "C": "Cross-pollination",
+            "D": "Germination"
+          },
+          "correctAnswer": "C",
+          "explanation": "Cross-pollination is the transfer of pollen from the anther of one plant to the stigma of a flower on a different plant of the same species.",
+          "topic": "General Reproduction",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81f0a030cc01a696962d"
+        },
+        {
+          "id": "BIO-B-MCQ-122",
+          "question": "Approximately what percentage of energy is transferred from one trophic level to the next in a food chain?",
+          "options": {
+            "A": "100%",
+            "B": "50%",
+            "C": "10%",
+            "D": "90%"
+          },
+          "correctAnswer": "C",
+          "explanation": "Roughly only about 10% of energy is transferred from one trophic level to the next; the rest is lost mainly as heat.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81f19964d8ad6be7551f"
+        },
+        {
+          "id": "BIO-B-MCQ-124",
+          "question": "Which bacterium lives symbiotically in legume root nodules and fixes atmospheric nitrogen?",
+          "options": {
+            "A": "Nitrobacter",
+            "B": "Pseudomonas aeruginosa",
+            "C": "Nitrosomonas",
+            "D": "Rhizobium"
+          },
+          "correctAnswer": "D",
+          "explanation": "Rhizobium bacteria live symbiotically in legume root nodules and fix atmospheric nitrogen into usable forms for the plant.",
+          "topic": "Elements of Ecology I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81fdb7c5dc5c486887a9"
+        },
+        {
+          "id": "BIO-B-MCQ-165",
+          "question": "A chameleon changing its skin colour to match its surroundings is an example of which type of prey defence?",
+          "options": {
+            "A": "Mechanical defence",
+            "B": "Physical defence (camouflage)",
+            "C": "Chemical defence",
+            "D": "Behavioural defence"
+          },
+          "correctAnswer": "B",
+          "explanation": "A chameleon changing colour to blend with its surroundings is a physical (camouflage-based) defence against predators.",
+          "topic": "Interrelationships I",
+          "bloom": "Understand",
+          "difficulty": "Medium",
+          "pareto": "high",
+          "sourceUrl": "https://app.notion.com/3eb1834fbdba81ffa047e525f7678210"
         }
       ]
     }
