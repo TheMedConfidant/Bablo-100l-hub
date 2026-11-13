@@ -6,7 +6,7 @@ Status: source discovery and classification baseline; no resources published by 
 
 ## Coverage correction
 
-The Notion library is not a BIO/Anatomy-only collection. The current search and source-page inspection surfaced resources across physical sciences, chemistry, computing, foundational biology, mathematics-related material, medical/preclinical sciences, practicals and clinical/laboratory interpretation. This catalogue intentionally records the wider scope rather than narrowing the product to two subjects.
+The Notion library is not a BIO/Anatomy-only collection. The current search and source-page inspection surfaced resources across physical sciences, chemistry, computing, foundational biology, mathematics-related material, medical/preclinical sciences, practicals and clinical/laboratory interpretation. Full-text topic exports now include eight FUTA BIO 101 notes, thirteen 100L Physics/Chemistry notes, five 200L Anatomy resources and additional 200L Physiology/Biochemistry maps and topic notes. This catalogue intentionally records the wider scope rather than narrowing the product to two subjects.
 
 The owner's confirmation is that the study materials are verified. This catalogue preserves that confirmation. It separately tracks whether each item is mapped to a destination university's course/semester and whether its reuse permissions allow cross-institution distribution.
 
