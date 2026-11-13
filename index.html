@@ -3793,7 +3793,11 @@ function nextWindows(now, count) {
 }
 function shareProgrammeCupQualifiers() {
   const url = location.origin + location.pathname + '#/cup';
-  const text = 'Bablo Hub Programme Cup qualifiers are coming up! Saturday 1:00–5:00 pm WAT. Open the Cup page for qualifier details and the leaderboard.';
+  const event = nextWindows(Date.now(), 1)[0];
+  const dateText = event ? new Intl.DateTimeFormat('en-NG', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Africa/Lagos' }).format(new Date(event.start)) : 'See the Cup schedule';
+  const startText = event ? new Intl.DateTimeFormat('en-NG', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' }).format(new Date(event.start)) : '';
+  const endText = event ? new Intl.DateTimeFormat('en-NG', { hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' }).format(new Date(event.end)) : '';
+  const text = 'Bablo Hub Programme Cup qualifiers: ' + dateText + (event ? ' · ' + startText + '–' + endText + ' WAT' : '') + '. Open the Cup page for qualifier details and the leaderboard.';
   if (navigator.share) {
     navigator.share({ title: 'Bablo Hub · Programme Cup Qualifiers', text, url })
       .catch(e => { if (!e || e.name !== 'AbortError') copyQualifierLink(url); });
