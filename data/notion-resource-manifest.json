@@ -339,6 +339,46 @@
         "bowen-university"
       ],
       "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/futa-bio101-notes.json",
+      "records": 8,
+      "datasets": [
+        {
+          "key": "futa-bio101-topic-notes",
+          "records": 8
+        }
+      ],
+      "status": "staged-not-yet-loaded-into-live-app",
+      "mappingStatus": "programme-pending"
+    },
+    {
+      "path": "data/200l-anatomy-elbow-forearm.json",
+      "records": 85,
+      "datasets": [
+        {
+          "key": "elbow-forearm-notes",
+          "records": 1
+        },
+        {
+          "key": "elbow-forearm-flashcards",
+          "records": 37
+        },
+        {
+          "key": "elbow-forearm-quiz",
+          "records": 25
+        },
+        {
+          "key": "elbow-forearm-vignettes",
+          "records": 6
+        },
+        {
+          "key": "elbow-forearm-glossary-and-open-questions",
+          "records": 16
+        }
+      ],
+      "status": "staged-not-yet-loaded-into-live-app",
+      "mappingStatus": "Bowen-200L-discipline-known-official-course-code-and-semester-not-yet-mapped"
     }
   ],
   "sourceAuthority": "User confirms all Notion-built materials are verified.",
