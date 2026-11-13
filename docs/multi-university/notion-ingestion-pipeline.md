@@ -45,7 +45,7 @@ Every generated record has an empty `targetMappings` array and `publicationState
 
 ## Notion query allowance
 
-The current Notion workspace Query Data Source allowance was reached during the 2026-11-13 export session. Further SQL/rows-mode exports remain queued until access is available again; do not treat the existing checked-in exports as missing. The existing exported files above are already in the repository and can be processed locally; do not describe them as missing. Additional collections still need source-row exports when access is available. Saved database views may remain usable where a suitable view URL is known.
+The current Notion workspace Query Data Source allowance was reached during the 2026-11-13 export session. We subsequently fetched and committed schema snapshots for five queued collections in `data/notion-pending-datasource-schemas.json` (BIO 101 flashcards, PHY 101 flashcards, COS 101 flashcards, CHM 101 MCQs and PHY 101 MCQs). Their column names, option sets and SQLite definitions are preserved, but their content rows remain unexported. Further SQL/rows-mode exports remain queued until access is available again; do not treat the existing checked-in exports as missing. The existing exported files above are already in the repository and can be processed locally; do not describe them as missing. Additional collections still need source-row exports when access is available. Saved database views may remain usable where a suitable view URL is known.
 
 ## Deliberate non-goals
 
