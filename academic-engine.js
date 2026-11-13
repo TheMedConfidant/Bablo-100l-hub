@@ -23,7 +23,7 @@
    institution:input.institutionSlug?slug(input.institutionSlug):resolveInstitutionSlug(input.institution||''),
    programme:norm(input.programmeCode||input.programme||''),
    level:String(input.academicLevel||input.level||''),
-   semester:norm(input.semester||'')
+   semester:norm(input.semester||input.academicSemester||'')
   });
  }
  function validIdentity(id){
