@@ -1337,9 +1337,9 @@ function academicProfileFields(profile, surface) {
     } catch (e) { /* Keep the bundled directory available if the database is offline or migration is pending. */ }
   };
 
-  const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
+  const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
   const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
+  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || '');
   const category = h('select', null,
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
@@ -1915,7 +1915,7 @@ function setAccount(j) {
   DB.profile = {
     name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme,
     programmeCategory: j.programmeCategory || inferProgrammeCategory(j.programme),
-    institution: j.institution || 'Bowen University', level: j.academicLevel || '100L',
+    institution: j.institution || '', level: j.academicLevel || '100L',
     bscPathway: j.bscPathway || '', academicDetailsVerified: !!j.academicDetailsVerified,
     isGuest: !!j.isGuest, uid: j.uniqueId
   };
@@ -2337,7 +2337,7 @@ function route() {
 function onboarding() {
   const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
   const nick = h('input', { type: 'text', maxlength: '20', placeholder: 'Shown on the leaderboard' });
-  const academic = academicProfileFields({ programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' }, 'signup');
+  const academic = academicProfileFields({ programme: '', programmeCategory: 'other', institution: '', level: '100L' }, 'signup');
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const sub = async () => {
     const n = name.value.trim();
@@ -2353,7 +2353,7 @@ function onboarding() {
     route();
   };
   modal(h('div', { class: 'stack' }, h('h2', null, 'Welcome to Bablo Hub'),
-    h('p', { class: 'muted' }, 'Bablo Hub is COHES-first. 100L access is open across programmes and institutions; higher-level COHES access follows the platform’s academic scope.'),
+    h('p', { class: 'muted' }, 'Choose your university, programme and level. Bablo Hub will shape your academic workspace around that academic identity.'),
     h('label', { class: 'field' }, h('span', null, 'Your name'), name),
     h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
     ...academic.nodes,
@@ -3952,7 +3952,7 @@ function accountSection() {
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' }, 'signup');
+  const academic = academicProfileFields(DB.profile || { programme: '', programmeCategory: 'other', institution: '', level: '100L' }, 'signup');
   const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
