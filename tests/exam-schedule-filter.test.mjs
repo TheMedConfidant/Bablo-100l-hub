@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const legacyIdentityMigration = readFileSync(new URL('../supabase/migrations/20261113180000_backfill_legacy_bowen_100l_identity.sql', import.meta.url), 'utf8');
 const start = html.indexOf('function filterExamScheduleForProfile(rows) {');
 const end = html.indexOf('\nasync function fetchPublicExamSchedule()', start);
 assert.ok(start >= 0 && end > start, 'profile schedule filter exists');
@@ -31,4 +32,11 @@ test('Bowen 100L notices never leak to 200L or another university', () => {
 
 test('missing profile identity fails closed instead of showing generic reminders', () => {
   assert.deepEqual(filterFor({}, schedule), []);
+});
+
+test('legacy Bowen-only 100L accounts are assigned institution identity for scoped reminders', () => {
+  assert.match(legacyIdentityMigration, /where institution is null/);
+  assert.match(legacyIdentityMigration, /academic_level = '100L'/);
+  assert.match(legacyIdentityMigration, /created_at < timestamptz '2026-11-13 00:00:00\+00'/);
+  assert.match(legacyIdentityMigration, /set institution = 'Bowen University'/);
 });
