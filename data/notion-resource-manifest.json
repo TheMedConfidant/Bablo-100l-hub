@@ -17,7 +17,7 @@
         "MCQs",
         "past-papers"
       ],
-      "notes": "8-topic official FUTA course outline; 8/8 notes complete; 32 flashcards. Parent page states MCQs and past papers not started at last edit. Distinct from Bowen BIO 101."
+      "notes": "8-topic FUTA course outline; 8/8 notes complete; 75 flashcards confirmed by live Notion database query. Parent page's older 32-card progress note is stale. MCQs/past papers are not populated in the located FUTA MCQ index."
     },
     {
       "id": "3ca1834f-bdba-81f8-9219-d57507c99235",
@@ -57,7 +57,7 @@
         "MCQs",
         "past-papers"
       ],
-      "notes": "Separate nine-topic Bowen CoHES course, with its own source and assessment structure. Do not merge with FUTA BIO 101."
+      "notes": "Separate nine-topic Bowen CoHES course; 180 MCQ records confirmed in its live Notion database, with distinct topic sequence and source."
     },
     {
       "id": "3d71834f-bdba-81f7-a69e-d0c6396bea31",
@@ -153,6 +153,23 @@
         "workspace-index"
       ],
       "notes": "Contains MedNotes and related databases; requires database-level inventory to extract course/resource metadata."
+    }
+  ],
+  "exports": [
+    {
+      "path": "data/notion-content-pilot.json",
+      "records": 255,
+      "datasets": [
+        {
+          "key": "futa-bio101-flashcards",
+          "records": 75
+        },
+        {
+          "key": "bowen-cohes-bio101-mcqs",
+          "records": 180
+        }
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
     }
   ]
 }
