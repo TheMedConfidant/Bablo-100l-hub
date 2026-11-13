@@ -8,7 +8,7 @@
 
 The workspace already contains much more than a small 100L sample. Search surfaced separate 100L course packs and substantial 200L course structures across Anatomy, Physiology and Biochemistry, including detailed topic pages, flashcards, MCQ databases, clinical vignettes, practical resources, past-paper sections and course maps.
 
-A first content tranche has now been exported to `data/notion-content-pilot.json`: 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total). This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
+A first content tranche has now been exported to `data/notion-content-pilot.json`: 75 FUTA BIO 101 flashcards and 180 Bowen CoHES BIO 101 MCQs (255 records total). The multi-university profile selector now has 69 source-backed Nigerian university entries, with more nursing-only and allied-health universities to be added from regulator lists. This is a first-pass index, not a complete count of the workspace. Notion search returned capped result sets for several broad queries; database rows and Drive files still need systematic extraction.
 
 ## Critical separation discovered: same course code does not mean same course
 
