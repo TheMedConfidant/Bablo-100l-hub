@@ -51,6 +51,8 @@ test('course pages expose course-specific offline packs', async () => {
   assert.match(app, /data\/bowen-200l-course-maps\.json/);
 });
 
+test('courses without a separate asset bundle still cache the app shell and embedded course data', () => { const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8'); assert.match(app,/return \[\.\.\.new Set\(common\.concat\(extras\)\)\]/); });
+
 test('course-pack responses are not copied into the general runtime cache', () => {
   assert.match(worker, /bablo-course-pack-v1-/);
   assert.match(worker, /if\(await pack\.match\(req,\{ignoreSearch:true\}\)\)return/);
@@ -65,8 +67,8 @@ test('Settings exposes offline course pack management', () => {
 
 test('200L download controls use the removable course-pack manager without duplicate panels', () => {
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(app, /courseId:'bowen-200l-anatomy',resources:/);
-  assert.match(app, /courseId:'bowen-200l-'\+String\(c\.code\)/);
+  assert.match(app, /offlineCoursePanel\('200l-ANATOMY'/);
+  assert.match(app, /offlineCoursePanel\('200l-'\+c\.code/);
   assert.doesNotMatch(app, /offlineCoursePanel\('200l-'/);
 });
 
