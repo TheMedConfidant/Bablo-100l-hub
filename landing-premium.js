@@ -1,4 +1,4 @@
-/* Bablo Hub premium public landing + account entry. */
+/* Bablo Hub adaptive public landing + account entry. */
 (function(){
  if(window.__babloPremiumLandingInstalled)return;window.__babloPremiumLandingInstalled=true;
  const guestFlow=window.onboarding;
@@ -16,10 +16,18 @@
  }
  function showLanding(){
   const root=h('section',{class:'landing-shell stack'},
-   h('div',{class:'landing-brand'},h('div',{class:'landing-mark','aria-hidden':'true'},'B'),h('div',{class:'landing-wordmark'},h('strong',null,'Bablo Hub'),h('span',null,'™  •  STUDY. PRACTISE. GROW.'))),
-   h('div',{class:'landing-copy stack'},h('span',{class:'landing-eyebrow'},'YOUR ACADEMIC WORKSPACE'),h('h1',null,'Confidence in clarity.'),h('p',null,'A focused learning environment for structured study, smarter practice and meaningful academic progress.'),h('div',{class:'landing-pill-row'},h('span',null,'COURSE LIBRARY'),h('span',null,'CBT PRACTICE'),h('span',null,'CHALLENGE ARENA'))),
-   h('div',{class:'landing-actions stack'},h('button',{class:'btn landing-primary block',onclick:()=>openAuth('signup')},'Create your account'),h('button',{class:'btn landing-secondary block',onclick:()=>openAuth('login')},'Log in'),h('button',{class:'landing-guest',onclick:openGuest},'Explore as a guest  →')),
-   h('p',{class:'landing-footnote'},'Your study progress stays on this device when you explore as a guest. Create an account to sync across devices.'));
+   h('header',{class:'landing-brand'},h('div',{class:'landing-mark','aria-hidden':'true'},'B'),h('div',{class:'landing-wordmark'},h('strong',null,'Bablo Hub'),h('span',null,'YOUR ACADEMIC WORKSPACE'))),
+   h('div',{class:'landing-copy stack'},
+    h('span',{class:'landing-eyebrow'},'BUILT AROUND YOUR JOURNEY'),
+    h('h1',null,'Your discipline. Your level. Your next move.'),
+    h('p',null,'A connected academic workspace that adapts to what you study and where you are in your programme — from structured learning to advanced practice.'),
+    h('div',{class:'landing-proof-grid'},
+     h('article',{class:'landing-proof'},h('span',{class:'landing-proof-icon','aria-hidden':'true'},'01'),h('strong',null,'Study with structure'),h('p',null,'Course materials organised around your programme and current level.')),
+     h('article',{class:'landing-proof'},h('span',{class:'landing-proof-icon','aria-hidden':'true'},'02'),h('strong',null,'Practise with purpose'),h('p',null,'Questions, revision tools and assessment experiences that fit your learning stage.')),
+     h('article',{class:'landing-proof'},h('span',{class:'landing-proof-icon','aria-hidden':'true'},'03'),h('strong',null,'Grow into your field'),h('p',null,'Your workspace evolves as your academic work becomes more specialised.')))),
+   h('div',{class:'landing-adaptive-note'},h('span',{class:'landing-adaptive-dot','aria-hidden':'true'}),h('p',null,'No one-size-fits-all dashboard. Your selected programme and level shape the experience you enter.')),
+   h('div',{class:'landing-actions stack'},h('button',{class:'btn landing-primary block',onclick:()=>openAuth('signup')},'Create your account','  →'),h('button',{class:'btn landing-secondary block',onclick:()=>openAuth('login')},'Log in'),h('button',{class:'landing-guest',onclick:openGuest},'Explore as a guest')),
+   h('p',{class:'landing-footnote'},'Sign in to keep your academic progress connected across devices. Guest access is available on this device.'));
   modal(root,false);
  }
  window.openLandingAuth=openAuth;window.onboarding=showLanding;
