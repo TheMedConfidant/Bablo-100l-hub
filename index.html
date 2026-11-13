@@ -2623,10 +2623,11 @@ function homeView() {
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  const level=parseInt(p.level||'100L',10)||100, senior=level>=200;
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
+ const practicalCourseLabels=coursesFor(p.programme).filter(c=>['PHY','CHM','BIO','COS'].includes(c.code)).map(c=>c.label);
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
-  dashboardCard(senior?'Specialist Laboratory':'Laboratory',senior?'Microbiology, pathology, histology and advanced biomedical work':'PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
+  dashboardCard(senior?'Specialist Laboratory':'Laboratory',senior?'Microbiology, pathology, histology and advanced biomedical work':(practicalCourseLabels.length?practicalCourseLabels.join(' · ')+' practicals':'Practical work from your mapped courses'),'🧪','#/lab','#53B6A5'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  const communityCards=[
@@ -5045,13 +5046,13 @@ function labHubView() {
     { code: 'CHM', name: 'Chemistry', detail: 'CHM 107 · Practical procedures', color: '#B7791F', href: '#/practicals/CHM', state: 'Open in app' },
     { code: 'BIO', name: 'Biology', detail: 'Biology practicals and specimen work', color: '#0F8B68', href: '#/practicals/BIO', state: practicalsFor('BIO') ? 'Open practicals' : 'Course practicals' },
     { code: 'COS', name: 'Computer Studies', detail: 'COS 101 · Computer laboratory', color: '#0E9AA7', href: '#/practicals/COS', state: practicalsFor('COS') ? 'Open practicals' : 'Course practicals' }
-  ];
+  ].filter(x=>canAccessCourse(x.code));
   mount(wrap(back('#/', 'Dashboard'), h('div', { class: 'stack-l' },
-    h('div', { class: 'dashboard-page-head' }, h('h1', null, 'Laboratory'), h('p', { class: 'muted' }, 'Choose a practical subject to open its laboratory resources.')),
-    h('section', { class: 'dashboard-grid' }, ...subjects.map(x => h('a', { class: 'dashboard-card', href: x.href, style: { '--card-accent': x.color } },
+    h('div', { class: 'dashboard-page-head' }, h('h1', null, 'Laboratory'), h('p', { class: 'muted' }, academicContextLabel(p) + ' · Choose a practical subject mapped to your current course set.')),
+    subjects.length ? h('section', { class: 'dashboard-grid' }, ...subjects.map(x => h('a', { class: 'dashboard-card', href: x.href, style: { '--card-accent': x.color } },
       h('span', { class: 'dashboard-card-icon', 'aria-hidden': 'true' }, x.code === 'PHY' ? '⚡' : x.code === 'CHM' ? '⚗️' : x.code === 'BIO' ? '🧬' : '💻'),
       h('span', { class: 'dashboard-card-copy' }, h('b', null, x.code + ' · ' + x.name), h('small', null, x.detail), h('small', { class: 'muted' }, x.state)),
-      h('span', { class: 'dashboard-card-arrow', 'aria-hidden': 'true' }, '›'))))
+      h('span', { class: 'dashboard-card-arrow', 'aria-hidden': 'true' }, '›')))) : h('section',{class:'panel stack'},h('h2',null,'No practicals mapped yet'),h('p',{class:'muted small'},'Practical work will appear here when it is mapped to your verified programme and semester.'))
   )));
 }
 function advancedLabNotebookView(code) {
