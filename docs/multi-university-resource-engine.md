@@ -78,7 +78,7 @@ The migration adds database constraints and narrows both authenticated and guest
 - Read RPCs for the directory, programmes and approved resources.
 - Strict BSc pathway constraints and profile RPC guard.
 
-The resource RPC returns only published, rights-cleared, quality-approved resources with an exact verified mapping to a verified course record. The course record itself is bound by a composite foreign key to the same institution as its programme. Tables have RLS enabled and direct client access revoked.
+The resource RPC returns only published, rights-cleared, quality-approved resources with an exact verified mapping to a verified course record. The course record itself is bound by a composite foreign key to the same institution as its programme. Tables have RLS enabled with read policies for approved catalogue rows and no client write grants. RPCs use `SECURITY INVOKER`; RLS remains active.
 
 ## Implementation sequence
 
