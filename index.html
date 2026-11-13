@@ -9,17 +9,17 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Bablo Hub">
-<title>Bablo Hub™ | Bowen University Student Learning &amp; CBT Platform</title>
-<meta name="description" content="Bablo Hub™ by TheMedConfidant brings Bowen University students course notes, flashcards, question banks, CBT practice, quizzes and practical resources. Confidence in Clarity. Clarity in Faith.">
-<meta name="keywords" content="Bablo Hub, Bablo Hub™, TMC: Bablo Hub, Bablo 100L Hub, Bowen University quiz platform, Bowen University past questions, Bowen student study resources, CBT practice, CoHES">
-<link rel="canonical" href="https://bablo-100l-hub.vercel.app/">
+<title>Bablo Hub™ | University Health Sciences Learning Platform</title>
+<meta name="description" content="Bablo Hub™ by TheMedConfidant is an institution-aware academic learning platform with course resources, active-recall tools, CBT practice, practical learning and specialist study spaces.">
+<meta name="keywords" content="Bablo Hub, TMC: Bablo Hub, university learning platform, academic resources, medical and health sciences study, CBT practice, flashcards, question banks">
+<link rel="canonical" href="https://bablo-hub.vercel.app/">
 <meta property="og:site_name" content="Bablo Hub™">\n<meta property="og:title" content="Bablo Hub™ | Confidence in Clarity. Clarity in Faith.">
-<meta property="og:description" content="A student learning and CBT platform with notes, flashcards, question banks, quizzes and practical resources for Bowen University students.">
+<meta property="og:description" content="An institution-aware academic workspace for structured study, active recall, CBT practice, practical learning and specialist academic tools.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://bablo-100l-hub.vercel.app/">
+<meta property="og:url" content="https://bablo-hub.vercel.app/">
 <meta name="twitter:card" content="summary">
 <meta name="google-site-verification" content="Ln-9NJ0wySyKh7FuZ_yzNBpEkXljCV_gtM4j79hV0GY" />
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalApplication","name":"Bablo Hub™","alternateName":["Bablo Hub","TMC: Bablo Hub","Bablo 100L Hub"],"url":"https://bablo-100l-hub.vercel.app/","description":"A student learning and CBT platform offering course notes, flashcards, question banks, quizzes and practical resources for Bowen University students. Confidence in Clarity. Clarity in Faith.","applicationCategory":"EducationalApplication","operatingSystem":"Web, Android, iOS","inLanguage":"en","audience":{"@type":"EducationalAudience","educationalRole":"student","audienceType":"Bowen University students"},"publisher":{"@type":"Organization","name":"TheMedConfidant"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"EducationalApplication","name":"Bablo Hub™","alternateName":["TMC: Bablo Hub"],"url":"https://bablo-hub.vercel.app/","description":"A university-aware health sciences learning platform offering verified course notes, flashcards, question banks, quizzes and practical resources.","applicationCategory":"EducationalApplication","operatingSystem":"Web, Android, iOS","inLanguage":"en","audience":{"@type":"EducationalAudience","educationalRole":"student","audienceType":"University health sciences students"},"publisher":{"@type":"Organization","name":"TheMedConfidant"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -658,7 +658,7 @@ button,a,input,select,textarea{touch-action:manipulation}
 <script>(function(){try{var d=JSON.parse(localStorage.getItem("bablo100l:v1")||"{}");var l=d.skin||"glass";if(l==="green")l="glass";var sp=document.getElementById("splash");if(sp)sp.setAttribute("data-look",l);}catch(e){}})();</script>
 <div id="app"></div>
 <nav id="nav" class="nav" aria-label="Main"></nav>
-<noscript><h1>Bablo Hub: study app for Bowen University CoHES students</h1><p>Bablo Hub is a study app for Bowen University CoHES students, built by Bababola Moses Bolawaife, founder of The MedConfidant Channel. It helps students practise past questions, take timed quizzes and mock tests, read notes and flashcards, and check the timetable and CGPA. Enable JavaScript to use the app.</p></noscript>
+<noscript><h1>Bablo Hub: an academic learning workspace</h1><p>Bablo Hub by TheMedConfidant is an institution-aware academic platform for structured course learning, flashcards, question banks, CBT practice, practical resources and academic tools. Students choose their university, faculty or programme, and academic level so the available learning environment can be organised around their context. Built by Babalola Moses Boluwatife. Enable JavaScript to use the interactive platform.</p></noscript>
 <script>window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__installEvt = e; window.dispatchEvent(new Event('bablo-install-ready')); });</script>
 <script>
 if ('serviceWorker' in navigator) {
@@ -957,7 +957,7 @@ window.__PRACTICALS__.COS = {
   });
 })();
 
-/* Bablo 100L Hub - pure logic (no DOM). Tested in test/run.js */
+/* Bablo Hub - pure logic (no DOM). Tested in test/run.js */
 (function (root) {
   const GRADES = [
     { min: 70, l: 'A', p: 5 }, { min: 60, l: 'B', p: 4 }, { min: 50, l: 'C', p: 3 },
@@ -1090,7 +1090,7 @@ window.__PRACTICALS__.COS = {
     const start = new Date(fromMs + LAGOS); start.setUTCHours(0, 0, 0, 0);
     for (let d = start.getTime(); d < toMs; d += 864e5) {
       const day = new Date(d).getUTCDay();
-      W.filter(w => w.day === day).forEach(w => {
+      W.filter(w => w.day === day && (!w.date || lagosDay(d).toISOString().slice(0, 10) === w.date)).forEach(w => {
         const s = d + (w.from - 1) * 3600000, e = d + (w.to - 1) * 3600000;
         if (e > fromMs && s < toMs) out.push({ start: s, end: e, label: w.label });
       });
@@ -1129,7 +1129,7 @@ window.__PRACTICALS__.COS = {
 })(typeof window !== 'undefined' ? window : globalThis);
 
 ;
-/* Bablo 100L Hub - editable content. Edit COURSES to match the real MBBS list. */
+/* Bablo Hub - editable content. Edit COURSES to match the real MBBS list. */
 const GUEST_PROGRAMME = 'Guest (other programme)';
 const APP = { name: 'Bablo Hub', version: '3.34.0' };
 
@@ -1140,15 +1140,15 @@ const LB = { url: 'https://labgqqovggulrsmxzraj.supabase.co', key: 'sb_publishab
 /* subj = course code used in the question bank. pending:true shows the course as "Pending".
    units = default credit units for the GPA lab (editable by the student). */
 const COURSES = [
-  { code: 'BIO', label: 'BIO 101', title: 'Biology', color: '#1E9E6A', units: 3 },
-  { code: 'CHM', label: 'CHM 101', title: 'Chemistry', color: '#7B5BD6', units: 3 },
-  { code: 'PHY', label: 'PHY 101', title: 'Physics', color: '#2F6FDB', units: 3 },
-  { code: 'COS', label: 'COS 101', title: 'Computing', color: '#0E9AA7', units: 2 },
-  { code: 'AGR', label: 'AGR 101', title: 'Agriculture', color: '#B7791F', units: 2 },
-  { code: 'GST111', label: 'GST 111', title: 'Communication in English', color: '#8896A8', units: 2 },
-  { code: 'GEL101', label: 'BUI-GEL 101', title: 'General Education (GEL)', color: '#8896A8', units: 2 },
-  { code: 'LIB101', label: 'BUI-LIB 101', title: 'Library', color: '#64748B', units: 2 },
-  { code: 'MTH101', label: 'MTH 101', title: 'Elementary Mathematics I', color: '#C2410C', units: 3 },
+  { code: 'BIO', label: 'BIO 101', title: 'Biology', color: '#1E9E6A', units: 3, semester: 'first' },
+  { code: 'CHM', label: 'CHM 101', title: 'Chemistry', color: '#7B5BD6', units: 3, semester: 'first' },
+  { code: 'PHY', label: 'PHY 101', title: 'Physics', color: '#2F6FDB', units: 3, semester: 'first' },
+  { code: 'COS', label: 'COS 101', title: 'Computing', color: '#0E9AA7', units: 2, semester: 'first' },
+  { code: 'AGR', label: 'AGR 101', title: 'Agriculture', color: '#B7791F', units: 2, semester: 'first' },
+  { code: 'GST111', label: 'GST 111', title: 'Communication in English', color: '#8896A8', units: 2, semester: 'first' },
+  { code: 'GEL101', label: 'BUI-GEL 101', title: 'General Education (GEL)', color: '#8896A8', units: 2, semester: 'first' },
+  { code: 'LIB101', label: 'BUI-LIB 101', title: 'Library', color: '#64748B', units: 2, semester: 'first' },
+  { code: 'MTH101', label: 'MTH 101', title: 'Elementary Mathematics I', color: '#C2410C', units: 3, semester: 'first' },
   { code: 'MLS101', label: 'MLS 101', title: 'Medical Laboratory Science', color: '#0F766E', units: 2 },
   { code: 'SOC101', label: 'SOC 101', title: 'Introduction to Sociology', color: '#9A6A45', units: 2 },
 ];
@@ -1169,31 +1169,35 @@ const PROGRAMME_COURSES = {
   'Other CoHES programme': [...CORE_COURSES, 'MTH101'],
   [GUEST_PROGRAMME]: [...CORE_COURSES, 'MTH101']
 };
-const coursesFor = programme => (PROGRAMME_COURSES[programme] || CORE_COURSES).map(code => COURSES.find(c => c.code === code)).filter(Boolean);
+const coursesFor = programme => (PROGRAMME_COURSES[programme] || [])
+  .map(code => COURSES.find(c => c.code === code))
+  .filter(c => c && window.BabloAcademicEngine
+    && window.BabloAcademicEngine.courseSemesterMatches(c, DB.profile || {}));
 function canAccessCourse(code) {
   const p = DB.profile;
   if (!p) return false;
+  const institution = String(p.institution || '').trim().toLowerCase();
+  const isBowen = institution === 'bowen university' || institution === 'bowen' || institution === 'bowen-university';
+  if (!isBowen) return false;
   const levelNumber = parseInt(p.level || '100L', 10) || 100;
-  const category = p.programmeCategory || inferProgrammeCategory(p.programme);
-  const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
-  const BowenCohes = category === 'cohes' && institution.includes('bowen');
-  if (levelNumber === 200 && BowenCohes) return COURSES_200.some(c => c.code === code);
-  if (levelNumber >= 200 && !BowenCohes) return CORE_COURSES.includes(code);
-  return coursesFor(p.programme).some(c => c.code === code);
+  const programme = String(p.programme || '').trim().toUpperCase();
+  if (levelNumber === 100) return coursesFor(p.programme).some(c => c.code === code);
+  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200.some(c => c.code === code && window.BabloAcademicEngine && window.BabloAcademicEngine.courseSemesterMatches(c, p) && c.semesterVerified === true);
+  return false;
 }
 
 /* ---------- Programme Cup ---------- */
 /* Event windows repeat every week. Times are Lagos time (UTC+1). day: 0 Sun .. 6 Sat. */
 const EVENT_WINDOWS = [
-  { day: 3, from: 19, to: 23, label: 'Wednesday night' },
-  { day: 6, from: 13, to: 17, label: 'Saturday afternoon' }
+  { day: 6, from: 0, to: 24, date: '2026-11-14', label: 'Saturday 14 November · all day' },
+  { day: 0, from: 0, to: 24, date: '2026-11-15', label: 'Sunday 15 November · all day' }
 ];
 const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 };
 /* Course weights. Equal weights mean no programme is favoured. Tune here if you decide on different weights. */
 const COURSE_WEIGHTS = { BIO: 1, CHM: 1, PHY: 1, COS: 1, AGR: 1, MTH101: 1, GST111: 1, GEL101: 1 };
-const CUP = { minPlayers: 3, topN: 5 };
+const CUP = { minPlayers: 3, topN: 3 };
 const PASS_MARK = 50;
-const ABOUT_TEXT = ["I am Bababola Moses Bolawaife, known as Bablo. I grew to like the nickname in my secondary school, and I still bear it today. I am the founder, CEO and MD of The MedConfidant Channel. I saw the gap long before I got there. My journey into MBBS was not a simple hurdle to pass through, and these challenges shaped who I am today. Without them, The MedConfidant would not have been made.", "Bablo Hub began as an MBBS programme hub, meant to grow from 100 Level through to graduation and to solve some of the study problems of preclinical students. I did not know how to code, so I turned to artificial intelligence. I do not depend on AI entirely for code, but I have found that it cuts the time needed to study a material. It almost feels like a cheat code.", "People often asked how I could do these things while studying MBBS. My dream had always been in technology, and, as destiny would have it, here I am.", "AI helps a great deal when you study, but it cannot replicate or explain medical learning the way someone who has been through a medical course can. I faced many limitations along the way, but I kept pressing on. My first project was my motivation to get into medical school. I still look at what I can achieve and those I can help with this journey, birthed by challenges and orchestrated by God.", "Whenever you want to give up on your dreams or give in to external pressure, remember that I, Bablo, built this as a medical student. Anyone can do anything."];
+const ABOUT_TEXT = ["I am Babalola Moses Boluwatife, known as Bablo. I grew to like the nickname in my secondary school, and I still bear it today. I am the founder, CEO and MD of The MedConfidant Channel. I saw the gap long before I got there. My journey into MBBS was not a simple hurdle to pass through, and these challenges shaped who I am today. Without them, The MedConfidant would not have been made.", "Bablo Hub began as an MBBS programme hub, meant to grow from 100 Level through to graduation and to solve some of the study problems of preclinical students. I did not know how to code, so I turned to artificial intelligence. I do not depend on AI entirely for code, but I have found that it cuts the time needed to study a material. It almost feels like a cheat code.", "People often asked how I could do these things while studying MBBS. My dream had always been in technology, and, as destiny would have it, here I am.", "AI helps a great deal when you study, but it cannot replicate or explain medical learning the way someone who has been through a medical course can. I faced many limitations along the way, but I kept pressing on. My first project was my motivation to get into medical school. I still look at what I can achieve and those I can help with this journey, birthed by challenges and orchestrated by God.", "Whenever you want to give up on your dreams or give in to external pressure, remember that I, Bablo, built this as a medical student. Anyone can do anything."];
 /* Bonus for GEL 101: Lean on Me. Summary and details from public synopses and the 2019/2020 exam key. Not from watching the film. */
 const BONUS_COS101 = {
   title: 'COS 101 Bonus · The Story of Computing',
@@ -1279,45 +1283,138 @@ const TIMETABLE_100_1 = [
 const TIMETABLE_NOTE = 'Course representatives for AGR 101 should meet the lecturer, as AGR 101 clashes with BUI-GEL 101 and GST 111.';
 /* 200 level courses. Each stays Pending until its questions, notes, practicals and labs are loaded. */
 const COURSES_200 = [
-  { code: 'ANA211', label: 'ANA 211', title: 'Embryology', color: '#B45309', units: 2, semester: 'first' },
-  { code: 'ANAT', label: 'ANAT', title: 'Anatomy (code to confirm)', color: '#B45309', units: 2, semester: 'first' },
-  { code: 'PHS', label: 'PHS', title: 'Physiology (code to confirm)', color: '#0E7490', units: 2, semester: 'first' },
-  { code: 'BCH', label: 'BCH', title: 'Biochemistry (code to confirm)', color: '#7C3AED', units: 2, semester: 'first' },
-  { code: 'HIST', label: 'HIST', title: 'Histology (code to confirm)', color: '#BE185D', units: 2, semester: 'first' }
+  { code: 'ANATOMY', label: 'Anatomy', title: 'Gross anatomy, embryology, histology and practical/dissection', color: '#B45309', units: 3, pending200: true, semesterVerified: false },
+  { code: 'PHYSIOLOGY', label: 'Physiology', title: 'Systems physiology, practicals, graphs and integrated mechanisms', color: '#0E7490', units: 3, pending200: true, semesterVerified: false },
+  { code: 'BIOCHEMISTRY', label: 'Biochemistry', title: 'Molecular biochemistry, metabolism, pathways and clinical correlations', color: '#7C3AED', units: 3, pending200: true, semesterVerified: false }
 ];
 const PROGRAMMES = ['MBBS', 'Nursing', 'Nutrition and Dietetics', 'Doctor of Physiotherapy (DPT)', 'Physiology', 'Anatomy', 'Biochemistry', 'Medical Laboratory Science', 'Public Health', 'Other CoHES programme', GUEST_PROGRAMME, 'Other / not listed'];
 const ACADEMIC_LEVELS = ['100L','200L','300L','400L','500L','600L','700L','Other'];
-function inferProgrammeCategory(programme) {
-  return PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
+function inferProgrammeCategory(programme, institution) {
+  const school = String(institution || '').trim().toLowerCase();
+  const isBowen = school === 'bowen university' || school === 'bowen' || school === 'bowen-university';
+  return isBowen && PROGRAMMES.includes(programme) && programme !== GUEST_PROGRAMME && programme !== 'Other / not listed' ? 'cohes' : 'other';
 }
-function academicProfileFields(profile) {
+function academicProfileFields(profile, surface) {
   const p = profile || {};
-  const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
-  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
-  const institution = h('input', { type: 'text', value: p.institution || 'Bowen University', maxlength: '100', placeholder: 'e.g. Bowen University' });
-  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || 'MBBS');
+  const mode = surface || 'signup';
+  let directory = Array.isArray(window.BABLO_UNIVERSITY_DIRECTORY) ? window.BABLO_UNIVERSITY_DIRECTORY : [
+    { slug: 'bowen-university', name: 'Bowen University', aliases: ['Bowen'] },
+    { slug: 'futa', name: 'Federal University of Technology, Akure', aliases: ['FUTA'] }
+  ];
+  const norm = value => String(value || '').trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
+  const currentInstitution = String(p.institution || '');
+  const currentEntry = directory.find(entry => [entry.name, entry.slug].concat(entry.aliases || []).some(alias => norm(alias) === norm(currentInstitution)));
+  const institution = h('select', null,
+    h('option', { value: '', disabled: true, selected: !currentEntry && !currentInstitution ? true : null }, 'Choose your university'),
+    ...directory.map(entry => h('option', { value: entry.slug, selected: currentEntry && currentEntry.slug === entry.slug ? true : null }, entry.name)),
+    h('option', { value: '__other__', selected: !currentEntry && currentInstitution ? true : null }, 'Other health-science university / request addition'));
+  const otherInstitution = h('input', { type: 'text', value: !currentEntry ? currentInstitution : '', maxlength: '100', placeholder: 'Enter your university name' });
+  const otherInstitutionField = h('label', { class: 'field' }, h('span', null, 'University name'), otherInstitution);
+  const selectedInstitution = () => {
+    if (institution.value === '__other__') return otherInstitution.value.trim();
+    const entry = directory.find(item => item.slug === institution.value);
+    return entry ? entry.name : '';
+  };
+  const selectedInstitutionSlug = () => institution.value && institution.value !== '__other__' ? institution.value : '';
+  otherInstitutionField.hidden = institution.value !== '__other__';
+  const refreshUniversityDirectory = async () => {
+    if (!authConfigured()) return;
+    try {
+      const rows = await hubCall('hub_list_health_institutions', {});
+      if (!Array.isArray(rows) || !rows.length) return;
+      const selected = institution.value;
+      const oldDirectory = directory;
+      directory = rows.map(row => Object.assign({}, oldDirectory.find(item => item.slug === row.slug) || {}, row));
+      institution.replaceChildren(
+        h('option', { value: '', disabled: true }, 'Choose your university'),
+        ...directory.map(entry => h('option', { value: entry.slug }, entry.name)),
+        h('option', { value: '__other__' }, 'Other health-science university / request addition')
+      );
+      institution.value = directory.some(entry => entry.slug === selected) ? selected : (selected ? '__other__' : '');
+      otherInstitutionField.hidden = institution.value !== '__other__';
+      if (institution.value === '__other__' && !otherInstitution.value && selected !== '__other__') {
+        const previous = oldDirectory.find(item => item.slug === selected);
+        if (previous) otherInstitution.value = previous.name;
+      }
+      syncPathway();
+      refreshProgrammeOptions();
+    } catch (e) { /* Keep the bundled directory available if the database is offline or migration is pending. */ }
+  };
+
+  const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
+  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' });
+  const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || '', currentInstitution);
   const category = h('select', null,
-    h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
+    h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, currentEntry && currentEntry.slug === 'bowen-university' ? 'College of Health Sciences (COHES)' : 'Health sciences programme'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
-  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Enter the exact BSc programme' });
-  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway (MBBS students, from 200L)'), pathway);
-  const syncPathway = () => { pathwayField.hidden = !(programme.value.trim().toUpperCase() === 'MBBS' && parseInt(level.value, 10) >= 200); };
-  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
+  const semester = h('select', null,
+    h('option', { value: '', disabled: true, selected: !p.academicSemester ? true : null }, 'Choose your semester'),
+    ...[['first','First semester'],['second','Second semester'],['summer','Summer semester'],['year-round','Year-round']].map(([value,label]) => h('option', { value, selected: p.academicSemester === value ? true : null }, label)));
+  const semesterField = h('label', { class: 'field' }, h('span', null, 'Current semester'), semester);
+  const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Choose/enter the BSc pathway' });
+  const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway'), pathway);
+  const bscEligible = () => {
+    const used = Array.isArray(DB && DB.landingOptionsUsed) ? DB.landingOptionsUsed : [];
+    const landingOptionsComplete = ['signup','login','guest'].every(option => used.includes(option));
+    return mode === 'profile' && landingOptionsComplete
+      && selectedInstitutionSlug() === 'bowen-university'
+      && programme.value.trim().toUpperCase() === 'MBBS'
+      && ['200L','300L','400L','500L','600L','700L'].includes(level.value);
+  };
+  const syncPathway = () => {
+    const eligible = bscEligible();
+    pathwayField.hidden = !eligible;
+    pathway.disabled = !eligible;
+    pathway.required = eligible;
+    if (!eligible) pathway.value = '';
+  };
+  const refreshProgrammeOptions = async () => {
+    const slug = selectedInstitutionSlug();
+    if (!slug || !authConfigured()) return;
+    try {
+      const rows = await hubCall('hub_list_academic_programmes', { p_institution_slug: slug });
+      if (Array.isArray(rows) && rows.length) {
+        suggestions.replaceChildren(...rows.map(row => h('option', { value: row.programme_name })));
+      }
+    } catch (e) { /* The directory RPC is added by the academic-engine migration; keep manual entry until it is available. */ }
+  };
+  let lastInstitution = selectedInstitutionSlug();
+  institution.addEventListener('change', () => {
+    otherInstitutionField.hidden = institution.value !== '__other__';
+    const nextInstitution = selectedInstitutionSlug();
+    if (nextInstitution !== lastInstitution) {
+      programme.value = '';
+      category.value = 'other';
+      lastInstitution = nextInstitution;
+    }
+    syncPathway();
+    refreshProgrammeOptions();
+  });
+  otherInstitution.addEventListener('input', syncPathway);
+  programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim(), selectedInstitution()); syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
+  refreshUniversityDirectory();
+  if (selectedInstitutionSlug()) refreshProgrammeOptions();
   return {
-    nodes: [h('label', { class: 'field' }, h('span', null, 'Programme'), programme), suggestions,
+    nodes: [
+      h('label', { class: 'field' }, h('span', null, 'Faculty / Programme'), programme), suggestions,
       h('label', { class: 'field' }, h('span', null, 'Academic group'), category),
-      h('label', { class: 'field' }, h('span', null, 'Institution'), institution),
-      h('label', { class: 'field' }, h('span', null, 'Current level'), level), pathwayField],
+      h('label', { class: 'field' }, h('span', null, 'University'), institution),
+      otherInstitutionField,
+      h('p', { class: 'tiny muted' }, 'The directory lists universities with documented health-science offerings. Programme and course access still depends on the verified catalogue for that institution.'),
+      h('label', { class: 'field' }, h('span', null, 'Current level'), level), semesterField, pathwayField
+    ],
     read: () => ({
       programme: programme.value.trim(),
       programmeCategory: category.value,
-      institution: institution.value.trim(),
+      institution: selectedInstitution(),
       level: level.value,
-      bscPathway: pathway.value.trim()
-    })
+      academicSemester: semester.value,
+      bscPathway: bscEligible() ? pathway.value.trim() : ''
+    }),
+    isBscPathwayRequired: bscEligible
   };
 }
 
@@ -1826,8 +1923,8 @@ function setAccount(j) {
   DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium };
   DB.profile = {
     name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme,
-    programmeCategory: j.programmeCategory || inferProgrammeCategory(j.programme),
-    institution: j.institution || 'Bowen University', level: j.academicLevel || '100L',
+    programmeCategory: j.programmeCategory || inferProgrammeCategory(j.programme, j.institution),
+    institution: j.institution || '', level: j.academicLevel || '100L', academicSemester: j.academicSemester || '',
     bscPathway: j.bscPathway || '', academicDetailsVerified: !!j.academicDetailsVerified,
     isGuest: !!j.isGuest, uid: j.uniqueId
   };
@@ -1837,12 +1934,12 @@ async function persistAcademicProfile(data) {
   const payload = {
     p_institution: data.institution, p_programme: data.programme,
     p_programme_category: data.programmeCategory, p_academic_level: data.level,
-    p_bsc_pathway: data.bscPathway || null
+    p_academic_semester: data.academicSemester, p_bsc_pathway: data.bscPathway || null
   };
   if (authConfigured()) {
     let result;
-    if (signedIn()) result = await hubCall('hub_save_academic_profile', Object.assign({ p_token: DB.account.token }, payload));
-    else result = await hubCall('hub_save_guest_academic_profile', Object.assign({ p_anon_id: DB.dev }, payload));
+    if (signedIn()) result = await hubCall('hub_save_academic_profile_v2', Object.assign({ p_token: DB.account.token }, payload));
+    else result = await hubCall('hub_save_guest_academic_profile_v2', Object.assign({ p_anon_id: DB.dev }, payload));
     if (!result || !result.ok) throw new Error((result && result.error) || 'Could not save academic details.');
   }
   DB.profile = Object.assign({}, DB.profile || {}, data);
@@ -1858,6 +1955,7 @@ async function signUp(f) {
   if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
   if (!f.programme || f.programme.length < 2) throw new Error('Enter your programme.');
   if (!f.institution || f.institution.length < 2) throw new Error('Enter your institution.');
+  if (!['first','second','summer','year-round'].includes(f.academicSemester)) throw new Error('Choose your current semester.');
   const reg = await hubCall('hub_register', {
     p_unique_id: null, p_password: f.password, p_full_name: f.name,
     p_nickname: f.nickname, p_programme: f.programme, p_is_guest: false
@@ -1918,7 +2016,7 @@ function trackEvent(type, extra) {
 }
 
 ;
-/* Bablo 100L Hub - UI part 1: helpers, state, home, course, setup */
+/* Bablo Hub - UI part 1: helpers, state, home, course, setup */
 /* COS 101 +++ question bank: load before BANK and BYC are built. */
 /* COS 101 +++ question bank extracted from uploaded PDF. Load after window.__BANK__ is initialised. */
 window.__BANK__.push(...[{"i":"COSPLUS-2026-001","c":"COS","u":"COS 101 +++","s":"mcq","q":"A tally stick is best described as","o":["A mechanical adding machine","A piece of wood or bone notched to record a count","A set of beads on rods","A punched card"],"a":1},{"i":"COSPLUS-2026-002","c":"COS","u":"COS 101 +++","s":"mcq","q":"The Incan quipu recorded numbers using","o":["Punched cards","Clay tokens","Beads on rods","Knotted cords"],"a":3},{"i":"COSPLUS-2026-003","c":"COS","u":"COS 101 +++","s":"mcq","q":"The abacus is believed to have originated in Mesopotamia around:","o":["2700-2300 BCE","1000 CE","1642 CE","1890 CE"],"a":0},{"i":"COSPLUS-2026-004","c":"COS","u":"COS 101 +++","s":"mcq","q":"Who built the Pascaline, a mechanical adding machine, in 1642?","o":["Gottfried Leibniz","Charles Babbage","Blaise Pascal","Herman Hollerith"],"a":2},{"i":"COSPLUS-2026-005","c":"COS","u":"COS 101 +++","s":"mcq","q":"Leibniz's Stepped Reckoner extended the Pascaline by also being able to:","o":["Store programs","Multiply and divide","Read punched cards","Connect to the Internet"],"a":1},{"i":"COSPLUS-2026-006","c":"COS","u":"COS 101 +++","s":"mcq","q":"Which person is often called the ‘father of the computer'?","o":["Herman Hollerith","Alan Turing","George Boole","Charles Babbage"],"a":3},{"i":"COSPLUS-2026-007","c":"COS","u":"COS 101 +++","s":"mcq","q":"Babbage Difference Engine was intended to:","o":["Automatically compute mathematical tables and eliminate human transcription errors","Process the 1890 US census","Break the German Enigma cipher","Run business software"],"a":0},{"i":"COSPLUS-2026-008","c":"COS","u":"COS 101 +++","s":"mcq","q":"In Babbage's Analytical Engine, the ‘mill' is equivalent to today's:","o":["Memory","Keyboard","Processor","Monitor"],"a":2},{"i":"COSPLUS-2026-009","c":"COS","u":"COS 101 +++","s":"mcq","q":"Ada Lovelace wrote what is widely regarded as the first computer algorithm, which computed?","o":["Prime numbers","Bernoulli numbers","Census tables","Binary codes"],"a":1},{"i":"COSPLUS-2026-010","c":"COS","u":"COS 101 +++","s":"mcq","q":"Hollerith's tabulating system cut the processing time of the 1890 US census from about eight years to about:","o":["Eight months","Four years","Ten years","One year"],"a":3},{"i":"COSPLUS-2026-011","c":"COS","u":"COS 101 +++","s":"mcq","q":"ENIAC, completed in 1945, was built at the:","o":["University of Cambridge","Bletchley Park","University of Pennsylvania","Bell Labs"],"a":2},{"i":"COSPLUS-2026-012","c":"COS","u":"COS 101 +++","s":"mcq","q":"ENIAC contained roughly how many vacuum tubes?","o":["1,800","18,000","180","180,000"],"a":1},{"i":"COSPLUS-2026-013","c":"COS","u":"COS 101 +++","s":"mcq","q":"First-generation computers were programmed by:","o":["Typing commands on a keyboard","Using graphical icons","Speaking to the machine","Physically rewiring plugboards"],"a":3},{"i":"COSPLUS-2026-014","c":"COS","u":"COS 101 +++","s":"mcq","q":"The transistor was invented at Bell Labs in","o":["1947","1964","1971","1984"],"a":0},{"i":"COSPLUS-2026-015","c":"COS","u":"COS 101 +++","s":"mcq","q":"Which high-level languages were introduced in the second generation?","o":["Python and Java","COBOL and FORTRAN","C+ and Swift","HTML and CSS"],"a":1},{"i":"COSPLUS-2026-016","c":"COS","u":"COS 101 +++","s":"mcq","q":"The IBM System/360 (1964) introduced the influential idea of:","o":["A portable laptop","A graphical interface","A pocket calculator","A compatible family of computers spanning a range of performance levels"],"a":3},{"i":"COSPLUS-2026-017","c":"COS","u":"COS 101 +++","s":"mcq","q":"The Intel 4004 (1971) was the first commercially available ____.","o":["Microprocessor","Transistor","Personal computer","Vacuum tube"],"a":0},{"i":"COSPLUS-2026-018","c":"COS","u":"COS 101 +++","s":"mcq","q":"Which fourth- generation machine popularised the graphical user interface in 1984?","o":["Altair 8800","IBM PC","Apple Macintosh","ENIAC"],"a":2},{"i":"COSPLUS-2026-019","c":"COS","u":"COS 101 +++","s":"mcq","q":"The fifth generation of computing is generally associated with:","o":["Vacuum tubes","Artificial intelligence and massively parallel processing","Transistors","Plugboards"],"a":1},{"i":"COSPLUS-2026-020","c":"COS","u":"COS 101 +++","s":"mcq","q":"George Boole's 1854 work was titled:","o":["A Symbolic Analysis of Relay and Switching Circuits","On Computable Numbers","Computing Machinery and intelligence","An investigation of the Laws of Thought"],"a":3},{"i":"COSPLUS-2026-021","c":"COS","u":"COS 101 +++","s":"mcq","q":"Claude Shannon's 1937 thesis showed that Boolean algebra could be used to design ____.","o":["Electrical switching circuits","Printing presses","Mechanical gears","Punched cards"],"a":0},{"i":"COSPLUS-2026-022","c":"COS","u":"COS 101 +++","s":"mcq","q":"Alan Turing's 1936 paper formally defined what it means for a problem to be","o":["Profitable","Printable","Computable","Portable"],"a":2},{"i":"COSPLUS-2026-023","c":"COS","u":"COS 101 +++","s":"mcq","q":"Moore's Law observes that the number of transistors on an integrated circuit doubles approximately every:","o":["Week","Century","One to two years","Fifty years"],"a":2},{"i":"COSPLUS-2026-024","c":"COS","u":"COS 101 +++","s":"mcq","q":"Konrad Zuse' Z3 (1941) used which switching technology?","o":["Vacuum tubes","Microprocessors","Integrated circuits","Electromechanical relays"],"a":3},{"i":"COSPLUS-2026-025","c":"COS","u":"COS 101 +++","s":"mcq","q":"The Altair 8800 (1975) directly inspired Bill Gates and Paul Allen to write","o":["ABASIC interpreter","A web browser","A graphical interface","A compiler for COBOL"],"a":0},{"i":"COSPLUS-2026-026","c":"COS","u":"COS 101 +++","s":"mcq","q":"The defining feature of a computer is its capacity to execute stored, general-purpose instructions, a property called ____.","o":["Volatility","Programmability","Portability","Connectivity"],"a":1},{"i":"COSPLUS-2026-027","c":"COS","u":"COS 101 +++","s":"mcq","q":"The four functional components of the Von Neumann model are","o":["CPU, main memory, input devices and output devices","Monitor, keyboard, mouse and printer","Hardware, software, humanware and network","ALU, cache, registers and bus"],"a":0},{"i":"COSPLUS-2026-028","c":"COS","u":"COS 101 +++","s":"mcq","q":"A key feature of the Von Neumann model is that it stores:","o":["Data in the CPU only","instructions on paper","Programs on the motherboard only","Both program instructions and data in the same memory"],"a":3},{"i":"COSPLUS-2026-029","c":"COS","u":"COS 101 +++","s":"mcq","q":"The communication pathway connecting the components of a computer is called the:","o":["Port","Bus","Driver","Cache"],"a":1},{"i":"COSPLUS-2026-030","c":"COS","u":"COS 101 +++","s":"mcq","q":"The control unit (CU):","o":["Performs all arithmetic","Stores files permanently","Fetches and decodes instructions and directs operations without calculating self","Displays output"],"a":2},{"i":"COSPLUS-2026-031","c":"COS","u":"COS 101 +++","s":"mcq","q":"The ALU performs:","o":["Arithmetic and logical operations","Printing","Data storage","Network routing"],"a":0},{"i":"COSPLUS-2026-032","c":"COS","u":"COS 101 +++","s":"mcq","q":"Registers are","o":["Large, slow storage devices","Removable drives","Part of the motherboard's ports","Small, extremely fast storage locations built into the CPU"],"a":3},{"i":"COSPLUS-2026-033","c":"COS","u":"COS 101 +++","s":"mcq","q":"Cache memory (L1, L2, L3) is:","o":["Slower than RAM","Faster than RAM but slower than registers","Non-volatile","The same as secondary storage"],"a":1},{"i":"COSPLUS-2026-034","c":"COS","u":"COS 101 +++","s":"mcq","q":"The correct order of the machine (instruction) cycle is:","o":["Store, fetch, decode, execute","Execute, decode, fetch, store","Fetch, decode, execute, store","Decode, store, fetch, execute"],"a":2},{"i":"COSPLUS-2026-035","c":"COS","u":"COS 101 +++","s":"mcq","q":"CPU clock speed is measured in","o":["Gigahertz (GHz)","Gigabytes (GB)","Pixels","Watts"],"a":0},{"i":"COSPLUS-2026-036","c":"COS","u":"COS 101 +++","s":"mcq","q":"Which common misconception does the guide correct?","o":["More cores always mean slower computers","Clock speed alone determines overall performance","RAM is non-volatile","SSDs have moving parts"],"a":1},{"i":"COSPLUS-2026-037","c":"COS","u":"COS 101 +++","s":"mcq","q":"RAM is described as volatile\" because its contents are!","o":["Lost when power is removed","Permanently stored","Read-only","Stored magnetically"],"a":0},{"i":"COSPLUS-2026-038","c":"COS","u":"COS 101 +++","s":"mcq","q":"Random access' means that:","o":["Data is stored in random order","Memory must be read sequentially","Any memory location can be read or written in roughly the same time","Memory is accessed only at random times"],"a":2},{"i":"COSPLUS-2026-039","c":"COS","u":"COS 101 +++","s":"mcq","q":"ROM mainly stores:","o":["User documents","Firmware such as BIOS/UEFI needed to start the computer","Running applications","Web pages"],"a":1},{"i":"COSPLUS-2026-040","c":"COS","u":"COS 101 +++","s":"mcq","q":"The motherboard is:","o":["The main printed circuit board that houses and interconnects core components","A type of printer","An input device","A storage drive"],"a":0},{"i":"COSPLUS-2026-041","c":"COS","u":"COS 101 +++","s":"mcq","q":"The three logical parts of the system bus are'","o":["Input, process, output","CPU, RAM, ROM","Data bus, address bus and control bus","Read, write, delete"],"a":2},{"i":"COSPLUS-2026-042","c":"COS","u":"COS 101 +++","s":"mcq","q":"The address bus carries","o":["The actual data being transferred","The memory location to read from or write to","Timing and direction signals","Electrical power"],"a":1},{"i":"COSPLUS-2026-043","c":"COS","u":"COS 101 +++","s":"mcq","q":"Cloud storage moves the physical storage media","o":["Inside the CPU","Onto the motherboard","Onto remote servers accessed over the Internet","Into the keyboard"],"a":2},{"i":"COSPLUS-2026-044","c":"COS","u":"COS 101 +++","s":"mcq","q":"Computers use binary rather than decimal because:","o":["Binary is easier for humans to read","Digital circuits can reliably distinguish two clear voltage states","Decimal is legal in computing","Binary uses fewer letters"],"a":1},{"i":"COSPLUS-2026-045","c":"COS","u":"COS 101 +++","s":"mcq","q":"Eight bits form one","o":["Kilobyte","Nibble","Word","Byte"],"a":3},{"i":"COSPLUS-2026-046","c":"COS","u":"COS 101 +++","s":"mcq","q":"The dominant text-encoding standard on the modern Internet is:","o":["ASCII only","Morse code","Unicode (UTF-8)","Hexadecimal"],"a":2},{"i":"COSPLUS-2026-047","c":"COS","u":"COS 101 +++","s":"mcq","q":"Multicore processors deliver their full benefit only for software that:","o":["Is written to divide its work across cores in parallel","Is very old","Runs offline","Uses no memory"],"a":0},{"i":"COSPLUS-2026-048","c":"COS","u":"COS 101 +++","s":"mcq","q":"GPUs used for modern AI are built with:","o":["A single complex core","No cores","Only registers","Hundreds or thousands of simpler cores"],"a":3},{"i":"COSPLUS-2026-049","c":"COS","u":"COS 101 +++","s":"mcq","q":"In the memory hierarchy, the fastest and most expensive storage per byte is:","o":["Secondary storage","RAM","CPU registers","Cloud storage"],"a":2},{"i":"COSPLUS-2026-050","c":"COS","u":"COS 101 +++","s":"mcq","q":"Adding more RAM can speed up a slow computer mainly because it:","o":["Increases the monitor size","Reduces paging/swapping to slower secondary storage","increases clock speed","Replaces the CPU"],"a":1},{"i":"COSPLUS-2026-051","c":"COS","u":"COS 101 +++","s":"mcq","q":"Peripherals are conventionally classified into:","o":["Input, output and storage","Hardware, software and humanware","Internal, external and virtual","Wired, wireless and optical"],"a":0},{"i":"COSPLUS-2026-052","c":"COS","u":"COS 101 +++","s":"mcq","q":"The QWERTY layout was originally designed partly to:","o":["Increase typing speed","Support Braille users","Save electricity","Reduce the jamming of mechanical typewriter arms"],"a":3},{"i":"COSPLUS-2026-053","c":"COS","u":"COS 101 +++","s":"mcq","q":"Modern mice use:","o":["Optical or laser sensors","Mechanical balls only","Magnetic tape","Infrared printers"],"a":0},{"i":"COSPLUS-2026-054","c":"COS","u":"COS 101 +++","s":"mcq","q":"Optical Character Recognition (OCR) software converts:","o":["Speech into text","Text into speech","Scanned text images into editable, searchable text","Colour images into black and white"],"a":2},{"i":"COSPLUS-2026-055","c":"COS","u":"COS 101 +++","s":"mcq","q":"Barcode and QR-code readers are a specialised form of","o":["Audio output","Storage","Haptic feedback","Optical input"],"a":3},{"i":"COSPLUS-2026-056","c":"COS","u":"COS 101 +++","s":"mcq","q":"Webcams are increasingly used for biometric authentication such as","o":["Voice dictation","Facial recognition","Printing","Data backup"],"a":1},{"i":"COSPLUS-2026-057","c":"COS","u":"COS 101 +++","s":"mcq","q":"Which sequence correctly shows the evolution of display technology?","o":["CRT, LCD, LED/OLED","LED, CRT, LOD","OLED, LCD, CRT","LCD, CRT, OLED"],"a":0},{"i":"COSPLUS-2026-058","c":"COS","u":"COS 101 +++","s":"mcq","q":"Plotters are commonly used in:","o":["Email servers","Engineering, architecture and GIS for precise line work","Voice recording","Gaming consoles"],"a":1},{"i":"COSPLUS-2026-059","c":"COS","u":"COS 101 +++","s":"mcq","q":"A refreshable Braille display renders text as","o":["Sound","Colour","Light pulses","Raised dots read by touch"],"a":3},{"i":"COSPLUS-2026-060","c":"COS","u":"COS 101 +++","s":"mcq","q":"Which of these devices performs both input and output?","o":["Touchscreen","Microphone","Speaker","Barcode reader"],"a":0},{"i":"COSPLUS-2026-061","c":"COS","u":"COS 101 +++","s":"mcq","q":"HDMI is the dominant interface for carrying ____.","o":["Email","Power only","Printer data","Combined digital video and audio"],"a":3},{"i":"COSPLUS-2026-062","c":"COS","u":"COS 101 +++","s":"mcq","q":"The \"20-20-20\" guideline advises looking at something about 20 feet away:","o":["Every 20 minutes for at least 20 seconds","Every 20 seconds for 20 minutes","Every 20 hours for 20 minutes","Every 20 days for 20 seconds"],"a":0},{"i":"COSPLUS-2026-063","c":"COS","u":"COS 101 +++","s":"mcq","q":"An office printing hundreds of black-and-white text pages daily is generally best served by a:","o":["Plotter","Laser printer","3D printer","Inkjet photo printer"],"a":1},{"i":"COSPLUS-2026-064","c":"COS","u":"COS 101 +++","s":"mcq","q":"Fingerprint scanners are examples of","o":["Output devices","Storage peripherals","Biometric input devices","Haptic devices"],"a":2},{"i":"COSPLUS-2026-065","c":"COS","u":"COS 101 +++","s":"mcq","q":"Haptic feedback devices communicate information through","o":["Sight","Sound","Smell","Touch"],"a":3}]);
@@ -1980,14 +2078,13 @@ let HOME_SEM = 'first';
 const homeCourses = () => {
   const p = DB.profile || {};
   const levelNumber = parseInt(p.level || '100L', 10) || 100;
-  const category = p.programmeCategory || inferProgrammeCategory(p.programme);
-  const institution = String(p.institution || 'Bowen University').trim().toLowerCase();
-  const BowenCohes = category === 'cohes' && institution.includes('bowen');
-  if (levelNumber === 200 && BowenCohes) {
-    return COURSES_200.filter(c => c.semester === HOME_SEM).map(c => Object.assign({}, c, { pending200: true }));
-  }
-  if (levelNumber >= 200 && !BowenCohes) return coursesFor(p.programme).filter(c => CORE_COURSES.includes(c.code));
-  return coursesFor(p.programme);
+  const institution = String(p.institution || '').trim().toLowerCase();
+  const isBowen = institution === 'bowen university' || institution === 'bowen' || institution === 'bowen-university';
+  const programme = String(p.programme || '').trim().toUpperCase();
+  if (!isBowen) return [];
+  if (levelNumber === 100) return coursesFor(p.programme);
+  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200;
+  return [];
 };
 function open200(code, tab) { course200View.tab = tab; go('#/course/' + code); }
 
@@ -2193,8 +2290,19 @@ function route() {
   stopTimer();
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
+  const entryAuth = new URLSearchParams(location.search).get('auth');
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
+  if (entryAuth === 'login' || entryAuth === 'signup') {
+    window.ACCOUNT_MODE = entryAuth;
+    mount(wrap(h('div', { class: 'stack-l' },
+      h('h1', null, 'Welcome to Bablo Hub'),
+      accountSection(),
+      h('button', { class: 'btn ghost block', onclick: () => { history.replaceState(null, '', location.pathname); route(); } }, 'Back to welcome')
+    )));
+    renderNav(null);
+    return;
+  }
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
@@ -2249,13 +2357,14 @@ function route() {
 function onboarding() {
   const name = h('input', { type: 'text', maxlength: '40', placeholder: 'e.g. Omotoyosi Bablo', autocomplete: 'name' });
   const nick = h('input', { type: 'text', maxlength: '20', placeholder: 'Shown on the leaderboard' });
-  const academic = academicProfileFields({ programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const academic = academicProfileFields({ programme: '', programmeCategory: 'other', institution: '', level: '100L' }, 'signup');
   const err = h('p', { class: 'small', style: { color: 'var(--bad)' }, role: 'alert' });
   const sub = async () => {
     const n = name.value.trim();
     if (n.length < 2) { err.textContent = 'Enter your name so we can greet you.'; return; }
     const details = academic.read();
     if (details.programme.length < 2 || details.institution.length < 2) { err.textContent = 'Enter your programme and institution.'; return; }
+    if (!['first','second','summer','year-round'].includes(details.academicSemester)) { err.textContent = 'Choose your current semester.'; return; }
     const k = (nick.value.trim() || n.split(' ')[0]).slice(0, 20);
     DB.profile = Object.assign({ name: n, nick: k, isGuest: true }, details);
     save();
@@ -2265,7 +2374,7 @@ function onboarding() {
     route();
   };
   modal(h('div', { class: 'stack' }, h('h2', null, 'Welcome to Bablo Hub'),
-    h('p', { class: 'muted' }, 'Bablo Hub is COHES-first. 100L access is open across programmes and institutions; higher-level COHES access follows the platform’s academic scope.'),
+    h('p', { class: 'muted' }, 'Choose your university, programme and level. Bablo Hub will shape your academic workspace around that academic identity.'),
     h('label', { class: 'field' }, h('span', null, 'Your name'), name),
     h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
     ...academic.nodes,
@@ -2326,15 +2435,32 @@ function openHubMenu(){
 }
 function dashboardCard(title,desc,icon,href,accent){return h('a',{class:'dashboard-card',href,style:{'--card-accent':accent||'var(--gold)'}},h('span',{class:'dashboard-card-icon','aria-hidden':'true'},icon),h('span',{class:'dashboard-card-copy'},h('b',null,title),h('small',null,desc)),h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'›'))}
 let EXAM_SCHEDULE_CACHE = null;
+function filterExamScheduleForProfile(rows) {
+  const profile = DB.profile || {};
+  const normIdentity = value => String(value || '').trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const institution = normIdentity(profile.institution);
+  const level = String(profile.level || '').trim();
+  const programme = normIdentity(profile.programme);
+  return (Array.isArray(rows) ? rows : []).filter(row => {
+    const rowInstitution = normIdentity(row.institution_slug);
+    const rowLevel = String(row.academic_level || '').trim();
+    const rowProgramme = normIdentity(row.programme);
+    if (!institution || !level || !rowInstitution || !rowLevel) return false;
+    if (institution !== rowInstitution || level !== rowLevel) return false;
+    return !rowProgramme || rowProgramme === programme;
+  });
+}
 async function fetchPublicExamSchedule() {
-  if (Array.isArray(EXAM_SCHEDULE_CACHE)) return EXAM_SCHEDULE_CACHE;
   try {
-    const r = await fetch(LB.url + '/rest/v1/rpc/hub_public_exam_schedule', { method: 'POST', headers: sbHeaders(), body: '{}' });
-    if (!r.ok) throw new Error('Schedule unavailable (' + r.status + ')');
-    const rows = await r.json();
-    EXAM_SCHEDULE_CACHE = Array.isArray(rows) ? rows : [];
-    maybeExamSchedulePush(EXAM_SCHEDULE_CACHE);
-    return EXAM_SCHEDULE_CACHE;
+    if (!Array.isArray(EXAM_SCHEDULE_CACHE)) {
+      const r = await fetch(LB.url + '/rest/v1/rpc/hub_public_exam_schedule', { method: 'POST', headers: sbHeaders(), body: '{}' });
+      if (!r.ok) throw new Error('Schedule unavailable (' + r.status + ')');
+      const rows = await r.json();
+      EXAM_SCHEDULE_CACHE = Array.isArray(rows) ? rows : [];
+    }
+    const visibleRows = filterExamScheduleForProfile(EXAM_SCHEDULE_CACHE);
+    maybeExamSchedulePush(visibleRows);
+    return visibleRows;
   } catch (e) { console.warn('[Exam schedule]', e); return []; }
 }
 function examScheduleDate(row) {
@@ -2342,7 +2468,7 @@ function examScheduleDate(row) {
   return new Date(row.scheduled_date + 'T00:00:00+01:00').toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
 }
 function maybeExamSchedulePush(rows) {
-  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   DB.examPushSent = DB.examPushSent || {};
   const now = Date.now();
   rows.forEach(row => {
@@ -2445,11 +2571,11 @@ function homeView() {
 function coursesCatalogueView(){
  const p=DB.profile,L200=p&&p.level==='200L';
  const list=homeCourses().filter(c=>canAccessCourse(c.code)).map(c=>{const ok=isAvail(c),n=ok?BYC[c.code].length:0;
-  return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Questions'):go('#/course/'+c.code)},
+  return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Overview'):go('#/course/'+c.code)},
    h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
  });
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Choose a course to open its dashboard and learning resources.')),
- h('section',{class:'catalogue-grid'},...list)));
+ list.length ? h('section',{class:'catalogue-grid'},...list) : h('section',{class:'panel stack'},h('span',{class:'chip gold'},'Catalogue setup'),h('h2',null,'No verified courses mapped yet'),h('p',{class:'muted'},'Your university, programme and level are saved. Course materials will appear when their verified curriculum mappings are added. Bablo Hub will not substitute another university’s content.'))));
 }
 function timeHubView(){
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Time & Productivity'),h('p',{class:'muted'},'Plan your academic week and protect your study time.')),
@@ -2571,7 +2697,7 @@ function startSession(o) {
 }
 
 ;
-/* Bablo 100L Hub - UI part 2: run, result, leaderboard, GPA lab, profile, boot */
+/* Bablo Hub - UI part 2: run, result, leaderboard, GPA lab, profile, boot */
 const correctText = q => q.type === 'fill' ? q.acc[0] : q.opts[q.ans];
 const answerText = (q, a) => a == null || a === '' ? 'Skipped' : q.type === 'fill' ? String(a) : q.opts[a];
 const band = pct => pct >= 70 ? 'high' : pct >= 50 ? 'mid' : 'low';
@@ -2803,8 +2929,7 @@ function meView() {
   const account = DB.account || {};
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
-  const academic = academicProfileFields(p);
-  const faculty = h('input', { type: 'text', value: p.faculty || '', maxlength: '100', placeholder: 'e.g. College of Health Sciences' });
+  const academic = academicProfileFields(p, 'profile');
   const department = h('input', { type: 'text', value: p.department || '', maxlength: '100', placeholder: 'e.g. Medicine & Surgery' });
   const academicSession = h('input', { type: 'text', value: p.academicSession || '', maxlength: '30', placeholder: 'e.g. 2026/2027' });
   const status = h('p', { class: 'tiny muted', role: 'status', 'aria-live': 'polite' });
@@ -2851,19 +2976,17 @@ function meView() {
       h('div', { class: 'row between wrapr' }, h('h2', null, 'Academic identity'), h('span', { class: 'chip' }, p.programmeCategory === 'cohes' ? 'COHES' : 'Other programme')),
       h('div', { class: 'grid' },
         h('div', null, h('span', { class: 'tiny muted' }, 'Institution'), h('b', { style: { display: 'block' } }, p.institution || 'Not provided')),
-        h('div', null, h('span', { class: 'tiny muted' }, 'Programme'), h('b', { style: { display: 'block' } }, p.programme || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'Faculty / Programme'), h('b', { style: { display: 'block' } }, p.programme || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Current level'), h('b', { style: { display: 'block' } }, p.level || 'Not provided')),
-        h('div', null, h('span', { class: 'tiny muted' }, 'Faculty'), h('b', { style: { display: 'block' } }, p.faculty || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Department'), h('b', { style: { display: 'block' } }, p.department || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Academic session'), h('b', { style: { display: 'block' } }, p.academicSession || 'Not provided')),
-        h('div', null, h('span', { class: 'tiny muted' }, 'BSc pathway'), h('b', { style: { display: 'block' } }, p.bscPathway || '—'))),
+        ...(academic.isBscPathwayRequired() ? [h('div', null, h('span', { class: 'tiny muted' }, 'BSc pathway'), h('b', { style: { display: 'block' } }, p.bscPathway || 'Not selected'))] : [])),
       h('p', { class: 'tiny muted' }, 'These details describe your academic profile; they are not proof of institutional enrolment.')),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Edit profile'),
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
       ...academic.nodes,
-      h('label', { class: 'field' }, h('span', null, 'Faculty (optional)'), faculty),
       h('label', { class: 'field' }, h('span', null, 'Department (optional)'), department),
       h('label', { class: 'field' }, h('span', null, 'Academic session (optional)'), academicSession),
       status,
@@ -2872,9 +2995,11 @@ function meView() {
         if (n.length < 2) { status.textContent = 'Enter your name.'; return; }
         const details = academic.read();
         if (details.programme.length < 2 || details.institution.length < 2) { status.textContent = 'Enter both your programme and institution.'; return; }
+        if (!['first','second','summer','year-round'].includes(details.academicSemester)) { status.textContent = 'Choose your current semester.'; return; }
+        if (academic.isBscPathwayRequired() && !details.bscPathway) { status.textContent = 'Choose the BSc pathway for Bowen MBBS students in 200L and above.'; return; }
         DB.profile = Object.assign({}, DB.profile, {
           name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20),
-          faculty: faculty.value.trim(), department: department.value.trim(),
+          faculty: details.programme, department: department.value.trim(),
           academicSession: academicSession.value.trim()
         });
         try {
@@ -2888,7 +3013,7 @@ function meView() {
   )));
 }
 
-/* Bablo 100L Hub - UI part 4: Weak Spots and Chess */
+/* Bablo Hub - UI part 4: Weak Spots and Chess */
 
 /* ---------- Weak Spots ---------- */
 function weakTopics() {
@@ -3574,7 +3699,7 @@ async function loadAnalytics(pass, container) {
 }
 
 ;
-/* Bablo 100L Hub - UI part 3: Social Corner, feedback, GPA lab with added courses, boot */
+/* Bablo Hub - UI part 3: Social Corner, feedback, GPA lab with added courses, boot */
 
 /* ---------- live helpers (Supabase REST, publishable key only) ---------- */
 const liveOn = () => !!LB.url;
@@ -3780,7 +3905,7 @@ function cupView() {
   const standings = h('section', { class: 'panel stack' }, h('h2', null, SEASON.name + ' overall'), h('p', { class: 'muted' }, 'Loading standings\u2026'));
   mount(wrap(back('#/board', 'Leaderboard'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Programme Cup'), h('p', { class: 'muted' }, 'Every programme takes part. Your best ranked score in each course counts. The programme score is the average of its top ' + CUP.topN + ' players, so one person cannot carry a whole programme.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label + ' ' + String(w.from).padStart(2, '0') + ':00 to ' + String(w.to).padStart(2, '0') + ':00').join(' \u2022 ') + '. Repeats every week.'), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
+    h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label).join(' · ') + ' (Lagos time).'), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
     standings, pollCard(), h('div', { id: 'qualSlot' }))));
   qualifiersCard().then(card => { const slot = document.getElementById('qualSlot'); if (slot) slot.replaceChildren(card); });
   lbFetch().then(d => {
@@ -3863,7 +3988,7 @@ function accountSection() {
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
   const nick = h('input', { type: 'text', value: (DB.profile && DB.profile.nick) || '', placeholder: 'Nickname (shows on boards)', maxlength: '20' });
-  const academic = academicProfileFields(DB.profile || { programme: 'MBBS', programmeCategory: 'cohes', institution: 'Bowen University', level: '100L' });
+  const academic = academicProfileFields(DB.profile || { programme: '', programmeCategory: 'other', institution: '', level: '100L' }, 'signup');
   const pass = h('input', { type: 'password', placeholder: 'Password (8–128 characters)', autocomplete: 'new-password' });
   const loginId = h('input', { type: 'text', placeholder: 'Your ID, e.g. MBB-7342', maxlength: '12', style: { textTransform: 'uppercase' } });
   const loginPass = h('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
@@ -3932,16 +4057,39 @@ function programmesView() {
 /* ---------- calendar, tests, and Pomodoro timer ---------- */
 const PLAN_KEY = 'plan';
 const PLAN_DEFAULTS = [
-  { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.' },
-  { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.' },
-  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.' }
+  { id: 'gel-ca-mbbs', title: 'BUI-GEL 101 C.A. (MBBS group)', date: '2026-10-19', time: '10:00', note: 'CBT Centre. Arrive by 9:30am. No bags, phones or smart watches. Bring your school ID.', scope: { institution: 'bowen-university', level: '100L', programme: 'MBBS' } },
+  { id: 'lib-test', title: 'BUI-LIB 101 test', date: '2026-10-20', time: '09:00', note: 'Tuesday. Time to confirm.', scope: { institution: 'bowen-university', level: '100L' } },
+  { id: 'agr-test', title: 'AGR 101 test', date: '2026-11-20', time: '10:00', note: 'Friday 20 November, 10am.', scope: { institution: 'bowen-university', level: '100L', programme: 'MBBS' } }
 ];
+const RETIRED_TEST_EVENT_IDS = new Set([
+  'gst-test','gst111-test','test-gst111-2026',
+  'mth-test','mth101-test','maths-test','test-mth101-2026',
+  'cos-test','cos101-test','test-cos101-2026'
+]);
+function planEventVisibleForProfile(ev) {
+  const scope = ev && ev.scope;
+  if (!scope) return true;
+  const profile = DB.profile || {};
+  const norm = value => String(value || '').trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  if (scope.institution && norm(profile.institution) !== norm(scope.institution)) return false;
+  if (scope.level && String(profile.level || '').trim() !== String(scope.level).trim()) return false;
+  if (scope.programme && norm(profile.programme) !== norm(scope.programme)) return false;
+  return true;
+}
 function planEvents() {
-  if (!DB.events || DB.eventsVersion !== 3) {
-    const own = (DB.events || []).filter(e => !PLAN_DEFAULTS.some(d => d.id === e.id) && e.id !== 'gst-test' && e.id !== 'lib-test' && e.id !== 'gel-ca-mbbs');
-    DB.events = PLAN_DEFAULTS.concat(own); DB.eventsVersion = 3; save();
+  const existing = Array.isArray(DB.events) ? DB.events : [];
+  const own = existing.filter(e =>
+    !PLAN_DEFAULTS.some(d => d.id === e.id) &&
+    !RETIRED_TEST_EVENT_IDS.has(String(e.id || '').trim().toLowerCase()) &&
+    e.id !== 'lib-test' && e.id !== 'gel-ca-mbbs'
+  );
+  const next = PLAN_DEFAULTS.concat(own);
+  if (DB.eventsVersion !== 4 || JSON.stringify(existing) !== JSON.stringify(next)) {
+    DB.events = next;
+    DB.eventsVersion = 4;
+    save();
   }
-  return DB.events;
+  return DB.events.filter(planEventVisibleForProfile);
 }
 function downloadIcs(ev) {
   const blob = new Blob([icsFor(ev)], { type: 'text/calendar' }); const a = document.createElement('a');
@@ -4031,6 +4179,10 @@ function planTimer() {
 }
 function planTimetable() {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const p = DB.profile || {};
+  const institution = String(p.institution || '').trim().toLowerCase();
+  const isBowen100 = (institution === 'bowen university' || institution === 'bowen' || institution === 'bowen-university') && String(p.level || '100L') === '100L';
+  if (!isBowen100) return h('section',{class:'panel stack'},h('h2',null,'No timetable mapped yet'),h('p',{class:'muted small'},'A university- and level-specific timetable will appear when its verified schedule is added. Bowen 100L timetable data is not reused here.'));
   const mine = coursesFor(DB.profile.programme).map(c => c.code);
   const edits = DB.ttEdits || {};
   const rows = TIMETABLE_100_1.map((x, i) => Object.assign({ key: x.day + '|' + x.code }, x)).filter(x => mine.includes(ttCourse(x.code)));
@@ -4108,16 +4260,101 @@ function pollCard(P) {
 }
 
 /* ---------- 200 level course page: Questions, Notes, Practicals, Labs ---------- */
+let B200_ANATOMY_CACHE = null;
+let B200_MAP_CACHE = null;
+async function loadB200Bundle(path) {
+  const r = await fetch(path, { cache: 'force-cache' });
+  if (!r.ok) throw new Error('This study pack has not been downloaded on this device yet.');
+  return r.json();
+}
+function studyInline(text) {
+  const source = String(text || '').replace(/<b>/g,'**').replace(/<\/b>/g,'**').replace(/<strong>/g,'**').replace(/<\/strong>/g,'**').replace(/<i>/g,'*').replace(/<\/i>/g,'*').replace(/<em>/g,'*').replace(/<\/em>/g,'*').replace(/<code>|<\/code>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&');
+  const frag = document.createDocumentFragment();
+  source.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).forEach(part => {
+    if (part.startsWith('**') && part.endsWith('**')) frag.append(h('strong', null, part.slice(2,-2)));
+    else if (part.startsWith('*') && part.endsWith('*')) frag.append(h('em', null, part.slice(1,-1)));
+    else frag.append(document.createTextNode(part));
+  });
+  return frag;
+}
+function studyTableFromLines(lines) {
+  const cells = line => line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(x=>x.trim());
+  const headers = cells(lines[0]), table = h('table', { class: 'study-table' });
+  table.append(h('thead', null, h('tr', null, headers.map(x=>h('th', null, studyInline(x))))));
+  table.append(h('tbody', null, lines.slice(2).map(line=>{const row=cells(line);return h('tr',null,headers.map((_,i)=>h('td',null,studyInline(row[i]||''))));})));
+  return table;
+}
+function renderStudyMarkdown(markdown) {
+  const lines=String(markdown||'').replace(/<\/?p>/g,'').split(/\r?\n/),out=[];
+  let list=null;
+  const flush=()=>{if(list){out.push(list);list=null;}};
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i].trim();
+    if(!line){flush();continue;}
+    if(line.startsWith('|')&&i+1<lines.length&&/^\|?\s*:?-{3,}/.test(lines[i+1].trim())){
+      flush();const rows=[line,lines[++i].trim()];
+      while(i+1<lines.length&&lines[i+1].trim().startsWith('|'))rows.push(lines[++i].trim());
+      out.push(studyTableFromLines(rows));continue;
+    }
+    if(line.startsWith('### ')){flush();out.push(h('h3',null,studyInline(line.slice(4))));continue;}
+    if(line.startsWith('## ')){flush();out.push(h('h2',null,studyInline(line.slice(3))));continue;}
+    if(line.startsWith('# ')){flush();out.push(h('h2',null,studyInline(line.slice(2))));continue;}
+    const bullet=/^[-*]\s+(.+)$/.exec(line),number=/^\d+\.\s+(.+)$/.exec(line);
+    if(bullet||number){const type=bullet?'ul':'ol';if(!list||list.tagName.toLowerCase()!==type){flush();list=h(type,null);}list.append(h('li',null,studyInline((bullet||number)[1])));continue;}
+    flush();out.push(h('p',null,studyInline(line)));
+  }
+  flush();return h('div',{class:'study-markdown stack'},...out);
+}
+function render200Flashcards(bundle) {
+  const item=(bundle.resources||[]).find(x=>x.kind==='flashcards');
+  if(!item)return h('p',{class:'muted'},'Flashcards are indexed in Notion; card rows are awaiting extraction.');
+  const tables=item.tables||[],cards=[...(tables[0]?.rows||[]),...(tables[2]?.rows||[])],imageCount=(tables[1]?.rows||[]).length;
+  return h('div',{class:'stack'},h('p',{class:'small muted'},cards.length+' theory and scenario cards. Image cards are held until their original diagrams are attached.'),
+    ...cards.map((card,i)=>{const id=card['#']||String(i+1),key='B200-ELBOW-'+id;
+      const detail=h('details',{class:'panel stack'},h('summary',null,card.Front||card.Vignette||('Card '+id)),h('p',null,card.Back||card.Answer||''));
+      const rating=h('div',{class:'row wrapr'},...['Again','Hard','Good','Easy'].map(rate=>h('button',{class:'btn sm '+((DB.cardRatings||{})[key]===rate?'primary':''),onclick:()=>{DB.cardRatings=Object.assign({},DB.cardRatings||{},{[key]:rate});save();toast('Card rated '+rate.toLowerCase()+'.');}},rate)));
+      return h('article',{class:'stack'},detail,rating);
+    }),imageCount?h('p',{class:'tiny muted'},imageCount+' image cards are hidden until forearm_anterior.png and forearm_posterior.png are imported.'):null);
+}
+function render200Questions(bundle) {
+  const item=(bundle.resources||[]).find(x=>x.kind==='quiz'),rows=item?.tables?.[0]?.rows||[];
+  if(!rows.length)return h('p',{class:'muted'},'The course question-bank source is indexed; its rows will appear after extraction.');
+  return h('div',{class:'stack'},...rows.map((q,i)=>{const status=h('p',{class:'tiny muted',role:'status'},'Choose the single best answer.');
+    const options=['A','B','C','D'].map(letter=>h('button',{class:'btn block',onclick:()=>{const correct=String(q.Answer||'').trim().toUpperCase()===letter;status.textContent=(correct?'Correct. ':'Not quite. ')+'Answer: '+q.Answer+'. '+(q.Why||'');status.className='tiny '+(correct?'ok':'muted');}},letter+'. '+(q[letter]||'')));
+    return h('article',{class:'panel stack'},h('b',null,(i+1)+'. '+(q.Question||'')),...options,status);
+  }));
+}
+function render200Vignettes(bundle) {
+  const item=(bundle.resources||[]).find(x=>x.kind==='vignettes'),rows=item?.tables?.[0]?.rows||[];
+  if(!rows.length)return h('p',{class:'muted'},'No vignette rows have been imported for this topic yet.');
+  return h('div',{class:'stack'},...rows.map((v,i)=>h('details',{class:'panel stack'},h('summary',null,'Case '+(i+1)+': '+(v.Vignette||'')),h('p',null,v.Question||''),h('h3',null,'Answer'),h('p',null,v.Answer||''),h('p',{class:'small muted'},v.Reasoning||''))));
+}
 function course200View(c) {
-  const tabs = ['Questions', 'Notes', 'Flashcards'];
-  const cur = (course200View.tab || 'Questions');
-  const body = h('div', { class: 'panel stack' }, h('h2', null, cur), h('p', { class: 'muted' },
-    'Coming soon for ' + c.label + '. This section opens once the ' + cur.toLowerCase() + ' for this course are loaded.'),
-    h('span', { class: 'chip gold' }, 'Pending'));
-  mount(wrap(back('#/', 'Home'), h('div', { class: 'stack-l' },
-    h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 200 Level \u2022 ' + (c.semester === 'first' ? 'First semester' : 'Second semester'))),
-    h('div', { class: 'seg' }, tabs.map(t => h('button', { class: 'opt', 'aria-pressed': String(cur === t), onclick: () => { course200View.tab = t; course200View(c); } }, t))),
-    body)));
+  const tabs=['Overview','Notes','Flashcards','Questions','Clinical Vignettes','References'],cur=course200View.tab||'Overview';
+  const body=h('div',{class:'panel stack'},h('p',{class:'muted'},'Loading the verified Bowen 200L study resources…'));
+  mount(wrap(back('#/courses','All courses'),h('div',{class:'stack-l'},
+    h('div',{class:'stack'},h('span',{class:'chip gold'},'BOWEN MBBS · 200L'),h('h1',{style:{color:c.color}},c.label),h('p',{class:'muted'},c.title)),
+    h('div',{class:'seg'},tabs.map(t=>h('button',{class:'opt','aria-pressed':String(cur===t),onclick:()=>{course200View.tab=t;course200View(c);}},t))),body)));
+  (async()=>{try{
+    let content;
+    if(c.code==='ANATOMY'){
+      if(!B200_ANATOMY_CACHE)B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');
+      const bundle=B200_ANATOMY_CACHE,note=bundle.resources.find(x=>x.kind==='notes'),ref=bundle.resources.find(x=>x.kind==='openstax-glossary');
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,'Elbow & Forearm'),h('p',null,'A topic pack with full notes, active-recall cards, a 25-question quiz, clinical vignettes and OpenStax reference material.'),h('span',{class:'chip ok'},'Source content imported'),h('p',{class:'tiny muted'},'Original Notion provenance is retained. Course-code and semester mapping remain separate.'),h('button',{class:'btn gold block',onclick:async()=>{try{B200_ANATOMY_CACHE=await loadB200Bundle('./data/200l-anatomy-elbow-forearm.json');toast('Anatomy topic pack saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this pack.');}}},'Download topic pack for offline study'));
+      else if(cur==='Notes')content=renderStudyMarkdown(note?.content||'');
+      else if(cur==='Flashcards')content=render200Flashcards(bundle);
+      else if(cur==='Questions')content=render200Questions(bundle);
+      else if(cur==='Clinical Vignettes')content=render200Vignettes(bundle);
+      else if(cur==='References')content=ref?renderStudyMarkdown(ref.content):h('p',{class:'muted'},'Reference material is not available.');
+    }else{
+      if(!B200_MAP_CACHE)B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');
+      const key=c.code==='PHYSIOLOGY'?'physiology-course-map':'biochemistry-course-hub',map=B200_MAP_CACHE.resources.find(x=>x.key===key);
+      if(cur==='Overview')content=h('div',{class:'stack'},h('h2',null,c.label+' course map'),h('p',null,'The verified course map is imported. Topic packs will appear as they are connected.'),h('span',{class:'chip ok'},'Course map imported'),h('button',{class:'btn gold block',onclick:async()=>{try{B200_MAP_CACHE=await loadB200Bundle('./data/bowen-200l-course-maps.json');toast('Course map saved for offline study.');}catch(e){toast(e.message||'Connect briefly to download this map.');}}},'Save course map for offline study'));
+      else if(cur==='Notes')content=renderStudyMarkdown(map?.content||'');
+      else content=h('p',{class:'muted'},'This resource layer is indexed in Notion. Its content is queued for extraction; no placeholder questions or cards are generated.');
+    }
+    body.replaceChildren(content||h('p',{class:'muted'},'No content is available in this section yet.'));
+  }catch(e){body.replaceChildren(h('h2',null,'Study pack unavailable'),h('p',{class:'muted'},e.message||'Connect briefly to download this resource, then it will be available offline.'));}})();
 }
 /* admin-only preview of 200L on this device; students stay on their level until an admin approves a move */
 function previewLevel200() { DB.profile = Object.assign({}, DB.profile, { level: '200L' }); save(); toast('Previewing 200L on this device.'); go('#/'); }
@@ -4287,9 +4524,9 @@ function flashView(code) {
   buildDeck();
 }
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
-const QUAL = { date: '2026-10-17', A: [14 * 60, 18 * 60], B: [22 * 60, 23 * 60], questions: 60, minutes: 40, topN: 5 };
+const QUAL = { date: '2026-11-14', sundayDate: '2026-11-15', A: [0, 1440], B: [0, 1440], questions: 60, minutes: 40, topN: 3 };
 function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d.toISOString().slice(0, 10), mins: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
-function qualBatch() { const t = lagosNow(); if (t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
+function qualBatch() { const t = lagosNow(); if (t.date === QUAL.date) return 'A'; if (t.date === QUAL.sundayDate) return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
   if (!signedIn() || !DB.account || !DB.account.token) return 'none';
@@ -4304,7 +4541,7 @@ function qualifyView() {
   qualStatus().then(st => { holder.replaceChildren(qualCard(batch, st)); });
 }
 function qualCard(batch, st) {
-  const info = h('p', { class: 'muted' }, 'Qualifications run on 17 October 2026, Lagos time. Batch A: ' + fmtMin(QUAL.A[0]) + ' to ' + fmtMin(QUAL.A[1]) + '. Batch B: ' + fmtMin(QUAL.B[0]) + ' to ' + fmtMin(QUAL.B[1]) + '.');
+  const info = h('p', { class: 'muted' }, 'November qualifiers run all day (Lagos time): Saturday 14 November (Batch A) and Sunday 15 November (Batch B). Three top performers per programme qualify. Each account may make one 60-question attempt across the weekend.');
   let body;
   if (!signedIn()) body = h('div', { class: 'panel stack' }, h('h2', null, 'Create an account first'), h('p', { class: 'muted small' }, 'Only account holders can qualify for their programme.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to my account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
@@ -4456,7 +4693,7 @@ function aboutView() {
   const panel=h('section',{class:'panel stack'});
   panel.append(h('h2',null,APP.name),h('p',{class:'muted'},'Version '+APP.version));
   ABOUT_TEXT.forEach(t=>panel.append(h('p',null,t)));
-  panel.append(h('p',{class:'tiny muted'},'TheMedConfidant 🩺 · Confidence in Clarity · © Bababola Moses Bolawaife'));
+  panel.append(h('p',{class:'tiny muted'},'TheMedConfidant 🩺 · Confidence in Clarity · © Babalola Moses Boluwatife'));
   box.append(panel);
   mount(wrap(back('#/','Home'),box));
 }
@@ -4995,7 +5232,7 @@ window.addEventListener('hashchange', () => {
   else { HUB_ROUTE_STACK.push(current); if (HUB_ROUTE_STACK.length > 40) HUB_ROUTE_STACK.shift(); }
   route();
 });
-route();
+document.addEventListener('DOMContentLoaded', () => route(), { once: true });
 
 /* Validate the persisted account token on startup. Local storage can outlive
    the server-side 30-day session, so a stale token must not masquerade as login. */
@@ -5041,6 +5278,8 @@ setTimeout(liveNotice, 1200);
 </script>
 <script src="challenge-arena.js"></script>
 <script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
+<script src="./university-directory.js" defer></script>
+<script src="./academic-engine.js" defer></script>
 </body>
 </html>
 

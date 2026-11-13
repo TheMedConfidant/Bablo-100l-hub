@@ -3,14 +3,17 @@
  if(window.__babloPremiumLandingInstalled)return;window.__babloPremiumLandingInstalled=true;
  const guestFlow=window.onboarding;
  function removeOverlay(){const old=document.querySelector('.overlay');if(old)old.remove();}
+ function markLandingOption(option){try{if(typeof DB==='undefined')return;const used=Array.isArray(DB.landingOptionsUsed)?DB.landingOptionsUsed:[];if(!used.includes(option)){DB.landingOptionsUsed=used.concat(option);save();}}catch(_){}}
  function clearProgramme(root){if(!root)return;root.querySelectorAll('label.field').forEach(label=>{const title=label.querySelector('span');if(title&&title.textContent.trim().toLowerCase()==='programme'){const input=label.querySelector('input');if(input)input.value='';}});}
  function openAuth(mode){
+  markLandingOption(mode==='login'?'login':'signup');
   try{ACCOUNT_MODE=mode==='login'?'login':'signup';}catch(_){}
   removeOverlay();const section=accountSection();if(ACCOUNT_MODE==='signup')clearProgramme(section);
   const tabs=section.querySelectorAll('.seg .opt');if(tabs[0])tabs[0].onclick=()=>openAuth('signup');if(tabs[1])tabs[1].onclick=()=>openAuth('login');
   const back=document.createElement('button');back.type='button';back.className='landing-back';back.textContent='← Back to welcome';back.onclick=()=>{removeOverlay();showLanding();};section.appendChild(back);modal(section,false);
  }
  function openGuest(){
+  markLandingOption('guest');
   removeOverlay();if(typeof guestFlow==='function')guestFlow();
   setTimeout(()=>{const panel=document.querySelector('.overlay .modal');if(!panel)return;clearProgramme(panel);if(!panel.querySelector('.landing-back')){const back=document.createElement('button');back.type='button';back.className='landing-back';back.textContent='← Back to welcome';back.onclick=()=>{removeOverlay();showLanding();};panel.appendChild(back);}},0);
  }

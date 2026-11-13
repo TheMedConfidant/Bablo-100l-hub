@@ -1,0 +1,809 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-13",
+  "authority": "User confirmed that the Notion materials built for Bablo Hub are verified. The source pages' old Notion verification badges are stale metadata and must not override this explicit confirmation.",
+  "ingestionPolicy": "Preserve each Notion source ID and URL. Do not flatten same-code courses across universities. Shared reuse requires an explicit target institution/programme/level/semester/course mapping. Never infer equivalence from a matching course code or topic title.",
+  "sources": [
+    {
+      "id": "3ca1834f-bdba-8167-a959-cce677f5249e",
+      "url": "https://app.notion.com/p/3ca1834fbdba8167a959cce677f5249e",
+      "title": "FUTA BIO 101",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes",
+        "flashcards",
+        "MCQs",
+        "past-papers"
+      ],
+      "notes": "8-topic FUTA course outline; 8/8 notes complete; 75 flashcards confirmed by live Notion database query. Parent page's older 32-card progress note is stale. MCQs/past papers are not populated in the located FUTA MCQ index."
+    },
+    {
+      "id": "3ca1834f-bdba-81f8-9219-d57507c99235",
+      "url": "https://app.notion.com/p/3ca1834fbdba81f89219d57507c99235",
+      "title": "FUTA BIO 101 Notes index",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "notes": "Contains topic pages for the eight BIO 101 outline areas."
+    },
+    {
+      "id": "3ca1834f-bdba-8158-8f35-d7ae7b8b5e6a",
+      "url": "https://app.notion.com/p/3ca1834fbdba81588f35d7ae7b8b5e6a",
+      "title": "FUTA BIO 101 Flashcards index",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "flashcards"
+      ],
+      "notes": "Links the BIO 101 flashcard database."
+    },
+    {
+      "id": "3e91834f-bdba-8124-be25-c4d749158c67",
+      "url": "https://app.notion.com/p/3e91834fbdba8124be25c4d749158c67",
+      "title": "Bowen CoHES BIO 101",
+      "institution": "Bowen University",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes",
+        "flashcards",
+        "MCQs",
+        "past-papers"
+      ],
+      "notes": "Separate nine-topic Bowen CoHES course; 180 MCQ records confirmed in its live Notion database, with distinct topic sequence and source.",
+      "college": "College of Health Sciences (CoHES)"
+    },
+    {
+      "id": "3d71834f-bdba-81f7-a69e-d0c6396bea31",
+      "url": "https://app.notion.com/p/3d71834fbdba81f7a69ed0c6396bea31",
+      "title": "Bowen 100L Demo",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "semester": "first",
+      "types": [
+        "course-catalogue"
+      ],
+      "notes": "Defines Bowen MBBS 100L course pattern and question style; references PHY101, COS101 and BIO101. Source points to Drive for full course materials."
+    },
+    {
+      "id": "3ca1834f-bdba-81da-89a7-f8607c3fecfe",
+      "url": "https://app.notion.com/p/3ca1834fbdba81da89a7f8607c3fecfe",
+      "title": "200L course architecture",
+      "institution": "Bowen University",
+      "level": "200L",
+      "types": [
+        "architecture"
+      ],
+      "notes": "Three course lanes: Anatomy, Physiology, Biochemistry. Resource layers include notes, flashcards, MCQs, past papers, vignettes, practicals, research and revision."
+    },
+    {
+      "id": "3cc1834f-bdba-8152-b941-cac564a47e90",
+      "url": "https://app.notion.com/p/3cc1834fbdba8152b941cac564a47e90",
+      "title": "200L Physiology master course map",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Physiology",
+      "types": [
+        "curriculum-map"
+      ],
+      "notes": "Normalised topic/subtopic hierarchy; includes cardiovascular physiology and ECG among broad system topics."
+    },
+    {
+      "id": "3d11834f-bdba-8132-8612-dc2d9aebb3fb",
+      "url": "https://app.notion.com/p/3d11834fbdba81328612dc2d9aebb3fb",
+      "title": "200L Anatomy course hub",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Anatomy",
+      "types": [
+        "course-index"
+      ],
+      "notes": "Study, practise, apply, resources and review sections."
+    },
+    {
+      "id": "3d11834f-bdba-81d7-942a-c264892957ac",
+      "url": "https://app.notion.com/p/3d11834fbdba81d7942ac264892957ac",
+      "title": "200L Biochemistry course hub",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Biochemistry",
+      "types": [
+        "course-index"
+      ],
+      "notes": "Study, practise, apply, resources and review sections."
+    },
+    {
+      "id": "4161834f-bdba-81fb-9245-e2f5193d69f1",
+      "url": "https://app.notion.com/p/4161834fbdba81fb9245e2f5193d69f1",
+      "title": "Elbow & Forearm full notes",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Anatomy",
+      "types": [
+        "notes"
+      ],
+      "notes": "Full structured notes; source page says reorder to Bowen lecture sequence once outline confirmed. Content quality is user-confirmed; target curriculum mapping remains separate. Source context is Bowen 200L Anatomy; exact current official course code/semester mapping remains separate.",
+      "programme": "MBBS"
+    },
+    {
+      "id": "4161834f-bdba-81d8-aaf7-cd19f4a5ce6a",
+      "url": "https://app.notion.com/p/4161834fbdba81d8aaf7cd19f4a5ce6a",
+      "title": "Elbow & Forearm flashcards",
+      "institution": "Bowen University",
+      "level": "200L",
+      "course": "Anatomy",
+      "types": [
+        "flashcards"
+      ],
+      "notes": "Theory, image and scenario flashcards with Anki rating model. Target curriculum mapping remains separate. Source context is Bowen 200L Anatomy; exact current official course code/semester mapping remains separate.",
+      "programme": "MBBS"
+    },
+    {
+      "id": "a55df9d5-aed2-4afc-8649-2751543ec07d",
+      "url": "https://app.notion.com/p/a55df9d5aed24afc86492751543ec07d",
+      "title": "Med School Workspace",
+      "institution": "Mixed/personal study workspace",
+      "level": "100L+",
+      "types": [
+        "workspace-index"
+      ],
+      "notes": "Contains MedNotes and related databases; requires database-level inventory to extract course/resource metadata."
+    },
+    {
+      "id": "3b642068-4765-42fb-a261-75798067308f",
+      "url": "https://app.notion.com/p/3b642068476542fba26175798067308f",
+      "title": "BIO 101 (Bowen) Flashcards",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "BIO 101",
+      "resourceType": "flashcards",
+      "dataSource": "collection://4cf49cc5-fd64-4d38-9d32-73d57a682de5",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "0eb33374-5d60-4efa-b8cd-b10f91f11167",
+      "url": "https://app.notion.com/p/0eb333745d604efab8cdb10f91f11167",
+      "title": "PHY 101 (Bowen) Flashcards",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "PHY 101",
+      "resourceType": "flashcards",
+      "dataSource": "collection://a8b68bcd-7421-433e-a814-e92ccf66dd78",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "c373c577-8524-455f-88bd-58af6bb0a490",
+      "url": "https://app.notion.com/p/c373c5778524455f88bd58af6bb0a490",
+      "title": "COS 101 (Bowen) Flashcards",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "COS 101",
+      "resourceType": "flashcards",
+      "dataSource": "collection://89488c51-5281-49ea-9682-7573a26d2610",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "bc122d7d-d17c-405f-a206-c584346f4a29",
+      "url": "https://app.notion.com/p/bc122d7dd17c405fa206c584346f4a29",
+      "title": "CHM 101 MCQs",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "CHM 101",
+      "resourceType": "questions",
+      "dataSource": "collection://ffe87778-d84d-4b61-ab56-4a89ca84d9ca",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "3c41834f-bdba-81bb-aa79-cac0a7b95bca",
+      "url": "https://app.notion.com/p/3c41834fbdba81bbaa79cac0a7b95bca",
+      "title": "PHY 101 MCQs",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "100L",
+      "course": "PHY 101",
+      "resourceType": "questions",
+      "dataSource": "collection://2dab99e3-04bf-4429-9e59-7ac3b94f978c",
+      "exportStatus": "queued-query-allowance"
+    },
+    {
+      "id": "3ca1834f-bdba-81a8-bd2a-d45e9a70946f",
+      "url": "https://app.notion.com/p/3ca1834fbdba81a8bd2ad45e9a70946f",
+      "title": "200L Physiology Flashcards index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Physiology",
+      "resourceType": "flashcards-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3ca1834f-bdba-814e-8966-d2fd515a5d01",
+      "url": "https://app.notion.com/p/3ca1834fbdba814e8966d2fd515a5d01",
+      "title": "200L Physiology MCQs index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Physiology",
+      "resourceType": "questions-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-81bb-8a20-d969ddc4d071",
+      "url": "https://app.notion.com/p/3d11834fbdba81bb8a20d969ddc4d071",
+      "title": "200L Anatomy Flashcards index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "flashcards-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-817e-8178-f6952068011d",
+      "url": "https://app.notion.com/p/3d11834fbdba817e8178f6952068011d",
+      "title": "200L Anatomy MCQs index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "questions-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-81fc-99fc-d3a5dc9e7609",
+      "url": "https://app.notion.com/p/3d11834fbdba81fc99fcd3a5dc9e7609",
+      "title": "200L Biochemistry Flashcards index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Biochemistry",
+      "resourceType": "flashcards-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "3d11834f-bdba-81f1-b9d8-d4b405695541",
+      "url": "https://app.notion.com/p/3d11834fbdba81f1b9d8d4b405695541",
+      "title": "200L Biochemistry MCQs index",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Biochemistry",
+      "resourceType": "questions-index",
+      "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "4161834f-bdba-813a-9543-eee0234f169a",
+      "url": "https://app.notion.com/p/4161834fbdba813a9543eee0234f169a",
+      "title": "Elbow & Forearm objective quiz and essay prompts",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "quizzes",
+      "notes": "25 objective MCQs and 5 essay/model-answer prompts; part of the Bowen 200L Anatomy Elbow & Forearm pack."
+    },
+    {
+      "id": "4161834f-bdba-8129-bb91-c5284334df9b",
+      "url": "https://app.notion.com/p/4161834fbdba8129bb91c5284334df9b",
+      "title": "Elbow & Forearm clinical scenarios and vignettes",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "questions",
+      "notes": "6 clinical vignettes with answer reasoning; subtype clinical-vignettes."
+    },
+    {
+      "id": "4161834f-bdba-81a7-a7d8-f6465cad9fc9",
+      "url": "https://app.notion.com/p/4161834fbdba81a7a7d8f6465cad9fc9",
+      "title": "Elbow & Forearm OpenStax glossary and questions",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "reference",
+      "notes": "OpenStax CC BY glossary plus 10 objective questions; preserve attribution and source notes."
+    },
+    {
+      "id": "3d11834f-bdba-81fa-9ff5-e6c2f8ca8c93",
+      "url": "https://app.notion.com/p/3d11834fbdba81fa9ff5e6c2f8ca8c93",
+      "title": "FUTA BIO 101 — Characteristics of Life & Classification",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-817b-82c4-c40db1c55c96",
+      "url": "https://app.notion.com/p/3d21834fbdba817b82c4c40db1c55c96",
+      "title": "FUTA BIO 101 — Cell Structure & Organelles",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-816a-affd-d3e07cd7e76b",
+      "url": "https://app.notion.com/p/3d21834fbdba816aaffdd3e07cd7e76b",
+      "title": "FUTA BIO 101 — Reproduction",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81de-a70f-c1e1a367647b",
+      "url": "https://app.notion.com/p/3d21834fbdba81dea70fc1e1a367647b",
+      "title": "FUTA BIO 101 — Heredity & Evolution",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81a1-95cc-f5abad0f41a5",
+      "url": "https://app.notion.com/p/3d21834fbdba81a195ccf5abad0f41a5",
+      "title": "FUTA BIO 101 — Ecology & Habitats",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81e6-8e9d-c2b131540699",
+      "url": "https://app.notion.com/p/3d21834fbdba81e68e9dc2b131540699",
+      "title": "FUTA BIO 101 — Non-Vascular Plants",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-81c7-9765-c0ab94b8a6ef",
+      "url": "https://app.notion.com/p/3d21834fbdba81c79765c0ab94b8a6ef",
+      "title": "FUTA BIO 101 — Vascular Plants",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3d21834f-bdba-8179-81dd-f0d3ba11b13a",
+      "url": "https://app.notion.com/p/3d21834fbdba817981ddf0d3ba11b13a",
+      "title": "FUTA BIO 101 — Flowering Plants",
+      "institution": "FUTA",
+      "level": "100L",
+      "course": "BIO 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "Canonical topic note in the eight-topic FUTA BIO 101 notes set. User-confirmed verified; programme and semester fields are not stated in the source page."
+    },
+    {
+      "id": "3c11834f-bdba-8136-b014-ce9446c8f18b",
+      "url": "https://app.notion.com/p/3c11834fbdba8136b014ce9446c8f18b",
+      "title": "CHM 101 — Atomic Theory",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-8196-9ff5-d0c9a3c34ca2",
+      "url": "https://app.notion.com/p/3c11834fbdba81969ff5d0c9a3c34ca2",
+      "title": "CHM 101 — Thermochemistry",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-8139-9d3b-fb7a77230933",
+      "url": "https://app.notion.com/p/3c11834fbdba81399d3bfb7a77230933",
+      "title": "CHM 101 — Chemical Kinetics",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-81c8-a2d0-fce5636254ba",
+      "url": "https://app.notion.com/p/3c11834fbdba81c8a2d0fce5636254ba",
+      "title": "CHM 101 — Chemical Equilibria",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-81b6-a6cb-d39f3d0e239e",
+      "url": "https://app.notion.com/p/3c11834fbdba81b6a6cbd39f3d0e239e",
+      "title": "CHM 101 — Electrochemistry",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-8171-8223-f0530174cdf5",
+      "url": "https://app.notion.com/p/3c11834fbdba81718223f0530174cdf5",
+      "title": "CHM 101 — Radiochemistry",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c11834f-bdba-810b-b183-dba1e6a27664",
+      "url": "https://app.notion.com/p/3c11834fbdba810bb183dba1e6a27664",
+      "title": "CHM 101 — Solutions & Solubility",
+      "level": "100L",
+      "course": "CHM 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-8114-9853-edcf8eaffdb7",
+      "url": "https://app.notion.com/p/3c41834fbdba81149853edcf8eaffdb7",
+      "title": "PHY 101 — Dimensional Analysis",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-819e-aec4-cd266660f88b",
+      "url": "https://app.notion.com/p/3c41834fbdba819eaec4cd266660f88b",
+      "title": "PHY 101 — Vector Analysis",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-81f9-957c-ddb7113a52bc",
+      "url": "https://app.notion.com/p/3c41834fbdba81f9957cddb7113a52bc",
+      "title": "PHY 101 — Kinematics",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-818e-a6b0-cfc288c52571",
+      "url": "https://app.notion.com/p/3c41834fbdba818ea6b0cfc288c52571",
+      "title": "PHY 101 — Projectile Motion",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-81e1-bbc3-d655d0434dff",
+      "url": "https://app.notion.com/p/3c41834fbdba81e1bbc3d655d0434dff",
+      "title": "PHY 101 — Circular Motion",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3c41834f-bdba-8110-8ad1-ed0eda9188ca",
+      "url": "https://app.notion.com/p/3c41834fbdba81108ad1ed0eda9188ca",
+      "title": "PHY 101 — Laws of Mechanics",
+      "level": "100L",
+      "course": "PHY 101",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "General Content Library topic note; staged as a shared-foundational candidate for non-Bowen universities per owner direction. Destination course fit and rights still require review."
+    },
+    {
+      "id": "3d11834f-bdba-81ba-b400-ec6071d8df08",
+      "url": "https://app.notion.com/p/3d11834fbdba81bab400ec6071d8df08",
+      "title": "200L Physiology — Cardiac Muscle & Electrical Activity",
+      "level": "200L",
+      "course": "Physiology",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified 200L topic note; staged for owner-authorized reuse outside Bowen, with original source context preserved. Destination course/semester mapping and rights review remain pending."
+    },
+    {
+      "id": "3da1834f-bdba-81ce-b2f8-e898fe7e525b",
+      "url": "https://app.notion.com/p/3da1834fbdba81ceb2f8e898fe7e525b",
+      "title": "200L Biochemistry — Enzyme Structure, Active Sites & Specificity",
+      "level": "200L",
+      "course": "Biochemistry",
+      "types": [
+        "notes"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified 200L topic note; staged for owner-authorized reuse outside Bowen, with original source context preserved. Destination course/semester mapping and rights review remain pending."
+    },
+    {
+      "id": "3ca1834f-bdba-8111-9c40-d56f55b8b295",
+      "url": "https://app.notion.com/p/3ca1834fbdba81119c40d56f55b8b295",
+      "title": "200L Physiology course index",
+      "level": "200L",
+      "course": "Physiology",
+      "types": [
+        "course-index"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified course map/index. Preserve original context; shared reuse outside Bowen requires target course mapping."
+    },
+    {
+      "id": "3d11834f-bdba-81fc-891e-db436903031f",
+      "url": "https://app.notion.com/p/3d11834fbdba81fc891edb436903031f",
+      "title": "200L Biochemistry notes index",
+      "level": "200L",
+      "course": "Biochemistry",
+      "types": [
+        "course-index"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified course map/index. Preserve original context; shared reuse outside Bowen requires target course mapping."
+    },
+    {
+      "id": "3ca1834f-bdba-8170-a032-d1301c919134",
+      "url": "https://app.notion.com/p/3ca1834fbdba8170a032d1301c919134",
+      "title": "200L strategic architecture and resource map",
+      "level": "200L",
+      "course": "200L",
+      "types": [
+        "course-index"
+      ],
+      "exportStatus": "content-exported-review-required",
+      "notes": "User-confirmed verified course map/index. Preserve original context; shared reuse outside Bowen requires target course mapping."
+    },
+    {
+      "id": "3ca1834f-bdba-8109-954e-d40cae3f52db",
+      "url": "https://app.notion.com/p/3ca1834fbdba8109954ed40cae3f52db",
+      "title": "Bowen 200L — Verified Curriculum & Build Map",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "types": [
+        "curriculum-map"
+      ],
+      "notes": "Owner-confirmed verified source map from the Bowen 200L MBBS workspace. Preserve Bowen source identity; destination mappings for other institutions remain separate."
+    }
+  ],
+  "exports": [
+    {
+      "path": "data/notion-content-pilot.json",
+      "records": 255,
+      "datasets": [
+        {
+          "key": "futa-bio101-flashcards",
+          "records": 75
+        },
+        {
+          "key": "bowen-cohes-bio101-mcqs",
+          "records": 180
+        }
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-200l-anatomy-shared-pilot.json",
+      "resources": 5,
+      "contentChars": 32112,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-200l-course-maps.json",
+      "resources": 6,
+      "contentChars": 47479,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-200l-physiology-biochemistry-topics.json",
+      "resources": 2,
+      "contentChars": 26503,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-futa-bio101-notes.json",
+      "resources": 8,
+      "contentChars": 46375,
+      "institutionSlug": "futa",
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/notion-100l-physics-chemistry-shared-pilot.json",
+      "resources": 13,
+      "contentChars": 51953,
+      "excludedInstitutionSlugs": [
+        "bowen-university"
+      ],
+      "status": "staged-not-yet-loaded-into-live-app"
+    },
+    {
+      "path": "data/futa-bio101-notes.json",
+      "records": 8,
+      "datasets": [
+        {
+          "key": "futa-bio101-topic-notes",
+          "records": 8
+        }
+      ],
+      "status": "staged-not-yet-loaded-into-live-app",
+      "mappingStatus": "programme-pending"
+    },
+    {
+      "path": "data/200l-anatomy-elbow-forearm.json",
+      "records": 85,
+      "datasets": [
+        {
+          "key": "elbow-forearm-notes",
+          "records": 1
+        },
+        {
+          "key": "elbow-forearm-flashcards",
+          "records": 37
+        },
+        {
+          "key": "elbow-forearm-quiz",
+          "records": 25
+        },
+        {
+          "key": "elbow-forearm-vignettes",
+          "records": 6
+        },
+        {
+          "key": "elbow-forearm-glossary-and-open-questions",
+          "records": 16
+        }
+      ],
+      "status": "staged-not-yet-loaded-into-live-app",
+      "mappingStatus": "Bowen-200L-discipline-known-official-course-code-and-semester-not-yet-mapped"
+    },
+    {
+      "path": "data/bowen-200l-course-maps.json",
+      "records": 4,
+      "datasets": [
+        {
+          "key": "bowen-200l-curriculum",
+          "records": 1
+        },
+        {
+          "key": "physiology-course-map",
+          "records": 1
+        },
+        {
+          "key": "anatomy-course-hub",
+          "records": 1
+        },
+        {
+          "key": "biochemistry-course-hub",
+          "records": 1
+        }
+      ],
+      "status": "staged-and-connected-to-200L-course-viewer",
+      "mappingStatus": "Bowen-MBBS-200L-discipline-lanes; exact course-code-and-semester-not-yet-mapped"
+    }
+  ],
+  "sourceAuthority": "User confirms all Notion-built materials are verified.",
+  "queuedExport": {
+    "reason": "Notion Query Data Source allowance reached its temporary limit on 2026-11-13; do not retry until the allowance resets. Database pages and data-source IDs have been indexed so export can resume without rediscovery.",
+    "pending": [
+      {
+        "title": "BIO 101 (Bowen) Flashcards",
+        "dataSource": "collection://4cf49cc5-fd64-4d38-9d32-73d57a682de5"
+      },
+      {
+        "title": "PHY 101 (Bowen) Flashcards",
+        "dataSource": "collection://a8b68bcd-7421-433e-a814-e92ccf66dd78"
+      },
+      {
+        "title": "COS 101 (Bowen) Flashcards",
+        "dataSource": "collection://89488c51-5281-49ea-9682-7573a26d2610"
+      },
+      {
+        "title": "CHM 101 MCQs",
+        "dataSource": "collection://ffe87778-d84d-4b61-ab56-4a89ca84d9ca"
+      },
+      {
+        "title": "PHY 101 MCQs",
+        "dataSource": "collection://2dab99e3-04bf-4429-9e59-7ac3b94f978c"
+      }
+    ],
+    "indexedPages": [
+      "200L Physiology Flashcards index",
+      "200L Physiology MCQs index",
+      "200L Anatomy Flashcards index",
+      "200L Anatomy MCQs index",
+      "200L Biochemistry Flashcards index",
+      "200L Biochemistry MCQs index"
+    ]
+  }
+}

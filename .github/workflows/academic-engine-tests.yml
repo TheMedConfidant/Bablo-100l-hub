@@ -1,0 +1,56 @@
+name: Academic engine checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'calculator/**'
+      - 'academic-engine.js'
+      - 'university-directory.js'
+      - 'landing-premium.js'
+      - 'sw.js'
+      - 'data/notion-resource-manifest.json'
+      - 'scripts/**'
+      - 'schemas/**'
+      - 'tests/**'
+      - '.github/workflows/academic-engine-tests.yml'
+  push:
+    branches:
+      - main
+      - 'build/multi-university-resource-engine-*'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check academic-engine.js
+          node --check university-directory.js
+          node --check landing-premium.js
+          node --check sw.js
+          node scripts/check-inline-scripts.mjs
+      - name: Validate Notion source manifest
+        run: node scripts/validate-notion-manifest.mjs
+      - name: Build metadata-only ingestion preview
+        run: node scripts/build-notion-ingestion-preview.mjs
+      - name: Run academic and ingestion safeguards
+        run: node --test tests/academic-engine.test.mjs tests/notion-ingestion-preview.test.mjs tests/calculator-input.test.mjs tests/exam-schedule-filter.test.mjs tests/programme-cup-qualifiers.test.mjs tests/plan-notification-scope.test.mjs
+      - name: Build typed Notion content ingestion preview
+        run: node scripts/build-notion-content-ingestion.mjs
+      - name: Run ingestion contract tests
+        run: node --test tests/notion-content-ingestion.test.mjs
+      - name: Upload ingestion preview for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notion-ingestion-preview
+          path: |
+            data/notion-ingestion-preview.json
+            data/notion-content-ingestion-preview.json
+          if-no-files-found: ignore
+          retention-days: 14
