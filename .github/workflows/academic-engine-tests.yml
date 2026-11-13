@@ -18,6 +18,7 @@ on:
     branches:
       - main
       - 'build/multi-university-resource-engine-*'
+      - 'build/offline-course-packs-*'
 
 jobs:
   validate:
