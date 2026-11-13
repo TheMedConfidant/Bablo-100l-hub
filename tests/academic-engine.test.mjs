@@ -45,3 +45,14 @@ test('loads a dataset from the combined pilot bundle',async()=>{
   assert.equal(item.itemCount,75);
  }finally{globalThis.fetch=original;}
 });
+
+
+test('app requires a semester and persists it through the v2 profile RPCs',()=>{
+ const fs=require('node:fs');
+ const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ assert.match(app,/Choose your semester/);
+ assert.match(app,/academicSemester: semester\.value/);
+ assert.match(app,/hub_save_academic_profile_v2/);
+ assert.match(app,/hub_save_guest_academic_profile_v2/);
+ assert.match(app,/Choose your current semester/);
+});
