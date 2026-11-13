@@ -29,7 +29,7 @@ jobs:
         shell: bash
         env:
           INDEXNOW_KEY: bablohub-2026-indexnow-7c4d91e2a6b8f305
-          SITE_HOST: bablo-100l-hub.vercel.app
+          SITE_HOST: bablo-hub.vercel.app
         run: |
           set -euo pipefail
           before="${{ github.event.before || '' }}"
