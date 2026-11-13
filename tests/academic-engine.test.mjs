@@ -103,10 +103,9 @@ test('local Wi-Fi battles only expose and select courses allowed by the academic
 test('Bowen 100L course access is programme-specific and does not inherit a generic shared core',()=>{
  const fs=require('node:fs');
  const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
- const mapStart=app.indexOf('const PROGRAMME_COURSES = {');
- const mapEnd=app.indexOf('\\n};',mapStart);
- assert.ok(mapStart>=0&&mapEnd>mapStart);
- const programmeMap=app.slice(mapStart,mapEnd);
+ const mapMatch=app.match(/const PROGRAMME_COURSES = \{([^}]+)\};/);
+ assert.ok(mapMatch);
+ const programmeMap=mapMatch[0];
  assert.match(programmeMap,/const PROGRAMME_COURSES = \{\s*'MBBS': \[/);
  assert.doesNotMatch(programmeMap,/'Nursing'\s*:/);
  assert.match(app,/Other CoHES programmes remain unavailable until their own official course lists/);
