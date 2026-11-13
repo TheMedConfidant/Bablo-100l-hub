@@ -2617,6 +2617,29 @@ function brand() {
   return h('a', { class: 'brand', href: '#/' }, svgEl('0 0 64 64', '<defs><linearGradient id="bhG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--sp-a,#5EEAD4)"/><stop offset="1" style="stop-color:var(--sp-b,#0B7A75)"/></linearGradient><linearGradient id="bhGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE68A"/><stop offset="1" stop-color="#B45309"/></linearGradient></defs><rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bhG)"/><rect x="2.8" y="2.8" width="58.4" height="58.4" rx="17.2" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"/><path d="M12 33h9l4-10 7 19 4-9h12" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" class="bh-pulse"/>'), 'Bablo Hub');
 }
 
+/* ---------- selective offline course downloads ---------- */
+function offlineResourcesForCourse(code) {
+  const common=['./','./index.html','./manifest.json'];
+  const byCourse={
+    SOC101:['./SOC101-data.js'], PHY101:['./phy101-data.js'],
+    MTH101:['./mts-maths-topics.js','./mts-maths-induction-extra.js'],
+    CHM:['./thermochemistry-data.js','./chm-practicals-native.js'],
+    CHM101:['./thermochemistry-data.js','./chm-practicals-native.js'],
+    COS:['./cos-101-plus-bank.js','./cos101plus-extracted.js'],
+    COS101:['./cos-101-plus-bank.js','./cos101plus-extracted.js'],
+    GST111:['./gst111-curated-pack.js','./gst111-native-bank.js','./gst111-native-resources.js','./gst111-source-bank.js'],
+    AGR101:['./agr-101-food-security.html'], MLS101:['./mls101-data.js']
+  };
+  return [...new Set(common.concat(byCourse[String(code||'').toUpperCase()]||[]))];
+}
+function offlineCoursePanel(code) {
+  const host=h('div',{class:'offline-course-host'});
+  if(window.BabloOffline&&typeof window.BabloOffline.attachCourseButton==='function'){
+    try{window.BabloOffline.attachCourseButton({container:host,courseId:'bowen-'+String(code).toLowerCase().replace(/[^a-z0-9-]/g,'-'),resources:offlineResourcesForCourse(code)});}
+    catch(e){host.appendChild(h('p',{class:'muted small'},e.message||'Offline download is not available yet.'));}
+  } else host.appendChild(h('section',{class:'panel stack'},h('h3',null,'Study offline'),h('p',{class:'muted small'},'Reload Bablo Hub after connecting to activate offline downloads.')));
+  return host;
+}
 /* ---------- course page ---------- */
 function courseView(code) {
   const c200 = COURSES_200.find(x => x.code === code);
@@ -2632,6 +2655,7 @@ function courseView(code) {
   mount(wrap(back('#/courses', 'All courses'),
     h('div', { class: 'stack-l' },
       h('div', { class: 'stack' }, h('h1', { style: { color: c.color } }, c.label), h('p', { class: 'muted' }, c.title + ' \u2022 ' + plural(total, 'question') + ' across ' + plural(us.length, 'topic'))),
+      offlineCoursePanel(code),
       sectionTiles(c, total, us.length),
       ['MTH101','PHY101','CHM101'].includes(code) ? h('button', { class: 'btn block', onclick: () => { window.location.href = '/calculator/?course=' + encodeURIComponent(code); } }, '∑ Open scientific calculator') : null,
       h('div', { class: 'stack' },
