@@ -19,7 +19,7 @@
    h('div',{class:'landing-brand'},h('div',{class:'landing-mark','aria-hidden':'true'},'B'),h('div',{class:'landing-wordmark'},h('strong',null,'Bablo Hub'),h('span',null,'™  •  STUDY. PRACTISE. GROW.'))),
    h('div',{class:'landing-copy stack'},h('span',{class:'landing-eyebrow'},'YOUR ACADEMIC WORKSPACE'),h('h1',null,'Confidence in clarity.'),h('p',null,'A focused learning environment for structured notes, active recall, CBT practice and practical learning—starting with Bowen CoHES and FUTA.'),h('div',{class:'landing-pill-row'},h('span',null,'COURSE LIBRARY'),h('span',null,'NOTES & FLASHCARDS'),h('span',null,'CBT PRACTICE'),h('span',null,'PRACTICALS'),h('span',null,'CHALLENGE ARENA'))),
    h('div',{class:'landing-actions stack'},h('button',{class:'btn landing-primary block',onclick:()=>openAuth('signup')},'Create your account'),h('button',{class:'btn landing-secondary block',onclick:()=>openAuth('login')},'Log in'),h('button',{class:'landing-guest',onclick:openGuest},'Explore as a guest  →')),
-   h('p',{class:'landing-footnote'},'Explore first, then create an account to sync your study progress across devices. Course materials are organised by institution and programme.')) ;
+   h('p',{class:'landing-footnote'},'Explore first, then create an account to sync your study progress across devices. Courses are organised by institution and programme, with expansion limited to universities offering health or medical sciences.')) ;
   modal(root,false);
  }
  window.openLandingAuth=openAuth;window.onboarding=showLanding;
