@@ -626,6 +626,8 @@ button,a,input,select,textarea{touch-action:manipulation}
 .dashboard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
 .dashboard-top .brand{min-width:0}.dashboard-top-actions{display:flex;align-items:center;gap:8px}
 .dashboard-icon-btn,.dashboard-avatar{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-decoration:none;font-weight:800}
+.dashboard-icon-btn{position:relative}
+.dashboard-notification-dot{position:absolute;top:5px;right:5px;width:10px;height:10px;border-radius:50%;background:#E53935;border:2px solid var(--surface);box-shadow:0 0 0 1px rgba(229,57,53,.16)}
 .dashboard-avatar{border-color:var(--gold);background:var(--gold-soft);color:#17120a;border-radius:50%}
 .dashboard-welcome{border:1px solid rgba(212,175,55,.55);border-radius:22px;padding:22px;margin:10px 0 24px;background:linear-gradient(120deg,rgba(212,175,55,.16),var(--surface) 68%);box-shadow:0 6px 20px rgba(0,0,0,.08)}
 .dashboard-eyebrow{font-size:10px;letter-spacing:2px;font-weight:900;color:var(--gold)}
@@ -2411,6 +2413,20 @@ function premiumPricingView() {
  )));
 }
 
+function dashboardHasUnreadNotifications() {
+ const read=DB.readNotices||{};
+ const recent=(DB.history||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8);
+ const quizUnread=recent.some(e=>!read['quiz-'+e.ts]);
+ const weakUnread=Object.keys(DB.missed||{}).some(k=>DB.missed[k])&&!read['weak-topics'];
+ const events=(typeof planEvents==='function'?planEvents():DB.events||[]).filter(ev=>{
+  const dt=new Date((ev.date||'')+'T'+(ev.time||'00:00'));
+  return !Number.isNaN(dt.getTime())&&dt.getTime()>=Date.now()-3600000;
+ }).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,8);
+ const eventUnread=events.some(ev=>!read['event-'+ev.id]);
+ const scheduleUnread=Array.isArray(EXAM_SCHEDULE_CACHE)&&EXAM_SCHEDULE_CACHE.some(row=>!read['shared-exam-'+row.id]);
+ return quizUnread||weakUnread||eventUnread||scheduleUnread;
+}
+
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
@@ -2429,7 +2445,7 @@ function homeView() {
  ];
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
-   h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
+   h('a',{class:'dashboard-icon-btn',id:'dashboard-notifications-link',href:'#/notifications','aria-label':dashboardHasUnreadNotifications()?'Notifications, unread updates':'Notifications'},'🔔',dashboardHasUnreadNotifications()?h('span',{class:'dashboard-notification-dot','aria-hidden':'true'}):null),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
   h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
@@ -2437,6 +2453,13 @@ function homeView() {
   h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
  ));
+ if(!Array.isArray(EXAM_SCHEDULE_CACHE)) fetchPublicExamSchedule().then(()=>{
+  const link=document.getElementById('dashboard-notifications-link');
+  if(!link)return;
+  const unread=dashboardHasUnreadNotifications();
+  link.replaceChildren('🔔',unread?h('span',{class:'dashboard-notification-dot','aria-hidden':'true'}):null);
+  link.setAttribute('aria-label',unread?'Notifications, unread updates':'Notifications');
+ });
 }
 function coursesCatalogueView(){
  const p=DB.profile,L200=p&&p.level==='200L';
