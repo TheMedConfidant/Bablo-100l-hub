@@ -2225,6 +2225,8 @@ function route() {
     else if (v === 'lab' && !seg[1]) labHubView();
     else if (v === 'lab' && seg[1] === 'phy107') embeddedPhyLabView();
     else if (v === 'lab' && seg[1] === 'chm107') embeddedChmLabView();
+    else if (v === 'lab' && seg[1]) advancedLabModuleView(seg[1]);
+    else if (v === 'lab-notebook' && seg[1]) advancedLabNotebookView(seg[1]);
     else if (v === 'practicals' && seg[1] && seg[2]) practicalView(seg[1], seg[2]);
     else if (v === 'practicals' && seg[1]) practicalsView(seg[1]);
     else if (v === 'qualify') qualifyView();
@@ -2414,27 +2416,29 @@ function premiumPricingView() {
 function homeView() {
  const p=DB.profile,first=(p.name||'Student').split(' ')[0],hr=new Date().getHours();
  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+ const level=parseInt(p.level||'100L',10)||100, senior=level>=200;
  const st=Core.streak(DB.history.map(x=>x.ts),Date.now()),weak=Object.keys(DB.missed).length;
  const studyCards=[
   dashboardCard('Courses','Notes, flashcards, questions and quizzes','📚','#/courses','#D6A82B'),
   dashboardCard('Premium Library','One-time Notes and Flashcards · ₦500 per pack','⭐','#/premium','#D6A82B'),
-  dashboardCard('Laboratory','PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
+  dashboardCard(senior?'Specialist Laboratory':'Laboratory',senior?'Microbiology, pathology, histology and advanced biomedical work':'PHY, CHEM, BIO and COS practicals','🧪','#/lab','#53B6A5'),
   dashboardCard('CGPA','Calculate and track your grades','📈','#/gpa','#53B6A5')
  ];
  const communityCards=[
   dashboardCard('Challenge Arena','Create or join a live quiz challenge','⚔️','#/challenge','#D6A82B'),
   dashboardCard('Socials','Student posts and conversations','👥','#/social','#8D83D8'),
-  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B'),
-  dashboardCard('Arcade','Chess, strategy and games','🎮','#/arcade','#D6A82B')
+  dashboardCard('Programme Cup','Competition updates and qualification','🏆','#/cup','#D6A82B')
  ];
+ if(!senior) communityCards.push(dashboardCard('Arcade','Chess, strategy and games','🎮','#/arcade','#D6A82B'));
+ else communityCards.push(dashboardCard('Academic Workspace','Research tools and specialist learning','🔬','#/lab','#53B6A5'));
  mount(wrap(
   h('header',{class:'dashboard-top'},brand(),h('div',{class:'dashboard-top-actions'},
    h('a',{class:'dashboard-icon-btn',href:'#/notifications','aria-label':'Notifications'},'♧'),
    h('a',{class:'dashboard-avatar',href:'#/me','aria-label':'Profile'},(first||'B').slice(0,1).toUpperCase()))),
-  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME'),h('h1',null,greet+', '+first+'.'),h('p',null,'Confidence in Clarity. Keep learning, practising and progressing.'),
+  h('section',{class:'dashboard-welcome'},h('span',{class:'dashboard-eyebrow'},'YOUR ACADEMIC HOME · '+(p.level||'100L')),h('h1',null,greet+', '+first+'.'),h('p',null,senior?'Your level-aware academic workspace. Build depth, practical competence and clinical reasoning.':'Confidence in Clarity. Keep learning, practising and progressing.'),
    h('div',{class:'dashboard-metrics'},h('div',null,h('b',null,String(st)),h('small',null,'Day streak')),h('div',null,h('b',null,String(DB.history.length)),h('small',null,'Quiz attempts')),h('a',{href:'#/weak'},h('b',null,String(weak)),h('small',null,'Weak topics ›')))),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
-  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Connect & compete'),h('span',null,'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,'Study & practise'),h('span',null,senior?'Advanced learning':'Build your knowledge')),h('div',{class:'dashboard-grid'},...studyCards)),
+  h('section',{class:'dashboard-module-section'},h('div',{class:'dashboard-section-head'},h('h2',null,senior?'Connect & develop':'Connect & compete'),h('span',null,senior?'Academic collaboration':'Learn together')),h('div',{class:'dashboard-grid'},...communityCards)),
   h('p',{class:'dashboard-footnote'},'Bablo Hub™ · TheMedConfidant · Confidence in Clarity')
  ));
 }
@@ -2880,15 +2884,7 @@ function meView() {
           meView();
         } catch (e) { save(); status.textContent = e.message || 'Could not sync your academic details. Your local profile is preserved.'; }
       } }, 'Save profile')),
-    signed ? h('section', { class: 'panel stack' },
-      h('h2', null, 'Account & security'),
-      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, 'Account status'), h('small', { class: 'muted', style: { display: 'block' } }, 'Your sign-in identity is separate from your public username.')), h('span', { class: 'chip ok' }, 'Signed in')),
-      h('div', { class: 'row between wrapr' }, h('span', null, h('b', null, 'Chess / public username'), h('small', { class: 'muted', style: { display: 'block' } }, 'Used for player discovery and challenges.')), h('b', null, username)),
-      h('p', { class: 'tiny muted' }, 'Your Bablo ID is your account identifier. Keep it private; share your username when other students need to find you.'),
-      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out')) : h('section', { class: 'panel stack' },
-      h('h2', null, 'Create a permanent account'),
-      h('p', { class: 'small muted' }, 'A guest profile is saved on this device. Register to keep your identity and eligible progress connected across devices.'),
-      h('a', { class: 'btn primary block', href: '#/settings' }, 'Create account / Log in'))
+    accountSection()
   )));
 }
 
@@ -3862,7 +3858,7 @@ function accountSection() {
       h('button',{class:'btn primary block',onclick:async()=>{usernameError.textContent='';try{await saveChessUsername(usernameInput.value);}catch(e){usernameError.textContent=e.message||'Could not save username.';}}},'Save username'),
       h('p', null, h('b', null, 'Your ID: '), DB.profile.uid),
       h('p', { class: 'small muted' }, 'Your ID remains your login. Your username is for chess discovery.'),
-      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); settingsView(); } }, 'Sign out'));
+      h('button', { class: 'btn danger block', onclick: async () => { await signOut(); toast('Signed out.'); meView(); } }, 'Sign out'));
   }
   const mode = (typeof ACCOUNT_MODE !== 'undefined' && ACCOUNT_MODE) || 'signup';
   const name = h('input', { type: 'text', value: (DB.profile && DB.profile.name) || '', placeholder: 'Full name', maxlength: '60' });
@@ -4487,9 +4483,9 @@ function settingsView() {
         h('span', null, h('b', null, 'Sound effects'), h('small', { class: 'muted' }, 'Optional sounds for timers and activity.')),
         h('button', { class: 'opt', 'aria-pressed': String(!!DB.soundAlerts), onclick: () => { DB.soundAlerts = !DB.soundAlerts; save(); settingsView(); } }, DB.soundAlerts ? 'On' : 'Off'))),
     h('section', { class: 'stack' },
-      h('h2', null, 'Account'),
+      h('h2', null, 'App installation'),
       installCard(),
-      accountSection()),
+      h('a', { class: 'btn ghost block', href: '#/me' }, 'Open profile & account')),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Data on this device'),
       h('p', { class: 'small muted' }, 'Erase your local profile, quiz history and saved preferences from this device. This does not delete a server account.'),
@@ -4640,6 +4636,27 @@ function loadAlertForm(pass, container) {
 const PRACTICAL_FREE_UNTIL = Date.parse('2026-10-29T23:59:59+01:00'); // bonus week: practicals free for everyone
 function practicalsFor(code) { return (window.__PRACTICALS__ || {})[code] || null; }
 function labHubView() {
+  const p=DB.profile||{},level=parseInt(p.level||'100L',10)||100,senior=level>=200;
+  if(senior){
+    const modules=[
+      ['MIC','Medical Microbiology','Bacteriology, virology, mycology, parasitology and antimicrobial concepts','🦠','#0F8B68'],
+      ['PAT','Pathology','General pathology, systemic pathology and clinicopathological correlation','🔬','#B7791F'],
+      ['HIS','Histology & Tissue Sciences','Tissue architecture, slide atlas, staining concepts and microscopic identification','🧫','#8D83D8'],
+      ['HMT','Haematology','Blood cell morphology, haematological indices and laboratory interpretation','🩸','#B84C5A'],
+      ['CCL','Clinical Chemistry','Biochemical assays, reference intervals and interpretation principles','⚗️','#2F6FDB'],
+      ['ANA','Anatomy & Structural Sciences','Gross anatomy, regional relationships and anatomical imaging','🫀','#0E9AA7']
+    ];
+    mount(wrap(back('#/','Dashboard'),h('div',{class:'stack-l'},
+      h('div',{class:'dashboard-page-head'},h('span',{class:'chip gold'},'LEVEL '+level+' · ADVANCED TRACK'),h('h1',null,'Specialist Laboratory'),h('p',{class:'muted'},'A higher-level workspace organised around biomedical disciplines, specimen-based learning and laboratory interpretation.')),
+      h('section',{class:'panel stack'},h('h2',null,'Laboratory divisions'),h('p',{class:'small muted'},'Each division is a dedicated workspace. Content packs will be added as they are verified; no simulated results or unverified reference ranges are presented as clinical data.')),
+      h('section',{class:'dashboard-grid'},...modules.map(([code,name,detail,icon,color])=>h('a',{class:'dashboard-card',href:'#/lab/'+code.toLowerCase(),style:{'--card-accent':color}},
+        h('span',{class:'dashboard-card-icon','aria-hidden':'true'},icon),
+        h('span',{class:'dashboard-card-copy'},h('b',null,name),h('small',null,detail),h('small',{class:'muted'},'Open workspace')),
+        h('span',{class:'dashboard-card-arrow','aria-hidden':'true'},'›')))),
+      h('section',{class:'panel stack'},h('h2',null,'Laboratory record'),h('p',{class:'small muted'},'The planned record will keep practical objectives, specimen or slide notes, methods, observations, interpretation and references together. Personal learning records will remain separate from patient-identifiable information.'))
+    )));
+    return;
+  }
   const subjects = [
     { code: 'PHY', name: 'Physics', detail: 'PHY 107 · Interactive experiments', color: '#2F6FDB', href: '#/practicals/PHY', state: 'Open practicals' },
     { code: 'CHM', name: 'Chemistry', detail: 'CHM 107 · Practical procedures', color: '#B7791F', href: '#/practicals/CHM', state: 'Open in app' },
@@ -4652,6 +4669,77 @@ function labHubView() {
       h('span', { class: 'dashboard-card-icon', 'aria-hidden': 'true' }, x.code === 'PHY' ? '⚡' : x.code === 'CHM' ? '⚗️' : x.code === 'BIO' ? '🧬' : '💻'),
       h('span', { class: 'dashboard-card-copy' }, h('b', null, x.code + ' · ' + x.name), h('small', null, x.detail), h('small', { class: 'muted' }, x.state)),
       h('span', { class: 'dashboard-card-arrow', 'aria-hidden': 'true' }, '›'))))
+  )));
+}
+function advancedLabNotebookView(code) {
+  const names={mic:'Medical Microbiology',pat:'Pathology',his:'Histology & Tissue Sciences',hmt:'Haematology',ccl:'Clinical Chemistry',ana:'Anatomy & Structural Sciences'};
+  const discipline=String(code||'').toLowerCase();
+  const label=names[discipline];
+  if(!label){labHubView();return;}
+  const key='bablo-specialist-lab-notes-v1';
+  const read=()=>{try{const x=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}};
+  const title=h('input',{type:'text',maxlength:'100',placeholder:'e.g. Gram stain — learning observations'});
+  const objective=h('textarea',{rows:'2',maxlength:'1200',placeholder:'Learning objective',style:{width:'100%',resize:'vertical'}});
+  const method=h('textarea',{rows:'3',maxlength:'2500',placeholder:'Method or procedure (learning notes only)',style:{width:'100%',resize:'vertical'}});
+  const observation=h('textarea',{rows:'4',maxlength:'3500',placeholder:'What did you observe? Describe the model, slide, specimen or simulation.',style:{width:'100%',resize:'vertical'}});
+  const interpretation=h('textarea',{rows:'4',maxlength:'3500',placeholder:'Interpretation and concepts to review',style:{width:'100%',resize:'vertical'}});
+  const reference=h('input',{type:'text',maxlength:'250',placeholder:'Textbook, lecture or source reference'});
+  const status=h('p',{class:'tiny muted',role:'status','aria-live':'polite'});
+  const list=h('div',{class:'stack'});
+  const render=()=>{
+    const rows=read().filter(x=>x.discipline===discipline).sort((a,b)=>b.created-a.created);
+    list.replaceChildren(rows.length?h('h2',null,'Saved entries ('+rows.length+')'):h('p',{class:'small muted'},'No entries yet. Your notes will be stored on this device.'),
+      ...rows.map(x=>h('article',{class:'panel stack'},
+        h('div',{class:'row between wrapr'},h('b',null,x.title),h('span',{class:'tiny muted'},new Date(x.created).toLocaleString())),
+        x.objective?h('p',{class:'small'},h('b',null,'Objective · '),x.objective):null,
+        x.method?h('p',{class:'small'},h('b',null,'Method · '),x.method):null,
+        x.observation?h('p',{class:'small'},h('b',null,'Observation · '),x.observation):null,
+        x.interpretation?h('p',{class:'small'},h('b',null,'Interpretation · '),x.interpretation):null,
+        x.reference?h('p',{class:'tiny muted'},'Reference: '+x.reference):null,
+        h('button',{class:'btn sm danger',onclick:async()=>{if(!(await confirmBox({title:'Delete this notebook entry?',msg:'This removes the entry from this device.',ok:'Delete',danger:true})))return;localStorage.setItem(key,JSON.stringify(read().filter(y=>y.id!==x.id)));render();}},'Delete entry')
+      )));
+  };
+  const saveEntry=()=>{
+    const t=title.value.trim();
+    if(t.length<3){status.textContent='Give this entry a descriptive title.';return;}
+    const rows=read();
+    rows.push({id:'lab-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),discipline,title:t,objective:objective.value.trim(),method:method.value.trim(),observation:observation.value.trim(),interpretation:interpretation.value.trim(),reference:reference.value.trim(),created:Date.now()});
+    try{localStorage.setItem(key,JSON.stringify(rows));title.value='';objective.value='';method.value='';observation.value='';interpretation.value='';reference.value='';status.textContent='Entry saved on this device.';render();}
+    catch(e){status.textContent='Could not save. Device storage may be full.';}
+  };
+  mount(wrap(back('#/lab/'+discipline,'Specialist Laboratory'),h('div',{class:'stack-l'},
+    h('div',{class:'dashboard-page-head'},h('span',{class:'chip gold'},'LOCAL NOTEBOOK'),h('h1',null,label),h('p',{class:'muted'},'Record learning objectives, methods, observations and interpretations. Entries stay on this device and are not synced.')),
+    h('section',{class:'panel stack'},h('h2',null,'New laboratory entry'),
+      h('p',{class:'tiny muted'},'Use fictional, teaching or de-identified material only. Do not enter patient names, IDs, contact details or other identifiable health information.'),
+      h('label',{class:'field'},h('span',null,'Entry title'),title),
+      h('label',{class:'field'},h('span',null,'Objective'),objective),
+      h('label',{class:'field'},h('span',null,'Method / procedure'),method),
+      h('label',{class:'field'},h('span',null,'Observations'),observation),
+      h('label',{class:'field'},h('span',null,'Interpretation / questions'),interpretation),
+      h('label',{class:'field'},h('span',null,'Reference'),reference),status,
+      h('button',{class:'btn primary block',onclick:saveEntry},'Save notebook entry')),
+    list
+  )));
+  render();
+}
+function advancedLabModuleView(code) {
+  if((parseInt((DB.profile||{}).level||'100L',10)||100)<200){labHubView();return;}
+  const map={
+    mic:['Medical Microbiology','Bacteriology, virology, mycology and parasitology','Organism profiles · specimen concepts · diagnostic principles · antimicrobial interpretation'],
+    pat:['Pathology','General and systemic pathology','Morphological patterns · disease mechanisms · clinicopathological correlation'],
+    his:['Histology & Tissue Sciences','Normal tissue architecture and microscopic identification','Tissue atlas · staining principles · slide annotations · structure-function links'],
+    hmt:['Haematology','Blood cells and laboratory haematology','Cell morphology · indices · haemostasis concepts · interpretation'],
+    ccl:['Clinical Chemistry','Biochemical testing and interpretation','Analyte concepts · assay principles · reference interval literacy · clinical correlation'],
+    ana:['Anatomy & Structural Sciences','Regional anatomy and structural relationships','Anatomical atlas · cross-sections · imaging orientation · applied anatomy']
+  };
+  const item=map[String(code||'').toLowerCase()];
+  if(!item){labHubView();return;}
+  mount(wrap(back('#/lab','Specialist Laboratory'),h('div',{class:'stack-l'},
+    h('div',{class:'dashboard-page-head'},h('span',{class:'chip gold'},'SPECIALIST WORKSPACE'),h('h1',null,item[0]),h('p',{class:'muted'},item[1])),
+    h('section',{class:'panel stack'},h('h2',null,'Workspace structure'),h('p',{class:'small'},item[2])),
+    h('section',{class:'panel stack'},h('h2',null,'Learning record'),h('p',{class:'small muted'},'This workspace is being populated with reviewed course-aligned material. No diagnostic advice, patient data or fabricated laboratory results are stored here.')),
+    h('a',{class:'btn primary block',href:'#/lab-notebook/'+discipline},'Open laboratory notebook'),
+    h('section',{class:'panel stack'},h('h2',null,'Planned tools'),h('div',{class:'row between wrapr'},h('span',null,'Reference atlas and annotated images'),h('span',{class:'chip gold'},'In development')),h('div',{class:'row between wrapr'},h('span',null,'Methods and principles library'),h('span',{class:'chip gold'},'In development')),h('div',{class:'row between wrapr'},h('span',null,'Observation and interpretation notebook'),h('span',{class:'chip gold'},'In development')))
   )));
 }
 async function integratedPracticalDocument(kind) {
