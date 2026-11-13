@@ -2533,7 +2533,7 @@ function homeView() {
 function coursesCatalogueView(){
  const p=DB.profile,L200=p&&p.level==='200L';
  const list=homeCourses().filter(c=>canAccessCourse(c.code)).map(c=>{const ok=isAvail(c),n=ok?BYC[c.code].length:0;
-  return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Questions'):go('#/course/'+c.code)},
+  return h('button',{class:'catalogue-course',onclick:()=>c.pending200?open200(c.code,'Overview'):go('#/course/'+c.code)},
    h('span',{class:'catalogue-code'},c.label),h('b',null,c.title),h('small',null,c.pending200?'Course resources':plural(n,'question')+' · '+plural(unitsOf(c.code).length,'topic')),h('span',{class:'dashboard-card-arrow'},'›'));
  });
  mount(wrap(h('div',{class:'dashboard-page-head'},h('a',{class:'back',href:'#/'},'‹ Dashboard'),h('h1',null,'Course catalogue'),h('p',{class:'muted'},'Choose a course to open its dashboard and learning resources.')),
