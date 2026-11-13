@@ -2286,12 +2286,12 @@ function route() {
   document.body.classList.toggle('on-home', v === 'home');
   if (entryAuth === 'login' || entryAuth === 'signup') {
     window.ACCOUNT_MODE = entryAuth;
-    mount(wrap()); renderNav(null);
-    modal(h('div', { class: 'stack' },
-      h('h2', null, 'Welcome to Bablo Hub'),
+    mount(wrap(h('div', { class: 'stack-l' },
+      h('h1', null, 'Welcome to Bablo Hub'),
       accountSection(),
       h('button', { class: 'btn ghost block', onclick: () => { history.replaceState(null, '', location.pathname); route(); } }, 'Back to welcome')
-    ), false);
+    )));
+    renderNav(null);
     return;
   }
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
