@@ -3,13 +3,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('../calculator/index.html', import.meta.url), 'utf8');
-const script = [...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)].map((match) => match[1]).at(-1);
+const script = html.split('<script>').slice(1).map((block) => block.split('</script>')[0]).at(-1);
 assert.ok(script, 'calculator inline engine script exists');
 
-const normalizerSource = script.match(/function normalizeExpression\\(raw\\)\\{[\\s\\S]*?\\nfunction preview\\(/)?.[0]
-  ?.replace(/\\nfunction preview\\($/, '');
-assert.ok(normalizerSource, 'expression normalizer exists');
-const normalizeExpression = new Function(normalizerSource + '; return normalizeExpression;')();
+const start = script.indexOf('function normalizeExpression(raw){');
+const end = script.indexOf('\nfunction preview()', start);
+assert.ok(start >= 0 && end > start, 'expression normalizer exists');
+const normalizeExpression = new Function(script.slice(start, end) + '; return normalizeExpression;')();
 
 test('calculator inline JavaScript parses', () => {
   assert.doesNotThrow(() => new Function(script));
@@ -18,7 +18,7 @@ test('calculator inline JavaScript parses', () => {
 test('typed trigonometry accepts natural and function notation', () => {
   assert.equal(normalizeExpression('sin 60'), 'sin(60)');
   assert.equal(normalizeExpression('sin(60)'), 'sin(60)');
-  assert.equal(normalizeExpression('\\\\sin(60)'), 'sin(60)');
+  assert.equal(normalizeExpression('\\sin(60)'), 'sin(60)');
   assert.equal(normalizeExpression('cos 60'), 'cos(60)');
   assert.equal(normalizeExpression('2sin 60'), '2*sin(60)');
   assert.equal(normalizeExpression('sin 60 + cos 60'), 'sin(60) + cos(60)');
@@ -33,7 +33,7 @@ test('degree markers and natural radicals are normalized', () => {
 });
 
 test('math input disables mobile spelling correction', () => {
-  assert.match(html, /autocorrect="off"/);
-  assert.match(html, /autocapitalize="off"/);
-  assert.match(html, /spellcheck="false"/);
+  assert.ok(html.includes('autocorrect="off"'));
+  assert.ok(html.includes('autocapitalize="off"'));
+  assert.ok(html.includes('spellcheck="false"'));
 });
