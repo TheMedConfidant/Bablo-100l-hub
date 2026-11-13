@@ -34,6 +34,25 @@ create table if not exists public.hub_academic_programmes (
   unique (institution_id, programme_code)
 );
 
+create table if not exists public.hub_academic_courses (
+  id uuid primary key default gen_random_uuid(),
+  institution_id uuid not null references public.hub_academic_institutions(id) on delete restrict,
+  programme_id uuid not null references public.hub_academic_programmes(id) on delete restrict,
+  academic_level text not null
+    check (academic_level in ('100L','200L','300L','400L','500L','600L','700L','Other')),
+  semester text not null check (semester in ('first','second','summer','year-round')),
+  course_code text not null check (char_length(course_code) between 1 and 40),
+  course_title text not null check (char_length(course_title) between 2 and 180),
+  credit_units numeric(4,1),
+  curriculum_status text not null default 'candidate'
+    check (curriculum_status in ('candidate','verified','retired')),
+  outline_source_url text,
+  verification_note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (institution_id, programme_id, academic_level, semester, course_code)
+);
+
 create table if not exists public.hub_academic_resources (
   id uuid primary key default gen_random_uuid(),
   resource_key text not null unique check (char_length(resource_key) between 3 and 180),
@@ -65,13 +84,7 @@ create table if not exists public.hub_academic_resources (
 create table if not exists public.hub_academic_resource_mappings (
   id uuid primary key default gen_random_uuid(),
   resource_id uuid not null references public.hub_academic_resources(id) on delete cascade,
-  institution_id uuid not null references public.hub_academic_institutions(id) on delete restrict,
-  programme_id uuid not null references public.hub_academic_programmes(id) on delete restrict,
-  academic_level text not null
-    check (academic_level in ('100L','200L','300L','400L','500L','600L','700L','Other')),
-  semester text not null check (semester in ('first','second','summer','year-round')),
-  course_code text not null check (char_length(course_code) between 1 and 40),
-  course_title text,
+  course_id uuid not null references public.hub_academic_courses(id) on delete restrict,
   topic text,
   mapping_status text not null default 'candidate'
     check (mapping_status in ('candidate','verified','rejected')),
@@ -80,7 +93,7 @@ create table if not exists public.hub_academic_resource_mappings (
   verified_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (resource_id, institution_id, programme_id, academic_level, semester, course_code, topic),
+  unique (resource_id, course_id, topic),
   check (mapping_status <> 'verified' or verified_at is not null)
 );
 
@@ -88,6 +101,8 @@ create index if not exists hub_academic_institutions_directory_idx
   on public.hub_academic_institutions (directory_status, offers_health_sciences, name);
 create index if not exists hub_academic_programmes_directory_idx
   on public.hub_academic_programmes (institution_id, directory_status, programme_name);
+create index if not exists hub_academic_courses_lookup_idx
+  on public.hub_academic_courses (institution_id, programme_id, academic_level, semester, curriculum_status);
 create index if not exists hub_academic_resources_publish_idx
   on public.hub_academic_resources (is_published, quality_status, rights_status, reuse_policy);
 create index if not exists hub_academic_resource_mappings_lookup_idx
@@ -174,11 +189,13 @@ end $$;
 
 alter table public.hub_academic_institutions enable row level security;
 alter table public.hub_academic_programmes enable row level security;
+alter table public.hub_academic_courses enable row level security;
 alter table public.hub_academic_resources enable row level security;
 alter table public.hub_academic_resource_mappings enable row level security;
 
 revoke all on public.hub_academic_institutions from public, anon, authenticated;
 revoke all on public.hub_academic_programmes from public, anon, authenticated;
+revoke all on public.hub_academic_courses from public, anon, authenticated;
 revoke all on public.hub_academic_resources from public, anon, authenticated;
 revoke all on public.hub_academic_resource_mappings from public, anon, authenticated;
 
@@ -236,18 +253,20 @@ security definer
 set search_path = public
 as $$
   select r.resource_key, r.title, r.resource_type,
-         m.course_code, m.course_title, m.topic,
+         c.course_code, c.course_title, m.topic,
          r.content_reference, r.metadata
   from public.hub_academic_resources r
   join public.hub_academic_resource_mappings m on m.resource_id = r.id
-  join public.hub_academic_institutions i on i.id = m.institution_id
-  join public.hub_academic_programmes p on p.id = m.programme_id
+  join public.hub_academic_courses c on c.id = m.course_id
+  join public.hub_academic_institutions i on i.id = c.institution_id
+  join public.hub_academic_programmes p on p.id = c.programme_id
   where i.slug = lower(trim(p_institution_slug))
     and i.directory_status = 'active'
     and p.programme_code = upper(trim(p_programme_code))
     and p.directory_status = 'active'
-    and m.academic_level = p_academic_level
-    and m.semester = p_semester
+    and c.academic_level = p_academic_level
+    and c.semester = p_semester
+    and c.curriculum_status = 'verified'
     and m.mapping_status = 'verified'
     and m.verified_at is not null
     and r.is_published = true
@@ -258,7 +277,7 @@ as $$
       or
       (r.reuse_policy = 'institution-only' and r.owner_institution_id = i.id)
     )
-  order by m.course_code, r.resource_type, r.title;
+  order by c.course_code, r.resource_type, r.title;
 $$;
 
 revoke all on function public.hub_list_health_institutions() from public;
