@@ -53,7 +53,7 @@ test('calculator libraries are routed through the offline cache', () => {
   assert.ok(html.includes('./vendor/mathlive-static.css'));
   assert.ok(html.includes("MathfieldElement.fontsDirectory"));
   assert.ok(html.includes("MathfieldElement.soundsDirectory"));
-  assert.ok(serviceWorker.includes("bablo-offline-v39-semester-profile"));
+  assert.ok(serviceWorker.includes("bablo-offline-v40-semester-course-gate"));
   assert.ok(serviceWorker.includes("function vendorURL(u)"));
   assert.ok(serviceWorker.includes("cdn.jsdelivr.net/npm/mathjs@14.8.1/lib/browser/math.js"));
   assert.ok(serviceWorker.includes("unpkg.com/mathlive@0.104.2/dist/"));
