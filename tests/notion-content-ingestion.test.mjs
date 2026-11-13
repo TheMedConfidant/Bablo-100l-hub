@@ -107,3 +107,30 @@ test('typed MCQ and flashcard records meet required data contracts', () => {
   assert.equal(new Set(preview.rows.map(r => r.rowKey)).size, preview.rows.length);
   assert.equal(new Set(preview.resources.map(r => r.resourceKey)).size, preview.resources.length);
 });
+
+test('queued Notion database schemas are captured without pretending rows were exported', () => {
+  const snapshot = read('notion-pending-datasource-schemas.json');
+  assert.equal(snapshot.schemaVersion, 1);
+  assert.equal(snapshot.dataSources.length, 5);
+  const byTitle = new Map(snapshot.dataSources.map(source => [source.title, source]));
+  for (const source of snapshot.dataSources) {
+    assert.ok(source.dataSourceUrl.startsWith('collection://'));
+    assert.ok(source.pageUrl.startsWith('https://app.notion.com/'));
+    assert.ok(Object.keys(source.schema).length > 0);
+    assert.ok(source.sqliteTable.includes('CREATE TABLE'));
+    assert.equal(source.exportState, 'schema-fetched-content-rows-not-exported');
+    assert.equal(source.publicationState, 'blocked');
+  }
+  const chm = byTitle.get('CHM 101 MCQs');
+  assert.ok(chm);
+  for (const property of ['Question','Option A','Option B','Option C','Option D','Correct Answer','Explanation','Topic']) {
+    assert.ok(chm.schema[property], 'CHM schema missing ' + property);
+  }
+  const phy = byTitle.get('PHY 101 MCQs');
+  assert.ok(phy);
+  assert.ok(phy.schema['Correct Answer']);
+  assert.ok(phy.schema['Option D']);
+  const bio = byTitle.get('BIO 101 (Bowen) Flashcards');
+  assert.ok(bio.schema.Front);
+  assert.ok(bio.schema.Back);
+});
