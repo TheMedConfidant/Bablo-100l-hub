@@ -734,6 +734,30 @@
       ],
       "status": "staged-not-yet-loaded-into-live-app",
       "mappingStatus": "Bowen-200L-discipline-known-official-course-code-and-semester-not-yet-mapped"
+    },
+    {
+      "path": "data/bowen-200l-course-maps.json",
+      "records": 4,
+      "datasets": [
+        {
+          "key": "bowen-200l-curriculum",
+          "records": 1
+        },
+        {
+          "key": "physiology-course-map",
+          "records": 1
+        },
+        {
+          "key": "anatomy-course-hub",
+          "records": 1
+        },
+        {
+          "key": "biochemistry-course-hub",
+          "records": 1
+        }
+      ],
+      "status": "staged-and-connected-to-200L-course-viewer",
+      "mappingStatus": "Bowen-MBBS-200L-discipline-lanes; exact course-code-and-semester-not-yet-mapped"
     }
   ],
   "sourceAuthority": "User confirms all Notion-built materials are verified.",
