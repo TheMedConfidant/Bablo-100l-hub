@@ -98,3 +98,22 @@ test('local Wi-Fi battles only expose and select courses allowed by the academic
  assert.match(wifi,/filter\(c=>typeof window\.canAccessCourse==='function'&&window\.canAccessCourse\(c\)\)/);
  assert.match(wifi,/window\.canAccessCourse\(q\.c\)/);
 });
+
+
+test('Bowen 100L course access is programme-specific and does not inherit a generic shared core',()=>{
+ const fs=require('node:fs');
+ const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ assert.match(app,/const PROGRAMME_COURSES = \{\s*'MBBS': \[/);
+ assert.doesNotMatch(app,/const PROGRAMME_COURSES = \{[\s\S]*?'Nursing'\s*:/);
+ assert.match(app,/Other CoHES programmes remain unavailable until their own official course lists/);
+});
+
+test('the public landing page is loaded and identifies the first mapped academic track',()=>{
+ const fs=require('node:fs');
+ const app=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const landing=fs.readFileSync(new URL('../landing-premium.js',import.meta.url),'utf8');
+ assert.match(app,/landing-premium\.css/);
+ assert.match(app,/landing-premium\.js/);
+ assert.match(landing,/mount\(wrap\(root\)\)/);
+ assert.match(landing,/Bowen University’s CoHES MBBS 100 Level track/);
+});
