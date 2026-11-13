@@ -59,6 +59,16 @@ test('app requires a semester and persists it through the v2 profile RPCs',()=>{
 });
 
 
+test('resource RPC rejects missing semester instead of returning every semester',()=>{
+ const fs=require('node:fs');
+ const sql=fs.readFileSync(new URL('../supabase/migrations/20261113143000_multi_university_resource_engine.sql',import.meta.url),'utf8');
+ const rpc=sql.slice(sql.indexOf('create or replace function public.hub_list_academic_resources'),sql.indexOf('revoke all on function public.hub_list_health_institutions'));
+ assert.match(rpc,/p_semester text\\s*\\)/);
+ assert.match(rpc,/p_semester in \\('first','second','summer','year-round'\\)/);
+ assert.match(rpc,/and c\\.semester = p_semester/);
+ assert.doesNotMatch(rpc,/p_semester is null/);
+});
+
 test('static course access requires an exact semester mapping',()=>{
  assert.equal(E.courseSemesterMatches({semester:'first'},student),true);
  assert.equal(E.courseSemesterMatches({semester:'first'},{institution:'FUTA',programme:'BIO',level:'100L',academicSemester:'first'}),true);
