@@ -81,3 +81,20 @@ test('static course access requires an exact semester mapping',()=>{
  assert.match(app,/c\.semesterVerified === true/);
  assert.match(app,/document\.addEventListener\('DOMContentLoaded', \(\) => route\(\), \{ once: true \}\)/);
 });
+
+
+test('live Challenge Arena uses the same academic course access gate as the catalogue',()=>{
+ const fs=require('node:fs');
+ const challenge=fs.readFileSync(new URL('../challenge-arena.js',import.meta.url),'utf8');
+ assert.match(challenge,/function courseAllowed\(code\)/);
+ assert.match(challenge,/window\.canAccessCourse/);
+ assert.match(challenge,/function questions\(\)[\s\S]*courseAllowed\(q\.c\)/);
+ assert.match(challenge,/function courses\(\)[\s\S]*questions\(\)/);
+});
+
+test('local Wi-Fi battles only expose and select courses allowed by the academic profile',()=>{
+ const fs=require('node:fs');
+ const wifi=fs.readFileSync(new URL('../wifi-challenge.js',import.meta.url),'utf8');
+ assert.match(wifi,/filter\(c=>typeof window\.canAccessCourse==='function'&&window\.canAccessCourse\(c\)\)/);
+ assert.match(wifi,/window\.canAccessCourse\(q\.c\)/);
+});
