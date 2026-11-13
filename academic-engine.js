@@ -13,7 +13,7 @@
   const directory=Array.isArray(root.BABLO_UNIVERSITY_DIRECTORY)?root.BABLO_UNIVERSITY_DIRECTORY:[];
   const found=directory.find(entry=>[entry.slug,entry.name].concat(entry.aliases||[]).some(alias=>norm(alias)===raw));
   if(found)return found.slug;
-  if(raw==='futa'||raw==='federal university of technology akure')return 'futa';
+  if(raw==='futa'||raw==='federal university of technology akure'||raw==='federal university of technology, akure')return 'futa';
   if(raw==='bowen')return 'bowen-university';
   return slug(value);
  }
@@ -91,7 +91,7 @@
   const id=identity(studentIdentity);
   return filterResources(resources,studentIdentity).every(r=>r.mappings.some(m=>mappingMatches(m,id)));
  }
- const api={LEVELS,SEMESTERS,SURFACES,resolveInstitutionSlug,identity,validIdentity,isBscPathwayEligible,mappingMatches,resourceVisible,filterResources,groupBySurface,assertNoFallback};
+ const api={LEVELS,SEMESTERS,SURFACES,resolveInstitutionSlug,identity,validIdentity,isBscPathwayEligible,mappingMatches,resourceVisible,filterResources,loadResourceContent,groupBySurface,assertNoFallback};
  root.BabloAcademicEngine=Object.freeze(api);
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
