@@ -69,7 +69,7 @@ test('200L download controls use the removable course-pack manager without dupli
   const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(app, /offlineCoursePanel\('200l-ANATOMY'/);
   assert.match(app, /offlineCoursePanel\('200l-'\+c\.code/);
-  assert.doesNotMatch(app, /offlineCoursePanel\('200l-'/);
+  assert.doesNotMatch(app, /courseId:'bowen-200l-/);
 });
 
 test('removing a course also removes unshared runtime duplicates but preserves shared files', () => {
@@ -107,4 +107,11 @@ test('Settings cache cleanup includes removable course packs and abandoned stagi
   const cleanup = worker.slice(worker.indexOf("Clear Bablo offline cache"), worker.indexOf("})();</script><script id=\"bablo-startup-guard\""));
   assert.match(cleanup, /bablo-course-pack-v1-/);
   assert.match(cleanup, /bablo-course-pack-stage-/);
+});
+
+test('course-pack refresh fetches current resources into staging before replacing the active pack', () => {
+  assert.match(worker, /const response=await timedFetch\(request,20000,'reload'\)/);
+  assert.match(worker, /await staging\.put\(request,response\.clone\(\)\)/);
+  assert.match(worker, /const requested=new Set\(urls\.map\(url=>url\.href\)\)/);
+  assert.match(worker, /await cache\.delete\(oldRequest\)/);
 });
