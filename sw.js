@@ -49,34 +49,40 @@ self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.o
 self.addEventListener('activate',e=>e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>(k.startsWith('bablo-shell-')||k.startsWith('bablo-offline-'))&&k!==VERSION).map(k=>caches.delete(k)));await self.clients.claim()})()));
 self.addEventListener('fetch',e=>{const q=e.request,u=new URL(q.url);if(q.method!=='GET'||u.origin!==self.location.origin)return;const vendor=vendorURL(u);if(vendor){e.respondWith((async()=>{const cached=await matchAny(q);if(cached)return cached;try{const r=await timedFetch(vendor,15000);if(r.ok)await save(q,r);return r}catch(_){return new Response('Calculator libraries have not been cached yet. Connect once and reload the calculator.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})());return}const mathsAsset=/\/(?:mts-maths-topics|mts-maths-induction-extra)\.js$/.test(u.pathname);if(mathsAsset){e.respondWith((async()=>{try{const fresh=await timedFetch(q,15000,'reload');if(fresh.ok){await save(q,fresh);return fresh}const cached=await matchAny(q);if(cached)return cached;return fresh}catch(_){const cached=await matchAny(q);return cached||new Response('Maths content is temporarily unavailable. Reconnect and reload.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})());return}const nav=q.mode==='navigate'||u.pathname.endsWith('/index.html')||u.pathname==='/';if(nav){e.respondWith((async()=>{const cached=await matchAny(q)||await matchAny('./index.html')||await matchAny('./');if(cached){e.waitUntil((async()=>{try{const fresh=await timedFetch(q,10000,'reload');if(fresh.ok){const v=await decorate(fresh);await save('./index.html',v);await save('./',v);await save(q,v)}}catch(_){}})());return decorate(cached)}try{const fresh=await timedFetch(q,12000,'reload');if(fresh.ok){const v=await decorate(fresh);await save('./index.html',v);await save('./',v);await save(q,v);return v}return fresh}catch(_){return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="font:16px system-ui;background:#0a1020;color:white;padding:24px"><h2>Bablo Hub</h2><p>This device has not cached the app yet. Connect briefly, then reopen Bablo Hub to enable offline startup.</p><button onclick="location.reload()">Try again</button></body>',{status:200,headers:{'Content-Type':'text/html; charset=utf-8'}})}})());return}e.respondWith((async()=>{const old=await matchAny(q);if(old){e.waitUntil(timedFetch(q,6000).then(r=>save(q,r)).catch(()=>{}));return old}try{const r=await timedFetch(q,10000);if(r.ok)await save(q,r);return r}catch(_){return new Response('This resource has not been cached yet.',{status:503,headers:{'Content-Type':'text/plain; charset=utf-8'}})}})())});
 
-// Selective, user-requested course packs. Each course has its own cache so it can
-// be removed independently without touching account data or other course packs.
+// Selective course packs use immutable versioned caches plus a single active
+// manifest pointer. The pointer is switched only after the new cache is complete.
+const COURSE_PREFIX='bablo-course-pack-v1-';
+const COURSE_META='bablo-course-pack-meta-v1';
+function courseMetaRequest(id){return new Request(new URL('/__bablo_course_pack_meta__/'+id,self.location.href).href)}
+async function activeCourseCache(id){const meta=await caches.open(COURSE_META),response=await meta.match(courseMetaRequest(id));if(!response)return null;try{return (await response.json()).cacheName||null}catch(_){return null}}
 self.addEventListener('message',event=>{
  const msg=event.data||{},port=event.ports&&event.ports[0];
  if(!port||!['BABLO_CACHE_COURSE','BABLO_REMOVE_COURSE','BABLO_LIST_COURSES'].includes(msg.type))return;
  const reply=data=>{try{port.postMessage(data)}catch(_){}};
  event.waitUntil((async()=>{
+  let newCacheName=null;
   try{
-   const prefix='bablo-course-pack-v1-';
    if(msg.type==='BABLO_LIST_COURSES'){
-    const names=(await caches.keys()).filter(n=>n.startsWith(prefix));
-    reply({ok:true,courses:names.map(n=>n.slice(prefix.length))});return;
+    const meta=await caches.open(COURSE_META),keys=await meta.keys(),courses=[];
+    for(const key of keys){const response=await meta.match(key);try{const data=await response.json();if(data.courseId&&data.cacheName&&await caches.has(data.cacheName))courses.push(data.courseId)}catch(_){}}
+    // Include legacy single-cache packs until they are next refreshed or removed.
+    for(const name of await caches.keys()){if(name.startsWith(COURSE_PREFIX)&&!name.slice(COURSE_PREFIX.length).includes('-')){const id=name.slice(COURSE_PREFIX.length);if(!courses.includes(id))courses.push(id)}}
+    reply({ok:true,courses});return;
    }
    const id=String(msg.courseId||'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-|-$/g,'').slice(0,64);
    if(!id)throw new Error('A valid course ID is required');
-   const cacheName=prefix+id;
+   const stageName='bablo-course-pack-stage-'+id,meta=await caches.open(COURSE_META),metaKey=courseMetaRequest(id);
    if(msg.type==='BABLO_REMOVE_COURSE'){
-    const removed=await caches.open(cacheName),removedKeys=await removed.keys();
-    await caches.delete(cacheName);await caches.delete('bablo-course-pack-stage-'+id);
-    // Remove stale runtime-cache duplicates too, but preserve shell files and
-    // any resource still owned by another downloaded course.
-    const runtime=await caches.open(VERSION);
-    const protectedUrls=new Set(SHELL.map(p=>new URL(p,self.location.href).href));
-    const otherNames=(await caches.keys()).filter(n=>n.startsWith(prefix));
+    const names=(await caches.keys()).filter(n=>n===COURSE_PREFIX+id||n.startsWith(COURSE_PREFIX+id+'-'));
+    const removedKeys=[];
+    for(const name of names){const cache=await caches.open(name);removedKeys.push(...await cache.keys());await caches.delete(name)}
+    await caches.delete(stageName);await meta.delete(metaKey);
+    const runtime=await caches.open(VERSION),protectedUrls=new Set(SHELL.map(p=>new URL(p,self.location.href).href));
+    const otherNames=(await caches.keys()).filter(n=>n.startsWith(COURSE_PREFIX));
     for(const request of removedKeys){
      if(protectedUrls.has(request.url))continue;
      let retained=false;
-     for(const name of otherNames){const pack=await caches.open(name);if(await pack.match(request,{ignoreSearch:true})){retained=true;break;}}
+     for(const name of otherNames){const pack=await caches.open(name);if(await pack.match(request,{ignoreSearch:true})){retained=true;break}}
      if(!retained)await runtime.delete(request,{ignoreSearch:true});
     }
     reply({ok:true,courseId:id,removed:true});return;
@@ -84,37 +90,33 @@ self.addEventListener('message',event=>{
    const paths=Array.isArray(msg.resources)?msg.resources:[];
    if(!paths.length)throw new Error('No course resources were supplied');
    if(paths.length>250)throw new Error('A course pack cannot contain more than 250 files');
-   const unique=[...new Set(paths.map(p=>String(p||'')))];
-   const urls=unique.map(p=>new URL(p,self.location.href));
+   const unique=[...new Set(paths.map(p=>String(p||'')))],urls=unique.map(p=>new URL(p,self.location.href));
    if(urls.some(u=>u.origin!==self.location.origin||!/^https?:$/.test(u.protocol)))throw new Error('Course packs can only include files hosted by Bablo Hub');
-   if(navigator.storage&&navigator.storage.estimate){
-    try{const estimate=await navigator.storage.estimate();if(estimate.quota&&estimate.usage/estimate.quota>0.9)throw new Error('Phone storage is nearly full. Free some space before downloading this course.');}
-    catch(error){if(error&&/nearly full/.test(error.message||''))throw error;}
-   }
-   const cache=await caches.open(cacheName);const stageName='bablo-course-pack-stage-'+id;await caches.delete(stageName);const staging=await caches.open(stageName);let completed=0,failed=[];
+   if(navigator.storage&&navigator.storage.estimate){try{const estimate=await navigator.storage.estimate();if(estimate.quota&&estimate.usage/estimate.quota>0.9)throw new Error('Phone storage is nearly full. Free some space before downloading this course.')}catch(error){if(error&&/nearly full/.test(error.message||''))throw error}}
+   await caches.delete(stageName);const staging=await caches.open(stageName);let completed=0,failed=[];
    for(const url of urls){
-    try{
-     const request=new Request(url.href,{method:'GET',credentials:'same-origin'});
-     const response=await timedFetch(request,20000,'reload');
-     if(!response.ok||response.type==='opaque')throw new Error('HTTP '+response.status);
-     const length=Number(response.headers.get('content-length')||0);
-     if(length>25*1024*1024)throw new Error('File exceeds 25 MB safety limit');
-     await staging.put(request,response.clone());
-    }catch(error){failed.push({url:url.pathname,error:String(error&&error.message||error)})}
+    try{const request=new Request(url.href,{method:'GET',credentials:'same-origin'}),response=await timedFetch(request,20000,'reload');if(!response.ok||response.type==='opaque')throw new Error('HTTP '+response.status);const length=Number(response.headers.get('content-length')||0);if(length>25*1024*1024)throw new Error('File exceeds 25 MB safety limit');await staging.put(request,response.clone())}
+    catch(error){failed.push({url:url.pathname,error:String(error&&error.message||error)})}
     completed++;reply({progress:true,courseId:id,completed,total:urls.length,failed:failed.length});
    }
-   if(failed.length){
-    await caches.delete(stageName);
-    reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. Your previous offline pack was kept; retry when connected.'});return;
-   }
-   const requested=new Set(urls.map(url=>url.href));
-   for(const oldRequest of await cache.keys()){if(!requested.has(oldRequest.url))await cache.delete(oldRequest);}
-   for(const request of await staging.keys()){const response=await staging.match(request);if(response)await cache.put(request,response);}
+   if(failed.length){await caches.delete(stageName);reply({ok:false,courseId:id,completed,total:urls.length,failed,message:'Some files could not be saved. Your previous offline pack was kept; retry when connected.'});return}
+   // Build a brand-new immutable cache. The currently active manifest remains
+   // untouched until every staged response has been copied successfully.
+   newCacheName=COURSE_PREFIX+id+'-'+Date.now();const next=await caches.open(newCacheName);
+   for(const request of await staging.keys()){const response=await staging.match(request);if(!response)throw new Error('A staged course file could not be read');await next.put(request,response)}
+   if((await next.keys()).length!==urls.length)throw new Error('The new course pack did not pass its file-count check');
+   const previous=await activeCourseCache(id);
+   await meta.put(metaKey,new Response(JSON.stringify({courseId:id,cacheName:newCacheName,updatedAt:Date.now(),files:urls.length}),{headers:{'Content-Type':'application/json'}}));
    await caches.delete(stageName);
+   if(previous&&previous!==newCacheName)await caches.delete(previous);
+   // Remove any obsolete legacy cache for this course after the pointer commit.
+   await caches.delete(COURSE_PREFIX+id);
    reply({ok:true,courseId:id,completed,total:urls.length,failed:0});
-  }catch(error){reply({ok:false,message:String(error&&error.message||error)})}
+  }catch(error){
+   if(newCacheName)await caches.delete(newCacheName).catch(()=>{});
+   reply({ok:false,message:String(error&&error.message||error)+' Your previous offline pack was kept.'});
+  }
  })());
 });
-
 self.addEventListener('push',e=>{let d={title:'Bablo Hub',body:'',url:'./'};try{d=Object.assign(d,e.data.json())}catch(_){}e.waitUntil(self.registration.showNotification(d.title,{body:d.body,icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'./'}}))});
 self.addEventListener('notificationclick',e=>{e.notification.close();const t=e.notification.data&&e.notification.data.url||'./';e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(a=>{for(let i=0;i<a.length;i++)if('focus'in a[i])return a[i].focus();return clients.openWindow(t)}))});
