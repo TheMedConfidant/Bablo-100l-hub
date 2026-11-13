@@ -2281,8 +2281,19 @@ function route() {
   stopTimer();
   const raw = location.hash.replace(/^#\/?/, ''); const parts = raw.split('?'); const seg = parts[0].split('/').filter(Boolean);
   const qs = new URLSearchParams(parts[1] || ''); const v = seg[0] || 'home';
+  const entryAuth = new URLSearchParams(location.search).get('auth');
   trackEvent('page_view', { page: v });
   document.body.classList.toggle('on-home', v === 'home');
+  if (entryAuth === 'login' || entryAuth === 'signup') {
+    window.ACCOUNT_MODE = entryAuth;
+    mount(wrap()); renderNav(null);
+    modal(h('div', { class: 'stack' },
+      h('h2', null, 'Welcome to Bablo Hub'),
+      accountSection(),
+      h('button', { class: 'btn ghost block', onclick: () => { history.replaceState(null, '', location.pathname); route(); } }, 'Back to welcome')
+    ), false);
+    return;
+  }
   if (!DB.profile) { mount(wrap()); renderNav(null); onboarding(); return; }
   const tab = { plan: 'time', time: 'time', courses: 'home', arcade: null, programmes: 'board', weak: 'home', chess: null, challenge: null, home: 'home', course: 'home', setup: 'home', result: 'home', board: 'board', cup: 'board', social: null, gpa: null, me: null, lab: null }[v] || null;
   renderNav(v === 'run' || v === 'chess' || v === 'arcade' ? null : (tab || 'home'));
