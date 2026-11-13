@@ -1293,7 +1293,7 @@ function inferProgrammeCategory(programme) {
 function academicProfileFields(profile, surface) {
   const p = profile || {};
   const mode = surface || 'signup';
-  const directory = Array.isArray(window.BABLO_UNIVERSITY_DIRECTORY) ? window.BABLO_UNIVERSITY_DIRECTORY : [
+  let directory = Array.isArray(window.BABLO_UNIVERSITY_DIRECTORY ? window.BABLO_UNIVERSITY_DIRECTORY : [
     { slug: 'bowen-university', name: 'Bowen University', aliases: ['Bowen'] },
     { slug: 'futa', name: 'Federal University of Technology, Akure', aliases: ['FUTA'] }
   ];
@@ -1313,6 +1313,29 @@ function academicProfileFields(profile, surface) {
   };
   const selectedInstitutionSlug = () => institution.value && institution.value !== '__other__' ? institution.value : '';
   otherInstitutionField.hidden = institution.value !== '__other__';
+  const refreshUniversityDirectory = async () => {
+    if (!authConfigured()) return;
+    try {
+      const rows = await hubCall('hub_list_health_institutions', {});
+      if (!Array.isArray(rows) || !rows.length) return;
+      const selected = institution.value;
+      const oldDirectory = directory;
+      directory = rows.map(row => Object.assign({}, oldDirectory.find(item => item.slug === row.slug) || {}, row));
+      institution.replaceChildren(
+        h('option', { value: '', disabled: true }, 'Choose your university'),
+        ...directory.map(entry => h('option', { value: entry.slug }, entry.name)),
+        h('option', { value: '__other__' }, 'Other health-science university / request addition')
+      );
+      institution.value = directory.some(entry => entry.slug === selected) ? selected : '__other__';
+      otherInstitutionField.hidden = institution.value !== '__other__';
+      if (institution.value === '__other__' && !otherInstitution.value && selected !== '__other__') {
+        const previous = oldDirectory.find(item => item.slug === selected);
+        if (previous) otherInstitution.value = previous.name;
+      }
+      syncPathway();
+      refreshProgrammeOptions();
+    } catch (e) { /* Keep the bundled directory available if the database is offline or migration is pending. */ }
+  };
 
   const programme = h('input', { type: 'text', value: p.programme || 'MBBS', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
   const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
@@ -1364,6 +1387,7 @@ function academicProfileFields(profile, surface) {
   programme.addEventListener('input', () => { category.value = inferProgrammeCategory(programme.value.trim()); syncPathway(); });
   level.addEventListener('change', syncPathway);
   syncPathway();
+  refreshUniversityDirectory();
   if (selectedInstitutionSlug()) refreshProgrammeOptions();
   return {
     nodes: [
