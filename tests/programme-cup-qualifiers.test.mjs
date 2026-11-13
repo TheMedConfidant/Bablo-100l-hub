@@ -37,3 +37,9 @@ test('AGR 101 notice is restricted to the MBBS profile', () => {
   assert.match(agrMigration, /set programme = 'MBBS'/);
   assert.match(agrMigration, /id = 'test-agr101-2026'/);
 });
+
+test('profile uses one Faculty / Programme identity for Cup grouping', () => {
+  assert.match(html, /Faculty \/ Programme/);
+  assert.match(html, /faculty: details\.programme/);
+  assert.match(html, /partition by lower\(coalesce\(nullif\(trim\(q\.programme\)/);
+});
