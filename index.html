@@ -4476,6 +4476,39 @@ function aboutView() {
   box.append(panel);
   mount(wrap(back('#/','Home'),box));
 }
+function exportLocalStudyData() {
+  const p = DB.profile || {};
+  const payload = {
+    product: 'Bablo Hub',
+    exportType: 'local-study-data',
+    exportedAt: new Date().toISOString(),
+    profile: {
+      name: p.name || '', nickname: p.nick || '', username: p.username || '',
+      babloId: p.uid || '', institution: p.institution || '',
+      programme: p.programme || '', programmeCategory: p.programmeCategory || '',
+      level: p.level || '', faculty: p.faculty || '', department: p.department || '',
+      academicSession: p.academicSession || '', bscPathway: p.bscPathway || ''
+    },
+    quizHistory: DB.history || [],
+    questionStats: DB.stats || {},
+    missedQuestions: DB.missed || {},
+    eventsAndReminders: DB.events || [],
+    preferences: {
+      theme: DB.theme || 'system', skin: DB.skin || 'classic',
+      notifications: !!DB.notify, soundAlerts: !!DB.soundAlerts
+    },
+    note: 'This export contains data stored on this device. It does not include passwords, authentication tokens, server-side records or files that have not been downloaded.'
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bablo-hub-study-data-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  toast('Your local study-data export is ready.');
+}
+
 function settingsView() {
   const sk = (v, l) => h('button', { class: 'opt', 'aria-pressed': String((DB.skin || 'glass') === v), onclick: () => { DB.skin = v; save(); applyTheme(); settingsView(); } }, l);
   const th = (v, l) => h('button', { class: 'opt', 'aria-pressed': String(DB.theme === v), onclick: () => { DB.theme = v; save(); applyTheme(); settingsView(); } }, l);
@@ -4501,6 +4534,10 @@ function settingsView() {
     h('section', { class: 'stack' },
       h('h2', null, 'App installation'),
       installCard()),
+    h('section', { class: 'panel stack' },
+      h('h2', null, 'Your data'),
+      h('p', { class: 'small muted' }, 'Download a copy of the profile details, quiz history, question statistics, missed questions and reminders saved on this device. This export does not include passwords or authentication tokens.'),
+      h('button', { class: 'btn block', onclick: exportLocalStudyData }, 'Export my study data (JSON)')),
     h('section', { class: 'panel stack' },
       h('h2', null, 'Data on this device'),
       h('p', { class: 'small muted' }, 'Erase your local profile, quiz history and saved preferences from this device. This does not delete a server account.'),
