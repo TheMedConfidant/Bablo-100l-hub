@@ -54,3 +54,10 @@ test('course-pack responses are not copied into the general runtime cache', () =
   assert.match(worker, /bablo-course-pack-v1-/);
   assert.match(worker, /if\(await pack\.match\(req,\{ignoreSearch:true\}\)\)return/);
 });
+
+test('Settings exposes offline course pack management', () => {
+  const app = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(app, /function offlineDownloadsPanel\(\)/);
+  assert.match(app, /offlineDownloadsPanel\(\),/);
+  assert.match(app, /removeCourse\(id\)/);
+});
