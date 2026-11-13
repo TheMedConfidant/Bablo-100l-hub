@@ -21,9 +21,12 @@ const normalizeId = value => String(value || '').replace(/-/g, '').toLowerCase()
 const pageIdFromUrl = value => {
   try {
     const url = new URL(value);
-    if (url.hostname !== 'app.notion.com') return null;
-    const match = url.pathname.match(/\/p\/([a-f0-9-]{32,36})/i);
-    return match ? normalizeId(match[1]) : null;
+    if (url.protocol !== 'https:' || url.hostname !== 'app.notion.com') return null;
+    const segments = url.pathname.split('/').filter(Boolean);
+    const candidate = segments.length === 1 ? segments[0] :
+      (segments.length === 2 && segments[0] === 'p' ? segments[1] : null);
+    if (!candidate || !/^(?:[a-f0-9]{32}|[a-f0-9-]{36})$/i.test(candidate)) return null;
+    return normalizeId(candidate);
   } catch { return null; }
 };
 const required = (value) => typeof value === 'string' && value.trim().length > 0;
