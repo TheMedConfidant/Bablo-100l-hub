@@ -11,7 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'data', 'notion-resource-manifest.json'), 'utf8'));
 const outputPath = path.join(root, 'data', 'notion-ingestion-preview.json');
 const slugify = value => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const resourceTypes = new Set(['notes','flashcards','MCQs','questions','quizzes','practicals','past-papers','image-bank','lecture-material','reference']);
+const resourceTypes = new Set(['notes','flashcards','MCQs','questions','quizzes','practicals','past-papers','vignettes','image-bank','lecture-material','reference']);
 const indexTypes = new Set(['course-catalogue','architecture','curriculum-map','course-index','workspace-index','flashcards-index','questions-index']);
 const sources = [], resources = [], errors = [], keys = new Set();
 for (const source of manifest.sources || []) {
