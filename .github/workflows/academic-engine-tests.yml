@@ -39,3 +39,11 @@ jobs:
         run: node scripts/build-notion-ingestion-preview.mjs
       - name: Run academic and ingestion safeguards
         run: node --test tests/academic-engine.test.mjs tests/notion-ingestion-preview.test.mjs
+      - name: Upload ingestion preview for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: notion-ingestion-preview
+          path: data/notion-ingestion-preview.json
+          if-no-files-found: ignore
+          retention-days: 14
