@@ -1169,7 +1169,7 @@ const PROGRAMME_COURSES = {
   'Other CoHES programme': [...CORE_COURSES, 'MTH101'],
   [GUEST_PROGRAMME]: [...CORE_COURSES, 'MTH101']
 };
-const coursesFor = programme => (PROGRAMME_COURSES[programme] || CORE_COURSES).map(code => COURSES.find(c => c.code === code)).filter(Boolean);
+const coursesFor = programme => (PROGRAMME_COURSES[programme] || []).map(code => COURSES.find(c => c.code === code)).filter(Boolean);
 function canAccessCourse(code) {
   const p = DB.profile;
   if (!p) return false;
@@ -1179,7 +1179,7 @@ function canAccessCourse(code) {
   const levelNumber = parseInt(p.level || '100L', 10) || 100;
   const programme = String(p.programme || '').trim().toUpperCase();
   if (levelNumber === 100) return coursesFor(p.programme).some(c => c.code === code);
-  if (levelNumber === 200 && programme === 'MBBS') return COURSES_200.some(c => c.code === code);
+  // The legacy 200L placeholders are not a verified course catalogue; deny access until mapped.
   return false;
 }
 
@@ -1339,7 +1339,7 @@ function academicProfileFields(profile, surface) {
   };
 
   const programme = h('input', { type: 'text', value: p.programme || '', maxlength: '60', list: 'bablo-programme-suggestions', placeholder: 'Enter your programme or choose a suggestion' });
-  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' }, PROGRAMMES.filter(x => x !== GUEST_PROGRAMME && x !== 'Other / not listed').map(x => h('option', { value: x })));
+  const suggestions = h('datalist', { id: 'bablo-programme-suggestions' });
   const initialCategory = p.programmeCategory || inferProgrammeCategory(p.programme || '');
   const category = h('select', null,
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, 'College of Health Sciences (COHES)'),
@@ -2075,9 +2075,7 @@ const homeCourses = () => {
   // Legacy embedded banks are Bowen-only. Never use them as a fallback for another institution.
   if (!isBowen) return [];
   if (levelNumber === 100) return coursesFor(p.programme);
-  if (levelNumber === 200 && programme === 'MBBS') {
-    return COURSES_200.filter(c => c.semester === HOME_SEM).map(c => Object.assign({}, c, { pending200: true }));
-  }
+  // Upper-level course lists appear only after their institution-specific curriculum is mapped.
   return [];
 };
 function open200(code, tab) { course200View.tab = tab; go('#/course/' + code); }
