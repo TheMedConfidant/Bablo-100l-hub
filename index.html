@@ -1090,7 +1090,7 @@ window.__PRACTICALS__.COS = {
     const start = new Date(fromMs + LAGOS); start.setUTCHours(0, 0, 0, 0);
     for (let d = start.getTime(); d < toMs; d += 864e5) {
       const day = new Date(d).getUTCDay();
-      W.filter(w => w.day === day).forEach(w => {
+      W.filter(w => w.day === day && (!w.date || lagosDay(d).toISOString().slice(0, 10) === w.date)).forEach(w => {
         const s = d + (w.from - 1) * 3600000, e = d + (w.to - 1) * 3600000;
         if (e > fromMs && s < toMs) out.push({ start: s, end: e, label: w.label });
       });
@@ -1186,13 +1186,13 @@ function canAccessCourse(code) {
 /* ---------- Programme Cup ---------- */
 /* Event windows repeat every week. Times are Lagos time (UTC+1). day: 0 Sun .. 6 Sat. */
 const EVENT_WINDOWS = [
-  { day: 3, from: 19, to: 23, label: 'Wednesday night' },
-  { day: 6, from: 13, to: 17, label: 'Saturday afternoon' }
+  { day: 6, from: 1, to: 25, date: '2026-11-14', label: 'Saturday 14 November · all day' },
+  { day: 0, from: 1, to: 25, date: '2026-11-15', label: 'Sunday 15 November · all day' }
 ];
 const SEASON = { name: 'Season 1', start: '2026-10-21T00:00:00+01:00', weeks: 4 };
 /* Course weights. Equal weights mean no programme is favoured. Tune here if you decide on different weights. */
 const COURSE_WEIGHTS = { BIO: 1, CHM: 1, PHY: 1, COS: 1, AGR: 1, MTH101: 1, GST111: 1, GEL101: 1 };
-const CUP = { minPlayers: 3, topN: 5 };
+const CUP = { minPlayers: 3, topN: 3 };
 const PASS_MARK = 50;
 const ABOUT_TEXT = ["I am Bababola Moses Bolawaife, known as Bablo. I grew to like the nickname in my secondary school, and I still bear it today. I am the founder, CEO and MD of The MedConfidant Channel. I saw the gap long before I got there. My journey into MBBS was not a simple hurdle to pass through, and these challenges shaped who I am today. Without them, The MedConfidant would not have been made.", "Bablo Hub began as an MBBS programme hub, meant to grow from 100 Level through to graduation and to solve some of the study problems of preclinical students. I did not know how to code, so I turned to artificial intelligence. I do not depend on AI entirely for code, but I have found that it cuts the time needed to study a material. It almost feels like a cheat code.", "People often asked how I could do these things while studying MBBS. My dream had always been in technology, and, as destiny would have it, here I am.", "AI helps a great deal when you study, but it cannot replicate or explain medical learning the way someone who has been through a medical course can. I faced many limitations along the way, but I kept pressing on. My first project was my motivation to get into medical school. I still look at what I can achieve and those I can help with this journey, birthed by challenges and orchestrated by God.", "Whenever you want to give up on your dreams or give in to external pressure, remember that I, Bablo, built this as a medical student. Anyone can do anything."];
 /* Bonus for GEL 101: Lean on Me. Summary and details from public synopses and the 2019/2020 exam key. Not from watching the film. */
@@ -1392,7 +1392,7 @@ function academicProfileFields(profile, surface) {
   if (selectedInstitutionSlug()) refreshProgrammeOptions();
   return {
     nodes: [
-      h('label', { class: 'field' }, h('span', null, 'Programme'), programme), suggestions,
+      h('label', { class: 'field' }, h('span', null, 'Faculty / Programme'), programme), suggestions,
       h('label', { class: 'field' }, h('span', null, 'Academic group'), category),
       h('label', { class: 'field' }, h('span', null, 'University'), institution),
       otherInstitutionField,
@@ -2420,7 +2420,19 @@ async function fetchPublicExamSchedule() {
     const r = await fetch(LB.url + '/rest/v1/rpc/hub_public_exam_schedule', { method: 'POST', headers: sbHeaders(), body: '{}' });
     if (!r.ok) throw new Error('Schedule unavailable (' + r.status + ')');
     const rows = await r.json();
-    EXAM_SCHEDULE_CACHE = Array.isArray(rows) ? rows : [];
+    const profile = DB.profile || {};
+    const normIdentity = value => String(value || '').trim().toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const institution = normIdentity(profile.institution);
+    const level = String(profile.level || '').trim();
+    const programme = normIdentity(profile.programme);
+    EXAM_SCHEDULE_CACHE = (Array.isArray(rows) ? rows : []).filter(row => {
+      const rowInstitution = normIdentity(row.institution_slug);
+      const rowLevel = String(row.academic_level || '').trim();
+      const rowProgramme = normIdentity(row.programme);
+      if (!institution || !level || !rowInstitution || !rowLevel) return false;
+      if (institution !== rowInstitution || level !== rowLevel) return false;
+      return !rowProgramme || rowProgramme === programme;
+    });
     maybeExamSchedulePush(EXAM_SCHEDULE_CACHE);
     return EXAM_SCHEDULE_CACHE;
   } catch (e) { console.warn('[Exam schedule]', e); return []; }
@@ -2430,7 +2442,7 @@ function examScheduleDate(row) {
   return new Date(row.scheduled_date + 'T00:00:00+01:00').toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
 }
 function maybeExamSchedulePush(rows) {
-  if (!DB.alerts || !('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   DB.examPushSent = DB.examPushSent || {};
   const now = Date.now();
   rows.forEach(row => {
@@ -2892,7 +2904,6 @@ function meView() {
   const name = h('input', { type: 'text', value: p.name || '', maxlength: '40', autocomplete: 'name' });
   const nick = h('input', { type: 'text', value: p.nick || '', maxlength: '20', autocomplete: 'nickname' });
   const academic = academicProfileFields(p, 'profile');
-  const faculty = h('input', { type: 'text', value: p.faculty || '', maxlength: '100', placeholder: 'e.g. College of Health Sciences' });
   const department = h('input', { type: 'text', value: p.department || '', maxlength: '100', placeholder: 'e.g. Medicine & Surgery' });
   const academicSession = h('input', { type: 'text', value: p.academicSession || '', maxlength: '30', placeholder: 'e.g. 2026/2027' });
   const status = h('p', { class: 'tiny muted', role: 'status', 'aria-live': 'polite' });
@@ -2939,9 +2950,8 @@ function meView() {
       h('div', { class: 'row between wrapr' }, h('h2', null, 'Academic identity'), h('span', { class: 'chip' }, p.programmeCategory === 'cohes' ? 'COHES' : 'Other programme')),
       h('div', { class: 'grid' },
         h('div', null, h('span', { class: 'tiny muted' }, 'Institution'), h('b', { style: { display: 'block' } }, p.institution || 'Not provided')),
-        h('div', null, h('span', { class: 'tiny muted' }, 'Programme'), h('b', { style: { display: 'block' } }, p.programme || 'Not provided')),
+        h('div', null, h('span', { class: 'tiny muted' }, 'Faculty / Programme'), h('b', { style: { display: 'block' } }, p.programme || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Current level'), h('b', { style: { display: 'block' } }, p.level || 'Not provided')),
-        h('div', null, h('span', { class: 'tiny muted' }, 'Faculty'), h('b', { style: { display: 'block' } }, p.faculty || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Department'), h('b', { style: { display: 'block' } }, p.department || 'Not provided')),
         h('div', null, h('span', { class: 'tiny muted' }, 'Academic session'), h('b', { style: { display: 'block' } }, p.academicSession || 'Not provided')),
         ...(academic.isBscPathwayRequired() ? [h('div', null, h('span', { class: 'tiny muted' }, 'BSc pathway'), h('b', { style: { display: 'block' } }, p.bscPathway || 'Not selected'))] : [])),
@@ -2951,7 +2961,6 @@ function meView() {
       h('label', { class: 'field' }, h('span', null, 'Full name'), name),
       h('label', { class: 'field' }, h('span', null, 'Leaderboard nickname'), nick),
       ...academic.nodes,
-      h('label', { class: 'field' }, h('span', null, 'Faculty (optional)'), faculty),
       h('label', { class: 'field' }, h('span', null, 'Department (optional)'), department),
       h('label', { class: 'field' }, h('span', null, 'Academic session (optional)'), academicSession),
       status,
@@ -2963,7 +2972,7 @@ function meView() {
         if (academic.isBscPathwayRequired() && !details.bscPathway) { status.textContent = 'Choose the BSc pathway for Bowen MBBS students in 200L and above.'; return; }
         DB.profile = Object.assign({}, DB.profile, {
           name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20),
-          faculty: faculty.value.trim(), department: department.value.trim(),
+          faculty: details.programme, department: department.value.trim(),
           academicSession: academicSession.value.trim()
         });
         try {
@@ -3869,7 +3878,7 @@ function cupView() {
   const standings = h('section', { class: 'panel stack' }, h('h2', null, SEASON.name + ' overall'), h('p', { class: 'muted' }, 'Loading standings\u2026'));
   mount(wrap(back('#/board', 'Leaderboard'), h('div', { class: 'stack-l' },
     h('div', { class: 'stack' }, h('h1', null, 'Programme Cup'), h('p', { class: 'muted' }, 'Every programme takes part. Your best ranked score in each course counts. The programme score is the average of its top ' + CUP.topN + ' players, so one person cannot carry a whole programme.')),
-    h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label + ' ' + String(w.from).padStart(2, '0') + ':00 to ' + String(w.to).padStart(2, '0') + ':00').join(' \u2022 ') + '. Repeats every week.'), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
+    h('section', { class: 'panel stack' }, h('h2', null, 'When it happens'), h('p', { class: 'small muted' }, EVENT_WINDOWS.map(w => w.label).join(' · ') + ' (Lagos time).'), h('div', null, timeline.length ? timeline : [h('p', { class: 'muted' }, 'No more events this season.')])),
     standings, pollCard(), h('div', { id: 'qualSlot' }))));
   qualifiersCard().then(card => { const slot = document.getElementById('qualSlot'); if (slot) slot.replaceChildren(card); });
   lbFetch().then(d => {
@@ -4465,9 +4474,9 @@ function flashView(code) {
   buildDeck();
 }
 /* ---------- qualifications: one attempt per account, two batches on qualifications day (Lagos time) ---------- */
-const QUAL = { date: '2026-10-17', A: [14 * 60, 18 * 60], B: [22 * 60, 23 * 60], questions: 60, minutes: 40, topN: 5 };
+const QUAL = { date: '2026-11-14', sundayDate: '2026-11-15', A: [0, 1440], B: [0, 1440], questions: 60, minutes: 40, topN: 3 };
 function lagosNow() { const d = new Date(Date.now() + 3600000); return { date: d.toISOString().slice(0, 10), mins: d.getUTCHours() * 60 + d.getUTCMinutes() }; }
-function qualBatch() { const t = lagosNow(); if (t.date !== QUAL.date) return null; if (t.mins >= QUAL.A[0] && t.mins < QUAL.A[1]) return 'A'; if (t.mins >= QUAL.B[0] && t.mins < QUAL.B[1]) return 'B'; return null; }
+function qualBatch() { const t = lagosNow(); if (t.date === QUAL.date) return 'A'; if (t.date === QUAL.sundayDate) return 'B'; return null; }
 function fmtMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
 async function qualStatus() {
   if (!signedIn() || !DB.account || !DB.account.token) return 'none';
@@ -4482,7 +4491,7 @@ function qualifyView() {
   qualStatus().then(st => { holder.replaceChildren(qualCard(batch, st)); });
 }
 function qualCard(batch, st) {
-  const info = h('p', { class: 'muted' }, 'Qualifications run on 17 October 2026, Lagos time. Batch A: ' + fmtMin(QUAL.A[0]) + ' to ' + fmtMin(QUAL.A[1]) + '. Batch B: ' + fmtMin(QUAL.B[0]) + ' to ' + fmtMin(QUAL.B[1]) + '.');
+  const info = h('p', { class: 'muted' }, 'November qualifiers run all day (Lagos time): Saturday 14 November (Batch A) and Sunday 15 November (Batch B). Three top performers per programme qualify. Each account may make one 60-question attempt across the weekend.');
   let body;
   if (!signedIn()) body = h('div', { class: 'panel stack' }, h('h2', null, 'Create an account first'), h('p', { class: 'muted small' }, 'Only account holders can qualify for their programme.'), h('a', { class: 'btn primary block', href: '#/me' }, 'Go to my account'));
   else if (st === 'done') body = h('div', { class: 'panel stack' }, h('h2', null, 'You have qualified'), h('p', { class: 'muted small' }, 'Each account gets one attempt. Your result is on the Cup page.'));
