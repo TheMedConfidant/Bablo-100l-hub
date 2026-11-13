@@ -48,7 +48,6 @@
       "url": "https://app.notion.com/p/3e91834fbdba8124be25c4d749158c67",
       "title": "Bowen CoHES BIO 101",
       "institution": "Bowen University",
-      "programme": "CoHES",
       "level": "100L",
       "course": "BIO 101",
       "types": [
@@ -57,7 +56,8 @@
         "MCQs",
         "past-papers"
       ],
-      "notes": "Separate nine-topic Bowen CoHES course; 180 MCQ records confirmed in its live Notion database, with distinct topic sequence and source."
+      "notes": "Separate nine-topic Bowen CoHES course; 180 MCQ records confirmed in its live Notion database, with distinct topic sequence and source.",
+      "college": "College of Health Sciences (CoHES)"
     },
     {
       "id": "3d71834f-bdba-81f7-a69e-d0c6396bea31",
