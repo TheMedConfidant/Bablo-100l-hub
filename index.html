@@ -1345,6 +1345,10 @@ function academicProfileFields(profile, surface) {
     h('option', { value: 'cohes', selected: initialCategory === 'cohes' ? true : null }, currentEntry && currentEntry.slug === 'bowen-university' ? 'College of Health Sciences (COHES)' : 'Health sciences programme'),
     h('option', { value: 'other', selected: initialCategory === 'other' ? true : null }, 'Other programme / outside COHES'));
   const level = h('select', null, ACADEMIC_LEVELS.map(x => h('option', { value: x, selected: (p.level || '100L') === x ? true : null }, x)));
+  const semester = h('select', null,
+    h('option', { value: '', disabled: true, selected: !p.academicSemester ? true : null }, 'Choose your semester'),
+    ...[['first','First semester'],['second','Second semester'],['summer','Summer semester'],['year-round','Year-round']].map(([value,label]) => h('option', { value, selected: p.academicSemester === value ? true : null }, label)));
+  const semesterField = h('label', { class: 'field' }, h('span', null, 'Current semester'), semester);
   const pathway = h('input', { type: 'text', value: p.bscPathway || '', maxlength: '100', placeholder: 'Choose/enter the BSc pathway' });
   const pathwayField = h('label', { class: 'field' }, h('span', null, 'BSc pathway'), pathway);
   const bscEligible = () => {
@@ -1397,13 +1401,14 @@ function academicProfileFields(profile, surface) {
       h('label', { class: 'field' }, h('span', null, 'University'), institution),
       otherInstitutionField,
       h('p', { class: 'tiny muted' }, 'The directory lists universities with documented health-science offerings. Programme and course access still depends on the verified catalogue for that institution.'),
-      h('label', { class: 'field' }, h('span', null, 'Current level'), level), pathwayField
+      h('label', { class: 'field' }, h('span', null, 'Current level'), level), semesterField, pathwayField
     ],
     read: () => ({
       programme: programme.value.trim(),
       programmeCategory: category.value,
       institution: selectedInstitution(),
       level: level.value,
+      academicSemester: semester.value,
       bscPathway: bscEligible() ? pathway.value.trim() : ''
     }),
     isBscPathwayRequired: bscEligible
@@ -1915,8 +1920,8 @@ function setAccount(j) {
   DB.account = { token: j.token, uid: j.uniqueId, premium: !!j.premium };
   DB.profile = {
     name: j.fullName, nick: j.nickname, username: j.username || '', programme: j.programme,
-    programmeCategory: j.programmeCategory || inferProgrammeCategory(j.programme),
-    institution: j.institution || '', level: j.academicLevel || '100L',
+    programmeCategory: j.programmeCategory || inferProgrammeCategory(j.programme, j.institution),
+    institution: j.institution || '', level: j.academicLevel || '100L', academicSemester: j.academicSemester || '',
     bscPathway: j.bscPathway || '', academicDetailsVerified: !!j.academicDetailsVerified,
     isGuest: !!j.isGuest, uid: j.uniqueId
   };
@@ -1926,12 +1931,12 @@ async function persistAcademicProfile(data) {
   const payload = {
     p_institution: data.institution, p_programme: data.programme,
     p_programme_category: data.programmeCategory, p_academic_level: data.level,
-    p_bsc_pathway: data.bscPathway || null
+    p_academic_semester: data.academicSemester, p_bsc_pathway: data.bscPathway || null
   };
   if (authConfigured()) {
     let result;
-    if (signedIn()) result = await hubCall('hub_save_academic_profile', Object.assign({ p_token: DB.account.token }, payload));
-    else result = await hubCall('hub_save_guest_academic_profile', Object.assign({ p_anon_id: DB.dev }, payload));
+    if (signedIn()) result = await hubCall('hub_save_academic_profile_v2', Object.assign({ p_token: DB.account.token }, payload));
+    else result = await hubCall('hub_save_guest_academic_profile_v2', Object.assign({ p_anon_id: DB.dev }, payload));
     if (!result || !result.ok) throw new Error((result && result.error) || 'Could not save academic details.');
   }
   DB.profile = Object.assign({}, DB.profile || {}, data);
@@ -1947,6 +1952,7 @@ async function signUp(f) {
   if (f.password.length < 8 || f.password.length > 128) throw new Error('Password must be 8–128 characters.');
   if (!f.programme || f.programme.length < 2) throw new Error('Enter your programme.');
   if (!f.institution || f.institution.length < 2) throw new Error('Enter your institution.');
+  if (!['first','second','summer','year-round'].includes(f.academicSemester)) throw new Error('Choose your current semester.');
   const reg = await hubCall('hub_register', {
     p_unique_id: null, p_password: f.password, p_full_name: f.name,
     p_nickname: f.nickname, p_programme: f.programme, p_is_guest: false
@@ -2355,6 +2361,7 @@ function onboarding() {
     if (n.length < 2) { err.textContent = 'Enter your name so we can greet you.'; return; }
     const details = academic.read();
     if (details.programme.length < 2 || details.institution.length < 2) { err.textContent = 'Enter your programme and institution.'; return; }
+    if (!['first','second','summer','year-round'].includes(details.academicSemester)) { err.textContent = 'Choose your current semester.'; return; }
     const k = (nick.value.trim() || n.split(' ')[0]).slice(0, 20);
     DB.profile = Object.assign({ name: n, nick: k, isGuest: true }, details);
     save();
@@ -2985,6 +2992,7 @@ function meView() {
         if (n.length < 2) { status.textContent = 'Enter your name.'; return; }
         const details = academic.read();
         if (details.programme.length < 2 || details.institution.length < 2) { status.textContent = 'Enter both your programme and institution.'; return; }
+        if (!['first','second','summer','year-round'].includes(details.academicSemester)) { status.textContent = 'Choose your current semester.'; return; }
         if (academic.isBscPathwayRequired() && !details.bscPathway) { status.textContent = 'Choose the BSc pathway for Bowen MBBS students in 200L and above.'; return; }
         DB.profile = Object.assign({}, DB.profile, {
           name: n, nick: (nick.value.trim() || n.split(' ')[0]).slice(0,20),
@@ -5267,6 +5275,8 @@ setTimeout(liveNotice, 1200);
 </script>
 <script src="challenge-arena.js"></script>
 <script>if(location.hash.replace(/^#\/?/, '').split('?')[0].split('/')[0] === 'challenge') route();</script>
+<script src="./university-directory.js" defer></script>
+<script src="./academic-engine.js" defer></script>
 </body>
 </html>
 
