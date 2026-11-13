@@ -112,7 +112,7 @@ test('Settings cache cleanup includes removable course packs and abandoned stagi
 test('course-pack refresh stages a complete immutable cache before atomically switching its manifest', () => {
   assert.ok(worker.includes("const response=await timedFetch(request,20000,'reload')"));
   assert.ok(worker.includes("await staging.put(request,response.clone())"));
-  assert.ok(worker.includes("newCacheName=COURSE_PREFIX+id+'-'+Date.now()"));
+  assert.ok(worker.includes("newCacheName=COURSE_PREFIX+id+'--'+Date.now()"));
   assert.ok(worker.includes("await next.put(request,response)"));
   assert.ok(worker.includes("await meta.put(metaKey"));
   assert.ok(worker.includes("const previous=await activeCourseCache(id)"));
