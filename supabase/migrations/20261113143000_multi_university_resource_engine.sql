@@ -235,28 +235,147 @@ begin
   end if;
 end $$;
 
--- Keep existing save RPCs, but narrow their BSc pathway predicate to Bowen MBBS only.
-do $$
-declare fn text;
+-- Enforce the BSc pathway only for Bowen MBBS students in 200L+.
+create or replace function public.hub_save_academic_profile(
+  p_token text,
+  p_institution text,
+  p_programme text,
+  p_programme_category text,
+  p_academic_level text,
+  p_bsc_pathway text default null
+) returns json
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare account_id text; pathway text;
 begin
-  select pg_get_functiondef('public.hub_save_academic_profile(text,text,text,text,text,text)'::regprocedure) into fn;
-  fn := replace(fn,
-    'when upper(trim(p_programme)) = ''MBBS''',
-    'when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'') and upper(trim(p_programme)) = ''MBBS''');
-  if position('when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'')' in fn) = 0 then
-    raise exception 'Could not enforce Bowen-only BSc pathway on authenticated profile RPC';
+  if coalesce(length(trim(p_institution)),0) < 2 or length(trim(p_institution)) > 100 then
+    return json_build_object('ok',false,'error','Enter a valid institution name.');
   end if;
-  execute fn;
+  if coalesce(length(trim(p_programme)),0) < 2 or length(trim(p_programme)) > 80 then
+    return json_build_object('ok',false,'error','Enter a valid programme name.');
+  end if;
+  if p_programme_category not in ('cohes','other') then
+    return json_build_object('ok',false,'error','Choose a valid programme group.');
+  end if;
+  if p_academic_level not in ('100L','200L','300L','400L','500L','600L','700L','Other') then
+    return json_build_object('ok',false,'error','Choose a valid academic level.');
+  end if;
+  if coalesce(length(trim(p_bsc_pathway)),0) > 100 then
+    return json_build_object('ok',false,'error','BSc pathway is too long.');
+  end if;
+  if upper(trim(p_institution)) in ('BOWEN UNIVERSITY','BOWEN')
+     and upper(trim(p_programme)) = 'MBBS'
+     and p_academic_level in ('200L','300L','400L','500L','600L','700L')
+     and coalesce(length(trim(p_bsc_pathway)),0) = 0 then
+    return json_build_object('ok',false,'error','Select the BSc pathway for Bowen MBBS students in 200L and above.');
+  end if;
+  pathway := case
+    when upper(trim(p_institution)) in ('BOWEN UNIVERSITY','BOWEN')
+      and upper(trim(p_programme)) = 'MBBS'
+      and p_academic_level in ('200L','300L','400L','500L','600L','700L')
+    then nullif(trim(p_bsc_pathway),'')
+    else null
+  end;
 
-  select pg_get_functiondef('public.hub_save_guest_academic_profile(text,text,text,text,text,text)'::regprocedure) into fn;
-  fn := replace(fn,
-    'when upper(trim(p_programme)) = ''MBBS''',
-    'when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'') and upper(trim(p_programme)) = ''MBBS''');
-  if position('when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'')' in fn) = 0 then
-    raise exception 'Could not enforce Bowen-only BSc pathway on guest profile RPC';
+  update public.hub_sessions
+     set expires_at = now() + interval '30 days'
+   where token = p_token and expires_at > now()
+   returning unique_id into account_id;
+  if account_id is null then
+    return json_build_object('ok',false,'error','Please log in again.');
   end if;
-  execute fn;
-end $$;
+
+  update public.hub_accounts
+     set institution = trim(p_institution),
+         programme = trim(p_programme),
+         programme_category = p_programme_category,
+         academic_level = p_academic_level,
+         bsc_pathway = pathway,
+         academic_details_verified = false,
+         updated_at = now()
+   where unique_id = account_id;
+  if not found then
+    return json_build_object('ok',false,'error','Account profile could not be found.');
+  end if;
+
+  return json_build_object(
+    'ok',true,'institution',trim(p_institution),'programme',trim(p_programme),
+    'programmeCategory',p_programme_category,'academicLevel',p_academic_level,
+    'bscPathway',pathway,'academicDetailsVerified',false
+  );
+end;
+$function$;
+
+revoke all on function public.hub_save_academic_profile(text,text,text,text,text,text) from public, authenticated;
+grant execute on function public.hub_save_academic_profile(text,text,text,text,text,text) to anon, service_role;
+
+create or replace function public.hub_save_guest_academic_profile(
+  p_anon_id text,
+  p_institution text,
+  p_programme text,
+  p_programme_category text,
+  p_academic_level text,
+  p_bsc_pathway text default null
+) returns json
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare pathway text;
+begin
+  if coalesce(p_anon_id,'') !~ '^[A-Za-z0-9_-]{8,64}$' then
+    return json_build_object('ok',false,'error','Invalid guest session.');
+  end if;
+  if coalesce(length(trim(p_institution)),0) < 2 or length(trim(p_institution)) > 100 then
+    return json_build_object('ok',false,'error','Enter a valid institution name.');
+  end if;
+  if coalesce(length(trim(p_programme)),0) < 2 or length(trim(p_programme)) > 80 then
+    return json_build_object('ok',false,'error','Enter a valid programme name.');
+  end if;
+  if p_programme_category not in ('cohes','other') then
+    return json_build_object('ok',false,'error','Choose a valid programme group.');
+  end if;
+  if p_academic_level not in ('100L','200L','300L','400L','500L','600L','700L','Other') then
+    return json_build_object('ok',false,'error','Choose a valid academic level.');
+  end if;
+  if coalesce(length(trim(p_bsc_pathway)),0) > 100 then
+    return json_build_object('ok',false,'error','BSc pathway is too long.');
+  end if;
+  if upper(trim(p_institution)) in ('BOWEN UNIVERSITY','BOWEN')
+     and upper(trim(p_programme)) = 'MBBS'
+     and p_academic_level in ('200L','300L','400L','500L','600L','700L')
+     and coalesce(length(trim(p_bsc_pathway)),0) = 0 then
+    return json_build_object('ok',false,'error','Select the BSc pathway for Bowen MBBS students in 200L and above.');
+  end if;
+  pathway := case
+    when upper(trim(p_institution)) in ('BOWEN UNIVERSITY','BOWEN')
+      and upper(trim(p_programme)) = 'MBBS'
+      and p_academic_level in ('200L','300L','400L','500L','600L','700L')
+    then nullif(trim(p_bsc_pathway),'')
+    else null
+  end;
+
+  insert into public.guest_academic_profiles
+    (anon_id,institution,programme,programme_category,academic_level,bsc_pathway,updated_at)
+  values
+    (p_anon_id,trim(p_institution),trim(p_programme),p_programme_category,p_academic_level,pathway,now())
+  on conflict (anon_id) do update set
+    institution = excluded.institution,
+    programme = excluded.programme,
+    programme_category = excluded.programme_category,
+    academic_level = excluded.academic_level,
+    bsc_pathway = excluded.bsc_pathway,
+    updated_at = now();
+
+  return json_build_object('ok',true,'saved',true,'source','self_declared');
+end;
+$function$;
+
+revoke all on function public.hub_save_guest_academic_profile(text,text,text,text,text,text) from public, authenticated;
+grant execute on function public.hub_save_guest_academic_profile(text,text,text,text,text,text) to anon, service_role;
+
 
 alter table public.hub_academic_institutions enable row level security;
 alter table public.hub_academic_programmes enable row level security;
