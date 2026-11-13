@@ -157,12 +157,18 @@ begin
   fn := replace(fn,
     'when upper(trim(p_programme)) = ''MBBS''',
     'when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'') and upper(trim(p_programme)) = ''MBBS''');
+  if position('when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'')' in fn) = 0 then
+    raise exception 'Could not enforce Bowen-only BSc pathway on authenticated profile RPC';
+  end if;
   execute fn;
 
   select pg_get_functiondef('public.hub_save_guest_academic_profile(text,text,text,text,text,text)'::regprocedure) into fn;
   fn := replace(fn,
     'when upper(trim(p_programme)) = ''MBBS''',
     'when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'') and upper(trim(p_programme)) = ''MBBS''');
+  if position('when upper(trim(p_institution)) in (''BOWEN UNIVERSITY'',''BOWEN'')' in fn) = 0 then
+    raise exception 'Could not enforce Bowen-only BSc pathway on guest profile RPC';
+  end if;
   execute fn;
 end $$;
 
