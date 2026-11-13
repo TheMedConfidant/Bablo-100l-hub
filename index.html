@@ -1326,7 +1326,7 @@ function academicProfileFields(profile, surface) {
         ...directory.map(entry => h('option', { value: entry.slug }, entry.name)),
         h('option', { value: '__other__' }, 'Other health-science university / request addition')
       );
-      institution.value = directory.some(entry => entry.slug === selected) ? selected : '__other__';
+      institution.value = directory.some(entry => entry.slug === selected) ? selected : (selected ? '__other__' : '');
       otherInstitutionField.hidden = institution.value !== '__other__';
       if (institution.value === '__other__' && !otherInstitution.value && selected !== '__other__') {
         const previous = oldDirectory.find(item => item.slug === selected);
