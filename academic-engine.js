@@ -59,6 +59,29 @@
   if(!validIdentity(id)||!Array.isArray(resources))return [];
   return resources.filter(r=>resourceVisible(r,id));
  }
+ async function loadResourceContent(resource){
+  if(!resource)throw new Error('A resource record is required');
+  const meta=resource.metadata||{};
+  const path=resource.contentReference||resource.content_reference||meta.bundle_path;
+  if(!path)throw new Error('The resource has no content bundle reference');
+  const response=await root.fetch(path,{cache:'force-cache'});
+  if(!response||!response.ok)throw new Error('Resource content is not available offline or online');
+  const bundle=await response.json();
+  const resourceKey=resource.resourceKey||resource.resource_key||'';
+  const datasetKey=meta.dataset_key
+   ||(resourceKey==='futa-100l-bio101-flashcards'?'futa-bio101-flashcards':null)
+   ||(resourceKey==='bowen-cohes-100l-bio101-mcqs'?'bowen-cohes-bio101-mcqs':null);
+  if(datasetKey){
+   const dataset=(bundle.datasets||[]).find(item=>item.key===datasetKey);
+   if(!dataset)throw new Error('The requested resource dataset is missing from its bundle');
+   return dataset;
+  }
+  const index=Number(meta.resource_index);
+  if(!Number.isInteger(index)||index<0)throw new Error('The resource bundle index is invalid');
+  const item=(bundle.resources||[])[index];
+  if(!item)throw new Error('The requested resource is missing from its bundle');
+  return item;
+ }
  function groupBySurface(resources,studentIdentity){
   const allowed=filterResources(resources,studentIdentity),out={};
   SURFACES.forEach(s=>out[s]=allowed.filter(r=>Array.isArray(r.surfaces)&&r.surfaces.includes(s)));
