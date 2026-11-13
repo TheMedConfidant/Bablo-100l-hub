@@ -123,25 +123,27 @@
       "id": "4161834f-bdba-81fb-9245-e2f5193d69f1",
       "url": "https://app.notion.com/p/4161834fbdba81fb9245e2f5193d69f1",
       "title": "Elbow & Forearm full notes",
-      "institution": "Unconfirmed target mapping",
+      "institution": "Bowen University",
       "level": "200L",
       "course": "Anatomy",
       "types": [
         "notes"
       ],
-      "notes": "Full structured notes; source page says reorder to Bowen lecture sequence once outline confirmed. Content quality is user-confirmed; target curriculum mapping remains separate."
+      "notes": "Full structured notes; source page says reorder to Bowen lecture sequence once outline confirmed. Content quality is user-confirmed; target curriculum mapping remains separate. Source context is Bowen 200L Anatomy; exact current official course code/semester mapping remains separate.",
+      "programme": "MBBS"
     },
     {
       "id": "4161834f-bdba-81d8-aaf7-cd19f4a5ce6a",
       "url": "https://app.notion.com/p/4161834fbdba81d8aaf7cd19f4a5ce6a",
       "title": "Elbow & Forearm flashcards",
-      "institution": "Unconfirmed target mapping",
+      "institution": "Bowen University",
       "level": "200L",
       "course": "Anatomy",
       "types": [
         "flashcards"
       ],
-      "notes": "Theory, image and scenario flashcards with Anki rating model. Target curriculum mapping remains separate."
+      "notes": "Theory, image and scenario flashcards with Anki rating model. Target curriculum mapping remains separate. Source context is Bowen 200L Anatomy; exact current official course code/semester mapping remains separate.",
+      "programme": "MBBS"
     },
     {
       "id": "a55df9d5-aed2-4afc-8649-2751543ec07d",
@@ -279,6 +281,39 @@
       "course": "Biochemistry",
       "resourceType": "questions-index",
       "exportStatus": "indexed-not-row-exported"
+    },
+    {
+      "id": "4161834f-bdba-813a-9543-eee0234f169a",
+      "url": "https://app.notion.com/p/4161834fbdba813a9543eee0234f169a",
+      "title": "Elbow & Forearm objective quiz and essay prompts",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "quizzes",
+      "notes": "25 objective MCQs and 5 essay/model-answer prompts; part of the Bowen 200L Anatomy Elbow & Forearm pack."
+    },
+    {
+      "id": "4161834f-bdba-8129-bb91-c5284334df9b",
+      "url": "https://app.notion.com/p/4161834fbdba8129bb91c5284334df9b",
+      "title": "Elbow & Forearm clinical scenarios and vignettes",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "questions",
+      "notes": "6 clinical vignettes with answer reasoning; subtype clinical-vignettes."
+    },
+    {
+      "id": "4161834f-bdba-81a7-a7d8-f6465cad9fc9",
+      "url": "https://app.notion.com/p/4161834fbdba81a7a7d8f6465cad9fc9",
+      "title": "Elbow & Forearm OpenStax glossary and questions",
+      "institution": "Bowen University",
+      "programme": "MBBS",
+      "level": "200L",
+      "course": "Anatomy",
+      "resourceType": "reference",
+      "notes": "OpenStax CC BY glossary plus 10 objective questions; preserve attribution and source notes."
     }
   ],
   "exports": [
