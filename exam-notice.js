@@ -9,7 +9,6 @@
     time: '9:00 AM',
     venue: 'Computer Lab, Old Site',
     starts: '20261127T090000',
-    ends: '20261127T110000'
   };
 
   function addCalendarEvent() {
@@ -19,7 +18,6 @@
       'UID:' + NOTICE_ID + '@bablohub',
       'DTSTAMP:20261114T000000Z',
       'DTSTART;TZID=Africa/Lagos:' + EVENT.starts,
-      'DTEND;TZID=Africa/Lagos:' + EVENT.ends,
       'SUMMARY:CHM 101 CBT Test',
       'LOCATION:Computer Lab\, Old Site',
       'DESCRIPTION:CHM 101 CBT Test. Friday 27 November 2026 at 9:00 AM.',
