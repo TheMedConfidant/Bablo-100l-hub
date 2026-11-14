@@ -45,5 +45,16 @@ The eight readable experiment areas are:
 - Source files located and inspected: **complete**.
 - Eight readable experiment areas inventoried: **complete**.
 - Entire 30-page scan independently re-OCRed/reviewed: **not complete**; faint pages remain a coverage limitation.
-- 30-question sets per experiment: **not yet built**.
-- App integration, CBT validation and deployment: **not yet done**.
+- 30-question sets per experiment: **created on the working branch** (240 total).
+  - Experiment 3 calibration: `practicals/chm107-cbt-bank.js` (30 items).
+  - Experiment 4 graphs: `practicals/chm107-exp4-graphs-cbt.js` (30 items).
+  - Experiment 5 indicators: `practicals/chm107-exp5-indicators-cbt.js` (30 items).
+  - Experiment 6 strong acid/base: `practicals/chm107-exp6-strong-acid-base-cbt.js` (30 items).
+  - Experiment 7 weak acid/base: `practicals/chm107-exp7-weak-acid-base-cbt.js` (30 items).
+  - Experiment 8 pKa: `practicals/chm107-exp8-pka-cbt.js` (30 items).
+  - Experiment 9 titration curves: `practicals/chm107-exp9-titration-curves-cbt.js` (30 items).
+  - Experiment 10 redox: `practicals/chm107-exp10-redox-cbt.js` (30 items).
+- Structural validation of the seven new sets: **passed** (30 items each; four options and valid answer indices).
+- Experiment 3 bank was previously validated at 30 items; its tuple schema differs from the newer standalone set files.
+- Full chemistry/content review, loader integration, in-app rendering/scoring validation, preview deployment and production deployment: **not yet done**.
+- The seven new files currently register data only when loaded; they are not yet wired into the existing CHM 107 Test Practice screen.
